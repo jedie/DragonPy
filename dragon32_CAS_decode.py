@@ -3,9 +3,9 @@
 """
     Convert dragon 32 Cassetts WAV files into plain text.
     =====================================================
-    
+
     In current state only the bits would be decoded, yet!
-    
+
     TODO:
         detect even_odd startpoint!
 
@@ -28,6 +28,77 @@ import audioop
 ONE_HZ = 2400 # "1" is a single cycle at 2400 Hz
 NUL_HZ = 1200 # "0" is a single cycle at 1200 Hz
 MIN_TOGGLE_COUNT = 3 # How many samples must be in pos/neg to count a cycle?
+
+DISPLAY_BLOCK_COUNT = 8 # How many bit block should be printet in one line?
+
+
+def iter_steps(g, steps):
+    """
+    >>> for v in iter_steps([1,2,3,4], steps=2): v
+    [1, 2]
+    [3, 4]
+    >>> for v in iter_steps([1,2,3,4,5,6], steps=3): v
+    [1, 2, 3]
+    [4, 5, 6]
+
+                                 12345678        12345678
+                                         12345678
+    >>> bits = [int(i) for i in "0101010101010101111000"]
+    >>> for v in iter_steps(bits, steps=8): v
+    [0, 1, 0, 1, 0, 1, 0, 1]
+    [0, 1, 0, 1, 0, 1, 0, 1]
+    [1, 1, 1, 0, 0, 0]
+    """
+    values = []
+    for value in g:
+        values.append(value)
+        if len(values)==steps:
+            yield list(values)
+            values = []
+    if values:
+        yield list(values)
+
+
+def iter_window(g, steps):
+    """
+    >>> for v in iter_window([1,2,3,4], steps=2): v
+    [1, 2]
+    [2, 3]
+    [3, 4]
+    >>> for v in iter_window([1,2,3,4,5], steps=3): v
+    [1, 2, 3]
+    [2, 3, 4]
+    [3, 4, 5]
+
+    >>> for v in iter_window([1,2,3,4], steps=2):
+    ...    v
+    ...    v.append(True)
+    [1, 2]
+    [2, 3]
+    [3, 4]
+    """
+    values = collections.deque(maxlen=steps)
+    for value in g:
+        values.append(value)
+        if len(values)==steps:
+            yield list(values)
+
+
+def count_sign(values):
+    """
+    >>> count_sign([3,-1,-2])
+    (1, 2)
+    >>> count_sign([0,-1])
+    (0, 1)
+    """
+    positive_count = 0
+    negative_count = 0
+    for value in values:
+        if value>0:
+            positive_count += 1
+        elif value<0:
+            negative_count += 1
+    return positive_count, negative_count
 
 
 def iter_wave_values(wavefile):
@@ -57,23 +128,6 @@ def iter_wave_values(wavefile):
         frame = struct.unpack(struct_unpack_str, frame)[0]
 
         yield frame_no, frame
-
-
-def count_sign(values):
-    """
-    >>> count_sign([3,-1,-2])
-    (1, 2)
-    >>> count_sign([0,-1])
-    (0, 1)
-    """
-    positive_count = 0
-    negative_count = 0
-    for value in values:
-        if value>0:
-            positive_count += 1
-        elif value<0:
-            negative_count += 1
-    return positive_count, negative_count
 
 
 def iter_bits(wavefile, even_odd):
@@ -125,22 +179,141 @@ def iter_bits(wavefile, even_odd):
                 previous_frame_no = frame_no
 
 
+
+def get_start_pos_iter_window(bits, pattern):
+    """
+    search 'pattern' bit by bit.
+
+    >>> bits = [int(i) for i in "00100000001010101010101010101"]
+    >>> get_start_pos_iter_window(bits, "01010101")
+    9
+
+    >>> get_start_pos_iter_window([1,2,3], "99")
+    False
+    """
+    pattern = [int(i) for i in pattern]
+    for pos, data in enumerate(iter_window(bits, len(pattern))):
+        if data == pattern:
+            return pos
+            break
+    return False
+
+
+def get_start_pos_iter_steps(bits, pattern):
+    """
+    search 'pattern' in pattern-len-steps.
+
+                                 01010101
+                                         01010101
+    >>> bits = [int(i) for i in "0000000001010101"]
+    >>> get_start_pos_iter_window(bits, "01010101")
+    8
+    >>> get_start_pos_iter_steps(bits, "01010101")
+    8
+
+    >>> get_start_pos_iter_steps([1,2,3], "99")
+    False
+    """
+    pattern_len = len(pattern)
+    pattern = [int(i) for i in pattern]
+    for pos, data in enumerate(iter_steps(bits, pattern_len)):
+        if data == pattern:
+            return pos*pattern_len
+            break
+    return False
+
+
+def get_last_pos_iter_steps(bits, pattern):
+    """
+                                 01010101
+                                         01010101
+    >>> bits = [int(i) for i in "0101010101010101111000"]
+    >>> get_last_pos_iter_steps(bits, "01010101")
+    16
+
+    >>> get_last_pos_iter_steps([1,2,3], "99")
+    0
+
+    >>> get_last_pos_iter_steps([0,1,0,1], "01")
+    4
+    """
+    pattern_len = len(pattern)
+    pattern = [int(i) for i in pattern]
+    for pos, data in enumerate(iter_steps(bits, pattern_len),1):
+        if data != pattern:
+            pos -= 1
+            break
+    return pos*pattern_len
+
+
+def print_bitlist(bit_list):
+    in_line_count = 0
+    for block in iter_steps(bit_list, steps=8):
+        print "".join([str(i) for i in block]),
+        in_line_count += 1
+        if in_line_count>=DISPLAY_BLOCK_COUNT:
+            in_line_count = 0
+            print
+    if in_line_count>0:
+        print
+
+
+def strip_pattern(bit_list, pattern):
+    end = get_last_pos_iter_steps(bit_list, pattern)
+    if end:
+        return bit_list[end:], end
+    return (bit_list, False)
+
+
+def get_block(bit_list, pattern):
+    """
+    >>> bits = [int(i) for i in "0101010100110101"]
+    >>> get_block(bits, "0101")
+    (8, 4, [0, 0, 1, 1], [0, 1, 0, 1])
+
+    >>> bits = [int(i) for i in "01010011"]
+    >>> get_block(bits, "0101")
+    (4, False, [0, 0, 1, 1], [])
+
+    >>> bits = [int(i) for i in "00110101"]
+    >>> get_block(bits, "0101")
+    (False, 4, [0, 0, 1, 1], [0, 1, 0, 1])
+
+    >>> bits = [int(i) for i in "0011"]
+    >>> get_block(bits, "0101")
+    (False, False, [0, 0, 1, 1], [])
+    """
+
+    bit_list, block_start = strip_pattern(bit_list, pattern)
+    block_end = get_start_pos_iter_steps(bit_list, pattern)
+    if not block_end:
+        block_data = bit_list
+        cut_bit_list = []
+    else:
+        block_data = bit_list[:block_end]
+        cut_bit_list = bit_list[block_end:]
+
+    return block_start, block_end, block_data, cut_bit_list
+
+
+
 if __name__ == "__main__":
     import doctest
     print doctest.testmod(
         verbose=False
         #~ verbose=True
     )
+    #~ sys.exit()
 
 
     # created by Xroar Emulator
-#     FILENAME = "HelloWorld1 xroar.wav"
-#     even_odd = False
+    FILENAME = "HelloWorld1 xroar.wav"
+    even_odd = False
 
 
     # created by origin Dragon 32 machine
-    FILENAME = "HelloWorld1 origin.wav"
-    even_odd = True
+    #~ FILENAME = "HelloWorld1 origin.wav"
+    #~ even_odd = True
 
 
     print "Read '%s'..." % FILENAME
@@ -149,13 +322,75 @@ if __name__ == "__main__":
     frame_count = wavefile.getnframes()
     print "Numer of audio frames:", frame_count
 
-    line = ""
-    for bit_count, bit in enumerate(iter_bits(wavefile, even_odd)):
+    #~ line = ""
+    #~ for bit_count, bit in enumerate(iter_bits(wavefile, even_odd)):
         #~ if frame_no>100:
             #~ break
-        line += str(bit)
-        if len(line)>70:
-            print line
-            line = ""
+        #~ line += str(bit)
+        #~ if len(line)>70:
+            #~ print line
+            #~ line = ""
 
-    print "%i bits decoded." % bit_count
+    print "read..."
+    bit_list = list(iter_bits(wavefile, even_odd))
+    print "%i bits decoded." % len(bit_list)
+
+    #~ line = ""
+    #~ for bit_count, bit in enumerate(bit_list):
+        #~ line += str(bit)
+        #~ if len(line)>70:
+            #~ print line
+            #~ line = ""
+    #~ print line
+    #~ print "-"*79
+
+    START_LEADER = "01010101"
+
+
+    start_leader_start = get_start_pos_iter_window(bit_list, START_LEADER)
+    if not start_leader_start:
+        print "ERROR: Start leader '%s' not found!" % START_LEADER
+        sys.exit(-1)
+    print "Start leader '%s' found at position: %i" % (START_LEADER, start_leader_start)
+
+    # Cut bits before the first 01010101 start leader
+    print "bits before header:", "".join([str(i) for i in bit_list[:start_leader_start]])
+    bit_list = bit_list[start_leader_start:]
+
+
+    #~ print "-"*79
+    #~ print_bitlist(bit_list)
+    #~ print "-"*79
+
+
+    # file info block
+    block_start, block_end, fileinfo_block, bit_list = get_block(bit_list, START_LEADER)
+    print "Block pos: %i-%i len: %ibits rest: %ibits" % (
+        block_start, block_end, len(fileinfo_block), len(bit_list)
+    )
+
+    print "-"*79
+    print "  *** file info block data:"
+    print_bitlist(fileinfo_block)
+    print "-"*79
+
+
+    # get data blocks
+    block_no = 0
+    while True:
+        block_no += 1
+        print "  *** data block %i" % block_no
+        block_start, block_end, block_data, bit_list = get_block(bit_list, START_LEADER)
+        print "  Block pos: %i-%i len: %ibits rest: %ibits" % (
+            block_start, block_end, len(fileinfo_block), len(bit_list)
+        )
+        print_bitlist(block_data)
+        print "-"*79
+
+        if len(block_data) == 0 or len(bit_list)==0:
+            # no data left
+            if bit_list:
+                print "Rest data:"
+                print_bitlist(bit_list)
+            break
+
