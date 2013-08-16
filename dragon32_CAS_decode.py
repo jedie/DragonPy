@@ -13,16 +13,19 @@
         http://www.onastick.clara.net/cosio.htm
         http://www.cs.unc.edu/~yakowenk/coco/text/tapeformat.html
 
+    Many thanks to the people from:
+        http://www.python-forum.de/viewtopic.php?f=1&t=32102 (de)
+        http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4231 (en)
+
     :copyleft: 2013 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+
 import collections
-import itertools
 import wave
 import sys
 import struct
-import audioop
 
 
 ONE_HZ = 2400 # "1" is a single cycle at 2400 Hz
@@ -166,7 +169,6 @@ def iter_bits(wavefile, even_odd):
 
                 frame_count = frame_no-previous_frame_no
                 hz=framerate/frame_count
-                ms=float(frame_no)/framerate
 
                 dst_one = abs(ONE_HZ-hz)
                 dst_nul = abs(NUL_HZ-hz)
@@ -175,7 +177,8 @@ def iter_bits(wavefile, even_odd):
                 else:
                     yield 0
 
-                #~ print "***", bit, hz, "Hz", "%0.5fms" % ms
+                # ms=float(frame_no)/framerate
+                # print "***", bit, hz, "Hz", "%0.5fms" % ms
                 previous_frame_no = frame_no
 
 
@@ -249,7 +252,7 @@ def get_last_pos_iter_steps(bits, pattern):
 def print_bitlist(bit_list):
     in_line_count = 0
     for block in iter_steps(bit_list, steps=8):
-        print "".join([str(i) for i in block]),
+        print list2str(block),
         in_line_count += 1
         if in_line_count>=DISPLAY_BLOCK_COUNT:
             in_line_count = 0
@@ -295,6 +298,40 @@ def get_block(bit_list, pattern):
 
     return block_start, block_end, block_data, cut_bit_list
 
+def list2str(l):
+    """
+    >>> list2str([0, 0, 0, 1, 0, 0, 1, 0])
+    '00010010'
+    """
+    return "".join([str(c) for c in l])
+
+def bits2ASCII(bits):
+    """
+    >>> c = bits2ASCII([0, 0, 0, 1, 0, 0, 1, 0])
+    >>> c
+    72
+    >>> chr(c)
+    'H'
+
+    >>> bits2ASCII([0, 0, 1, 1, 0, 0, 1, 0])
+    76
+    """
+    bits = bits[::-1]
+    bits = list2str(bits)
+    return int(bits,2)
+
+
+def block2ascii(bit_list):
+    """
+    http://wiki.python.org/moin/BitwiseOperators
+    """
+    for block in iter_steps(bit_list, steps=8):
+        byte_no = bits2ASCII(block)
+        character = chr(byte_no)
+        print "%s %4s %3s %s" % (
+            list2str(block), hex(byte_no), byte_no, repr(character)
+        )
+
 
 
 if __name__ == "__main__":
@@ -310,11 +347,12 @@ if __name__ == "__main__":
     FILENAME = "HelloWorld1 xroar.wav"
     even_odd = False
 
-
     # created by origin Dragon 32 machine
     #~ FILENAME = "HelloWorld1 origin.wav"
     #~ even_odd = True
-
+    #~ FILENAME = "test.wav"
+    #~ even_odd = True
+    #~ even_odd = False
 
     print "Read '%s'..." % FILENAME
     wavefile = wave.open(FILENAME, "r")
@@ -335,6 +373,13 @@ if __name__ == "__main__":
     bit_list = list(iter_bits(wavefile, even_odd))
     print "%i bits decoded." % len(bit_list)
 
+    #~ print "-"*79
+    #~ print_bitlist(bit_list)
+    #~ print "-"*79
+    #~ block2ascii(bit_list)
+    #~ print "-"*79
+    #~ sys.exit()
+
     #~ line = ""
     #~ for bit_count, bit in enumerate(bit_list):
         #~ line += str(bit)
@@ -344,7 +389,7 @@ if __name__ == "__main__":
     #~ print line
     #~ print "-"*79
 
-    START_LEADER = "01010101"
+    START_LEADER = "10101010"
 
 
     start_leader_start = get_start_pos_iter_window(bit_list, START_LEADER)
@@ -354,7 +399,7 @@ if __name__ == "__main__":
     print "Start leader '%s' found at position: %i" % (START_LEADER, start_leader_start)
 
     # Cut bits before the first 01010101 start leader
-    print "bits before header:", "".join([str(i) for i in bit_list[:start_leader_start]])
+    print "bits before header:", repr(list2str(bit_list[:start_leader_start]))
     bit_list = bit_list[start_leader_start:]
 
 
@@ -373,6 +418,8 @@ if __name__ == "__main__":
     print "  *** file info block data:"
     print_bitlist(fileinfo_block)
     print "-"*79
+    block2ascii(fileinfo_block)
+    print "-"*79
 
 
     # get data blocks
@@ -385,6 +432,8 @@ if __name__ == "__main__":
             block_start, block_end, len(fileinfo_block), len(bit_list)
         )
         print_bitlist(block_data)
+        print "-"*79
+        block2ascii(block_data)
         print "-"*79
 
         if len(block_data) == 0 or len(bit_list)==0:
