@@ -34,6 +34,86 @@ MIN_TOGGLE_COUNT = 3 # How many samples must be in pos/neg to count a cycle?
 
 DISPLAY_BLOCK_COUNT = 8 # How many bit block should be printet in one line?
 
+BASIC_TOKENS = {
+    128: " FOR ",     # 0x80
+    129: " GO ",      # 0x81
+    130: " REM ",     # 0x82
+    131: "'",         # 0x83
+    132: " ELSE ",    # 0x84
+    133: " IF ",      # 0x85
+    134: " DATA ",    # 0x86
+    135: " PRINT ",   # 0x87
+    136: " ON ",      # 0x88
+    137: " INPUT ",   # 0x89
+    138: " END ",     # 0x8a
+    139: " NEXT ",    # 0x8b
+    140: " DIM ",     # 0x8c
+    141: " READ ",    # 0x8d
+    142: " LET ",     # 0x8e
+    143: " RUN ",     # 0x8f
+    144: " RESTORE ", # 0x90
+    145: " RETURN ",  # 0x91
+    146: " STOP ",    # 0x92
+    147: " POKE ",    # 0x93
+    148: " CONT ",    # 0x94
+    149: " LIST ",    # 0x95
+    150: " CLEAR ",   # 0x96
+    151: " NEW ",     # 0x97
+    152: " DEF ",     # 0x98
+    153: " CLOAD ",   # 0x99
+    154: " CSAVE ",   # 0x9a
+    155: " OPEN ",    # 0x9b
+    156: " CLOSE ",   # 0x9c
+    157: " LLIST ",   # 0x9d
+    158: " SET ",     # 0x9e
+    159: " RESET ",   # 0x9f
+    160: " CLS ",     # 0xa0
+    161: " MOTOR ",   # 0xa1
+    162: " SOUND ",   # 0xa2
+    163: " AUDIO ",   # 0xa3
+    164: " EXEC ",    # 0xa4
+    165: " SKIPF ",   # 0xa5
+    166: " DELETE ",  # 0xa6
+    167: " EDIT ",    # 0xa7
+    168: " TRON ",    # 0xa8
+    169: " TROFF ",   # 0xa9
+    170: " LINE ",    # 0xaa
+    171: " PCLS ",    # 0xab
+    172: " PSET ",    # 0xac
+    173: " PRESET ",  # 0xad
+    174: " SCREEN ",  # 0xae
+    175: " PCLEAR ",  # 0xaf
+    176: " COLOR ",   # 0xb0
+    177: " CIRCLE ",  # 0xb1
+    178: " PAINT ",   # 0xb2
+    179: " GET ",     # 0xb3
+    180: " PUT ",     # 0xb4
+    181: " DRAW ",    # 0xb5
+    182: " PCOPY ",   # 0xb6
+    183: " PMODE ",   # 0xb7
+    184: " PLAY ",    # 0xb8
+    185: " DLOAD ",   # 0xb9
+    186: " RENUM ",   # 0xba
+    187: " TAB(",     # 0xbb
+    188: " TO ",      # 0xbc
+    189: " SUB ",     # 0xbd
+    190: " FN ",      # 0xbe
+    191: " THEN ",    # 0xbf
+    192: " NOT ",     # 0xc0
+    193: " STEP ",    # 0xc1
+    194: " OFF ",     # 0xc2
+    195: "+",         # 0xc3
+    196: "-",         # 0xc4
+    197: "*",         # 0xc5
+    198: "/",         # 0xc6
+    199: "^",         # 0xc7
+    200: " AND ",     # 0xc8
+    201: " OR ",      # 0xc9
+    202: ">",         # 0xca
+    203: "=",         # 0xcb
+    204: "<",         # 0xcc
+    205: " USING ",   # 0xcd
+}
 
 def iter_steps(g, steps):
     """
@@ -325,9 +405,15 @@ def block2ascii(bit_list):
     """
     http://wiki.python.org/moin/BitwiseOperators
     """
+    txt = ""
     for block in iter_steps(bit_list, steps=8):
         byte_no = bits2ASCII(block)
-        character = chr(byte_no)
+
+        if byte_no in BASIC_TOKENS:
+            character = BASIC_TOKENS[byte_no]
+        else:
+            character = chr(byte_no)
+
         print "%s %4s %3s %s" % (
             list2str(block), hex(byte_no), byte_no, repr(character)
         )
@@ -350,9 +436,19 @@ if __name__ == "__main__":
     # created by origin Dragon 32 machine
     #~ FILENAME = "HelloWorld1 origin.wav"
     #~ even_odd = True
-    #~ FILENAME = "test.wav"
-    #~ even_odd = True
-    #~ even_odd = False
+
+
+    """
+    The origin BASIC code of the two WAV file is:
+
+    10 FOR I = 1 TO 10
+    20 PRINT I;"HELLO WORLD!"
+    30 NEXT I
+
+    The WAV files are here:
+    https://github.com/jedie/python-code-snippets/raw/master/CodeSnippets/Dragon%2032/HelloWorld1%20origin.wav
+    https://github.com/jedie/python-code-snippets/raw/master/CodeSnippets/Dragon%2032/HelloWorld1%20xroar.wav
+    """
 
     print "Read '%s'..." % FILENAME
     wavefile = wave.open(FILENAME, "r")
@@ -362,16 +458,35 @@ if __name__ == "__main__":
 
     #~ line = ""
     #~ for bit_count, bit in enumerate(iter_bits(wavefile, even_odd)):
-        #~ if frame_no>100:
-            #~ break
         #~ line += str(bit)
         #~ if len(line)>70:
             #~ print line
             #~ line = ""
+    #~ sys.exit()
 
     print "read..."
     bit_list = list(iter_bits(wavefile, even_odd))
     print "%i bits decoded." % len(bit_list)
+
+
+    # Test String of binary represtation of "HELLO WORLD!"
+    TEST_STR=(
+        "00010010" # 0x48  72 'H'
+        "10100010" # 0x45  69 'E'
+        "00110010" # 0x4c  76 'L'
+        "00110010" # 0x4c  76 'L'
+        "11110010" # 0x4f  79 'O'
+        "00000100" # 0x20  32 ' '
+        "11101010" # 0x57  87 'W'
+        "11110010" # 0x4f  79 'O'
+        "01001010" # 0x52  82 'R'
+        "00110010" # 0x4c  76 'L'
+        "00100010" # 0x44  68 'D'
+        "10000100" # 0x21  33 '!'
+    )# 000100101010001000110010001100101111001000000100111010101111001001001010001100100010001010000100
+    test_start = get_start_pos_iter_window(bit_list, TEST_STR)
+    print "*** Test String found at:", test_start
+
 
     #~ print "-"*79
     #~ print_bitlist(bit_list)
