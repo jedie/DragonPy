@@ -30,99 +30,118 @@ import struct
 
 ONE_HZ = 2400 # "1" is a single cycle at 2400 Hz
 NUL_HZ = 1200 # "0" is a single cycle at 1200 Hz
+
+LEADER_BYTE = "10101010" # 0x55
+SYNC_BYTE = "00111100" # 0x3C
+
+# Block types:
+FILENAME_BLOCK = 0x00
+DATA_BLOCK = 0x01
+EOF_BLOCK = 0xff
+
+BLOCK_TYPE_DICT = {
+    FILENAME_BLOCK: "filename block",
+    DATA_BLOCK: "data block",
+    EOF_BLOCK: "end-of-file block",
+}
+
 MIN_TOGGLE_COUNT = 3 # How many samples must be in pos/neg to count a cycle?
 
 DISPLAY_BLOCK_COUNT = 8 # How many bit block should be printet in one line?
 
 BASIC_TOKENS = {
-    128: " FOR ",     # 0x80
-    129: " GO ",      # 0x81
-    130: " REM ",     # 0x82
-    131: "'",         # 0x83
-    132: " ELSE ",    # 0x84
-    133: " IF ",      # 0x85
-    134: " DATA ",    # 0x86
-    135: " PRINT ",   # 0x87
-    136: " ON ",      # 0x88
-    137: " INPUT ",   # 0x89
-    138: " END ",     # 0x8a
-    139: " NEXT ",    # 0x8b
-    140: " DIM ",     # 0x8c
-    141: " READ ",    # 0x8d
-    142: " LET ",     # 0x8e
-    143: " RUN ",     # 0x8f
+    128: " FOR ", # 0x80
+    129: " GO ", # 0x81
+    130: " REM ", # 0x82
+    131: "'", # 0x83
+    132: " ELSE ", # 0x84
+    133: " IF ", # 0x85
+    134: " DATA ", # 0x86
+    135: " PRINT ", # 0x87
+    136: " ON ", # 0x88
+    137: " INPUT ", # 0x89
+    138: " END ", # 0x8a
+    139: " NEXT ", # 0x8b
+    140: " DIM ", # 0x8c
+    141: " READ ", # 0x8d
+    142: " LET ", # 0x8e
+    143: " RUN ", # 0x8f
     144: " RESTORE ", # 0x90
-    145: " RETURN ",  # 0x91
-    146: " STOP ",    # 0x92
-    147: " POKE ",    # 0x93
-    148: " CONT ",    # 0x94
-    149: " LIST ",    # 0x95
-    150: " CLEAR ",   # 0x96
-    151: " NEW ",     # 0x97
-    152: " DEF ",     # 0x98
-    153: " CLOAD ",   # 0x99
-    154: " CSAVE ",   # 0x9a
-    155: " OPEN ",    # 0x9b
-    156: " CLOSE ",   # 0x9c
-    157: " LLIST ",   # 0x9d
-    158: " SET ",     # 0x9e
-    159: " RESET ",   # 0x9f
-    160: " CLS ",     # 0xa0
-    161: " MOTOR ",   # 0xa1
-    162: " SOUND ",   # 0xa2
-    163: " AUDIO ",   # 0xa3
-    164: " EXEC ",    # 0xa4
-    165: " SKIPF ",   # 0xa5
-    166: " DELETE ",  # 0xa6
-    167: " EDIT ",    # 0xa7
-    168: " TRON ",    # 0xa8
-    169: " TROFF ",   # 0xa9
-    170: " LINE ",    # 0xaa
-    171: " PCLS ",    # 0xab
-    172: " PSET ",    # 0xac
-    173: " PRESET ",  # 0xad
-    174: " SCREEN ",  # 0xae
-    175: " PCLEAR ",  # 0xaf
-    176: " COLOR ",   # 0xb0
-    177: " CIRCLE ",  # 0xb1
-    178: " PAINT ",   # 0xb2
-    179: " GET ",     # 0xb3
-    180: " PUT ",     # 0xb4
-    181: " DRAW ",    # 0xb5
-    182: " PCOPY ",   # 0xb6
-    183: " PMODE ",   # 0xb7
-    184: " PLAY ",    # 0xb8
-    185: " DLOAD ",   # 0xb9
-    186: " RENUM ",   # 0xba
-    187: " TAB(",     # 0xbb
-    188: " TO ",      # 0xbc
-    189: " SUB ",     # 0xbd
-    190: " FN ",      # 0xbe
-    191: " THEN ",    # 0xbf
-    192: " NOT ",     # 0xc0
-    193: " STEP ",    # 0xc1
-    194: " OFF ",     # 0xc2
-    195: "+",         # 0xc3
-    196: "-",         # 0xc4
-    197: "*",         # 0xc5
-    198: "/",         # 0xc6
-    199: "^",         # 0xc7
-    200: " AND ",     # 0xc8
-    201: " OR ",      # 0xc9
-    202: ">",         # 0xca
-    203: "=",         # 0xcb
-    204: "<",         # 0xcc
-    205: " USING ",   # 0xcd
+    145: " RETURN ", # 0x91
+    146: " STOP ", # 0x92
+    147: " POKE ", # 0x93
+    148: " CONT ", # 0x94
+    149: " LIST ", # 0x95
+    150: " CLEAR ", # 0x96
+    151: " NEW ", # 0x97
+    152: " DEF ", # 0x98
+    153: " CLOAD ", # 0x99
+    154: " CSAVE ", # 0x9a
+    155: " OPEN ", # 0x9b
+    156: " CLOSE ", # 0x9c
+    157: " LLIST ", # 0x9d
+    158: " SET ", # 0x9e
+    159: " RESET ", # 0x9f
+    160: " CLS ", # 0xa0
+    161: " MOTOR ", # 0xa1
+    162: " SOUND ", # 0xa2
+    163: " AUDIO ", # 0xa3
+    164: " EXEC ", # 0xa4
+    165: " SKIPF ", # 0xa5
+    166: " DELETE ", # 0xa6
+    167: " EDIT ", # 0xa7
+    168: " TRON ", # 0xa8
+    169: " TROFF ", # 0xa9
+    170: " LINE ", # 0xaa
+    171: " PCLS ", # 0xab
+    172: " PSET ", # 0xac
+    173: " PRESET ", # 0xad
+    174: " SCREEN ", # 0xae
+    175: " PCLEAR ", # 0xaf
+    176: " COLOR ", # 0xb0
+    177: " CIRCLE ", # 0xb1
+    178: " PAINT ", # 0xb2
+    179: " GET ", # 0xb3
+    180: " PUT ", # 0xb4
+    181: " DRAW ", # 0xb5
+    182: " PCOPY ", # 0xb6
+    183: " PMODE ", # 0xb7
+    184: " PLAY ", # 0xb8
+    185: " DLOAD ", # 0xb9
+    186: " RENUM ", # 0xba
+    187: " TAB(", # 0xbb
+    188: " TO ", # 0xbc
+    189: " SUB ", # 0xbd
+    190: " FN ", # 0xbe
+    191: " THEN ", # 0xbf
+    192: " NOT ", # 0xc0
+    193: " STEP ", # 0xc1
+    194: " OFF ", # 0xc2
+    195: "+", # 0xc3
+    196: "-", # 0xc4
+    197: "*", # 0xc5
+    198: "/", # 0xc6
+    199: "^", # 0xc7
+    200: " AND ", # 0xc8
+    201: " OR ", # 0xc9
+    202: ">", # 0xca
+    203: "=", # 0xcb
+    204: "<", # 0xcc
+    205: " USING ", # 0xcd
 }
 
 def iter_steps(g, steps):
     """
-    >>> for v in iter_steps([1,2,3,4], steps=2): v
+    iterate over 'g' in blocks with a length of the given 'step' count.
+
+    >>> for v in iter_steps([1,2,3,4,5], steps=2): v
     [1, 2]
     [3, 4]
-    >>> for v in iter_steps([1,2,3,4,5,6], steps=3): v
+    [5]
+    >>> for v in iter_steps([1,2,3,4,5,6,7,8,9], steps=3): v
     [1, 2, 3]
     [4, 5, 6]
+    [7, 8, 9]
 
                                  12345678        12345678
                                          12345678
@@ -135,35 +154,37 @@ def iter_steps(g, steps):
     values = []
     for value in g:
         values.append(value)
-        if len(values)==steps:
+        if len(values) == steps:
             yield list(values)
             values = []
     if values:
         yield list(values)
 
 
-def iter_window(g, steps):
+def iter_window(g, window_size):
     """
-    >>> for v in iter_window([1,2,3,4], steps=2): v
+    interate over 'g' bit-by-bit and yield a window with the given 'window_size' width.
+
+    >>> for v in iter_window([1,2,3,4], window_size=2): v
     [1, 2]
     [2, 3]
     [3, 4]
-    >>> for v in iter_window([1,2,3,4,5], steps=3): v
+    >>> for v in iter_window([1,2,3,4,5], window_size=3): v
     [1, 2, 3]
     [2, 3, 4]
     [3, 4, 5]
 
-    >>> for v in iter_window([1,2,3,4], steps=2):
+    >>> for v in iter_window([1,2,3,4], window_size=2):
     ...    v
     ...    v.append(True)
     [1, 2]
     [2, 3]
     [3, 4]
     """
-    values = collections.deque(maxlen=steps)
+    values = collections.deque(maxlen=window_size)
     for value in g:
         values.append(value)
-        if len(values)==steps:
+        if len(values) == window_size:
             yield list(values)
 
 
@@ -177,9 +198,9 @@ def count_sign(values):
     positive_count = 0
     negative_count = 0
     for value in values:
-        if value>0:
+        if value > 0:
             positive_count += 1
-        elif value<0:
+        elif value < 0:
             negative_count += 1
     return positive_count, negative_count
 
@@ -195,7 +216,7 @@ def iter_wave_values(wavefile):
     frame_count = wavefile.getnframes() # number of audio frames
 
     # FIXME
-    if samplewidth==1:
+    if samplewidth == 1:
         struct_unpack_str = "b"
     elif samplewidth == 2:
         struct_unpack_str = "<h"
@@ -224,35 +245,35 @@ def iter_bits(wavefile, even_odd):
 
     window_values = collections.deque(maxlen=MIN_TOGGLE_COUNT)
     for frame_no, value in iter_wave_values(wavefile):
-        #~ ms=float(frame_no)/framerate
-        #~ print "%i %0.5fms %i" % (frame_no, ms, value)
+        # ms=float(frame_no)/framerate
+        # print "%i %0.5fms %i" % (frame_no, ms, value)
 
         window_values.append(value)
-        if len(window_values)>=MIN_TOGGLE_COUNT:
+        if len(window_values) >= MIN_TOGGLE_COUNT:
             positive_count, negative_count = count_sign(window_values)
 
-            #~ print window_values, positive_count, negative_count
-            if not in_positive and positive_count==MIN_TOGGLE_COUNT and negative_count==0:
+            # print window_values, positive_count, negative_count
+            if not in_positive and positive_count == MIN_TOGGLE_COUNT and negative_count == 0:
                 # go into a positive sinus area
                 in_positive = True
                 in_negative = False
                 toggle_count += 1
-            elif not in_negative and negative_count==MIN_TOGGLE_COUNT and positive_count==0:
+            elif not in_negative and negative_count == MIN_TOGGLE_COUNT and positive_count == 0:
                 # go into a negative sinus area
                 in_negative = True
                 in_positive = False
                 toggle_count += 1
 
-            if toggle_count>=2:
+            if toggle_count >= 2:
                 # a single sinus cycle complete
                 toggle_count = 0
 
-                frame_count = frame_no-previous_frame_no
-                hz=framerate/frame_count
+                frame_count = frame_no - previous_frame_no
+                hz = framerate / frame_count
 
-                dst_one = abs(ONE_HZ-hz)
-                dst_nul = abs(NUL_HZ-hz)
-                if dst_one<dst_nul:
+                dst_one = abs(ONE_HZ - hz)
+                dst_nul = abs(NUL_HZ - hz)
+                if dst_one < dst_nul:
                     yield 1
                 else:
                     yield 0
@@ -265,7 +286,8 @@ def iter_bits(wavefile, even_odd):
 
 def get_start_pos_iter_window(bits, pattern):
     """
-    search 'pattern' bit by bit.
+    search 'pattern' in bit-by-bit steps (iter window)
+
 
     >>> bits = [int(i) for i in "00100000001010101010101010101"]
     >>> get_start_pos_iter_window(bits, "01010101")
@@ -284,7 +306,7 @@ def get_start_pos_iter_window(bits, pattern):
 
 def get_start_pos_iter_steps(bits, pattern):
     """
-    search 'pattern' in pattern-len-steps.
+    search 'pattern' in pattern length iterations (iter steps)
 
                                  01010101
                                          01010101
@@ -301,82 +323,193 @@ def get_start_pos_iter_steps(bits, pattern):
     pattern = [int(i) for i in pattern]
     for pos, data in enumerate(iter_steps(bits, pattern_len)):
         if data == pattern:
-            return pos*pattern_len
+            return pos * pattern_len
             break
     return False
 
 
-def get_last_pos_iter_steps(bits, pattern):
+def count_continuous_pattern(bits, pattern):
     """
-                                 01010101
-                                         01010101
-    >>> bits = [int(i) for i in "0101010101010101111000"]
-    >>> get_last_pos_iter_steps(bits, "01010101")
-    16
+    count 'pattern' matches without ceasing.
+    
+    >>> bit_str = (
+    ... "00111100"
+    ... "00111100"
+    ... "0101")
+    >>> pos = count_continuous_pattern([int(i) for i in bit_str], "00111100")
+    >>> bit_str[pos*8:]
+    '0101'
+    >>> pos
+    2
 
-    >>> get_last_pos_iter_steps([1,2,3], "99")
+    >>> count_continuous_pattern([1,1,1,2,3], "1")
+    3
+
+    >>> count_continuous_pattern([1,2,3], "99")
     0
 
-    >>> get_last_pos_iter_steps([0,1,0,1], "01")
-    4
+    >>> count_continuous_pattern([0,1,0,1], "01")
+    2
     """
     pattern_len = len(pattern)
     pattern = [int(i) for i in pattern]
-    for pos, data in enumerate(iter_steps(bits, pattern_len),1):
+    for count, data in enumerate(iter_steps(bits, pattern_len), 1):
         if data != pattern:
-            pos -= 1
+            count -= 1
             break
-    return pos*pattern_len
+    return count
 
 
-def print_bitlist(bit_list):
+def find_iter_window(bit_list, pattern):
+    """
+    Search for 'pattern' in bit-by-bit steps (iter window)
+    and return the number of bits before the 'pattern' match.
+
+    Useable for slicing all bits before the first 'pattern' match:
+
+    >>> bit_str = "111010111"
+    >>> pos = find_iter_window([int(i) for i in bit_str], "010")
+    >>> bit_str[pos:]
+    '010111'
+    >>> pos
+    3
+
+    >>> find_iter_window([1,1,1], "0")
+    0
+    >>> find_iter_window([1,0,0], "1")
+    0
+    >>> find_iter_window([0,1,0], "1")
+    1
+    >>> find_iter_window([0,0,1], "1")
+    2
+    """
+    pattern_len = len(pattern)
+    pattern = [int(i) for i in pattern]
+    for pos, data in enumerate(iter_window(bit_list, pattern_len)):
+        if data == pattern:
+            return pos
+    return 0
+
+def pop_bytes_from_bit_list(bit_list, count):
+    """
+    >>> bit_str = (
+    ... "00110011"
+    ... "00001111"
+    ... "01010101"
+    ... "11001100")
+    >>> bit_list = [int(i) for i in bit_str]
+    >>> bit_list, bytes = pop_bytes_from_bit_list(bit_list, 1)
+    >>> bytes
+    [[0, 0, 1, 1, 0, 0, 1, 1]]
+    >>> bit_list, bytes = pop_bytes_from_bit_list(bit_list, 2)
+    >>> bytes
+    [[0, 0, 0, 0, 1, 1, 1, 1], [0, 1, 0, 1, 0, 1, 0, 1]]
+    >>> bit_list, bytes = pop_bytes_from_bit_list(bit_list, 1)
+    >>> bytes
+    [[1, 1, 0, 0, 1, 1, 0, 0]]
+    """
+    data_bit_count = count*8
+
+    data_bit_list = bit_list[:data_bit_count]
+    data = list(iter_steps(data_bit_list, steps=8))
+    
+    bit_list = bit_list[data_bit_count:]
+    return bit_list, data
+
+    
+
+
+
+
+# def goto_next_block(bit_list, debug=False):
+    # """
+    # Cut the bit_list until leader+sync byte
+
+    # >>> bits = (
+    # ... "10101010" # 0x55 leader byte
+    # ... "00111100" # 0x3C sync byte
+    # ... "00010010" # 0x48 'H'
+    # ... )
+    # >>> bit_list = [int(i) for i in bits]
+    # >>> bit_list = goto_next_block(bit_list)
+    # >>> bit_list
+    # (8, 8, [0, 0, 0, 1, 0, 0, 1, 0])
+
+    # more bits inserted:
+    # >>> bits = ("1010" # inserted
+    # ... "101010100011110000010010")
+    # >>> goto_next_block([int(i) for i in bits])
+    # (8, 12, [0, 0, 0, 1, 0, 0, 1, 0])
+
+    # no complete leader byte
+    # >>> bits = ("1010" # incomplete
+    # ... "0011110000010010")
+    # >>> goto_next_block([int(i) for i in bits])
+    # (0, 12, [0, 0, 0, 1, 0, 0, 1, 0])
+    # """
+    # bit_list, leader_end_pos = strip_pattern_iter_steps(bit_list, LEADER_BYTE)
+    # bit_list, sync_end_pos = strip_pattern_iter_window(bit_list, SYNC_BYTE)
+    # return leader_end_pos, sync_end_pos, bit_list
+
+
+
+# def get_block(bit_list, pattern):
+    # """
+    # >>> bits = (
+    # ... "10101010" # 0x55 leader byte
+    # ... "00111100" # 0x3C sync byte
+    # ... "00010010" # 0x48 'H'
+    # ... )
+    # >>> bit_list = [int(i) for i in bits]
+    # >>> bit_list = goto_next_block(bit_list)
+    # >>> bit_list
+    # (8, 0, [0, 0, 0, 1, 0, 0, 1, 0])
+
+    # >>> bits = [int(i) for i in "0101010100110101"]
+    # >>> get_block(bits, "0101")
+    # (8, 4, [0, 0, 1, 1], [0, 1, 0, 1])
+
+    # >>> bits = [int(i) for i in "01010011"]
+    # >>> get_block(bits, "0101")
+    # (4, False, [0, 0, 1, 1], [])
+
+    # >>> bits = [int(i) for i in "00110101"]
+    # >>> get_block(bits, "0101")
+    # (False, 4, [0, 0, 1, 1], [0, 1, 0, 1])
+
+    # >>> bits = [int(i) for i in "0011"]
+    # >>> get_block(bits, "0101")
+    # (False, False, [0, 0, 1, 1], [])
+    # """
+    # block_end = get_start_pos_iter_steps(bit_list, pattern)
+    # if not block_end:
+        # block_data = bit_list
+        # cut_bit_list = []
+    # else:
+        # block_data = bit_list[:block_end]
+        # cut_bit_list = bit_list[block_end:]
+
+    # return block_end, block_data, cut_bit_list
+
+
+def print_block_bit_list(block_bit_list):
     in_line_count = 0
-    for block in iter_steps(bit_list, steps=8):
-        print list2str(block),
+
+    line = ""
+    for no, block in enumerate(block_bit_list, -DISPLAY_BLOCK_COUNT + 1):
+        line += "%s " % list2str(block)
         in_line_count += 1
-        if in_line_count>=DISPLAY_BLOCK_COUNT:
+        if in_line_count >= DISPLAY_BLOCK_COUNT:
             in_line_count = 0
-            print
-    if in_line_count>0:
+            print "%4s - %s" % (no, line)
+            line = ""
+    if in_line_count > 0:
         print
 
+def print_bitlist(bit_list):
+    block_bit_list = iter_steps(bit_list, steps=8)
+    print_block_bit_list(block_bit_list)
 
-def strip_pattern(bit_list, pattern):
-    end = get_last_pos_iter_steps(bit_list, pattern)
-    if end:
-        return bit_list[end:], end
-    return (bit_list, False)
-
-
-def get_block(bit_list, pattern):
-    """
-    >>> bits = [int(i) for i in "0101010100110101"]
-    >>> get_block(bits, "0101")
-    (8, 4, [0, 0, 1, 1], [0, 1, 0, 1])
-
-    >>> bits = [int(i) for i in "01010011"]
-    >>> get_block(bits, "0101")
-    (4, False, [0, 0, 1, 1], [])
-
-    >>> bits = [int(i) for i in "00110101"]
-    >>> get_block(bits, "0101")
-    (False, 4, [0, 0, 1, 1], [0, 1, 0, 1])
-
-    >>> bits = [int(i) for i in "0011"]
-    >>> get_block(bits, "0101")
-    (False, False, [0, 0, 1, 1], [])
-    """
-
-    bit_list, block_start = strip_pattern(bit_list, pattern)
-    block_end = get_start_pos_iter_steps(bit_list, pattern)
-    if not block_end:
-        block_data = bit_list
-        cut_bit_list = []
-    else:
-        block_data = bit_list[:block_end]
-        cut_bit_list = bit_list[block_end:]
-
-    return block_start, block_end, block_data, cut_bit_list
 
 def list2str(l):
     """
@@ -384,6 +517,7 @@ def list2str(l):
     '00010010'
     """
     return "".join([str(c) for c in l])
+
 
 def bits2ASCII(bits):
     """
@@ -398,15 +532,11 @@ def bits2ASCII(bits):
     """
     bits = bits[::-1]
     bits = list2str(bits)
-    return int(bits,2)
+    return int(bits, 2)
 
 
-def block2ascii(bit_list):
-    """
-    http://wiki.python.org/moin/BitwiseOperators
-    """
-    txt = ""
-    for block in iter_steps(bit_list, steps=8):
+def block2ascii(block_bit_list):
+    for block in block_bit_list:
         byte_no = bits2ASCII(block)
 
         if byte_no in BASIC_TOKENS:
@@ -419,14 +549,39 @@ def block2ascii(bit_list):
         )
 
 
+def get_block_info(bit_list):
+    leader_pos = find_iter_window(bit_list, LEADER_BYTE) # Search for LEADER_BYTE in bit-by-bit steps
+    print "Start leader '%s' found at position: %i" % (LEADER_BYTE, leader_pos)
+
+    # Cut bits before the first 01010101 start leader
+    print "bits before header:", repr(list2str(bit_list[:leader_pos]))
+    bit_list = bit_list[leader_pos:]
+
+    leader_count = count_continuous_pattern(bit_list, LEADER_BYTE)
+    print "Found %i leader bytes" % leader_count
+    to_cut = leader_count * 8
+    bit_list = bit_list[to_cut:]
+
+    sync_pos = find_iter_window(bit_list, SYNC_BYTE) # Search for SYNC_BYTE in bit-by-bit steps
+    print "Find sync byte after %i Bits" % sync_pos
+    to_cut = sync_pos + 8 # Bits before sync byte + sync byte
+    bit_list = bit_list[to_cut:]
+
+    bit_list, bytes = pop_bytes_from_bit_list(bit_list, count=2)
+
+    block_type = bits2ASCII(bytes[0])
+    block_length = bits2ASCII(bytes[1])
+
+    return bit_list, block_type, block_length
+
 
 if __name__ == "__main__":
     import doctest
     print doctest.testmod(
         verbose=False
-        #~ verbose=True
+        # verbose=True
     )
-    #~ sys.exit()
+#     sys.exit()
 
 
     # created by Xroar Emulator
@@ -434,8 +589,8 @@ if __name__ == "__main__":
     even_odd = False
 
     # created by origin Dragon 32 machine
-    #~ FILENAME = "HelloWorld1 origin.wav"
-    #~ even_odd = True
+#     FILENAME = "HelloWorld1 origin.wav"
+#     even_odd = True
 
 
     """
@@ -456,105 +611,55 @@ if __name__ == "__main__":
     frame_count = wavefile.getnframes()
     print "Numer of audio frames:", frame_count
 
-    #~ line = ""
-    #~ for bit_count, bit in enumerate(iter_bits(wavefile, even_odd)):
-        #~ line += str(bit)
-        #~ if len(line)>70:
-            #~ print line
-            #~ line = ""
-    #~ sys.exit()
+    # line = ""
+    # for bit_count, bit in enumerate(iter_bits(wavefile, even_odd)):
+        # line += str(bit)
+        # if len(line)>70:
+            # print line
+            # line = ""
+    # sys.exit()
 
     print "read..."
     bit_list = list(iter_bits(wavefile, even_odd))
     print "%i bits decoded." % len(bit_list)
+    print
 
 
-    # Test String of binary represtation of "HELLO WORLD!"
-    TEST_STR=(
-        "00010010" # 0x48  72 'H'
-        "10100010" # 0x45  69 'E'
-        "00110010" # 0x4c  76 'L'
-        "00110010" # 0x4c  76 'L'
-        "11110010" # 0x4f  79 'O'
-        "00000100" # 0x20  32 ' '
-        "11101010" # 0x57  87 'W'
-        "11110010" # 0x4f  79 'O'
-        "01001010" # 0x52  82 'R'
-        "00110010" # 0x4c  76 'L'
-        "00100010" # 0x44  68 'D'
-        "10000100" # 0x21  33 '!'
-    )# 000100101010001000110010001100101111001000000100111010101111001001001010001100100010001010000100
-    test_start = get_start_pos_iter_window(bit_list, TEST_STR)
-    print "*** Test String found at:", test_start
+    # print "-"*79
+    # print_bitlist(bit_list)
+    # print "-"*79
+    # block2ascii(bit_list)
+    # print "-"*79
+    # sys.exit()
+
+    # line = ""
+    # for bit_count, bit in enumerate(bit_list):
+        # line += str(bit)
+        # if len(line)>70:
+            # print line
+            # line = ""
+    # print line
+    # print "-"*79
+
+#     print "-"*79
+#     print_bitlist(bit_list)
+#     print "-"*79
 
 
-    #~ print "-"*79
-    #~ print_bitlist(bit_list)
-    #~ print "-"*79
-    #~ block2ascii(bit_list)
-    #~ print "-"*79
-    #~ sys.exit()
-
-    #~ line = ""
-    #~ for bit_count, bit in enumerate(bit_list):
-        #~ line += str(bit)
-        #~ if len(line)>70:
-            #~ print line
-            #~ line = ""
-    #~ print line
-    #~ print "-"*79
-
-    START_LEADER = "10101010"
-
-
-    start_leader_start = get_start_pos_iter_window(bit_list, START_LEADER)
-    if not start_leader_start:
-        print "ERROR: Start leader '%s' not found!" % START_LEADER
-        sys.exit(-1)
-    print "Start leader '%s' found at position: %i" % (START_LEADER, start_leader_start)
-
-    # Cut bits before the first 01010101 start leader
-    print "bits before header:", repr(list2str(bit_list[:start_leader_start]))
-    bit_list = bit_list[start_leader_start:]
-
-
-    #~ print "-"*79
-    #~ print_bitlist(bit_list)
-    #~ print "-"*79
-
-
-    # file info block
-    block_start, block_end, fileinfo_block, bit_list = get_block(bit_list, START_LEADER)
-    print "Block pos: %i-%i len: %ibits rest: %ibits" % (
-        block_start, block_end, len(fileinfo_block), len(bit_list)
-    )
-
-    print "-"*79
-    print "  *** file info block data:"
-    print_bitlist(fileinfo_block)
-    print "-"*79
-    block2ascii(fileinfo_block)
-    print "-"*79
-
-
-    # get data blocks
-    block_no = 0
     while True:
-        block_no += 1
-        print "  *** data block %i" % block_no
-        block_start, block_end, block_data, bit_list = get_block(bit_list, START_LEADER)
-        print "  Block pos: %i-%i len: %ibits rest: %ibits" % (
-            block_start, block_end, len(fileinfo_block), len(bit_list)
-        )
-        print_bitlist(block_data)
-        print "-"*79
-        block2ascii(block_data)
-        print "-"*79
+        print "="*79
+        bit_list, block_type, block_length = get_block_info(bit_list)
+        print "*** block type: 0x%x (%s)" % (block_type, BLOCK_TYPE_DICT[block_type])
+        print "*** block length:", block_length
 
-        if len(block_data) == 0 or len(bit_list)==0:
-            # no data left
-            if bit_list:
-                print "Rest data:"
-                print_bitlist(bit_list)
+        if block_type == EOF_BLOCK:
+            print "end of file."
             break
+
+        bit_list, block_bit_list = pop_bytes_from_bit_list(bit_list, count=block_length)
+        print_block_bit_list(block_bit_list)
+        print "-"*79
+        block2ascii(block_bit_list)
+        print "="*79
+
 
