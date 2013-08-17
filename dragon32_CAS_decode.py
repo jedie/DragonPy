@@ -4,14 +4,19 @@
     Convert dragon 32 Cassetts WAV files into plain text.
     =====================================================
 
-    In current state only the bits would be decoded, yet!
+    Currently ony supported:
+        * BASIC programs in tokenised form
 
     TODO:
-        detect even_odd startpoint!
+        - check BASIC programs in ASCII form: CSAVE "NAME",A
+        - detect even_odd startpoint!
+        - add cli
+        - write .BAS file
 
-    Interesting links:
+    Spec links:
         http://www.onastick.clara.net/cosio.htm
         http://www.cs.unc.edu/~yakowenk/coco/text/tapeformat.html
+        http://dragon32.info/info/basicfmt.html
 
     Many thanks to the people from:
         http://www.python-forum.de/viewtopic.php?f=1&t=32102 (de)
@@ -26,6 +31,11 @@ import collections
 import wave
 import sys
 import struct
+import time
+
+# own modules
+from utils import ProcessInfo, human_duration
+from basic_tokens import BASIC_TOKENS
 
 
 ONE_HZ = 2400 # "1" is a single cycle at 2400 Hz
@@ -49,86 +59,6 @@ MIN_TOGGLE_COUNT = 3 # How many samples must be in pos/neg to count a cycle?
 
 DISPLAY_BLOCK_COUNT = 8 # How many bit block should be printet in one line?
 
-BASIC_TOKENS = {
-    128: " FOR ", # 0x80
-    129: " GO ", # 0x81
-    130: " REM ", # 0x82
-    131: "'", # 0x83
-    132: " ELSE ", # 0x84
-    133: " IF ", # 0x85
-    134: " DATA ", # 0x86
-    135: " PRINT ", # 0x87
-    136: " ON ", # 0x88
-    137: " INPUT ", # 0x89
-    138: " END ", # 0x8a
-    139: " NEXT ", # 0x8b
-    140: " DIM ", # 0x8c
-    141: " READ ", # 0x8d
-    142: " LET ", # 0x8e
-    143: " RUN ", # 0x8f
-    144: " RESTORE ", # 0x90
-    145: " RETURN ", # 0x91
-    146: " STOP ", # 0x92
-    147: " POKE ", # 0x93
-    148: " CONT ", # 0x94
-    149: " LIST ", # 0x95
-    150: " CLEAR ", # 0x96
-    151: " NEW ", # 0x97
-    152: " DEF ", # 0x98
-    153: " CLOAD ", # 0x99
-    154: " CSAVE ", # 0x9a
-    155: " OPEN ", # 0x9b
-    156: " CLOSE ", # 0x9c
-    157: " LLIST ", # 0x9d
-    158: " SET ", # 0x9e
-    159: " RESET ", # 0x9f
-    160: " CLS ", # 0xa0
-    161: " MOTOR ", # 0xa1
-    162: " SOUND ", # 0xa2
-    163: " AUDIO ", # 0xa3
-    164: " EXEC ", # 0xa4
-    165: " SKIPF ", # 0xa5
-    166: " DELETE ", # 0xa6
-    167: " EDIT ", # 0xa7
-    168: " TRON ", # 0xa8
-    169: " TROFF ", # 0xa9
-    170: " LINE ", # 0xaa
-    171: " PCLS ", # 0xab
-    172: " PSET ", # 0xac
-    173: " PRESET ", # 0xad
-    174: " SCREEN ", # 0xae
-    175: " PCLEAR ", # 0xaf
-    176: " COLOR ", # 0xb0
-    177: " CIRCLE ", # 0xb1
-    178: " PAINT ", # 0xb2
-    179: " GET ", # 0xb3
-    180: " PUT ", # 0xb4
-    181: " DRAW ", # 0xb5
-    182: " PCOPY ", # 0xb6
-    183: " PMODE ", # 0xb7
-    184: " PLAY ", # 0xb8
-    185: " DLOAD ", # 0xb9
-    186: " RENUM ", # 0xba
-    187: " TAB(", # 0xbb
-    188: " TO ", # 0xbc
-    189: " SUB ", # 0xbd
-    190: " FN ", # 0xbe
-    191: " THEN ", # 0xbf
-    192: " NOT ", # 0xc0
-    193: " STEP ", # 0xc1
-    194: " OFF ", # 0xc2
-    195: "+", # 0xc3
-    196: "-", # 0xc4
-    197: "*", # 0xc5
-    198: "/", # 0xc6
-    199: "^", # 0xc7
-    200: " AND ", # 0xc8
-    201: " OR ", # 0xc9
-    202: ">", # 0xca
-    203: "=", # 0xcb
-    204: "<", # 0xcc
-    205: " USING ", # 0xcd
-}
 
 def iter_steps(g, steps):
     """
@@ -234,20 +164,34 @@ def iter_wave_values(wavefile):
         yield frame_no, frame
 
 
+
+
 def iter_bits(wavefile, even_odd):
     framerate = wavefile.getframerate() # frames / second
     print "Framerate:", framerate
+    frame_count = wavefile.getnframes()
+    print "Numer of audio frames:", frame_count
 
     in_positive = even_odd
     in_negative = not even_odd
     toggle_count = 0 # Counter for detect a complete cycle
     previous_frame_no = 0
 
+    process_info = ProcessInfo(frame_count, use_last_rates=4)
+    start_time = time.time()
+    next_status = start_time + 0.25
+
+    def _print_status(frame_no, framerate):
+        ms = float(frame_no) / framerate
+        rest, eta, rate = process_info.update(frame_no)
+        sys.stdout.write(
+            "\r%i frames readed. Position in WAV: %s - eta: %s (rate: %iFrames/sec)" % (
+                frame_no, human_duration(ms), eta, rate
+            )
+        )
+
     window_values = collections.deque(maxlen=MIN_TOGGLE_COUNT)
     for frame_no, value in iter_wave_values(wavefile):
-        # ms=float(frame_no)/framerate
-        # print "%i %0.5fms %i" % (frame_no, ms, value)
-
         window_values.append(value)
         if len(window_values) >= MIN_TOGGLE_COUNT:
             positive_count, negative_count = count_sign(window_values)
@@ -281,6 +225,13 @@ def iter_bits(wavefile, even_odd):
                 # ms=float(frame_no)/framerate
                 # print "***", bit, hz, "Hz", "%0.5fms" % ms
                 previous_frame_no = frame_no
+
+                if time.time() > next_status:
+                    next_status = time.time() + 1
+                    _print_status(frame_no, framerate)
+
+    _print_status(frame_no, framerate)
+    print
 
 
 def count_continuous_pattern(bits, pattern):
@@ -440,6 +391,8 @@ def get_block_info(bit_list):
 
     leader_count = count_continuous_pattern(bit_list, LEADER_BYTE)
     print "Found %i leader bytes" % leader_count
+    if leader_count == 0:
+        print "WARNING: leader bytes not found! Maybe 'even_odd' bool wrong???"
     to_cut = leader_count * 8
     bit_list = bit_list[to_cut:]
 
@@ -516,12 +469,15 @@ class FileContent(object):
         self.print_code_lines()
 
     def print_code_lines(self):
+        print "*"*79
         for code_line in self.code_lines:
 #             print repr(code_line)
-            print "pre bytes: %-10s code: %i %s" % (
-                repr(code_line.pre_bytes), code_line.line_no, code_line.code
-            )
-
+            print "%i %s" % (code_line.line_no, code_line.code)
+#             print "pre bytes: %-10s code: %i %s" % (
+#                 repr(code_line.pre_bytes), code_line.line_no, code_line.code
+#             )
+        print "*"*79
+        
 
 class CassetteFile(object):
     """
@@ -546,7 +502,7 @@ class CassetteFile(object):
          of a binary file.
     """
     def __init__(self, file_block_bit_list):
-        print_block_bit_list(block_bit_list)
+#         print_block_bit_list(block_bit_list)
         print_block_table(block_bit_list)
 
         self.data = block2bytes(block_bit_list)
@@ -599,7 +555,6 @@ if __name__ == "__main__":
 #     FILENAME = "HelloWorld1 origin.wav"
 #     even_odd = True
 
-
     """
     The origin BASIC code of the two WAV file is:
 
@@ -612,11 +567,22 @@ if __name__ == "__main__":
     https://github.com/jedie/python-code-snippets/raw/master/CodeSnippets/Dragon%2032/HelloWorld1%20xroar.wav
     """
 
+
+    # Test files from:
+    #     http://archive.worldofdragon.org/archive/index.php?dir=Tapes/Dragon/wav/
+#     FILENAME = "Quickbeam Software - Duplicas v3.0.wav" # binary!
+#     even_odd = False
+
+#     FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
+#     even_odd = False
+
+#     FILENAME = "1_MANIA.WAV"
+#     FILENAME = "2_DBJ.WAV" # TODO
+#     even_odd = False
+
+
     print "Read '%s'..." % FILENAME
     wavefile = wave.open(FILENAME, "r")
-
-    frame_count = wavefile.getnframes()
-    print "Numer of audio frames:", frame_count
 
     print "read..."
     bit_list = list(iter_bits(wavefile, even_odd))
@@ -634,20 +600,33 @@ if __name__ == "__main__":
     cassette = Cassette()
 
     while True:
-        print "="*79
+        print "_"*79
         bit_list, block_type, block_length = get_block_info(bit_list)
-        print "*** block type: 0x%x (%s)" % (block_type, BLOCK_TYPE_DICT[block_type])
+        try:
+            block_type_name = BLOCK_TYPE_DICT[block_type]
+        except KeyError:
+            print "ERROR: Block type %s unknown in BLOCK_TYPE_DICT!" % hex(block_type)
+            print "Maybe 'even_odd' bool wrong???"
+            print "-"*79
+            print "Debug bitlist:"
+            print_bitlist(bit_list)
+            print "-"*79
+            sys.exit(-1)
+
+
+        print "*** block type: 0x%x (%s)" % (block_type, block_type_name)
         print "*** block length:", block_length
 
         if block_type == EOF_BLOCK:
-            print "end of file."
+            print "EOF-Block found"
             break
 
         bit_list, block_bit_list = pop_bytes_from_bit_list(bit_list, count=block_length)
 
-        cassette.add_block(block_type, block_length, block_bit_list)
+        print_block_table(block_bit_list)
+        # print_block_bit_list(block_bit_list)
 
-        print_block_bit_list(block_bit_list)
+        cassette.add_block(block_type, block_length, block_bit_list)
         print "="*79
 
 
