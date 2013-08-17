@@ -283,55 +283,10 @@ def iter_bits(wavefile, even_odd):
                 previous_frame_no = frame_no
 
 
-
-def get_start_pos_iter_window(bits, pattern):
-    """
-    search 'pattern' in bit-by-bit steps (iter window)
-
-
-    >>> bits = [int(i) for i in "00100000001010101010101010101"]
-    >>> get_start_pos_iter_window(bits, "01010101")
-    9
-
-    >>> get_start_pos_iter_window([1,2,3], "99")
-    False
-    """
-    pattern = [int(i) for i in pattern]
-    for pos, data in enumerate(iter_window(bits, len(pattern))):
-        if data == pattern:
-            return pos
-            break
-    return False
-
-
-def get_start_pos_iter_steps(bits, pattern):
-    """
-    search 'pattern' in pattern length iterations (iter steps)
-
-                                 01010101
-                                         01010101
-    >>> bits = [int(i) for i in "0000000001010101"]
-    >>> get_start_pos_iter_window(bits, "01010101")
-    8
-    >>> get_start_pos_iter_steps(bits, "01010101")
-    8
-
-    >>> get_start_pos_iter_steps([1,2,3], "99")
-    False
-    """
-    pattern_len = len(pattern)
-    pattern = [int(i) for i in pattern]
-    for pos, data in enumerate(iter_steps(bits, pattern_len)):
-        if data == pattern:
-            return pos * pattern_len
-            break
-    return False
-
-
 def count_continuous_pattern(bits, pattern):
     """
     count 'pattern' matches without ceasing.
-    
+
     >>> bit_str = (
     ... "00111100"
     ... "00111100"
@@ -408,88 +363,13 @@ def pop_bytes_from_bit_list(bit_list, count):
     >>> bytes
     [[1, 1, 0, 0, 1, 1, 0, 0]]
     """
-    data_bit_count = count*8
+    data_bit_count = count * 8
 
     data_bit_list = bit_list[:data_bit_count]
     data = list(iter_steps(data_bit_list, steps=8))
-    
+
     bit_list = bit_list[data_bit_count:]
     return bit_list, data
-
-    
-
-
-
-
-# def goto_next_block(bit_list, debug=False):
-    # """
-    # Cut the bit_list until leader+sync byte
-
-    # >>> bits = (
-    # ... "10101010" # 0x55 leader byte
-    # ... "00111100" # 0x3C sync byte
-    # ... "00010010" # 0x48 'H'
-    # ... )
-    # >>> bit_list = [int(i) for i in bits]
-    # >>> bit_list = goto_next_block(bit_list)
-    # >>> bit_list
-    # (8, 8, [0, 0, 0, 1, 0, 0, 1, 0])
-
-    # more bits inserted:
-    # >>> bits = ("1010" # inserted
-    # ... "101010100011110000010010")
-    # >>> goto_next_block([int(i) for i in bits])
-    # (8, 12, [0, 0, 0, 1, 0, 0, 1, 0])
-
-    # no complete leader byte
-    # >>> bits = ("1010" # incomplete
-    # ... "0011110000010010")
-    # >>> goto_next_block([int(i) for i in bits])
-    # (0, 12, [0, 0, 0, 1, 0, 0, 1, 0])
-    # """
-    # bit_list, leader_end_pos = strip_pattern_iter_steps(bit_list, LEADER_BYTE)
-    # bit_list, sync_end_pos = strip_pattern_iter_window(bit_list, SYNC_BYTE)
-    # return leader_end_pos, sync_end_pos, bit_list
-
-
-
-# def get_block(bit_list, pattern):
-    # """
-    # >>> bits = (
-    # ... "10101010" # 0x55 leader byte
-    # ... "00111100" # 0x3C sync byte
-    # ... "00010010" # 0x48 'H'
-    # ... )
-    # >>> bit_list = [int(i) for i in bits]
-    # >>> bit_list = goto_next_block(bit_list)
-    # >>> bit_list
-    # (8, 0, [0, 0, 0, 1, 0, 0, 1, 0])
-
-    # >>> bits = [int(i) for i in "0101010100110101"]
-    # >>> get_block(bits, "0101")
-    # (8, 4, [0, 0, 1, 1], [0, 1, 0, 1])
-
-    # >>> bits = [int(i) for i in "01010011"]
-    # >>> get_block(bits, "0101")
-    # (4, False, [0, 0, 1, 1], [])
-
-    # >>> bits = [int(i) for i in "00110101"]
-    # >>> get_block(bits, "0101")
-    # (False, 4, [0, 0, 1, 1], [0, 1, 0, 1])
-
-    # >>> bits = [int(i) for i in "0011"]
-    # >>> get_block(bits, "0101")
-    # (False, False, [0, 0, 1, 1], [])
-    # """
-    # block_end = get_start_pos_iter_steps(bit_list, pattern)
-    # if not block_end:
-        # block_data = bit_list
-        # cut_bit_list = []
-    # else:
-        # block_data = bit_list[:block_end]
-        # cut_bit_list = bit_list[block_end:]
-
-    # return block_end, block_data, cut_bit_list
 
 
 def print_block_bit_list(block_bit_list):
@@ -611,14 +491,6 @@ if __name__ == "__main__":
     frame_count = wavefile.getnframes()
     print "Numer of audio frames:", frame_count
 
-    # line = ""
-    # for bit_count, bit in enumerate(iter_bits(wavefile, even_odd)):
-        # line += str(bit)
-        # if len(line)>70:
-            # print line
-            # line = ""
-    # sys.exit()
-
     print "read..."
     bit_list = list(iter_bits(wavefile, even_odd))
     print "%i bits decoded." % len(bit_list)
@@ -631,20 +503,6 @@ if __name__ == "__main__":
     # block2ascii(bit_list)
     # print "-"*79
     # sys.exit()
-
-    # line = ""
-    # for bit_count, bit in enumerate(bit_list):
-        # line += str(bit)
-        # if len(line)>70:
-            # print line
-            # line = ""
-    # print line
-    # print "-"*79
-
-#     print "-"*79
-#     print_bitlist(bit_list)
-#     print "-"*79
-
 
     while True:
         print "="*79
