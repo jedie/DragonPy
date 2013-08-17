@@ -345,6 +345,7 @@ def find_iter_window(bit_list, pattern):
             return pos
     return 0
 
+
 def pop_bytes_from_bit_list(bit_list, count):
     """
     >>> bit_str = (
@@ -399,15 +400,15 @@ def list2str(l):
     return "".join([str(c) for c in l])
 
 
-def bits2ASCII(bits):
+def bits2byte_no(bits):
     """
-    >>> c = bits2ASCII([0, 0, 0, 1, 0, 0, 1, 0])
+    >>> c = bits2byte_no([0, 0, 0, 1, 0, 0, 1, 0])
     >>> c
     72
     >>> chr(c)
     'H'
 
-    >>> bits2ASCII([0, 0, 1, 1, 0, 0, 1, 0])
+    >>> bits2byte_no([0, 0, 1, 1, 0, 0, 1, 0])
     76
     """
     bits = bits[::-1]
@@ -415,9 +416,14 @@ def bits2ASCII(bits):
     return int(bits, 2)
 
 
+def block2bytes(block_bit_list):
+    bytes = "".join([chr(bits2byte_no(block)) for block in block_bit_list])
+    return bytes
+
+
 def block2ascii(block_bit_list):
     for block in block_bit_list:
-        byte_no = bits2ASCII(block)
+        byte_no = bits2byte_no(block)
 
         if byte_no in BASIC_TOKENS:
             character = BASIC_TOKENS[byte_no]
@@ -449,10 +455,41 @@ def get_block_info(bit_list):
 
     bit_list, bytes = pop_bytes_from_bit_list(bit_list, count=2)
 
-    block_type = bits2ASCII(bytes[0])
-    block_length = bits2ASCII(bytes[1])
+    block_type = bits2byte_no(bytes[0])
+    block_length = bits2byte_no(bytes[1])
 
     return bit_list, block_type, block_length
+
+
+class FilenameBlock(object):
+    """
+     5.1 An 8 byte program name
+     5.2 A file ID byte where:
+         00=BASIC program
+         01=Data file
+         03=Binary file
+     5.3 An ASCII flag where:
+         00=Binary file
+         FF=ASCII file
+     5.4 A gap flag to indicate whether the
+         data stream is continuous (00) as
+         in binary or BASIC files, or in blocks
+         where the tape keeps stopping (FF) as
+         in data files.
+     5.5 Two bytes for the default EXEC address
+         of a binary file.
+     5.6 Two bytes for the default load address
+         of a binary file.
+    """
+    def __init__(self, block_bit_list):
+        print_block_bit_list(block_bit_list)
+        block2ascii(block_bit_list)
+
+        self.data = block2bytes(block_bit_list)
+        self.filename = self.data[:8]
+
+    def __repr__(self):
+        return "<BlockFile '%s' raw data: %s>" % (self.filename, repr(self.data))
 
 
 if __name__ == "__main__":
@@ -515,6 +552,12 @@ if __name__ == "__main__":
             break
 
         bit_list, block_bit_list = pop_bytes_from_bit_list(bit_list, count=block_length)
+
+        if block_type == FILENAME_BLOCK:
+            file_block = FilenameBlock(block_bit_list)
+            print repr(file_block)
+            continue
+
         print_block_bit_list(block_bit_list)
         print "-"*79
         block2ascii(block_bit_list)
