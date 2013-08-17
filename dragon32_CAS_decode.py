@@ -421,15 +421,10 @@ def block2bytes(block_bit_list):
     return bytes
 
 
-def block2ascii(block_bit_list):
+def print_block_table(block_bit_list):
     for block in block_bit_list:
         byte_no = bits2byte_no(block)
-
-        if byte_no in BASIC_TOKENS:
-            character = BASIC_TOKENS[byte_no]
-        else:
-            character = chr(byte_no)
-
+        character = chr(byte_no)
         print "%s %4s %3s %s" % (
             list2str(block), hex(byte_no), byte_no, repr(character)
         )
@@ -461,8 +456,77 @@ def get_block_info(bit_list):
     return bit_list, block_type, block_length
 
 
-class FilenameBlock(object):
+class CodeLine(object):
+    def __init__(self, pre_bytes, line_no, code):
+        assert isinstance(line_no, int), "Line number not integer, it's: %s" % repr(line_no)
+        self.pre_bytes = pre_bytes
+        self.line_no = line_no
+        self.code = code
+
+    def __repr__(self):
+        return "<CodeLine pre bytes: %s line no: %s code: %s>" % (
+            repr(self.pre_bytes), repr(self.line_no), repr(self.code)
+        )
+
+
+class FileContent(object):
     """
+    Content (all data blocks) of a cassette file.
+    """
+    def __init__(self):
+        self.code_lines = []
+
+    def add_data_block(self, block_length, block_bit_list):
+        in_code_line = False
+        pre_bytes = []
+        line_no = None
+        code_line = ""
+
+        raw_bytes = [bits2byte_no(bit_block) for bit_block in block_bit_list]
+        for index, byte_no in enumerate(raw_bytes):
+#             print index, hex(byte_no)
+            if byte_no == 0x00:
+                if in_code_line:
+                    # print "Add code line", repr(pre_bytes), repr(line_no), repr(code_line)
+                    code_line_obj = CodeLine(pre_bytes, line_no, code_line)
+                    self.code_lines.append(code_line_obj)
+                    pre_bytes = []
+                    line_no = None
+                    code_line = ""
+                    in_code_line = False
+                else:
+                    if raw_bytes[index:] == [0, 0]:
+                        # Next two bytes are 0x00 0x00 -> end of data delimiter
+                        break
+                    in_code_line = True
+            else:
+                if in_code_line:
+                    if line_no is None:
+                        line_no = byte_no
+                        continue
+
+                    if byte_no in BASIC_TOKENS:
+                        character = BASIC_TOKENS[byte_no].strip() # XXX: strip direct in BASIC_TOKENS ???
+                    else:
+                        character = chr(byte_no)
+                    code_line += character
+                else:
+                    pre_bytes.append(byte_no)
+
+        self.print_code_lines()
+
+    def print_code_lines(self):
+        for code_line in self.code_lines:
+#             print repr(code_line)
+            print "pre bytes: %-10s code: %i %s" % (
+                repr(code_line.pre_bytes), code_line.line_no, code_line.code
+            )
+
+
+class CassetteFile(object):
+    """
+    Representes a "file name block" and his "data block"
+
      5.1 An 8 byte program name
      5.2 A file ID byte where:
          00=BASIC program
@@ -481,15 +545,41 @@ class FilenameBlock(object):
      5.6 Two bytes for the default load address
          of a binary file.
     """
-    def __init__(self, block_bit_list):
+    def __init__(self, file_block_bit_list):
         print_block_bit_list(block_bit_list)
-        block2ascii(block_bit_list)
+        print_block_table(block_bit_list)
 
         self.data = block2bytes(block_bit_list)
         self.filename = self.data[:8]
 
+        self.file_content = FileContent()
+
+    def add_data_block(self, block_length, block_bit_list):
+        self.file_content.add_data_block(block_length, block_bit_list)
+
     def __repr__(self):
         return "<BlockFile '%s' raw data: %s>" % (self.filename, repr(self.data))
+
+
+class Cassette(object):
+    def __init__(self):
+        self.files = []
+        self.current_file = None
+
+    def add_block(self, block_type, block_length, block_bit_list):
+        if block_type == EOF_BLOCK:
+            return
+        elif block_type == FILENAME_BLOCK:
+            self.current_file = CassetteFile(block_bit_list)
+            print "Add file %s" % repr(self.current_file)
+            self.files.append(self.current_file)
+        elif block_type == DATA_BLOCK:
+            self.current_file.add_data_block(block_length, block_bit_list)
+        else:
+            raise TypeError("Block type %s unkown!" & hex(block_type))
+
+
+
 
 
 if __name__ == "__main__":
@@ -537,9 +627,11 @@ if __name__ == "__main__":
     # print "-"*79
     # print_bitlist(bit_list)
     # print "-"*79
-    # block2ascii(bit_list)
+    # print_block_table(bit_list)
     # print "-"*79
     # sys.exit()
+
+    cassette = Cassette()
 
     while True:
         print "="*79
@@ -553,14 +645,9 @@ if __name__ == "__main__":
 
         bit_list, block_bit_list = pop_bytes_from_bit_list(bit_list, count=block_length)
 
-        if block_type == FILENAME_BLOCK:
-            file_block = FilenameBlock(block_bit_list)
-            print repr(file_block)
-            continue
+        cassette.add_block(block_type, block_length, block_bit_list)
 
         print_block_bit_list(block_bit_list)
-        print "-"*79
-        block2ascii(block_bit_list)
         print "="*79
 
 
