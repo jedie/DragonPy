@@ -151,11 +151,8 @@ def iter_wave_values(wavefile):
         32-bit: -2147483648..2147483647
     """
     nchannels = wavefile.getnchannels() # typically 1 for mono, 2 for stereo
-    print "channels:", nchannels
     assert nchannels == 1, "Only MONO files are supported, yet!"
-
     samplewidth = wavefile.getsampwidth() # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
-    print "samplewidth: %i (%sBit wave file)" % (samplewidth, samplewidth * 8)
 
     try:
         struct_unpack_str = WAV_UNPACK_STR[samplewidth]
@@ -177,12 +174,7 @@ def iter_wave_values(wavefile):
             yield frame_no, frame
 
 
-def iter_bits(wavefile, even_odd):
-    framerate = wavefile.getframerate() # frames / second
-    print "Framerate:", framerate
-    frame_count = wavefile.getnframes()
-    print "Number of audio frames:", frame_count
-
+def samples2bits(samples, framerate, frame_count, even_odd):
     in_positive = even_odd
     in_negative = not even_odd
     toggle_count = 0 # Counter for detect a complete cycle
@@ -203,7 +195,7 @@ def iter_bits(wavefile, even_odd):
         )
 
     window_values = collections.deque(maxlen=MIN_TOGGLE_COUNT)
-    for frame_no, value in iter_wave_values(wavefile):
+    for frame_no, value in samples:
         window_values.append(value)
         if len(window_values) >= MIN_TOGGLE_COUNT:
             positive_count, negative_count = count_sign(window_values)
@@ -386,6 +378,7 @@ def bits2byte_no(bits):
     bits = bits[::-1]
     bits = list2str(bits)
     return int(bits, 2)
+
 
 def byte_list2bit_list(data):
     """
@@ -582,6 +575,12 @@ class CassetteFile(object):
         self.data = block2bytes(block_bit_list)
         self.filename = self.data[:8]
 
+        self.file_type = self.data[8]
+        print "file type:", repr(self.file_type),
+#         if self.file_type == 0x00:
+#             print "BASIC programm"
+#         if self.file_type == 0x00:
+
         self.file_content = FileContent()
 
     def add_data_block(self, block_length, block_bit_list):
@@ -626,8 +625,8 @@ if __name__ == "__main__":
 
 
     # created by Xroar Emulator
-#     FILENAME = "HelloWorld1 xroar.wav"
-#     even_odd = False
+    FILENAME = "HelloWorld1 xroar.wav"
+    even_odd = False
 
     # created by origin Dragon 32 machine
 #     FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 2735 bits (raw)
@@ -655,15 +654,30 @@ if __name__ == "__main__":
 #     even_odd = False
 
 #     FILENAME = "1_MANIA.WAV" # 148579 frames, 4879 bits (raw)
-    FILENAME = "2_DBJ.WAV" # TODO
-    even_odd = False
+#     FILENAME = "2_DBJ.WAV" # TODO
+#     even_odd = False
 
 
     print "Read '%s'..." % FILENAME
     wavefile = wave.open(FILENAME, "r")
 
-    print "read..."
-    bit_list = list(iter_bits(wavefile, even_odd))
+    framerate = wavefile.getframerate() # frames / second
+    print "Framerate:", framerate
+    frame_count = wavefile.getnframes()
+    print "Number of audio frames:", frame_count
+    nchannels = wavefile.getnchannels() # typically 1 for mono, 2 for stereo
+    print "channels:", nchannels
+    assert nchannels == 1, "Only MONO files are supported, yet!"
+    samplewidth = wavefile.getsampwidth() # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
+    print "samplewidth: %i (%sBit wave file)" % (samplewidth, samplewidth * 8)
+
+    start_time = time.time()
+    print "Read wave file...",
+    wave_samples = list(iter_wave_values(wavefile))
+    print "DONE in %s" % human_duration(time.time() - start_time)
+
+    print "Convert WAVE samples to binary data..."
+    bit_list = list(samples2bits(wave_samples, framerate, frame_count, even_odd))
 
     # print "-"*79
     # print_bitlist(bit_list)
