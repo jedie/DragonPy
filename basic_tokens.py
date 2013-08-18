@@ -6,85 +6,135 @@
 """
 
 BASIC_TOKENS = {
-    128: " FOR ", # 0x80
-    129: " GO ", # 0x81
-    130: " REM ", # 0x82
-    131: "'", # 0x83
-    132: " ELSE ", # 0x84
-    133: " IF ", # 0x85
-    134: " DATA ", # 0x86
-    135: " PRINT ", # 0x87
-    136: " ON ", # 0x88
-    137: " INPUT ", # 0x89
-    138: " END ", # 0x8a
-    139: " NEXT ", # 0x8b
-    140: " DIM ", # 0x8c
-    141: " READ ", # 0x8d
-    142: " LET ", # 0x8e
-    143: " RUN ", # 0x8f
-    144: " RESTORE ", # 0x90
-    145: " RETURN ", # 0x91
-    146: " STOP ", # 0x92
-    147: " POKE ", # 0x93
-    148: " CONT ", # 0x94
-    149: " LIST ", # 0x95
-    150: " CLEAR ", # 0x96
-    151: " NEW ", # 0x97
-    152: " DEF ", # 0x98
-    153: " CLOAD ", # 0x99
-    154: " CSAVE ", # 0x9a
-    155: " OPEN ", # 0x9b
-    156: " CLOSE ", # 0x9c
-    157: " LLIST ", # 0x9d
-    158: " SET ", # 0x9e
-    159: " RESET ", # 0x9f
-    160: " CLS ", # 0xa0
-    161: " MOTOR ", # 0xa1
-    162: " SOUND ", # 0xa2
-    163: " AUDIO ", # 0xa3
-    164: " EXEC ", # 0xa4
-    165: " SKIPF ", # 0xa5
-    166: " DELETE ", # 0xa6
-    167: " EDIT ", # 0xa7
-    168: " TRON ", # 0xa8
-    169: " TROFF ", # 0xa9
-    170: " LINE ", # 0xaa
-    171: " PCLS ", # 0xab
-    172: " PSET ", # 0xac
-    173: " PRESET ", # 0xad
-    174: " SCREEN ", # 0xae
-    175: " PCLEAR ", # 0xaf
-    176: " COLOR ", # 0xb0
-    177: " CIRCLE ", # 0xb1
-    178: " PAINT ", # 0xb2
-    179: " GET ", # 0xb3
-    180: " PUT ", # 0xb4
-    181: " DRAW ", # 0xb5
-    182: " PCOPY ", # 0xb6
-    183: " PMODE ", # 0xb7
-    184: " PLAY ", # 0xb8
-    185: " DLOAD ", # 0xb9
-    186: " RENUM ", # 0xba
-    187: " TAB(", # 0xbb
-    188: " TO ", # 0xbc
-    189: " SUB ", # 0xbd
-    190: " FN ", # 0xbe
-    191: " THEN ", # 0xbf
-    192: " NOT ", # 0xc0
-    193: " STEP ", # 0xc1
-    194: " OFF ", # 0xc2
-    195: "+", # 0xc3
-    196: "-", # 0xc4
-    197: "*", # 0xc5
-    198: "/", # 0xc6
-    199: "^", # 0xc7
-    200: " AND ", # 0xc8
-    201: " OR ", # 0xc9
-    202: ">", # 0xca
-    203: "=", # 0xcb
-    204: "<", # 0xcc
-    205: " USING ", # 0xcd
+    0x80: "FOR",
+    0x81: "GO",
+    0x82: "REM",
+    0x83: "'",
+    0x84: "ELSE",
+    0x85: "IF",
+    0x86: "DATA",
+    0x87: "PRINT",
+    0x88: "ON",
+    0x89: "INPUT",
+    0x8a: "END",
+    0x8b: "NEXT",
+    0x8c: "DIM",
+    0x8d: "READ",
+    0x8e: "LET",
+    0x8f: "RUN",
+    0x90: "RESTORE",
+    0x91: "RETURN",
+    0x92: "STOP",
+    0x93: "POKE",
+    0x94: "CONT",
+    0x95: "LIST",
+    0x96: "CLEAR",
+    0x97: "NEW",
+    0x98: "DEF",
+    0x99: "CLOAD",
+    0x9a: "CSAVE",
+    0x9b: "OPEN",
+    0x9c: "CLOSE",
+    0x9d: "LLIST",
+    0x9e: "SET",
+    0x9f: "RESET",
+    0xa0: "CLS",
+    0xa1: "MOTOR",
+    0xa2: "SOUND",
+    0xa3: "AUDIO",
+    0xa4: "EXEC",
+    0xa5: "SKIPF",
+    0xa6: "DELETE",
+    0xa7: "EDIT",
+    0xa8: "TRON",
+    0xa9: "TROFF",
+    0xaa: "LINE",
+    0xab: "PCLS",
+    0xac: "PSET",
+    0xad: "PRESET",
+    0xae: "SCREEN",
+    0xaf: "PCLEAR",
+    0xb0: "COLOR",
+    0xb1: "CIRCLE",
+    0xb2: "PAINT",
+    0xb3: "GET",
+    0xb4: "PUT",
+    0xb5: "DRAW",
+    0xb6: "PCOPY",
+    0xb7: "PMODE",
+    0xb8: "PLAY",
+    0xb9: "DLOAD",
+    0xba: "RENUM",
+    0xbb: "TAB(",
+    0xbc: "TO",
+    0xbd: "SUB",
+    0xbe: "FN",
+    0xbf: "THEN",
+    0xc0: "NOT",
+    0xc1: "STEP",
+    0xc2: "OFF",
+    0xc3: "+",
+    0xc4: "-",
+    0xc5: "*",
+    0xc6: "/",
+    0xc7: "^",
+    0xc8: "AND",
+    0xc9: "OR",
+    0xca: ">",
+    0xcb: "=",
+    0xcc: "<",
+    0xcd: "USING",
 }
-# for k, v in sorted(BASIC_TOKENS.items()):
-#     print '%i: "%s", # %s' % (k, v.strip(), hex(k))
-# sys.exit()
+
+
+# Function tokens - all proceeded by 0xff to differentiate from operators
+FUNCTION_TOKEN = {
+    0x80: "SGN",
+    0x81: "INT",
+    0x82: "ABS",
+    0x83: "POS",
+    0x84: "RND",
+    0x85: "SQR",
+    0x86: "LOG",
+    0x87: "EXP",
+    0x88: "SIN",
+    0x89: "COS",
+    0x8a: "TAN",
+    0x8b: "ATN",
+    0x8c: "PEEK",
+    0x8d: "LEN",
+    0x8e: "STR$",
+    0x8f: "VAL",
+    0x90: "ASC",
+    0x91: "CHR$",
+    0x92: "EOF",
+    0x93: "JOYSTK",
+    0x94: "FIX",
+    0x95: "HEX$",
+    0x96: "LEFT$",
+    0x97: "RIGHT$",
+    0x98: "MID$",
+    0x99: "POINT",
+    0x9a: "INKEY$",
+    0x9b: "MEM",
+    0x9c: "VARPTR",
+    0x9d: "INSTR",
+    0x9e: "TIMER",
+    0x9f: "PPOINT",
+    0xa0: "STRING$",
+    0xa1: "USR",
+}
+
+
+if __name__ == "__main__":
+    def pprint_formated(d):
+        for k, v in sorted(d.items()):
+            print '    %s: "%s",' % (hex(k), v.strip())
+
+    print "BASIC_TOKENS = {"
+    pprint_formated(BASIC_TOKENS)
+    print "}"
+
+    print "FUNCTION_TOKEN = {"
+    pprint_formated(FUNCTION_TOKEN)
+    print "}"

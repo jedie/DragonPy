@@ -35,7 +35,7 @@ import time
 
 # own modules
 from utils import ProcessInfo, human_duration
-from basic_tokens import BASIC_TOKENS
+from basic_tokens import BASIC_TOKENS, FUNCTION_TOKEN
 
 
 ONE_HZ = 2400 # "1" is a single cycle at 2400 Hz
@@ -366,6 +366,18 @@ def bits2byte_no(bits):
     bits = list2str(bits)
     return int(bits, 2)
 
+def byte_list2bit_list(data):
+    """
+    >>> data = (0x0,0x1e,0x8b,0x20,0x49,0x0)
+    >>> byte_list2bit_list(data)
+    ['00000000', '01111000', '11010001', '00000100', '10010010', '00000000']
+    """
+    bit_list = []
+    for char in data:
+        bits = '{0:08b}'.format(char)
+        bits = bits[::-1]
+        bit_list.append(bits)
+    return bit_list
 
 def block2bytes(block_bit_list):
     bytes = "".join([chr(bits2byte_no(block)) for block in block_bit_list])
@@ -380,6 +392,21 @@ def print_block_table(block_bit_list):
             list2str(block), hex(byte_no), byte_no, repr(character)
         )
 
+def print_as_hex(block_bit_list):
+    line=""
+    for block in block_bit_list:
+        byte_no = bits2byte_no(block)
+        character = chr(byte_no)
+        line += hex(byte_no)
+    print line
+
+def print_as_hex_list(block_bit_list):
+    line=[]
+    for block in block_bit_list:
+        byte_no = bits2byte_no(block)
+        character = chr(byte_no)
+        line.append(hex(byte_no))
+    print ",".join(line)
 
 def get_block_info(bit_list):
     leader_pos = find_iter_window(bit_list, LEADER_BYTE) # Search for LEADER_BYTE in bit-by-bit steps
@@ -430,7 +457,31 @@ class FileContent(object):
         self.code_lines = []
 
     def add_data_block(self, block_length, block_bit_list):
+        """
+        >>> fc = FileContent()
+        >>> data = (
+        ... 0x1e,0x12,0x0,0xa,0x80,0x20,0x49,0x20,0xcb,0x20,0x31,0x20,0xbc,0x20,0x31,0x30,0x0,0x1e,0x29,0x0,0x14,0x87,0x20,0x49,0x3b,0x22,0x48,0x45,0x4c,0x4c,0x4f,0x20,0x57,0x4f,0x52,0x4c,0x44,0x21,0x22,0x0,0x1e,0x31,0x0,0x1e,0x8b,0x20,0x49,0x0,0x0,0x0
+        ... )
+        >>> bit_list=byte_list2bit_list(data)
+        >>> fc.add_data_block(0, bit_list)
+        >>> fc.print_code_lines()
+        10 FOR I = 1 TO 10
+        20 PRINT I;"HELLO WORLD!"
+        30 NEXT I
+
+        >>> fc = FileContent()
+        >>> data = (
+        ... 0x1e,0x4a,0x0,
+        ... 0x1e,0x58,0xcb,0x58,0xc3,0x4c,0xc5,0xff,0x88,0x28,0x52,0x29,0x3a,0x59,0xcb,0x59,0xc3,0x4c,0xc5,0xff,0x89,0x28,0x52,0x29,
+        ... 0x0,0x0,0x0
+        ... )
+        >>> bit_list=byte_list2bit_list(data)
+        >>> fc.add_data_block(0, bit_list)
+        >>> fc.print_code_lines()
+        30 X=X+L*SIN(R):Y=Y+L*COS(R)
+        """
         in_code_line = False
+        func_token = False
         pre_bytes = []
         line_no = None
         code_line = ""
@@ -458,26 +509,24 @@ class FileContent(object):
                         line_no = byte_no
                         continue
 
-                    if byte_no in BASIC_TOKENS:
-                        character = BASIC_TOKENS[byte_no].strip() # XXX: strip direct in BASIC_TOKENS ???
+                    if byte_no == 0xff: # Next byte is a function token
+                        func_token = True
+                        continue
+                    elif func_token == True:
+                        func_token = False
+                        character = FUNCTION_TOKEN[byte_no]
+                    elif byte_no in BASIC_TOKENS:
+                        character = BASIC_TOKENS[byte_no]
                     else:
                         character = chr(byte_no)
                     code_line += character
                 else:
                     pre_bytes.append(byte_no)
 
-        self.print_code_lines()
-
     def print_code_lines(self):
-        print "*"*79
         for code_line in self.code_lines:
-#             print repr(code_line)
             print "%i %s" % (code_line.line_no, code_line.code)
-#             print "pre bytes: %-10s code: %i %s" % (
-#                 repr(code_line.pre_bytes), code_line.line_no, code_line.code
-#             )
-        print "*"*79
-        
+
 
 class CassetteFile(object):
     """
@@ -511,7 +560,11 @@ class CassetteFile(object):
         self.file_content = FileContent()
 
     def add_data_block(self, block_length, block_bit_list):
+        print_as_hex_list(block_bit_list)
         self.file_content.add_data_block(block_length, block_bit_list)
+        print "*"*79
+        self.file_content.print_code_lines()
+        print "*"*79
 
     def __repr__(self):
         return "<BlockFile '%s' raw data: %s>" % (self.filename, repr(self.data))
@@ -544,7 +597,7 @@ if __name__ == "__main__":
         verbose=False
         # verbose=True
     )
-#     sys.exit()
+    #~ sys.exit()
 
 
     # created by Xroar Emulator
@@ -573,8 +626,8 @@ if __name__ == "__main__":
 #     FILENAME = "Quickbeam Software - Duplicas v3.0.wav" # binary!
 #     even_odd = False
 
-#     FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
-#     even_odd = False
+    FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
+    even_odd = False
 
 #     FILENAME = "1_MANIA.WAV"
 #     FILENAME = "2_DBJ.WAV" # TODO
