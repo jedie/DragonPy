@@ -55,6 +55,7 @@ BLOCK_TYPE_DICT = {
     EOF_BLOCK: "end-of-file block",
 }
 
+WAVE_READ_SIZE = 1024 # How many frames should be read from WAVE file at once?
 MIN_TOGGLE_COUNT = 3 # How many samples must be in pos/neg to count a cycle?
 
 DISPLAY_BLOCK_COUNT = 8 # How many bit block should be printet in one line?
@@ -154,14 +155,16 @@ def iter_wave_values(wavefile):
         raise NotImplementedError("Only sample width 2 or 1 are supported, yet!")
     print "struct_unpack_str:", struct_unpack_str
 
-    for frame_no in xrange(frame_count):
-        frame = wavefile.readframes(1)
-        if not frame:
+    frame_no = 0
+    while True:
+        frames = wavefile.readframes(WAVE_READ_SIZE)
+        if not frames:
             break
 
-        frame = struct.unpack(struct_unpack_str, frame)[0]
-
-        yield frame_no, frame
+        for frame in frames:
+            frame_no += 1
+            frame = struct.unpack(struct_unpack_str, frame)[0]
+            yield frame_no, frame
 
 
 
@@ -176,6 +179,7 @@ def iter_bits(wavefile, even_odd):
     in_negative = not even_odd
     toggle_count = 0 # Counter for detect a complete cycle
     previous_frame_no = 0
+    bit_count = 0
 
     process_info = ProcessInfo(frame_count, use_last_rates=4)
     start_time = time.time()
@@ -218,8 +222,10 @@ def iter_bits(wavefile, even_odd):
                 dst_one = abs(ONE_HZ - hz)
                 dst_nul = abs(NUL_HZ - hz)
                 if dst_one < dst_nul:
+                    bit_count += 1
                     yield 1
                 else:
+                    bit_count += 1
                     yield 0
 
                 # ms=float(frame_no)/framerate
@@ -231,6 +237,11 @@ def iter_bits(wavefile, even_odd):
                     _print_status(frame_no, framerate)
 
     _print_status(frame_no, framerate)
+    print
+    duration = time.time() - start_time
+    rate = bit_count / duration / 8 / 1024
+    print "%i bits decoded in %s (%.1fKBytes/s)" % (bit_count, human_duration(duration), rate)
+    print
     print
 
 
@@ -392,6 +403,7 @@ def print_block_table(block_bit_list):
             list2str(block), hex(byte_no), byte_no, repr(character)
         )
 
+
 def print_as_hex(block_bit_list):
     line=""
     for block in block_bit_list:
@@ -400,6 +412,7 @@ def print_as_hex(block_bit_list):
         line += hex(byte_no)
     print line
 
+
 def print_as_hex_list(block_bit_list):
     line=[]
     for block in block_bit_list:
@@ -407,6 +420,7 @@ def print_as_hex_list(block_bit_list):
         character = chr(byte_no)
         line.append(hex(byte_no))
     print ",".join(line)
+
 
 def get_block_info(bit_list):
     leader_pos = find_iter_window(bit_list, LEADER_BYTE) # Search for LEADER_BYTE in bit-by-bit steps
@@ -552,7 +566,7 @@ class CassetteFile(object):
     """
     def __init__(self, file_block_bit_list):
 #         print_block_bit_list(block_bit_list)
-        print_block_table(block_bit_list)
+#         print_block_table(block_bit_list)
 
         self.data = block2bytes(block_bit_list)
         self.filename = self.data[:8]
@@ -601,11 +615,11 @@ if __name__ == "__main__":
 
 
     # created by Xroar Emulator
-    FILENAME = "HelloWorld1 xroar.wav"
-    even_odd = False
+#     FILENAME = "HelloWorld1 xroar.wav"
+#     even_odd = False
 
     # created by origin Dragon 32 machine
-#     FILENAME = "HelloWorld1 origin.wav"
+#     FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 2735 bits (raw)
 #     even_odd = True
 
     """
@@ -629,7 +643,7 @@ if __name__ == "__main__":
     FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
     even_odd = False
 
-#     FILENAME = "1_MANIA.WAV"
+#     FILENAME = "1_MANIA.WAV" # 148579 frames, 4879 bits (raw)
 #     FILENAME = "2_DBJ.WAV" # TODO
 #     even_odd = False
 
@@ -639,9 +653,6 @@ if __name__ == "__main__":
 
     print "read..."
     bit_list = list(iter_bits(wavefile, even_odd))
-    print "%i bits decoded." % len(bit_list)
-    print
-
 
     # print "-"*79
     # print_bitlist(bit_list)
@@ -676,8 +687,8 @@ if __name__ == "__main__":
 
         bit_list, block_bit_list = pop_bytes_from_bit_list(bit_list, count=block_length)
 
-        print_block_table(block_bit_list)
-        # print_block_bit_list(block_bit_list)
+#         print_block_table(block_bit_list)
+#         print_block_bit_list(block_bit_list)
 
         cassette.add_block(block_type, block_length, block_bit_list)
         print "="*79
