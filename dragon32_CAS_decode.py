@@ -57,8 +57,9 @@ BLOCK_TYPE_DICT = {
 
 WAVE_READ_SIZE = 16 * 1024 # How many frames should be read from WAVE file at once?
 WAV_UNPACK_STR = {
-    1: "<%db", # 8-bit wave
-    2: "<%dh", # 16-bit wave
+    1: "<%db", #  8-bit wave file
+    2: "<%dh", # 16-bit wave file
+    4: "<%dl", # 32-bit wave file TODO: Test it
 }
 MIN_TOGGLE_COUNT = 3 # How many samples must be in pos/neg to count a cycle?
 
@@ -145,21 +146,22 @@ def iter_wave_values(wavefile):
     generator that yield integers for WAVE files.
 
     returned sample values are in this ranges:
-        8-bit:  -255..255
-        16-bit: -32768..32768
+         8-bit:        -255..255
+        16-bit:      -32768..32768
+        32-bit: -2147483648..2147483647
     """
     nchannels = wavefile.getnchannels() # typically 1 for mono, 2 for stereo
     print "channels:", nchannels
     assert nchannels == 1, "Only MONO files are supported, yet!"
 
     samplewidth = wavefile.getsampwidth() # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
-    print "samplewidth:", samplewidth
+    print "samplewidth: %i (%sBit wave file)" % (samplewidth, samplewidth * 8)
 
     try:
         struct_unpack_str = WAV_UNPACK_STR[samplewidth]
     except KeyError:
         raise NotImplementedError(
-            "Only sample width %s are supported, yet!" % ",".join([str(i) for i in WAV_UNPACK_STR.keys()])
+            "Only %s wave files are supported, yet!" % ", ".join(["%sBit" % (i * 8) for i in WAV_UNPACK_STR.keys()])
         )
 
     frame_no = 0
@@ -179,7 +181,7 @@ def iter_bits(wavefile, even_odd):
     framerate = wavefile.getframerate() # frames / second
     print "Framerate:", framerate
     frame_count = wavefile.getnframes()
-    print "Numer of audio frames:", frame_count
+    print "Number of audio frames:", frame_count
 
     in_positive = even_odd
     in_negative = not even_odd
@@ -246,7 +248,9 @@ def iter_bits(wavefile, even_odd):
     print
     duration = time.time() - start_time
     rate = bit_count / duration / 8 / 1024
-    print "%i bits decoded in %s (%.1fKBytes/s)" % (bit_count, human_duration(duration), rate)
+    print "%i bits decoded from %i audio samples in %s (%.1fKBytes/s)" % (
+        bit_count, frame_no, human_duration(duration), rate
+    )
     print
     print
 
@@ -647,12 +651,12 @@ if __name__ == "__main__":
 #     FILENAME = "Quickbeam Software - Duplicas v3.0.wav" # binary!
 #     even_odd = False
 
-    FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
-    even_odd = False
+#     FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
+#     even_odd = False
 
 #     FILENAME = "1_MANIA.WAV" # 148579 frames, 4879 bits (raw)
-#     FILENAME = "2_DBJ.WAV" # TODO
-#     even_odd = False
+    FILENAME = "2_DBJ.WAV" # TODO
+    even_odd = False
 
 
     print "Read '%s'..." % FILENAME
