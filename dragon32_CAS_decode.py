@@ -55,7 +55,11 @@ BLOCK_TYPE_DICT = {
     EOF_BLOCK: "end-of-file block",
 }
 
-WAVE_READ_SIZE = 1024 # How many frames should be read from WAVE file at once?
+WAVE_READ_SIZE = 16 * 1024 # How many frames should be read from WAVE file at once?
+WAV_UNPACK_STR = {
+    1: "<%db", # 8-bit wave
+    2: "<%dh", # 16-bit wave
+}
 MIN_TOGGLE_COUNT = 3 # How many samples must be in pos/neg to count a cycle?
 
 DISPLAY_BLOCK_COUNT = 8 # How many bit block should be printet in one line?
@@ -137,23 +141,26 @@ def count_sign(values):
 
 
 def iter_wave_values(wavefile):
-    samplewidth = wavefile.getsampwidth() # i.e 1 for 8-bit samples, 2 for 16-bit samples
-    print "samplewidth:", samplewidth
+    """
+    generator that yield integers for WAVE files.
+
+    returned sample values are in this ranges:
+        8-bit:  -255..255
+        16-bit: -32768..32768
+    """
     nchannels = wavefile.getnchannels() # typically 1 for mono, 2 for stereo
     print "channels:", nchannels
-
     assert nchannels == 1, "Only MONO files are supported, yet!"
 
-    frame_count = wavefile.getnframes() # number of audio frames
+    samplewidth = wavefile.getsampwidth() # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
+    print "samplewidth:", samplewidth
 
-    # FIXME
-    if samplewidth == 1:
-        struct_unpack_str = "b"
-    elif samplewidth == 2:
-        struct_unpack_str = "<h"
-    else:
-        raise NotImplementedError("Only sample width 2 or 1 are supported, yet!")
-    print "struct_unpack_str:", struct_unpack_str
+    try:
+        struct_unpack_str = WAV_UNPACK_STR[samplewidth]
+    except KeyError:
+        raise NotImplementedError(
+            "Only sample width %s are supported, yet!" % ",".join([str(i) for i in WAV_UNPACK_STR.keys()])
+        )
 
     frame_no = 0
     while True:
@@ -161,12 +168,11 @@ def iter_wave_values(wavefile):
         if not frames:
             break
 
+        frame_count = len(frames) / samplewidth
+        frames = struct.unpack(struct_unpack_str % frame_count, frames)
         for frame in frames:
             frame_no += 1
-            frame = struct.unpack(struct_unpack_str, frame)[0]
             yield frame_no, frame
-
-
 
 
 def iter_bits(wavefile, even_odd):
@@ -405,7 +411,7 @@ def print_block_table(block_bit_list):
 
 
 def print_as_hex(block_bit_list):
-    line=""
+    line = ""
     for block in block_bit_list:
         byte_no = bits2byte_no(block)
         character = chr(byte_no)
@@ -414,7 +420,7 @@ def print_as_hex(block_bit_list):
 
 
 def print_as_hex_list(block_bit_list):
-    line=[]
+    line = []
     for block in block_bit_list:
         byte_no = bits2byte_no(block)
         character = chr(byte_no)
@@ -566,7 +572,8 @@ class CassetteFile(object):
     """
     def __init__(self, file_block_bit_list):
 #         print_block_bit_list(block_bit_list)
-#         print_block_table(block_bit_list)
+        print_block_table(block_bit_list)
+        print_as_hex_list(file_block_bit_list)
 
         self.data = block2bytes(block_bit_list)
         self.filename = self.data[:8]
@@ -611,7 +618,7 @@ if __name__ == "__main__":
         verbose=False
         # verbose=True
     )
-    #~ sys.exit()
+    # ~ sys.exit()
 
 
     # created by Xroar Emulator
