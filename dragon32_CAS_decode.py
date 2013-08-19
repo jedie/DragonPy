@@ -32,14 +32,23 @@ import wave
 import sys
 import struct
 import time
+import array
+
+try:
+    import audioop
+except ImportError, err:
+    # e.g. PyPy, see: http://bugs.pypy.org/msg4430
+    print "Can't use audioop:", err
+    audioop = None
 
 # own modules
-from utils import ProcessInfo, human_duration
+from utils import ProcessInfo, human_duration, average
 from basic_tokens import BASIC_TOKENS, FUNCTION_TOKEN
 
 
-ONE_HZ = 2400 # "1" is a single cycle at 2400 Hz
-NUL_HZ = 1200 # "0" is a single cycle at 1200 Hz
+BIT_ONE_HZ = 2400 # "1" is a single cycle at 2400 Hz
+BIT_NUL_HZ = 1200 # "0" is a single cycle at 1200 Hz
+MAX_HZ_VARIATION = 1000 # How much Hz can signal scatter to match 1 or 0 bit ?
 
 LEADER_BYTE = "10101010" # 0x55
 SYNC_BYTE = "00111100" # 0x3C
@@ -55,13 +64,19 @@ BLOCK_TYPE_DICT = {
     EOF_BLOCK: "end-of-file block",
 }
 
+# WAVE_RESAMPLE = 22050 # Downsample wave file to this sample rate
+# WAVE_RESAMPLE = 11025 # Downsample wave file to this sample rate
+# WAVE_RESAMPLE = 8000 # Downsample wave file to this sample rate
+
+WAVE_RESAMPLE = None # Don't change sample rate
+
 WAVE_READ_SIZE = 16 * 1024 # How many frames should be read from WAVE file at once?
 WAV_UNPACK_STR = {
     1: "<%db", #  8-bit wave file
     2: "<%dh", # 16-bit wave file
     4: "<%dl", # 32-bit wave file TODO: Test it
 }
-MIN_TOGGLE_COUNT = 3 # How many samples must be in pos/neg to count a cycle?
+MIN_TOGGLE_COUNT = 4 # How many samples must be in pos/neg to count a cycle?
 
 DISPLAY_BLOCK_COUNT = 8 # How many bit block should be printet in one line?
 
@@ -124,23 +139,6 @@ def iter_window(g, window_size):
             yield list(values)
 
 
-def count_sign(values):
-    """
-    >>> count_sign([3,-1,-2])
-    (1, 2)
-    >>> count_sign([0,-1])
-    (0, 1)
-    """
-    positive_count = 0
-    negative_count = 0
-    for value in values:
-        if value > 0:
-            positive_count += 1
-        elif value < 0:
-            negative_count += 1
-    return positive_count, negative_count
-
-
 def iter_wave_values(wavefile):
     """
     generator that yield integers for WAVE files.
@@ -161,11 +159,47 @@ def iter_wave_values(wavefile):
             "Only %s wave files are supported, yet!" % ", ".join(["%sBit" % (i * 8) for i in WAV_UNPACK_STR.keys()])
         )
 
+    def _print_status(frame_no, framerate):
+        ms = float(frame_no) / framerate
+        rest, eta, rate = process_info.update(frame_no)
+        sys.stdout.write(
+            "\r%i frames (wav pos:%s) eta: %s (rate: %iFrames/sec)   " % (
+                frame_no, human_duration(ms), eta, rate
+            )
+        )
+
+    framerate = wavefile.getframerate() # frames / second
+    frame_count = wavefile.getnframes()
+
+    process_info = ProcessInfo(frame_count, use_last_rates=4)
+    start_time = time.time()
+    next_status = start_time + 0.25
+
+    new_rate = None
+    if audioop is not None and WAVE_RESAMPLE is not None and framerate > WAVE_RESAMPLE:
+        new_rate = WAVE_RESAMPLE
+        print "resample from %iHz/sec. to %sHz/sec" % (framerate, new_rate)
+        framerate = WAVE_RESAMPLE
+
     frame_no = 0
+    ratecv_state = None
     while True:
         frames = wavefile.readframes(WAVE_READ_SIZE)
         if not frames:
             break
+
+        if new_rate is not None:
+            # downsample the wave file
+            # FIXME! See: http://www.python-forum.de/viewtopic.php?f=11&t=6118&p=244377#p244377
+            print "before:", len(frames), new_rate
+            frames, ratecv_state = audioop.ratecv(
+                frames, samplewidth, nchannels, framerate, new_rate, ratecv_state, 1, 1
+            )
+            print "after:", len(frames), new_rate
+
+        if time.time() > next_status:
+            next_status = time.time() + 1
+            _print_status(frame_no, framerate)
 
         frame_count = len(frames) / samplewidth
         frames = struct.unpack(struct_unpack_str % frame_count, frames)
@@ -173,10 +207,34 @@ def iter_wave_values(wavefile):
             frame_no += 1
             yield frame_no, frame
 
+    _print_status(frame_no, framerate)
+    print
+
+
+MIN_SAMPLE_VALUE = 5
+def count_sign(values, min_value):
+    """
+    >>> count_sign([3,-1,-2], 0)
+    (1, 2)
+    >>> count_sign([3,-1,-2], 2)
+    (1, 0)
+    >>> count_sign([0,-1],0)
+    (0, 1)
+    """
+    positive_count = 0
+    negative_count = 0
+    for value in values:
+        if value > min_value:
+            positive_count += 1
+        elif value < -min_value:
+            negative_count += 1
+    return positive_count, negative_count
+
 
 def samples2bits(samples, framerate, frame_count, even_odd):
     in_positive = even_odd
     in_negative = not even_odd
+
     toggle_count = 0 # Counter for detect a complete cycle
     previous_frame_no = 0
     bit_count = 0
@@ -189,52 +247,94 @@ def samples2bits(samples, framerate, frame_count, even_odd):
         ms = float(frame_no) / framerate
         rest, eta, rate = process_info.update(frame_no)
         sys.stdout.write(
-            "\r%i frames readed. Position in WAV: %s - eta: %s (rate: %iFrames/sec)" % (
+            "\r%i frames (wav pos:%s) eta: %s (rate: %iFrames/sec)   " % (
                 frame_no, human_duration(ms), eta, rate
             )
         )
 
     window_values = collections.deque(maxlen=MIN_TOGGLE_COUNT)
-    for frame_no, value in samples:
+
+    # Fill window deque
+    for frame_no, value in samples[:MIN_TOGGLE_COUNT]:
         window_values.append(value)
-        if len(window_values) >= MIN_TOGGLE_COUNT:
-            positive_count, negative_count = count_sign(window_values)
 
-            # print window_values, positive_count, negative_count
-            if not in_positive and positive_count == MIN_TOGGLE_COUNT and negative_count == 0:
-                # go into a positive sinus area
-                in_positive = True
-                in_negative = False
-                toggle_count += 1
-            elif not in_negative and negative_count == MIN_TOGGLE_COUNT and positive_count == 0:
-                # go into a negative sinus area
-                in_negative = True
-                in_positive = False
-                toggle_count += 1
+    bit_one_min_hz = BIT_ONE_HZ - MAX_HZ_VARIATION
+    bit_one_max_hz = BIT_ONE_HZ + MAX_HZ_VARIATION
 
-            if toggle_count >= 2:
-                # a single sinus cycle complete
-                toggle_count = 0
+    bit_nul_min_hz = BIT_NUL_HZ - MAX_HZ_VARIATION
+    bit_nul_max_hz = BIT_NUL_HZ + MAX_HZ_VARIATION
 
-                frame_count = frame_no - previous_frame_no
-                hz = framerate / frame_count
+    one_hz_count = 0
+    one_hz_min = sys.maxint
+    one_hz_avg = None
+    one_hz_max = 0
+    nul_hz_count = 0
+    nul_hz_min = sys.maxint
+    nul_hz_avg = None
+    nul_hz_max = 0
 
-                dst_one = abs(ONE_HZ - hz)
-                dst_nul = abs(NUL_HZ - hz)
-                if dst_one < dst_nul:
-                    bit_count += 1
-                    yield 1
-                else:
-                    bit_count += 1
-                    yield 0
+    old_status = (-1, -1)
+    for frame_no, value in samples[MIN_TOGGLE_COUNT:]:
+        window_values.append(value)
 
-                # ms=float(frame_no)/framerate
-                # print "***", bit, hz, "Hz", "%0.5fms" % ms
-                previous_frame_no = frame_no
+        new_status = count_sign(window_values, MIN_SAMPLE_VALUE)
+        if new_status == old_status:
+            # ignore the frame if status not changed
+#             print new_status, "skip"
+            continue
+        positive_count, negative_count = old_status = new_status
 
-                if time.time() > next_status:
-                    next_status = time.time() + 1
-                    _print_status(frame_no, framerate)
+        # print window_values, positive_count, negative_count
+        if not in_positive and positive_count == MIN_TOGGLE_COUNT and negative_count == 0:
+            # go into a positive sinus area
+            in_positive = True
+            in_negative = False
+            toggle_count += 1
+        elif not in_negative and negative_count == MIN_TOGGLE_COUNT and positive_count == 0:
+            # go into a negative sinus area
+            in_negative = True
+            in_positive = False
+            toggle_count += 1
+        else:
+#             print "wrong:", positive_count, negative_count
+            continue
+
+        if toggle_count >= 2:
+            # a single sinus cycle complete
+            toggle_count = 0
+
+            frame_count = frame_no - previous_frame_no
+            previous_frame_no = frame_no
+            hz = framerate / frame_count
+#             print "%sHz" % hz
+
+            if hz > bit_one_min_hz and hz < bit_one_max_hz:
+#                 print "bit 1"
+                bit_count += 1
+                yield 1
+                one_hz_count += 1
+                if hz < one_hz_min:
+                    one_hz_min = hz
+                if hz > one_hz_max:
+                    one_hz_max = hz
+                one_hz_avg = average(one_hz_avg, hz, one_hz_count)
+            elif hz > bit_nul_min_hz and hz < bit_nul_max_hz:
+#                 print "bit 0"
+                bit_count += 1
+                yield 0
+                nul_hz_count += 1
+                if hz < nul_hz_min:
+                    nul_hz_min = hz
+                if hz > nul_hz_max:
+                    nul_hz_max = hz
+                nul_hz_avg = average(nul_hz_avg, hz, nul_hz_count)
+            else:
+                print "Skip signal with %sHz." % hz
+                continue
+
+            if time.time() > next_status:
+                next_status = time.time() + 1
+                _print_status(frame_no, framerate)
 
     _print_status(frame_no, framerate)
     print
@@ -244,7 +344,12 @@ def samples2bits(samples, framerate, frame_count, even_odd):
         bit_count, frame_no, human_duration(duration), rate
     )
     print
-    print
+    print "Bit 1: %s-%sHz avg: %.1fHz variation: %sHz" % (
+        one_hz_min, one_hz_max, one_hz_avg, one_hz_max - one_hz_min
+    )
+    print "Bit 0: %s-%sHz avg: %.1fHz variation: %sHz" % (
+        nul_hz_min, nul_hz_max, nul_hz_avg, nul_hz_max - nul_hz_min
+    )
 
 
 def count_continuous_pattern(bits, pattern):
@@ -536,6 +641,7 @@ class FileContent(object):
                         character = BASIC_TOKENS[byte_no]
                     else:
                         character = chr(byte_no)
+                    # print byte_no, repr(character)
                     code_line += character
                 else:
                     pre_bytes.append(byte_no)
@@ -612,6 +718,23 @@ class Cassette(object):
             raise TypeError("Block type %s unkown!" & hex(block_type))
 
 
+def print_bit_list_stats(bit_list):
+    """
+    >>> print_bit_list_stats([1,1,1,1,0,0,0,0])
+    8 Bits: 4 positive bits and 4 negative bits
+    """
+    print "%i Bits:" % len(bit_list),
+    positive_count = 0
+    negative_count = 0
+    for bit in bit_list:
+        if bit == 1:
+            positive_count += 1
+        elif bit == 0:
+            negative_count += 1
+        else:
+            raise TypeError("Not a bit: %s" % repr(bit))
+    print "%i positive bits and %i negative bits" % (positive_count, negative_count)
+
 
 
 
@@ -621,16 +744,38 @@ if __name__ == "__main__":
         verbose=False
         # verbose=True
     )
-    # ~ sys.exit()
+#     sys.exit()
+
 
 
     # created by Xroar Emulator
-    FILENAME = "HelloWorld1 xroar.wav"
-    even_odd = False
+#     FILENAME = "HelloWorld1 xroar.wav"
+
+#     even_odd = False # correct:
+#     Bit 1 min: 1696Hz avg: 2058.3Hz max: 2205Hz variation: 509Hz
+#     Bit 0 min: 595Hz avg: 1090.4Hz max: 1160Hz Variation: 565Hz
+#     4760 Bits: 2243 positive bits and 2517 negative bits
+
+#     even_odd = True # wrong:
+#     Bit 1 min: 1470Hz avg: 1487.5Hz max: 2205Hz variation: 735Hz
+#     Bit 0 min: 689Hz avg: 1332.3Hz max: 1378Hz Variation: 689Hz
+#     4760 Bits: 2404 positive bits and 2356 negative bits
+
+
 
     # created by origin Dragon 32 machine
-#     FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 2735 bits (raw)
-#     even_odd = True
+    FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 2735 bits (raw)
+    even_odd = True # correct:
+    # Bit 1 min: 1764Hz avg: 2013.9Hz max: 2100Hz variation: 336Hz
+    # Bit 0 min: 595Hz avg: 1090.2Hz max: 1336Hz Variation: 741Hz
+    # 2710 Bits: 1217 positive bits and 1493 negative bits
+
+#     even_odd = False # wrong:
+    # Bit 1 min: 1422Hz avg: 1461.5Hz max: 2100Hz variation: 678Hz
+    # Bit 0 min: 459Hz avg: 1265.1Hz max: 1378Hz Variation: 919Hz
+    # 2712 Bits: 1723 positive bits and 989 negative bits
+
+
 
     """
     The origin BASIC code of the two WAV file is:
@@ -650,8 +795,18 @@ if __name__ == "__main__":
 #     FILENAME = "Quickbeam Software - Duplicas v3.0.wav" # binary!
 #     even_odd = False
 
+
 #     FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
-#     even_odd = False
+#     even_odd = False # correct:
+    # Bit 1 min: 1696Hz avg: 2004.0Hz max: 2004Hz variation: 308Hz
+    # Bit 0 min: 1025Hz avg: 1025.0Hz max: 1025Hz Variation: 0Hz
+    # 155839 Bits: 73776 positive bits and 82063 negative bits
+
+#     even_odd = True # wrong:
+    # Bit 1 min: 2004Hz avg: 2004.5Hz max: 2940Hz variation: 936Hz
+    # Bit 0 min: 1025Hz avg: 1330.1Hz max: 1378Hz Variation: 353Hz
+    # 155840 Bits: 4018 positive bits and 151822 negative bits
+
 
 #     FILENAME = "1_MANIA.WAV" # 148579 frames, 4879 bits (raw)
 #     FILENAME = "2_DBJ.WAV" # TODO
@@ -677,14 +832,17 @@ if __name__ == "__main__":
     print "DONE in %s" % human_duration(time.time() - start_time)
 
     print "Convert WAVE samples to binary data..."
-    bit_list = list(samples2bits(wave_samples, framerate, frame_count, even_odd))
+    bit_generator = samples2bits(wave_samples, framerate, frame_count, even_odd)
+    bit_list = array.array('B', bit_generator) # 1.1sec 17KB/s
 
-    # print "-"*79
-    # print_bitlist(bit_list)
-    # print "-"*79
-    # print_block_table(bit_list)
-    # print "-"*79
-    # sys.exit()
+    print_bit_list_stats(bit_list)
+
+#     print "-"*79
+#     print_bitlist(bit_list)
+#     print "-"*79
+#     print_block_table(bit_list)
+#     print "-"*79
+#     sys.exit()
 
     cassette = Cassette()
 

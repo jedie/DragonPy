@@ -90,6 +90,23 @@ class ProcessInfo(object):
         human_eta = human_duration(eta)
         return rest, human_eta, smoothed_rate
 
+
+def average(old_avg, current_value, count):
+    """
+    Calculate the average. Count must start with 0
+
+    >>> average(None, 3.23, 0)
+    3.23
+    >>> average(0, 1, 0)
+    1.0
+    >>> average(2.5, 5, 4)
+    3.0
+    """
+    if old_avg is None:
+        return current_value
+    return (float(old_avg) * count + current_value) / (count + 1)
+
+
 if __name__ == "__main__":
     import doctest
     print doctest.testmod()
