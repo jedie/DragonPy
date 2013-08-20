@@ -13,15 +13,6 @@
         - add cli
         - write .BAS file
 
-    Spec links:
-        http://www.onastick.clara.net/cosio.htm
-        http://www.cs.unc.edu/~yakowenk/coco/text/tapeformat.html
-        http://dragon32.info/info/basicfmt.html
-
-    Many thanks to the people from:
-        http://www.python-forum.de/viewtopic.php?f=1&t=32102 (de)
-        http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4231 (en)
-
     :copyleft: 2013 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
