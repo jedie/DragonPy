@@ -547,43 +547,18 @@ def get_block_info(bit_list):
     return bit_list, block_type, block_length
 
 
-def to16bit(values):
+def get_word(byte_iterator):
     """
-    >>> v = to16bit([0x1e, 0x12])
-    >>> v
-    7698
-    >>> hex(v)
-    '0x1e12'
-    """
-    return (values[0] << 8) | values[1]
+    return a uint16 value
 
-
-def get_until(g, until):
-    """
-    >>> g=iter([1,2,3,4,5])
-    >>> r=get_until(g, 3)
-    >>> list(r)
-    [1, 2]
-    """
-    while True:
-        item = g.next()
-        if item == until:
-            raise StopIteration()
-        yield item
-
-
-def get_16bit_char(g):
-    """
     >>> g=iter([0x1e, 0x12])
-    >>> v=get_16bit_char(g)
+    >>> v=get_word(g)
     >>> v
     7698
     >>> hex(v)
     '0x1e12'
     """
-    values = itertools.islice(g, 2)
-    values = list(values)
-    return to16bit(values)
+    return (next(byte_iterator) << 8) | next(byte_iterator)
 
 
 def bytes2codeline(raw_bytes):
@@ -697,15 +672,18 @@ class FileContent(object):
         """
         data = iter([bits2byte_no(bit_block) for bit_block in block_bit_list])
         while True:
-            line_pointer = list(itertools.islice(data, 2))
-            if line_pointer == [0x00, 0x00]:
-                # end of block
+            line_pointer = get_word(data)
+            if not line_pointer:
+                # arrived [0x00, 0x00] -> end of block
                 break
-            line_pointer = to16bit(line_pointer)
 
-            line_number = get_16bit_char(data)
+            line_number = get_word(data)
 
-            code = get_until(data, 0x00)
+            # get the code line:
+            # new iterator to get all characters until 0x00 arraived
+            code = iter(data.next, 0x00)
+
+            # convert to a plain ASCII string
             code = bytes2codeline(code)
 
             self.code_lines.append(
