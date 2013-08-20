@@ -33,6 +33,7 @@ import sys
 import time
 import array
 import functools
+import itertools
 
 try:
     import audioop
@@ -555,16 +556,79 @@ def get_block_info(bit_list):
     return bit_list, block_type, block_length
 
 
+def to16bit(values):
+    """
+    >>> v = to16bit([0x1e, 0x12])
+    >>> v
+    7698
+    >>> hex(v)
+    '0x1e12'
+    """
+    return (values[0] << 8) | values[1]
+
+
+def get_until(g, until):
+    """
+    >>> g=iter([1,2,3,4,5])
+    >>> r=get_until(g, 3)
+    >>> list(r)
+    [1, 2]
+    """
+    while True:
+        item = g.next()
+        if item == until:
+            raise StopIteration()
+        yield item
+
+
+def get_16bit_char(g):
+    """
+    >>> g=iter([0x1e, 0x12])
+    >>> v=get_16bit_char(g)
+    >>> v
+    7698
+    >>> hex(v)
+    '0x1e12'
+    """
+    values = itertools.islice(g, 2)
+    values = list(values)
+    return to16bit(values)
+
+
+def bytes2codeline(raw_bytes):
+    """
+    >>> data = (0x87,0x20,0x22,0x48,0x45,0x4c,0x4c,0x4f,0x20,0x57,0x4f,0x52,0x4c,0x44,0x21,0x22)
+    >>> bytes2codeline(data)
+    'PRINT "HELLO WORLD!"'
+    """
+    code_line = ""
+    func_token = False
+    for byte_no in raw_bytes:
+        if byte_no == 0xff: # Next byte is a function token
+            func_token = True
+            continue
+        elif func_token == True:
+            func_token = False
+            character = FUNCTION_TOKEN[byte_no]
+        elif byte_no in BASIC_TOKENS:
+            character = BASIC_TOKENS[byte_no]
+        else:
+            character = chr(byte_no)
+#         print byte_no, repr(character)
+        code_line += character
+    return code_line
+
+
 class CodeLine(object):
-    def __init__(self, pre_bytes, line_no, code):
+    def __init__(self, line_pointer, line_no, code):
         assert isinstance(line_no, int), "Line number not integer, it's: %s" % repr(line_no)
-        self.pre_bytes = pre_bytes
+        self.line_pointer = line_pointer
         self.line_no = line_no
         self.code = code
 
     def __repr__(self):
-        return "<CodeLine pre bytes: %s line no: %s code: %s>" % (
-            repr(self.pre_bytes), repr(self.line_no), repr(self.code)
+        return "<CodeLine pointer: %s line no: %s code: %s>" % (
+            repr(self.line_pointer), repr(self.line_no), repr(self.code)
         )
 
 
@@ -578,70 +642,84 @@ class FileContent(object):
     def add_data_block(self, block_length, block_bit_list):
         """
         >>> fc = FileContent()
-        >>> data = (
-        ... 0x1e,0x12,0x0,0xa,0x80,0x20,0x49,0x20,0xcb,0x20,0x31,0x20,0xbc,0x20,0x31,0x30,0x0,0x1e,0x29,0x0,0x14,0x87,0x20,0x49,0x3b,0x22,0x48,0x45,0x4c,0x4c,0x4f,0x20,0x57,0x4f,0x52,0x4c,0x44,0x21,0x22,0x0,0x1e,0x31,0x0,0x1e,0x8b,0x20,0x49,0x0,0x0,0x0
-        ... )
-        >>> bit_list=byte_list2bit_list(data)
-        >>> fc.add_data_block(0, bit_list)
+
+        >>> block = byte_list2bit_list([
+        ... 0x1e,0x12,0x0,0xa,0x80,0x20,0x49,0x20,0xcb,0x20,0x31,0x20,0xbc,0x20,0x31,0x30,0x0,
+        ... 0x0,0x0])
+        >>> fc.add_data_block(0,block)
+        >>> fc.print_code_lines()
+        10 FOR I = 1 TO 10
+
+        >>> block = byte_list2bit_list([
+        ... 0x1e,0x29,0x0,0x14,0x87,0x20,0x49,0x3b,0x22,0x48,0x45,0x4c,0x4c,0x4f,0x20,0x57,0x4f,0x52,0x4c,0x44,0x21,0x22,0x0,
+        ... 0x0,0x0])
+        >>> fc.add_data_block(0,block)
+        >>> fc.print_code_lines()
+        10 FOR I = 1 TO 10
+        20 PRINT I;"HELLO WORLD!"
+
+        >>> block = byte_list2bit_list([
+        ... 0x1e,0x31,0x0,0x1e,0x8b,0x20,0x49,0x0,
+        ... 0x0,0x0])
+        >>> fc.add_data_block(0,block)
         >>> fc.print_code_lines()
         10 FOR I = 1 TO 10
         20 PRINT I;"HELLO WORLD!"
         30 NEXT I
 
+
+        Test function tokens in code
+
         >>> fc = FileContent()
         >>> data = (
-        ... 0x1e,0x4a,0x0,
-        ... 0x1e,0x58,0xcb,0x58,0xc3,0x4c,0xc5,0xff,0x88,0x28,0x52,0x29,0x3a,0x59,0xcb,0x59,0xc3,0x4c,0xc5,0xff,0x89,0x28,0x52,0x29,
-        ... 0x0,0x0,0x0
+        ... 0x1e,0x4a,0x0,0x1e,0x58,0xcb,0x58,0xc3,0x4c,0xc5,0xff,0x88,0x28,0x52,0x29,0x3a,0x59,0xcb,0x59,0xc3,0x4c,0xc5,0xff,0x89,0x28,0x52,0x29,0x0,
+        ... 0x0,0x0
         ... )
         >>> bit_list=byte_list2bit_list(data)
         >>> fc.add_data_block(0, bit_list)
         >>> fc.print_code_lines()
         30 X=X+L*SIN(R):Y=Y+L*COS(R)
+
+
+        Test high line numbers
+
+        >>> fc = FileContent()
+        >>> data = (
+        ... 0x1e,0x1a,0x0,0x1,0x87,0x20,0x22,0x4c,0x49,0x4e,0x45,0x20,0x4e,0x55,0x4d,0x42,0x45,0x52,0x20,0x54,0x45,0x53,0x54,0x22,0x0,
+        ... 0x1e,0x23,0x0,0xa,0x87,0x20,0x31,0x30,0x0,
+        ... 0x1e,0x2d,0x0,0x64,0x87,0x20,0x31,0x30,0x30,0x0,
+        ... 0x1e,0x38,0x3,0xe8,0x87,0x20,0x31,0x30,0x30,0x30,0x0,
+        ... 0x1e,0x44,0x27,0x10,0x87,0x20,0x31,0x30,0x30,0x30,0x30,0x0,
+        ... 0x1e,0x50,0x80,0x0,0x87,0x20,0x33,0x32,0x37,0x36,0x38,0x0,
+        ... 0x1e,0x62,0xf9,0xff,0x87,0x20,0x22,0x45,0x4e,0x44,0x22,0x3b,0x36,0x33,0x39,0x39,0x39,0x0,0x0,0x0
+        ... )
+        >>> bit_list=byte_list2bit_list(data)
+        >>> fc.add_data_block(0, bit_list)
+        >>> fc.print_code_lines()
+        1 PRINT "LINE NUMBER TEST"
+        10 PRINT 10
+        100 PRINT 100
+        1000 PRINT 1000
+        10000 PRINT 10000
+        32768 PRINT 32768
+        63999 PRINT "END";63999
         """
-        in_code_line = False
-        func_token = False
-        pre_bytes = []
-        line_no = None
-        code_line = ""
+        data = iter([bits2byte_no(bit_block) for bit_block in block_bit_list])
+        while True:
+            line_pointer = list(itertools.islice(data, 2))
+            if line_pointer == [0x00, 0x00]:
+                # end of block
+                break
+            line_pointer = to16bit(line_pointer)
 
-        raw_bytes = [bits2byte_no(bit_block) for bit_block in block_bit_list]
-        for index, byte_no in enumerate(raw_bytes):
-#             print index, hex(byte_no)
-            if byte_no == 0x00:
-                if in_code_line:
-                    # print "Add code line", repr(pre_bytes), repr(line_no), repr(code_line)
-                    code_line_obj = CodeLine(pre_bytes, line_no, code_line)
-                    self.code_lines.append(code_line_obj)
-                    pre_bytes = []
-                    line_no = None
-                    code_line = ""
-                    in_code_line = False
-                else:
-                    if raw_bytes[index:] == [0, 0]:
-                        # Next two bytes are 0x00 0x00 -> end of data delimiter
-                        break
-                    in_code_line = True
-            else:
-                if in_code_line:
-                    if line_no is None:
-                        line_no = byte_no
-                        continue
+            line_number = get_16bit_char(data)
 
-                    if byte_no == 0xff: # Next byte is a function token
-                        func_token = True
-                        continue
-                    elif func_token == True:
-                        func_token = False
-                        character = FUNCTION_TOKEN[byte_no]
-                    elif byte_no in BASIC_TOKENS:
-                        character = BASIC_TOKENS[byte_no]
-                    else:
-                        character = chr(byte_no)
-                    # print byte_no, repr(character)
-                    code_line += character
-                else:
-                    pre_bytes.append(byte_no)
+            code = get_until(data, 0x00)
+            code = bytes2codeline(code)
+
+            self.code_lines.append(
+                CodeLine(line_pointer, line_number, code)
+            )
 
     def print_code_lines(self):
         for code_line in self.code_lines:
@@ -746,9 +824,9 @@ if __name__ == "__main__":
 
 
     # created by Xroar Emulator
-    FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
+#     FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
 
-    even_odd = False # correct:
+#     even_odd = False # correct:
 #     Bit 1 min: 1696Hz avg: 2058.3Hz max: 2205Hz variation: 509Hz
 #     Bit 0 min: 595Hz avg: 1090.4Hz max: 1160Hz Variation: 565Hz
 #     4760 Bits: 2243 positive bits and 2517 negative bits
@@ -810,8 +888,9 @@ if __name__ == "__main__":
 #     FILENAME = "2_DBJ.WAV" # TODO
 #     even_odd = False
 
-#     FILENAME = "LineNumber Test 01.wav" # TODO
-#     even_odd = True
+    # BASIC file with high line numbers:
+    FILENAME = "LineNumber Test 01.wav"
+    even_odd = True
 
 
     print "Read '%s'..." % FILENAME
