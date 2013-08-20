@@ -30,9 +30,9 @@
 import collections
 import wave
 import sys
-import struct
 import time
 import array
+import functools
 
 try:
     import audioop
@@ -71,10 +71,10 @@ BLOCK_TYPE_DICT = {
 WAVE_RESAMPLE = None # Don't change sample rate
 
 WAVE_READ_SIZE = 16 * 1024 # How many frames should be read from WAVE file at once?
-WAV_UNPACK_STR = {
-    1: "<%db", #  8-bit wave file
-    2: "<%dh", # 16-bit wave file
-    4: "<%dl", # 32-bit wave file TODO: Test it
+WAV_ARRAY_TYPECODE = {
+    1: "b", #  8-bit wave file
+    2: "h", # 16-bit wave file
+    4: "l", # 32-bit wave file TODO: Test it
 }
 MIN_TOGGLE_COUNT = 4 # How many samples must be in pos/neg to count a cycle?
 
@@ -153,10 +153,10 @@ def iter_wave_values(wavefile):
     samplewidth = wavefile.getsampwidth() # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
 
     try:
-        struct_unpack_str = WAV_UNPACK_STR[samplewidth]
+        typecode = WAV_ARRAY_TYPECODE[samplewidth]
     except KeyError:
         raise NotImplementedError(
-            "Only %s wave files are supported, yet!" % ", ".join(["%sBit" % (i * 8) for i in WAV_UNPACK_STR.keys()])
+            "Only %s wave files are supported, yet!" % ", ".join(["%sBit" % (i * 8) for i in WAV_ARRAY_TYPECODE.keys()])
         )
 
     def _print_status(frame_no, framerate):
@@ -183,10 +183,9 @@ def iter_wave_values(wavefile):
 
     frame_no = 0
     ratecv_state = None
-    while True:
-        frames = wavefile.readframes(WAVE_READ_SIZE)
-        if not frames:
-            break
+
+    get_wave_block_func = functools.partial(wavefile.readframes, WAVE_READ_SIZE)
+    for frames in iter(get_wave_block_func, ""):
 
         if new_rate is not None:
             # downsample the wave file
@@ -201,11 +200,9 @@ def iter_wave_values(wavefile):
             next_status = time.time() + 1
             _print_status(frame_no, framerate)
 
-        frame_count = len(frames) / samplewidth
-        frames = struct.unpack(struct_unpack_str % frame_count, frames)
-        for frame in frames:
+        for value in array.array(typecode, frames):
             frame_no += 1
-            yield frame_no, frame
+            yield frame_no, value
 
     _print_status(frame_no, framerate)
     print
@@ -749,9 +746,9 @@ if __name__ == "__main__":
 
 
     # created by Xroar Emulator
-#     FILENAME = "HelloWorld1 xroar.wav"
+    FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
 
-#     even_odd = False # correct:
+    even_odd = False # correct:
 #     Bit 1 min: 1696Hz avg: 2058.3Hz max: 2205Hz variation: 509Hz
 #     Bit 0 min: 595Hz avg: 1090.4Hz max: 1160Hz Variation: 565Hz
 #     4760 Bits: 2243 positive bits and 2517 negative bits
@@ -764,8 +761,9 @@ if __name__ == "__main__":
 
 
     # created by origin Dragon 32 machine
-    FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 2735 bits (raw)
-    even_odd = True # correct:
+    # 16Bit 44.1KHz mono
+#     FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 2735 bits (raw)
+#     even_odd = True # correct:
     # Bit 1 min: 1764Hz avg: 2013.9Hz max: 2100Hz variation: 336Hz
     # Bit 0 min: 595Hz avg: 1090.2Hz max: 1336Hz Variation: 741Hz
     # 2710 Bits: 1217 positive bits and 1493 negative bits
@@ -811,6 +809,9 @@ if __name__ == "__main__":
 #     FILENAME = "1_MANIA.WAV" # 148579 frames, 4879 bits (raw)
 #     FILENAME = "2_DBJ.WAV" # TODO
 #     even_odd = False
+
+#     FILENAME = "LineNumber Test 01.wav" # TODO
+#     even_odd = True
 
 
     print "Read '%s'..." % FILENAME
