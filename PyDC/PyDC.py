@@ -422,9 +422,6 @@ def pop_bytes_from_bit_list(bit_list, count):
     >>> bytes
     [[1, 1, 0, 0, 1, 1, 0, 0]]
     """
-
-
-
     data_bit_count = count * 8
 
     data_bit_list = bit_list[:data_bit_count]
@@ -541,6 +538,7 @@ def print_as_hex_list(block_bit_list):
 
 
 def get_block_info(bit_list):
+    # Searching for lead-in byte
     leader_pos = find_iter_window(bit_list, LEADER_BYTE) # Search for LEADER_BYTE in bit-by-bit steps
     print "Start leader '%s' found at position: %i" % (LEADER_BYTE, leader_pos)
 
@@ -548,6 +546,7 @@ def get_block_info(bit_list):
     print "bits before header:", repr(list2str(bit_list[:leader_pos]))
     bit_list = bit_list[leader_pos:]
 
+    # count lead-in byte matches without ceasing to get faster to the sync-byte
     leader_count = count_continuous_pattern(bit_list, LEADER_BYTE)
     print "Found %i leader bytes" % leader_count
     if leader_count == 0:
@@ -555,7 +554,9 @@ def get_block_info(bit_list):
     to_cut = leader_count * 8
     bit_list = bit_list[to_cut:]
 
-    sync_pos = find_iter_window(bit_list, SYNC_BYTE) # Search for SYNC_BYTE in bit-by-bit steps
+    # Search for SYNC_BYTE in bit-by-bit steps
+    # to get a byte-synchronized bit-sequence
+    sync_pos = find_iter_window(bit_list, SYNC_BYTE)
     print "Find sync byte after %i Bits" % sync_pos
     to_cut = sync_pos + 8 # Bits before sync byte + sync byte
     bit_list = bit_list[to_cut:]
@@ -718,32 +719,25 @@ class FileContent(object):
         """
         add a block of ASCII BASIC source code lines.
         """
-#         data = iter(bit_blocks2byte_no(block_bit_list))
-#
-#         while True:
-#             # get the code line:
-#             # new iterator to get all characters until 0x00 arraived
-#             code = iter(data.next, 0xd)
-#             if not code:
-#                 break
-#
-#             print repr(list(code))
-#
-#             line = ""
-#             for byte_no in code:
-#                 line += chr(byte_no)
-#             print line
-#             if not line:
-#                 break
+        data = iter([bits2byte_no(bit_block) for bit_block in block_bit_list])
+        data.next() # Skip first \r
+        while True:
+            code = iter(data.next, 0xd) # until \r
+            code = bytes2codeline(code)
+            if not code:
+                break
 
+            try:
+                line_number, code = code.split(" ", 1)
+            except ValueError, err:
+                print "Error splitting linenumber in %s: %s" % (repr(code), err)
+                break
 
-        for bit_block in block_bit_list:
-            byte_no = bits2byte_no(bit_block)
-            character = chr(byte_no)
-            print byte_no, repr(character)
+            line_number = int(line_number)
 
-        raise TODO
-
+            self.code_lines.append(
+                CodeLine(None, line_number, code)
+            )
 
     def print_code_lines(self):
         for code_line in self.code_lines:
