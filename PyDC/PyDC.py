@@ -627,31 +627,37 @@ class FileContent(object):
     def __init__(self):
         self.code_lines = []
 
-    def add_tokenized_block(self, block_length, block_bit_list):
+    def add_block_data(self, block_length, data):
         """
         add a block of tokenized BASIC source code lines.
 
         >>> fc = FileContent()
 
-        >>> block = byte_list2bit_list([
+        >>> block = [
         ... 0x1e,0x12,0x0,0xa,0x80,0x20,0x49,0x20,0xcb,0x20,0x31,0x20,0xbc,0x20,0x31,0x30,0x0,
-        ... 0x0,0x0])
-        >>> fc.add_tokenized_block(0,block)
+        ... 0x0,0x0]
+        >>> len(block)
+        19
+        >>> fc.add_block_data(19,iter(block))
+        19 Bytes parsed
         >>> fc.print_code_lines()
         10 FOR I = 1 TO 10
 
-        >>> block = byte_list2bit_list([
+        >>> block = iter([
         ... 0x1e,0x29,0x0,0x14,0x87,0x20,0x49,0x3b,0x22,0x48,0x45,0x4c,0x4c,0x4f,0x20,0x57,0x4f,0x52,0x4c,0x44,0x21,0x22,0x0,
         ... 0x0,0x0])
-        >>> fc.add_tokenized_block(0,block)
+        >>> fc.add_block_data(999,block)
+        25 Bytes parsed
+        ERROR: Block length value 999 is not equal to parsed bytes!
         >>> fc.print_code_lines()
         10 FOR I = 1 TO 10
         20 PRINT I;"HELLO WORLD!"
 
-        >>> block = byte_list2bit_list([
+        >>> block = iter([
         ... 0x1e,0x31,0x0,0x1e,0x8b,0x20,0x49,0x0,
         ... 0x0,0x0])
-        >>> fc.add_tokenized_block(0,block)
+        >>> fc.add_block_data(10,block)
+        10 Bytes parsed
         >>> fc.print_code_lines()
         10 FOR I = 1 TO 10
         20 PRINT I;"HELLO WORLD!"
@@ -661,12 +667,12 @@ class FileContent(object):
         Test function tokens in code
 
         >>> fc = FileContent()
-        >>> data = (
+        >>> data = iter([
         ... 0x1e,0x4a,0x0,0x1e,0x58,0xcb,0x58,0xc3,0x4c,0xc5,0xff,0x88,0x28,0x52,0x29,0x3a,0x59,0xcb,0x59,0xc3,0x4c,0xc5,0xff,0x89,0x28,0x52,0x29,0x0,
         ... 0x0,0x0
-        ... )
-        >>> bit_list=byte_list2bit_list(data)
-        >>> fc.add_tokenized_block(0, bit_list)
+        ... ])
+        >>> fc.add_block_data(30, data)
+        30 Bytes parsed
         >>> fc.print_code_lines()
         30 X=X+L*SIN(R):Y=Y+L*COS(R)
 
@@ -674,7 +680,7 @@ class FileContent(object):
         Test high line numbers
 
         >>> fc = FileContent()
-        >>> data = (
+        >>> data = [
         ... 0x1e,0x1a,0x0,0x1,0x87,0x20,0x22,0x4c,0x49,0x4e,0x45,0x20,0x4e,0x55,0x4d,0x42,0x45,0x52,0x20,0x54,0x45,0x53,0x54,0x22,0x0,
         ... 0x1e,0x23,0x0,0xa,0x87,0x20,0x31,0x30,0x0,
         ... 0x1e,0x2d,0x0,0x64,0x87,0x20,0x31,0x30,0x30,0x0,
@@ -682,9 +688,11 @@ class FileContent(object):
         ... 0x1e,0x44,0x27,0x10,0x87,0x20,0x31,0x30,0x30,0x30,0x30,0x0,
         ... 0x1e,0x50,0x80,0x0,0x87,0x20,0x33,0x32,0x37,0x36,0x38,0x0,
         ... 0x1e,0x62,0xf9,0xff,0x87,0x20,0x22,0x45,0x4e,0x44,0x22,0x3b,0x36,0x33,0x39,0x39,0x39,0x0,0x0,0x0
-        ... )
-        >>> bit_list=byte_list2bit_list(data)
-        >>> fc.add_tokenized_block(0, bit_list)
+        ... ]
+        >>> len(data)
+        99
+        >>> fc.add_block_data(99, iter(data))
+        99 Bytes parsed
         >>> fc.print_code_lines()
         1 PRINT "LINE NUMBER TEST"
         10 PRINT 10
@@ -694,18 +702,23 @@ class FileContent(object):
         32768 PRINT 32768
         63999 PRINT "END";63999
         """
-        data = iter([bits2byte_no(bit_block) for bit_block in block_bit_list])
+        byte_count = 0
         while True:
             line_pointer = get_word(data)
+            byte_count += 2
             if not line_pointer:
                 # arrived [0x00, 0x00] -> end of block
                 break
 
             line_number = get_word(data)
+            byte_count += 2
 
             # get the code line:
             # new iterator to get all characters until 0x00 arraived
             code = iter(data.next, 0x00)
+
+            code = list(code) # for len()
+            byte_count += len(code) + 1 # from 0x00 consumed in iter()
 
             # convert to a plain ASCII string
             code = bytes2codeline(code)
@@ -714,18 +727,39 @@ class FileContent(object):
                 CodeLine(line_pointer, line_number, code)
             )
 
+        print "%i Bytes parsed" % byte_count
+        if block_length != byte_count:
+            print "ERROR: Block length value %i is not equal to parsed bytes!" % block_length
 
-    def add_ascii_block(self, block_length, block_bit_list):
+    def add_ascii_block(self, block_length, data):
         """
         add a block of ASCII BASIC source code lines.
+
+        >>> data = [
+        ... 0xd,
+        ... 0x31,0x30,0x20,0x50,0x52,0x49,0x4e,0x54,0x20,0x22,0x54,0x45,0x53,0x54,0x22,
+        ... 0xd,
+        ... 0x32,0x30,0x20,0x50,0x52,0x49,0x4e,0x54,0x20,0x22,0x48,0x45,0x4c,0x4c,0x4f,0x20,0x57,0x4f,0x52,0x4c,0x44,0x21,0x22,
+        ... 0xd
+        ... ]
+        >>> len(data)
+        41
+        >>> fc = FileContent()
+        >>> fc.add_ascii_block(41, iter(data))
+        41 Bytes parsed
+        >>> fc.print_code_lines()
+        10 PRINT "TEST"
+        20 PRINT "HELLO WORLD!"
         """
-        data = iter([bits2byte_no(bit_block) for bit_block in block_bit_list])
         data.next() # Skip first \r
+        byte_count = 1 # incl. first \r
         while True:
             code = iter(data.next, 0xd) # until \r
-            code = bytes2codeline(code)
+            code = "".join([chr(c) for c in code])
             if not code:
                 break
+
+            byte_count += len(code) + 1 # and \r consumed in iter()
 
             try:
                 line_number, code = code.split(" ", 1)
@@ -738,6 +772,10 @@ class FileContent(object):
             self.code_lines.append(
                 CodeLine(None, line_number, code)
             )
+
+        print "%i Bytes parsed" % byte_count
+        if block_length != byte_count:
+            print "ERROR: Block length value %i is not equal to parsed bytes!" % block_length
 
     def print_code_lines(self):
         for code_line in self.code_lines:
@@ -803,12 +841,14 @@ class CassetteFile(object):
 
         self.file_content = FileContent()
 
-    def add_tokenized_block(self, block_length, block_bit_list):
-        print_as_hex_list(block_bit_list)
+    def add_block_data(self, block_length, block_bit_list):
+        print "raw data length: %iBytes" % len(block_bit_list)
+#         print_as_hex_list(block_bit_list)
+        data = iter([bits2byte_no(bit_block) for bit_block in block_bit_list])
         if self.is_tokenized:
-            self.file_content.add_tokenized_block(block_length, block_bit_list)
+            self.file_content.add_block_data(block_length, data)
         else:
-            self.file_content.add_ascii_block(block_length, block_bit_list)
+            self.file_content.add_ascii_block(block_length, data)
         print "*"*79
         self.file_content.print_code_lines()
         print "*"*79
@@ -830,7 +870,7 @@ class Cassette(object):
             print "Add file %s" % repr(self.current_file)
             self.files.append(self.current_file)
         elif block_type == DATA_BLOCK:
-            self.current_file.add_tokenized_block(block_length, block_bit_list)
+            self.current_file.add_block_data(block_length, block_bit_list)
         else:
             raise TypeError("Block type %s unkown!" & hex(block_type))
 
@@ -931,11 +971,11 @@ if __name__ == "__main__":
 #     even_odd = False
 
     # BASIC file with high line numbers:
-#     FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
-#     even_odd = False
-
-    FILENAME = "LineNumber Test 02.wav" # ASCII BASIC
+    FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
     even_odd = True
+
+#     FILENAME = "LineNumber Test 02.wav" # ASCII BASIC
+#     even_odd = True
 
 
     print "Read '%s'..." % FILENAME
