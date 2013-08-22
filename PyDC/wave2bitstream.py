@@ -16,14 +16,6 @@ import itertools
 from utils import average, diff_info, print_bitlist
 
 
-BIT_ONE_HZ = 2400 # "1" is a single cycle at 2400 Hz
-BIT_NUL_HZ = 1200 # "0" is a single cycle at 1200 Hz
-MAX_HZ_VARIATION = 1000 # How much Hz can signal scatter to match 1 or 0 bit ?
-
-LEAD_IN_PATTERN = "10101010" # 0x55
-
-
-
 class Wave2Bitstream(object):
 
     WAVE_READ_SIZE = 16 * 1024 # How many frames should be read from WAVE file at once?
@@ -40,12 +32,8 @@ class Wave2Bitstream(object):
         4: 2147483647, # 32-bit wave file
     }
 
-    def __init__(self, wave_filename, lead_in_pattern, mid_volume_ratio=0.2, hysteresis_ratio=0.9):
+    def __init__(self, wave_filename, bit_nul_hz, bit_one_hz, hz_variation, mid_volume_ratio=0.1, hysteresis_ratio=0.1):
         self.wave_filename = wave_filename
-        self.lead_in_pattern = lead_in_pattern
-        self.mid_volume_ratio = mid_volume_ratio
-        self.hysteresis_ratio = hysteresis_ratio
-
 
         print "open wave file '%s'..." % wave_filename
         self.wavefile = wave.open(wave_filename, "rb")
@@ -63,11 +51,41 @@ class Wave2Bitstream(object):
         self.samplewidth = self.wavefile.getsampwidth() # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
         print "samplewidth: %i (%sBit wave file)" % (self.samplewidth, self.samplewidth * 8)
 
+
         # build hysteresis min/max values:
-        self.trigger_value = self.MAX_VALUES[self.samplewidth] * self.mid_volume_ratio
+        self.max_value = self.MAX_VALUES[self.samplewidth]
+        print "the max volume value is:", self.max_value
+        self.trigger_value = int(round(self.max_value * mid_volume_ratio))
         print "Use trigger value:", self.trigger_value
 
-        self.half_sinus = False
+        hysteresis_shift = self.trigger_value * hysteresis_ratio
+        print "Hysteresis shift:", hysteresis_shift
+
+        self.hysteresis_min = self.trigger_value - hysteresis_shift
+        assert self.hysteresis_min > 0, "hysteresis ratio to big! (min: %s)" % self.hysteresis_min
+
+        self.hysteresis_max = self.trigger_value + hysteresis_shift
+        assert self.hysteresis_max < self.max_value, "hysteresis ratio to big! (max: %s)" % self.hysteresis_max
+
+        print "hysteresis trigger valume: %i - %i" % (self.hysteresis_min, self.hysteresis_max)
+
+
+        # build min/max Hz values
+        self.bit_nul_min_hz = bit_nul_hz - hz_variation
+        self.bit_nul_max_hz = bit_nul_hz + hz_variation
+
+        self.bit_one_min_hz = bit_one_hz - hz_variation
+        self.bit_one_max_hz = bit_one_hz + hz_variation
+        print "bit-0 in %sHz - %sHz  |  bit-1 in %sHz - %sHz" % (
+            self.bit_nul_min_hz, self.bit_nul_max_hz,
+            self.bit_one_min_hz, self.bit_one_max_hz,
+        )
+        assert self.bit_nul_max_hz < self.bit_one_min_hz, "hz variation %sHz to big!" % (
+            ((self.bit_nul_max_hz - self.bit_one_min_hz) / 2) + 1
+        )
+
+        self.half_sinus = False # in trigger yield the full cycle
+
 
         # create the generator chain:
 
@@ -76,6 +94,7 @@ class Wave2Bitstream(object):
 
         # triggered frame numbers of a half sinus cycle
         self.iter_trigger_generator = self.iter_trigger(self.wave_values_generator)
+#         self.iter_trigger_generator = self.iter_simple_trigger(self.wave_values_generator)
 
         # duration of a complete sinus cycle
         self.iter_duration_generator = self.iter_duration(self.iter_trigger_generator)
@@ -88,7 +107,11 @@ class Wave2Bitstream(object):
         synchronized weave sync trigger
         """
         # go in wave stream to the first bit
-        first_bit_frame_no, first_bit = self.next()
+        try:
+            first_bit_frame_no, first_bit = self.next()
+        except StopIteration:
+            print "Error: no bits identified!"
+            sys.exit(-1)
         print "First bit is at:", first_bit_frame_no
 
         print "enable half sinus scan"
@@ -110,9 +133,10 @@ class Wave2Bitstream(object):
         diff1, diff2 = diff_info(test_durations)
         print "sync diff info: %i vs. %i" % (diff1, diff2)
 
-        if diff1 < diff2:
+        if diff1 > diff2:
             print "Sync one step."
             self.iter_trigger_generator.next()
+            print "Synced."
         else:
             print "No sync needed."
 
@@ -125,16 +149,12 @@ class Wave2Bitstream(object):
     def next(self):
         return self.iter_bitstream_generator.next()
 
-    def iter_bitstream(self, iter_func):
+    def iter_bitstream(self, iter_duration_generator):
         """
         iterate over self.iter_trigger() and
         yield the bits
         """
-        bit_one_min_hz = BIT_ONE_HZ - MAX_HZ_VARIATION
-        bit_one_max_hz = BIT_ONE_HZ + MAX_HZ_VARIATION
-
-        bit_nul_min_hz = BIT_NUL_HZ - MAX_HZ_VARIATION
-        bit_nul_max_hz = BIT_NUL_HZ + MAX_HZ_VARIATION
+        assert self.half_sinus == False # Allways trigger full sinus cycle
 
         one_hz_count = 0
         one_hz_min = sys.maxint
@@ -147,12 +167,13 @@ class Wave2Bitstream(object):
 
         bit_count = 0
 
-        for frame_no, duration in iter_func:
-            hz = self.framerate / duration
-#             print "%sHz" % hz
+        for frame_no, duration in iter_duration_generator:
+#             if frame_no > 500:
+#                 sys.exit()
 
-            if hz > bit_one_min_hz and hz < bit_one_max_hz:
-#                 print "bit 1"
+            hz = self.framerate / duration
+            if hz > self.bit_one_min_hz and hz < self.bit_one_max_hz:
+                print "bit 1 at %s in %sSamples = %sHz" % (frame_no, duration, hz)
                 bit_count += 1
                 yield (frame_no, 1)
                 one_hz_count += 1
@@ -161,8 +182,8 @@ class Wave2Bitstream(object):
                 if hz > one_hz_max:
                     one_hz_max = hz
                 one_hz_avg = average(one_hz_avg, hz, one_hz_count)
-            elif hz > bit_nul_min_hz and hz < bit_nul_max_hz:
-#                 print "bit 0"
+            elif hz > self.bit_nul_min_hz and hz < self.bit_nul_max_hz:
+                print "bit 0 at %s in %sSamples = %sHz" % (frame_no, duration, hz)
                 bit_count += 1
                 yield (frame_no, 0)
                 nul_hz_count += 1
@@ -172,7 +193,7 @@ class Wave2Bitstream(object):
                     nul_hz_max = hz
                 nul_hz_avg = average(nul_hz_avg, hz, nul_hz_count)
             else:
-                print "Skip signal with %sHz." % hz
+                print "Skip signal at %s with %sSamples = %sHz" % (frame_no, duration, hz)
                 continue
 
         print
@@ -180,12 +201,13 @@ class Wave2Bitstream(object):
             bit_count, one_hz_count, nul_hz_count
         )
         print
-        print "Bit 1: %s-%sHz avg: %.1fHz variation: %sHz" % (
-            one_hz_min, one_hz_max, one_hz_avg, one_hz_max - one_hz_min
-        )
-        print "Bit 0: %s-%sHz avg: %.1fHz variation: %sHz" % (
-            nul_hz_min, nul_hz_max, nul_hz_avg, nul_hz_max - nul_hz_min
-        )
+        if bit_count > 0:
+            print "Bit 0: %sHz - %sHz avg: %.1fHz variation: %sHz" % (
+                nul_hz_min, nul_hz_max, nul_hz_avg, nul_hz_max - nul_hz_min
+            )
+            print "Bit 1: %sHz - %sHz avg: %.1fHz variation: %sHz" % (
+                one_hz_min, one_hz_max, one_hz_avg, one_hz_max - one_hz_min
+            )
 
 
     def iter_duration(self, iter_trigger):
@@ -198,7 +220,8 @@ class Wave2Bitstream(object):
             yield (frame_no, duration)
             old_frame_no = frame_no
 
-    def iter_trigger(self, iter_wave_values):
+
+    def iter_simple_trigger(self, iter_wave_values):
         """
         yield only the triggered frame numbers
         simmilar to a Schmitt trigger
@@ -206,14 +229,55 @@ class Wave2Bitstream(object):
         last_state = False
         for frame_no, value in iter_wave_values:
             if last_state == False and value > self.trigger_value:
-#                 print "half:", self.half_sinus
+                # print "half:", self.half_sinus
                 yield frame_no
                 last_state = True
             elif last_state == True and value < -self.trigger_value:
                 if self.half_sinus:
-#                     print "half sinus!"
+                    # print "half sinus!"
                     yield frame_no
                 last_state = False
+
+    def iter_trigger(self, iter_wave_values):
+        """
+        yield only the triggered frame numbers
+        simmilar to a Schmitt trigger
+        """
+        phase = 1
+        frame_no1 = 0
+        frame_no2 = 0
+        frame_no3 = 0
+        frame_no4 = 0
+        for frame_no, value in iter_wave_values:
+            print "frame no: %s, phase: %s, volume: %s" % (frame_no, phase, value)
+#             if frame_no > 100:
+#                 sys.exit()
+            if phase == 1 and value > self.hysteresis_max:
+                # go into positive sinus cycle
+                print "Phase complete in %i,%i,%i,%i" % (
+                    frame_no - frame_no4,
+                    frame_no2 - frame_no1,
+                    frame_no3 - frame_no2,
+                    frame_no4 - frame_no3,
+                )
+                frame_no1 = frame_no
+                yield frame_no
+                phase = 2
+            elif phase == 2 and value < self.hysteresis_min:
+                # leave positive sinus cycle
+                frame_no2 = frame_no
+                phase = 3
+            elif phase == 3 and value < -self.hysteresis_max:
+                # go into netative sinus cycle
+                frame_no3 = frame_no
+                if self.half_sinus:
+                    print "yield half sinus"
+                    yield frame_no
+                phase = 4
+            elif phase == 4 and value > -self.hysteresis_min:
+                # leave netative sinus cycle
+                frame_no4 = frame_no
+                phase = 1
 
     def iter_wave_values(self):
         """
@@ -232,6 +296,7 @@ class Wave2Bitstream(object):
         get_wave_block_func = functools.partial(self.wavefile.readframes, self.WAVE_READ_SIZE)
         for frames in iter(get_wave_block_func, ""):
             for value in array.array(typecode, frames):
+                print " " * int(round((abs(float(value) / self.max_value * 40) + 20))), "*"
                 frame_no += 1
                 yield frame_no, value
 
@@ -245,18 +310,26 @@ if __name__ == "__main__":
 #     sys.exit()
 
 #     FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
-    FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 16Bit wave, 44100Hz
-#     FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
+#     FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 16Bit wave, 44100Hz
+    FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
 
-
-    st = Wave2Bitstream(FILENAME, LEAD_IN_PATTERN)
+    st = Wave2Bitstream(FILENAME,
+        bit_nul_hz=1200, # "0" is a single cycle at 1200 Hz
+        bit_one_hz=2400, # "1" is a single cycle at 2400 Hz
+        hz_variation=450, # How much Hz can signal scatter to match 1 or 0 bit ?
+        mid_volume_ratio=0.1, hysteresis_ratio=0.1
+    )
 
     bitstream = iter(st)
-
     bitstream.sync(16)
 
     bitstream = itertools.imap(lambda x: x[1], bitstream)
-    print_bitlist(bitstream)
+    bit_list = array.array('B', bitstream)
+
+    print "-"*79
+    print_bitlist(bit_list)
+    print "-"*79
+
 
     print "-- END --"
 
