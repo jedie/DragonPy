@@ -265,6 +265,81 @@ def diff_info(data):
     return diff1, diff2
 
 
+def iter_pare_sum(data):
+    """
+    >>> def g(data):
+    ...     for i in data: yield i
+    >>> list(iter_pare_sum(g([5,5,10,10,4,4,10,10,5,5])))
+    [20, 8, 20, 10]
+
+    >>> list(iter_pare_sum([5,10,10,4,4,10,10,5,5,10]))
+    [20, 8, 20, 10]
+
+    >>> list(iter_pare_sum([5,4,10,11,5,4,21,22,2,1]))
+    [21, 9, 43, 3]
+
+    >>> list(iter_pare_sum([
+    ... 5,5,10,10,5,5,
+    ... 5,                # <- resync 1
+    ... 8,8,5,5,10,10,
+    ... 10,               # <- resync 2
+    ... 7,7,5,5,10,10,2,2,3,3
+    ... ]))
+    [20, 10, 10, 16, 10, 20, 14, 10, 20, 4, 6]
+
+    resync      ^           ^
+    """
+    for previous, current, next_value in itertools.islice(iter_window(data, window_size=3), 1, None, 2):
+        diff1 = abs(previous - current)
+        diff2 = abs(current - next_value)
+
+        if diff1 < diff2:
+            yield previous + current
+        else:
+            yield current + next_value
+
+
+def iter_pare_sum2(data):
+    """
+    >>> def g(data):
+    ...     for no, i in enumerate(data): yield (no, i)
+
+    >>> l = [5,5,10,10,4,10,10,5,5]
+    >>> list(g(l))
+    [(0, 5), (1, 5), (2, 10), (3, 10), (4, 4), (5, 4), (6, 10), (7, 10), (8, 5), (9, 5)]
+    >>> list(iter_pare_sum2(g(l)))
+    [(2, 20), (4, 8), (6, 20), (8, 10)]
+
+    >>> list(iter_pare_sum2(g([5,10,10,4,4,10,10,5,5,10])))
+    [(2, 20), (4, 8), (6, 20), (8, 10)]
+
+    >>> list(iter_pare_sum2(g([5,4,10,11,5,4,21,22,2,1])))
+    [(2, 21), (4, 9), (6, 43), (8, 3)]
+
+    >>> list(iter_pare_sum2(g([
+    ... 5,5,10,10,5,5,
+    ... 5,                # <- resync 1
+    ... 8,8,5,5,10,10,
+    ... 10,               # <- resync 2
+    ... 7,7,5,5,10,10,2,2,3,3
+    ... ])))
+    [(2, 20), (4, 10), (6, 10), (8, 16), (10, 10), (12, 20), (14, 14), (16, 10), (18, 20), (20, 4), (22, 6)]
+
+
+    [20, 10, 10, 16, 10, 20, 14, 10, 20, 4, 6]
+
+    resync      ^           ^
+    """
+    for previous, current, next_value in itertools.islice(iter_window(data, window_size=3), 1, None, 2):
+        diff1 = abs(previous[1] - current[1])
+        diff2 = abs(current[1] - next_value[1])
+
+        if diff1 < diff2:
+            yield (current[0], previous[1] + current[1])
+        else:
+            yield (current[0], current[1] + next_value[1])
+
+
 def list2str(l):
     """
     >>> list2str([0, 0, 0, 1, 0, 0, 1, 0])

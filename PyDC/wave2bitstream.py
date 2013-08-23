@@ -14,7 +14,10 @@ import itertools
 import logging
 
 # own modules
-from utils import average, diff_info, print_bitlist, TextLevelMeter
+from utils import average, diff_info, print_bitlist, TextLevelMeter, iter_window, \
+    human_duration, ProcessInfo
+import struct
+import time
 
 
 log = logging.getLogger("PyDC")
@@ -26,21 +29,6 @@ LOG_LEVEL_DICT = {
     2: logging.INFO,
     3: logging.DEBUG
 }
-
-log_level = LOG_LEVEL_DICT[3] # args.verbosity
-log.setLevel(log_level)
-
-logfilename = "PyDC.log" # args.logfile
-if logfilename:
-    handler = logging.FileHandler(logfilename, encoding="utf8")
-    handler.setFormatter(LOG_FORMATTER)
-    log.addHandler(handler)
-
-# if args.stdout_log:
-handler = logging.StreamHandler()
-handler.setFormatter(LOG_FORMATTER)
-log.addHandler(handler)
-
 
 
 class Wave2Bitstream(object):
@@ -63,8 +51,8 @@ class Wave2Bitstream(object):
             bit_nul_hz, # sinus cycle frequency in Hz for one "0" bit
             bit_one_hz, # sinus cycle frequency in Hz for one "1" bit
             hz_variation, # How much Hz can signal scatter to match 1 or 0 bit ?
-            min_volume_ratio=0.1, # Ignore sample frames if lower volume
-            mid_volume_ratio=0.2,
+            min_volume_ratio=1, # Ignore sample frames if lower volume
+            mid_volume_ratio=5,
             hysteresis_ratio=0.1
         ):
         self.wave_filename = wave_filename
@@ -90,22 +78,22 @@ class Wave2Bitstream(object):
         self.max_value = self.MAX_VALUES[self.samplewidth]
         print "the max volume value is:", self.max_value
 
-        self.min_volume = int(round(self.max_value * min_volume_ratio))
-        print "Ignore sample lower than:", self.min_volume
+        self.min_volume = int(round(self.max_value * min_volume_ratio / 100))
+        print "Ignore sample lower than %.f%% = %i" % (min_volume_ratio, self.min_volume)
 
-        self.trigger_value = int(round(self.max_value * mid_volume_ratio))
-        print "Use trigger value:", self.trigger_value
+        self.trigger_value = int(round(self.max_value * mid_volume_ratio / 100))
+        print "Use trigger value: %.f%% = %i" % (mid_volume_ratio, self.trigger_value)
 
-        hysteresis_shift = self.trigger_value * hysteresis_ratio
-        print "Hysteresis shift:", hysteresis_shift
-
-        self.hysteresis_min = self.trigger_value - hysteresis_shift
-        assert self.hysteresis_min > 0, "hysteresis ratio to big! (min: %s)" % self.hysteresis_min
-
-        self.hysteresis_max = self.trigger_value + hysteresis_shift
-        assert self.hysteresis_max < self.max_value, "hysteresis ratio to big! (max: %s)" % self.hysteresis_max
-
-        print "hysteresis trigger valume: %i - %i" % (self.hysteresis_min, self.hysteresis_max)
+#         hysteresis_shift = self.trigger_value * hysteresis_ratio
+#         print "Hysteresis shift:", hysteresis_shift
+#
+#         self.hysteresis_min = self.trigger_value - hysteresis_shift
+#         assert self.hysteresis_min > 0, "hysteresis ratio to big! (min: %s)" % self.hysteresis_min
+#
+#         self.hysteresis_max = self.trigger_value + hysteresis_shift
+#         assert self.hysteresis_max < self.max_value, "hysteresis ratio to big! (max: %s)" % self.hysteresis_max
+#
+#         print "hysteresis trigger valume: %i - %i" % (self.hysteresis_min, self.hysteresis_max)
 
 
         # build min/max Hz values
@@ -137,13 +125,16 @@ class Wave2Bitstream(object):
         # duration of a complete sinus cycle
         self.iter_duration_generator = self.iter_duration(self.iter_trigger_generator)
 
+        self.auto_sync_duration_generator = self.auto_sync_duration(self.iter_duration_generator)
+
         # build from sinus cycle duration the bit stream
-        self.iter_bitstream_generator = self.iter_bitstream(self.iter_duration_generator)
+        self.iter_bitstream_generator = self.iter_bitstream(self.auto_sync_duration_generator)
 
     def sync(self, length):
         """
         synchronized weave sync trigger
         """
+        return
         # go in wave stream to the first bit
         try:
             first_bit_frame_no, first_bit = self.next()
@@ -194,6 +185,19 @@ class Wave2Bitstream(object):
         """
         assert self.half_sinus == False # Allways trigger full sinus cycle
 
+        process_info = ProcessInfo(self.frame_count, use_last_rates=4)
+        start_time = time.time()
+        next_status = start_time + 0.25
+
+        def _print_status(frame_no, bit_count):
+            ms = float(frame_no) / self.framerate
+            rest, eta, rate = process_info.update(frame_no)
+            sys.stdout.write(
+                "\r%i frames (wav pos:%s) get %iBits - eta: %s (rate: %iFrames/sec)   " % (
+                    frame_no, human_duration(ms), bit_count, eta, rate
+                )
+            )
+
         one_hz_count = 0
         one_hz_min = sys.maxint
         one_hz_avg = None
@@ -235,8 +239,17 @@ class Wave2Bitstream(object):
                     nul_hz_max = hz
                 nul_hz_avg = average(nul_hz_avg, hz, nul_hz_count)
             else:
-                print "Skip signal at %s with %sSamples = %sHz" % (frame_no, duration, hz)
+                log.debug(
+                    "Skip signal at %s with %sSamples = %sHz" % (frame_no, duration, hz)
+                )
                 continue
+
+            if time.time() > next_status:
+                next_status = time.time() + 1
+                _print_status(frame_no, bit_count)
+
+        _print_status(frame_no, bit_count)
+        print
 
         print
         print "%i Bits: %i positive bits and %i negative bits" % (
@@ -252,6 +265,38 @@ class Wave2Bitstream(object):
             )
 
 
+    def auto_sync_duration(self, iter_duration):
+        """
+        yield the duration of two frames in a row.
+        """
+        for previous, current, next_value in itertools.islice(iter_window(iter_duration, window_size=3), 1, None, 2):
+            diff1 = abs(previous[1] - current[1])
+            diff2 = abs(current[1] - next_value[1])
+
+            if diff1 < diff2:
+                log.debug("EVEN")
+                yield (current[0], previous[1] + current[1])
+            else:
+                log.debug("ODD")
+                yield (current[0], current[1] + next_value[1])
+
+
+#         old_frame = next(iter_duration)
+#         print "old frame:", old_frame
+#         count = 0
+#         while True:
+#             count += 1
+#             if count > 40:sys.exit()
+#             durations = itertools.islice(iter_duration, 3)
+#             print list(durations)
+#             diff += abs(no1 - no2)
+#
+#         old_frame_no = next(iter_trigger)
+#         for frame_no in iter_trigger:
+#             duration = frame_no - old_frame_no
+#             yield (frame_no, duration)
+#             old_frame_no = frame_no
+
     def iter_duration(self, iter_trigger):
         """
         yield the duration of two frames in a row.
@@ -262,64 +307,50 @@ class Wave2Bitstream(object):
             yield (frame_no, duration)
             old_frame_no = frame_no
 
-
-    def iter_simple_trigger(self, iter_wave_values):
-        """
-        yield only the triggered frame numbers
-        simmilar to a Schmitt trigger
-        """
-        last_state = False
-        for frame_no, value in iter_wave_values:
-            if last_state == False and value > self.trigger_value:
-                # print "half:", self.half_sinus
-                yield frame_no
-                last_state = True
-            elif last_state == True and value < -self.trigger_value:
-                if self.half_sinus:
-                    # print "half sinus!"
-                    yield frame_no
-                last_state = False
-
     def iter_trigger(self, iter_wave_values):
         """
         yield only the triggered frame numbers
         simmilar to a Schmitt trigger
         """
-        phase = 1
-        frame_no1 = 0
-        frame_no2 = 0
-        frame_no3 = 0
-        frame_no4 = 0
+        last_state = True
         for frame_no, value in iter_wave_values:
-#             print "frame no: %s, phase: %s, volume: %s" % (frame_no, phase, value)
-#             if frame_no > 100:
-#                 sys.exit()
-            if phase == 1 and value > self.hysteresis_max:
-                # go into positive sinus cycle
-                print " ===== Phase complete in %i,%i,%i,%i ===============" % (
-                    frame_no - frame_no4,
-                    frame_no2 - frame_no1,
-                    frame_no3 - frame_no2,
-                    frame_no4 - frame_no3,
-                )
-                frame_no1 = frame_no
+            if last_state == False and value > self.trigger_value:
+                log.debug(" ==== go into positive sinus cycle ===============")
                 yield frame_no
-                phase = 2
-            elif phase == 2 and value < self.hysteresis_min:
-                # leave positive sinus cycle
-                frame_no2 = frame_no
-                phase = 3
-            elif phase == 3 and value < -self.hysteresis_max:
-                # go into netative sinus cycle
-                frame_no3 = frame_no
-                if self.half_sinus:
-                    print " ---- yield half sinus ----------------------------"
-                    yield frame_no
-                phase = 4
-            elif phase == 4 and value > -self.hysteresis_min:
-                # leave netative sinus cycle
-                frame_no4 = frame_no
-                phase = 1
+                last_state = True
+            elif last_state == True and value < -self.trigger_value:
+                log.debug(" ---- go into netative sinus cycle ---------------")
+#                 if self.half_sinus:
+                log.debug(" -**- yield half sinus -**-------------------------")
+                yield frame_no
+                last_state = False
+#
+#     def iter_trigger(self, iter_wave_values):
+#         """
+#         yield only the triggered frame numbers
+#         simmilar to a Schmitt trigger
+#         """
+#         phase = 1
+#         for frame_no, value in iter_wave_values:
+# #             print "frame no: %s, phase: %s, volume: %s" % (frame_no, phase, value)
+# #             if frame_no > 100:
+# #                 sys.exit()
+#             if phase == 1 and value > self.hysteresis_max:
+#                 log.debug(" ==== go into positive sinus cycle ===============")
+#                 yield frame_no
+#                 phase = 2
+#             elif phase == 2 and value < self.hysteresis_min:
+#                 log.debug(" ---- leave positive sinus cycle -----------------")
+#                 phase = 3
+#             elif phase == 3 and value < -self.hysteresis_max:
+#                 log.debug(" ---- go into netative sinus cycle ---------------")
+#                 if self.half_sinus:
+#                     log.debug(" -**- yield half sinus -**-------------------------")
+#                     yield frame_no
+#                 phase = 4
+#             elif phase == 4 and value > -self.hysteresis_min:
+#                 log.debug(" ---- leave netative sinus cycle -----------------")
+#                 phase = 1
 
     def iter_wave_values(self):
         """
@@ -338,18 +369,51 @@ class Wave2Bitstream(object):
 
         frame_no = 0
         get_wave_block_func = functools.partial(self.wavefile.readframes, self.WAVE_READ_SIZE)
+        skipped_values = 0
         for frames in iter(get_wave_block_func, ""):
             for value in array.array(typecode, frames):
 
                 if abs(value) < self.min_volume:
                     # Ignore to lower amplitude
+                    skipped_values += 1
                     continue
+                elif skipped_values > 0:
+                    log.debug(" *** Have %i samples skipped, because to lower amplitude." % skipped_values)
+                    skipped_values = 0
 
                 msg = tlm.feed(value)
-                log.debug(msg)
+                log.debug(
+                    "%s value: %i (%.1f%%)" % (msg, value, abs(self.max_value / value))
+                )
 
                 frame_no += 1
                 yield frame_no, value
+
+#     def iter_wave_valuesOLD(self):
+#         if self.samplewidth == 1:
+#             struct_unpack_str = "<b"
+#         elif self.samplewidth == 2:
+#             struct_unpack_str = "<h"
+#         else:
+#             raise NotImplementedError("Only sample width 2 or 1 are supported, yet!")
+#         print "struct_unpack_str:", struct_unpack_str
+#
+#         tlm = TextLevelMeter(self.max_value, 79)
+#
+#         frame_no = 0
+#         while True:
+#             frames = self.wavefile.readframes(8096)
+#             if not frames:
+#                 break
+#
+#             for frame in frames:
+#                 frame_no += 1
+#                 if frame_no > 1000: break
+#                 value = struct.unpack(struct_unpack_str, frame)[0]
+#                 value = -value
+#                 msg = tlm.feed(value)
+#                 log.debug("%s value: %i" % (msg, value))
+#                 yield frame_no, value
 
 
 if __name__ == "__main__":
@@ -361,15 +425,33 @@ if __name__ == "__main__":
 #     sys.exit()
 
 #     FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
-#     FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 16Bit wave, 44100Hz
-    FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
+    FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 16Bit wave, 44100Hz
+#     FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
+
+    log_level = LOG_LEVEL_DICT[3] # args.verbosity
+    log.setLevel(log_level)
+
+    logfilename = FILENAME + ".log" # args.logfile
+    if logfilename:
+        handler = logging.FileHandler(logfilename,
+    #         mode='a',
+            mode='w',
+            encoding="utf8"
+        )
+        handler.setFormatter(LOG_FORMATTER)
+        log.addHandler(handler)
+
+    # if args.stdout_log:
+    # handler = logging.StreamHandler()
+    # handler.setFormatter(LOG_FORMATTER)
+    # log.addHandler(handler)
 
     st = Wave2Bitstream(FILENAME,
         bit_nul_hz=1200, # "0" is a single cycle at 1200 Hz
         bit_one_hz=2400, # "1" is a single cycle at 2400 Hz
         hz_variation=450, # How much Hz can signal scatter to match 1 or 0 bit ?
-        min_volume_ratio=0.1, # Ignore sample frames if lower volume
-        mid_volume_ratio=0.2, hysteresis_ratio=0.1
+#         min_volume_ratio=0.01, # Ignore sample frames if lower volume
+#         mid_volume_ratio=0.2, hysteresis_ratio=0.1
     )
 
     bitstream = iter(st)

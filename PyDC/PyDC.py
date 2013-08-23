@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# coding: utf-8
 
 """
     Convert dragon 32 Cassetts WAV files into plain text.
@@ -25,6 +26,7 @@ import time
 import array
 import functools
 import itertools
+from wave2bitstream import Wave2Bitstream
 
 try:
     import audioop
@@ -34,7 +36,8 @@ except ImportError, err:
     audioop = None
 
 # own modules
-from utils import ProcessInfo, human_duration, average
+from utils import ProcessInfo, human_duration, average, print_bitlist, \
+    find_iter_window, list2str, count_continuous_pattern
 from basic_tokens import BASIC_TOKENS, FUNCTION_TOKEN
 
 
@@ -42,7 +45,7 @@ BIT_ONE_HZ = 2400 # "1" is a single cycle at 2400 Hz
 BIT_NUL_HZ = 1200 # "0" is a single cycle at 1200 Hz
 MAX_HZ_VARIATION = 1000 # How much Hz can signal scatter to match 1 or 0 bit ?
 
-LEADER_BYTE = "10101010" # 0x55
+LEAD_IN_PATTERN = "10101010" # 0x55
 SYNC_BYTE = "00111100" # 0x3C
 
 # Block types:
@@ -341,69 +344,6 @@ def samples2bits(samples, framerate, frame_count, even_odd):
     )
 
 
-def count_continuous_pattern(bits, pattern):
-    """
-    count 'pattern' matches without ceasing.
-
-    >>> bit_str = (
-    ... "00111100"
-    ... "00111100"
-    ... "0101")
-    >>> pos = count_continuous_pattern([int(i) for i in bit_str], "00111100")
-    >>> bit_str[pos*8:]
-    '0101'
-    >>> pos
-    2
-
-    >>> count_continuous_pattern([1,1,1,2,3], "1")
-    3
-
-    >>> count_continuous_pattern([1,2,3], "99")
-    0
-
-    >>> count_continuous_pattern([0,1,0,1], "01")
-    2
-    """
-    pattern_len = len(pattern)
-    pattern = [int(i) for i in pattern]
-    for count, data in enumerate(iter_steps(bits, pattern_len), 1):
-        if data != pattern:
-            count -= 1
-            break
-    return count
-
-
-def find_iter_window(bit_list, pattern):
-    """
-    Search for 'pattern' in bit-by-bit steps (iter window)
-    and return the number of bits before the 'pattern' match.
-
-    Useable for slicing all bits before the first 'pattern' match:
-
-    >>> bit_str = "111010111"
-    >>> pos = find_iter_window([int(i) for i in bit_str], "010")
-    >>> bit_str[pos:]
-    '010111'
-    >>> pos
-    3
-
-    >>> find_iter_window([1,1,1], "0")
-    0
-    >>> find_iter_window([1,0,0], "1")
-    0
-    >>> find_iter_window([0,1,0], "1")
-    1
-    >>> find_iter_window([0,0,1], "1")
-    2
-    """
-    pattern_len = len(pattern)
-    pattern = [int(i) for i in pattern]
-    for pos, data in enumerate(iter_window(bit_list, pattern_len)):
-        if data == pattern:
-            return pos
-    return 0
-
-
 def pop_bytes_from_bit_list(bit_list, count):
     """
     >>> bit_str = (
@@ -429,33 +369,6 @@ def pop_bytes_from_bit_list(bit_list, count):
 
     bit_list = bit_list[data_bit_count:]
     return bit_list, data
-
-
-def print_block_bit_list(block_bit_list):
-    in_line_count = 0
-
-    line = ""
-    for no, block in enumerate(block_bit_list, -DISPLAY_BLOCK_COUNT + 1):
-        line += "%s " % list2str(block)
-        in_line_count += 1
-        if in_line_count >= DISPLAY_BLOCK_COUNT:
-            in_line_count = 0
-            print "%4s - %s" % (no, line)
-            line = ""
-    if in_line_count > 0:
-        print
-
-def print_bitlist(bit_list):
-    block_bit_list = iter_steps(bit_list, steps=8)
-    print_block_bit_list(block_bit_list)
-
-
-def list2str(l):
-    """
-    >>> list2str([0, 0, 0, 1, 0, 0, 1, 0])
-    '00010010'
-    """
-    return "".join([str(c) for c in l])
 
 
 def bits2byte_no(bits):
@@ -539,15 +452,15 @@ def print_as_hex_list(block_bit_list):
 
 def get_block_info(bit_list):
     # Searching for lead-in byte
-    leader_pos = find_iter_window(bit_list, LEADER_BYTE) # Search for LEADER_BYTE in bit-by-bit steps
-    print "Start leader '%s' found at position: %i" % (LEADER_BYTE, leader_pos)
+    leader_pos = find_iter_window(bit_list, LEAD_IN_PATTERN) # Search for LEAD_IN_PATTERN in bit-by-bit steps
+    print "Start leader '%s' found at position: %i" % (LEAD_IN_PATTERN, leader_pos)
 
     # Cut bits before the first 01010101 start leader
     print "bits before header:", repr(list2str(bit_list[:leader_pos]))
     bit_list = bit_list[leader_pos:]
 
     # count lead-in byte matches without ceasing to get faster to the sync-byte
-    leader_count = count_continuous_pattern(bit_list, LEADER_BYTE)
+    leader_count = count_continuous_pattern(bit_list, LEAD_IN_PATTERN)
     print "Found %i leader bytes" % leader_count
     if leader_count == 0:
         print "WARNING: leader bytes not found! Maybe 'even_odd' bool wrong???"
@@ -906,32 +819,19 @@ if __name__ == "__main__":
 
 
     # created by Xroar Emulator
-#     FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
-
-#     even_odd = False # correct:
+    FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
 #     Bit 1 min: 1696Hz avg: 2058.3Hz max: 2205Hz variation: 509Hz
 #     Bit 0 min: 595Hz avg: 1090.4Hz max: 1160Hz Variation: 565Hz
 #     4760 Bits: 2243 positive bits and 2517 negative bits
-
-#     even_odd = True # wrong:
-#     Bit 1 min: 1470Hz avg: 1487.5Hz max: 2205Hz variation: 735Hz
-#     Bit 0 min: 689Hz avg: 1332.3Hz max: 1378Hz Variation: 689Hz
-#     4760 Bits: 2404 positive bits and 2356 negative bits
 
 
 
     # created by origin Dragon 32 machine
     # 16Bit 44.1KHz mono
 #     FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 2735 bits (raw)
-#     even_odd = True # correct:
     # Bit 1 min: 1764Hz avg: 2013.9Hz max: 2100Hz variation: 336Hz
     # Bit 0 min: 595Hz avg: 1090.2Hz max: 1336Hz Variation: 741Hz
     # 2710 Bits: 1217 positive bits and 1493 negative bits
-
-#     even_odd = False # wrong:
-    # Bit 1 min: 1422Hz avg: 1461.5Hz max: 2100Hz variation: 678Hz
-    # Bit 0 min: 459Hz avg: 1265.1Hz max: 1378Hz Variation: 919Hz
-    # 2712 Bits: 1723 positive bits and 989 negative bits
 
 
 
@@ -949,62 +849,38 @@ if __name__ == "__main__":
 
 
     # Test files from:
-    #     http://archive.worldofdragon.org/archive/index.php?dir=Tapes/Dragon/wav/
+    # http://archive.worldofdragon.org/archive/index.php?dir=Tapes/Dragon/wav/
 #     FILENAME = "Quickbeam Software - Duplicas v3.0.wav" # binary!
-#     even_odd = False
 
 
 #     FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
-#     even_odd = False # correct:
     # Bit 1 min: 1696Hz avg: 2004.0Hz max: 2004Hz variation: 308Hz
     # Bit 0 min: 1025Hz avg: 1025.0Hz max: 1025Hz Variation: 0Hz
     # 155839 Bits: 73776 positive bits and 82063 negative bits
 
-#     even_odd = True # wrong:
-    # Bit 1 min: 2004Hz avg: 2004.5Hz max: 2940Hz variation: 936Hz
-    # Bit 0 min: 1025Hz avg: 1330.1Hz max: 1378Hz Variation: 353Hz
-    # 155840 Bits: 4018 positive bits and 151822 negative bits
-
-
 #     FILENAME = "1_MANIA.WAV" # 148579 frames, 4879 bits (raw)
 #     FILENAME = "2_DBJ.WAV" # TODO
-#     even_odd = False
 
     # BASIC file with high line numbers:
-    FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
-    even_odd = True
-
+#     FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
 #     FILENAME = "LineNumber Test 02.wav" # ASCII BASIC
-#     even_odd = True
 
 
-    print "Read '%s'..." % FILENAME
-    wavefile = wave.open(FILENAME, "r")
+    st = Wave2Bitstream(FILENAME,
+        bit_nul_hz=1200, # "0" is a single cycle at 1200 Hz
+        bit_one_hz=2400, # "1" is a single cycle at 2400 Hz
+        hz_variation=450, # How much Hz can signal scatter to match 1 or 0 bit ?
+#         min_volume_ratio=0.01, # Ignore sample frames if lower volume
+#         mid_volume_ratio=0.2, hysteresis_ratio=0.1
+    )
+    bitstream = iter(st)
+    bitstream.sync(16)
+    bitstream = itertools.imap(lambda x: x[1], bitstream)
+    bit_list = array.array('B', bitstream)
 
-    framerate = wavefile.getframerate() # frames / second
-    print "Framerate:", framerate
-    frame_count = wavefile.getnframes()
-    print "Number of audio frames:", frame_count
-    nchannels = wavefile.getnchannels() # typically 1 for mono, 2 for stereo
-    print "channels:", nchannels
-    assert nchannels == 1, "Only MONO files are supported, yet!"
-    samplewidth = wavefile.getsampwidth() # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
-    print "samplewidth: %i (%sBit wave file)" % (samplewidth, samplewidth * 8)
-
-    start_time = time.time()
-    print "Read wave file...",
-    wave_samples = list(iter_wave_values(wavefile))
-    print "DONE in %s" % human_duration(time.time() - start_time)
-
-    print "Convert WAVE samples to binary data..."
-    bit_generator = samples2bits(wave_samples, framerate, frame_count, even_odd)
-    bit_list = array.array('B', bit_generator) # 1.1sec 17KB/s
-
-    print_bit_list_stats(bit_list)
-
-#     print "-"*79
-#     print_bitlist(bit_list)
-#     print "-"*79
+    print "-"*79
+    print_bitlist(bit_list)
+    print "-"*79
 #     print_block_table(bit_list)
 #     print "-"*79
 #     sys.exit()
