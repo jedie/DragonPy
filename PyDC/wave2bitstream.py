@@ -11,9 +11,36 @@ import wave
 import functools
 import array
 import itertools
+import logging
 
 # own modules
-from utils import average, diff_info, print_bitlist
+from utils import average, diff_info, print_bitlist, TextLevelMeter
+
+
+log = logging.getLogger("PyDC")
+
+LOG_FORMATTER = logging.Formatter("") # %(asctime)s %(message)s")
+LOG_LEVEL_DICT = {
+    0: logging.ERROR,
+    1: logging.WARNING,
+    2: logging.INFO,
+    3: logging.DEBUG
+}
+
+log_level = LOG_LEVEL_DICT[3] # args.verbosity
+log.setLevel(log_level)
+
+logfilename = "PyDC.log" # args.logfile
+if logfilename:
+    handler = logging.FileHandler(logfilename, encoding="utf8")
+    handler.setFormatter(LOG_FORMATTER)
+    log.addHandler(handler)
+
+# if args.stdout_log:
+handler = logging.StreamHandler()
+handler.setFormatter(LOG_FORMATTER)
+log.addHandler(handler)
+
 
 
 class Wave2Bitstream(object):
@@ -32,7 +59,14 @@ class Wave2Bitstream(object):
         4: 2147483647, # 32-bit wave file
     }
 
-    def __init__(self, wave_filename, bit_nul_hz, bit_one_hz, hz_variation, mid_volume_ratio=0.1, hysteresis_ratio=0.1):
+    def __init__(self, wave_filename,
+            bit_nul_hz, # sinus cycle frequency in Hz for one "0" bit
+            bit_one_hz, # sinus cycle frequency in Hz for one "1" bit
+            hz_variation, # How much Hz can signal scatter to match 1 or 0 bit ?
+            min_volume_ratio=0.1, # Ignore sample frames if lower volume
+            mid_volume_ratio=0.2,
+            hysteresis_ratio=0.1
+        ):
         self.wave_filename = wave_filename
 
         print "open wave file '%s'..." % wave_filename
@@ -55,6 +89,10 @@ class Wave2Bitstream(object):
         # build hysteresis min/max values:
         self.max_value = self.MAX_VALUES[self.samplewidth]
         print "the max volume value is:", self.max_value
+
+        self.min_volume = int(round(self.max_value * min_volume_ratio))
+        print "Ignore sample lower than:", self.min_volume
+
         self.trigger_value = int(round(self.max_value * mid_volume_ratio))
         print "Use trigger value:", self.trigger_value
 
@@ -173,7 +211,9 @@ class Wave2Bitstream(object):
 
             hz = self.framerate / duration
             if hz > self.bit_one_min_hz and hz < self.bit_one_max_hz:
-                print "bit 1 at %s in %sSamples = %sHz" % (frame_no, duration, hz)
+                log.debug(
+                    "bit 1 at %s in %sSamples = %sHz" % (frame_no, duration, hz)
+                )
                 bit_count += 1
                 yield (frame_no, 1)
                 one_hz_count += 1
@@ -183,7 +223,9 @@ class Wave2Bitstream(object):
                     one_hz_max = hz
                 one_hz_avg = average(one_hz_avg, hz, one_hz_count)
             elif hz > self.bit_nul_min_hz and hz < self.bit_nul_max_hz:
-                print "bit 0 at %s in %sSamples = %sHz" % (frame_no, duration, hz)
+                log.debug(
+                    "bit 0 at %s in %sSamples = %sHz" % (frame_no, duration, hz)
+                )
                 bit_count += 1
                 yield (frame_no, 0)
                 nul_hz_count += 1
@@ -249,12 +291,12 @@ class Wave2Bitstream(object):
         frame_no3 = 0
         frame_no4 = 0
         for frame_no, value in iter_wave_values:
-            print "frame no: %s, phase: %s, volume: %s" % (frame_no, phase, value)
+#             print "frame no: %s, phase: %s, volume: %s" % (frame_no, phase, value)
 #             if frame_no > 100:
 #                 sys.exit()
             if phase == 1 and value > self.hysteresis_max:
                 # go into positive sinus cycle
-                print "Phase complete in %i,%i,%i,%i" % (
+                print " ===== Phase complete in %i,%i,%i,%i ===============" % (
                     frame_no - frame_no4,
                     frame_no2 - frame_no1,
                     frame_no3 - frame_no2,
@@ -271,7 +313,7 @@ class Wave2Bitstream(object):
                 # go into netative sinus cycle
                 frame_no3 = frame_no
                 if self.half_sinus:
-                    print "yield half sinus"
+                    print " ---- yield half sinus ----------------------------"
                     yield frame_no
                 phase = 4
             elif phase == 4 and value > -self.hysteresis_min:
@@ -292,11 +334,20 @@ class Wave2Bitstream(object):
                 )
             )
 
+        tlm = TextLevelMeter(self.max_value, 79)
+
         frame_no = 0
         get_wave_block_func = functools.partial(self.wavefile.readframes, self.WAVE_READ_SIZE)
         for frames in iter(get_wave_block_func, ""):
             for value in array.array(typecode, frames):
-                print " " * int(round((abs(float(value) / self.max_value * 40) + 20))), "*"
+
+                if abs(value) < self.min_volume:
+                    # Ignore to lower amplitude
+                    continue
+
+                msg = tlm.feed(value)
+                log.debug(msg)
+
                 frame_no += 1
                 yield frame_no, value
 
@@ -317,7 +368,8 @@ if __name__ == "__main__":
         bit_nul_hz=1200, # "0" is a single cycle at 1200 Hz
         bit_one_hz=2400, # "1" is a single cycle at 2400 Hz
         hz_variation=450, # How much Hz can signal scatter to match 1 or 0 bit ?
-        mid_volume_ratio=0.1, hysteresis_ratio=0.1
+        min_volume_ratio=0.1, # Ignore sample frames if lower volume
+        mid_volume_ratio=0.2, hysteresis_ratio=0.1
     )
 
     bitstream = iter(st)

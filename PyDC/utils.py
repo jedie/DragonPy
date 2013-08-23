@@ -291,6 +291,64 @@ def print_bitlist(bit_list):
     print_block_bit_list(block_bit_list)
 
 
+class TextLevelMeter(object):
+    """
+    >>> tl = TextLevelMeter(255, 9)
+    >>> tl.feed(0)
+    '|   *   |'
+    >>> tl.feed(128)
+    '|   | * |'
+    >>> tl.feed(255)
+    '|   |  *|'
+    >>> tl.feed(-128)
+    '| * |   |'
+    >>> tl.feed(-255)
+    '|*  |   |'
+
+    >>> tl = TextLevelMeter(255, 74)
+    >>> tl.feed(0)
+    '|                                   *                                   |'
+    >>> tl.feed(128)
+    '|                                   |                 *                 |'
+    >>> tl.feed(255)
+    '|                                   |                                  *|'
+    >>> tl.feed(-128)
+    '|                 *                 |                                   |'
+    >>> tl.feed(-255)
+    '|*                                  |                                   |'
+    """
+    def __init__(self, max_value, width):
+        self.max_value = max_value
+
+        fill_len = int(round(((width - 3) / 2)))
+        fill = " " * fill_len
+        self.source_msg = "|" + fill + "|" + fill + "|"
+
+        self.offset = fill_len + 1
+        self.max_width = fill_len
+
+    def feed(self, value):
+        value = int(round(
+            float(value) / self.max_value * self.max_width + self.offset
+        ))
+        return self.source_msg[:value] + "*" + self.source_msg[value + 1:]
+
+
 if __name__ == "__main__":
     import doctest
     print doctest.testmod()
+
+
+    import math
+
+    count = 32
+    max_value = 255
+    width = 79
+
+    tl = TextLevelMeter(max_value, width)
+    for index in xrange(0, count + 1):
+        angle = 360.0 / count * index
+        y = math.sin(math.radians(angle)) * max_value
+        y = round(y)
+        print tl.feed(y)
+    #     print "%i - %.1f° %i" % (index, angle, y)
