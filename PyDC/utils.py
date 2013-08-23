@@ -1,4 +1,5 @@
 #!/usr/bin/env python2
+# encoding:utf-8
 
 """
     :copyleft: 2013 by Jens Diemer
@@ -9,6 +10,16 @@
 import time
 import collections
 import itertools
+import logging
+
+
+LOG_FORMATTER = logging.Formatter("") # %(asctime)s %(message)s")
+LOG_LEVEL_DICT = {
+    0: logging.ERROR,
+    1: logging.WARNING,
+    2: logging.INFO,
+    3: logging.DEBUG
+}
 
 
 def human_duration(t):
@@ -79,12 +90,12 @@ class ProcessInfo(object):
 
     def update(self, count):
         current_duration = time.time() - self.last_update
-        current_rate = float(count) / current_duration
-        self.rate_info.append(current_rate)
-        self.rate_info = self.rate_info[-self.use_last_rates:]
-        smoothed_rate = sum(self.rate_info) / len(self.rate_info)
-        rest = self.total - count
         try:
+            current_rate = float(count) / current_duration
+            self.rate_info.append(current_rate)
+            self.rate_info = self.rate_info[-self.use_last_rates:]
+            smoothed_rate = sum(self.rate_info) / len(self.rate_info)
+            rest = self.total - count
             eta = rest / smoothed_rate
         except ZeroDivisionError:
             # e.g. called before a "count+=1"
@@ -268,69 +279,24 @@ def diff_info(data):
 def iter_pare_sum(data):
     """
     >>> def g(data):
-    ...     for i in data: yield i
-    >>> list(iter_pare_sum(g([5,5,10,10,4,4,10,10,5,5])))
-    [20, 8, 20, 10]
-
-    >>> list(iter_pare_sum([5,10,10,4,4,10,10,5,5,10]))
-    [20, 8, 20, 10]
-
-    >>> list(iter_pare_sum([5,4,10,11,5,4,21,22,2,1]))
-    [21, 9, 43, 3]
-
-    >>> list(iter_pare_sum([
-    ... 5,5,10,10,5,5,
-    ... 5,                # <- resync 1
-    ... 8,8,5,5,10,10,
-    ... 10,               # <- resync 2
-    ... 7,7,5,5,10,10,2,2,3,3
-    ... ]))
-    [20, 10, 10, 16, 10, 20, 14, 10, 20, 4, 6]
-
-    resync      ^           ^
-    """
-    for previous, current, next_value in itertools.islice(iter_window(data, window_size=3), 1, None, 2):
-        diff1 = abs(previous - current)
-        diff2 = abs(current - next_value)
-
-        if diff1 < diff2:
-            yield previous + current
-        else:
-            yield current + next_value
-
-
-def iter_pare_sum2(data):
-    """
-    >>> def g(data):
     ...     for no, i in enumerate(data): yield (no, i)
 
-    >>> l = [5,5,10,10,4,10,10,5,5]
-    >>> list(g(l))
-    [(0, 5), (1, 5), (2, 10), (3, 10), (4, 4), (5, 4), (6, 10), (7, 10), (8, 5), (9, 5)]
-    >>> list(iter_pare_sum2(g(l)))
-    [(2, 20), (4, 8), (6, 20), (8, 10)]
-
-    >>> list(iter_pare_sum2(g([5,10,10,4,4,10,10,5,5,10])))
-    [(2, 20), (4, 8), (6, 20), (8, 10)]
-
-    >>> list(iter_pare_sum2(g([5,4,10,11,5,4,21,22,2,1])))
-    [(2, 21), (4, 9), (6, 43), (8, 3)]
-
-    >>> list(iter_pare_sum2(g([
-    ... 5,5,10,10,5,5,
-    ... 5,                # <- resync 1
-    ... 8,8,5,5,10,10,
-    ... 10,               # <- resync 2
-    ... 7,7,5,5,10,10,2,2,3,3
-    ... ])))
-    [(2, 20), (4, 10), (6, 10), (8, 16), (10, 10), (12, 20), (14, 14), (16, 10), (18, 20), (20, 4), (22, 6)]
+    >>> l = [5,5,10,10,5,5,10,10,5,5,10,10,10,10,5,5,5,5]
+    >>> len(l)
+    18
+    >>> list(iter_pare_sum(g(l)))
+    [(2, 20), (4, 10), (6, 20), (8, 10), (10, 20), (12, 20), (14, 10), (16, 10)]
 
 
-    [20, 10, 10, 16, 10, 20, 14, 10, 20, 4, 6]
-
-    resync      ^           ^
+    >>> l = [5,10,10,5,5,10,10,5,5,10,10,10,10,5,5,5,5]
+    >>> len(l)
+    17
+    >>> list(iter_pare_sum(g(l)))
+    [(2, 20), (4, 10), (6, 20), (8, 10), (10, 20), (12, 20), (14, 10), (16, 10)]
+    [(2, 20), (4, 10), (6, 20), (8, 10), (10, 20), (12, 20), (14, 10)]
     """
-    for previous, current, next_value in itertools.islice(iter_window(data, window_size=3), 1, None, 2):
+    for previous, current, next_value in itertools.islice(iter_window(data, window_size=3), 0, None, 2):
+        # ~ print previous, current, next_value
         diff1 = abs(previous[1] - current[1])
         diff2 = abs(current[1] - next_value[1])
 
@@ -414,16 +380,16 @@ if __name__ == "__main__":
     print doctest.testmod()
 
 
-    import math
+    # ~ import math
 
-    count = 32
-    max_value = 255
-    width = 79
+    # ~ count = 32
+    # ~ max_value = 255
+    # ~ width = 79
 
-    tl = TextLevelMeter(max_value, width)
-    for index in xrange(0, count + 1):
-        angle = 360.0 / count * index
-        y = math.sin(math.radians(angle)) * max_value
-        y = round(y)
-        print tl.feed(y)
-    #     print "%i - %.1f° %i" % (index, angle, y)
+    # ~ tl = TextLevelMeter(max_value, width)
+    # ~ for index in xrange(0, count + 1):
+        # ~ angle = 360.0 / count * index
+        # ~ y = math.sin(math.radians(angle)) * max_value
+        # ~ y = round(y)
+        # ~ print tl.feed(y)
+    # ~ #     print "%i - %.1f� %i" % (index, angle, y)

@@ -27,6 +27,7 @@ import array
 import functools
 import itertools
 from wave2bitstream import Wave2Bitstream
+import logging
 
 try:
     import audioop
@@ -35,9 +36,13 @@ except ImportError, err:
     print "Can't use audioop:", err
     audioop = None
 
+log = logging.getLogger("PyDC")
+
+
 # own modules
 from utils import ProcessInfo, human_duration, average, print_bitlist, \
-    find_iter_window, list2str, count_continuous_pattern
+    find_iter_window, list2str, count_continuous_pattern, LOG_LEVEL_DICT, \
+    LOG_FORMATTER
 from basic_tokens import BASIC_TOKENS, FUNCTION_TOKEN
 
 
@@ -819,7 +824,7 @@ if __name__ == "__main__":
 
 
     # created by Xroar Emulator
-    FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
+#     FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
 #     Bit 1 min: 1696Hz avg: 2058.3Hz max: 2205Hz variation: 509Hz
 #     Bit 0 min: 595Hz avg: 1090.4Hz max: 1160Hz Variation: 565Hz
 #     4760 Bits: 2243 positive bits and 2517 negative bits
@@ -828,7 +833,7 @@ if __name__ == "__main__":
 
     # created by origin Dragon 32 machine
     # 16Bit 44.1KHz mono
-#     FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 2735 bits (raw)
+#     FILENAME = "HelloWorld1 origin.wav" # no sync neede
     # Bit 1 min: 1764Hz avg: 2013.9Hz max: 2100Hz variation: 336Hz
     # Bit 0 min: 595Hz avg: 1090.2Hz max: 1336Hz Variation: 741Hz
     # 2710 Bits: 1217 positive bits and 1493 negative bits
@@ -853,7 +858,7 @@ if __name__ == "__main__":
 #     FILENAME = "Quickbeam Software - Duplicas v3.0.wav" # binary!
 
 
-#     FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
+    FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
     # Bit 1 min: 1696Hz avg: 2004.0Hz max: 2004Hz variation: 308Hz
     # Bit 0 min: 1025Hz avg: 1025.0Hz max: 1025Hz Variation: 0Hz
     # 155839 Bits: 73776 positive bits and 82063 negative bits
@@ -862,8 +867,30 @@ if __name__ == "__main__":
 #     FILENAME = "2_DBJ.WAV" # TODO
 
     # BASIC file with high line numbers:
-#     FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
-#     FILENAME = "LineNumber Test 02.wav" # ASCII BASIC
+#     FILENAME = "LineNumber Test 01.wav" # tokenized BASIC - no sync
+#     FILENAME = "LineNumber Test 02.wav" # ASCII BASIC - no sync
+
+
+
+    log_level = LOG_LEVEL_DICT[3] # args.verbosity
+    log.setLevel(log_level)
+
+    logfilename = FILENAME + ".log" # args.logfile
+    if logfilename:
+        print "Log into '%s'" % logfilename
+        handler = logging.FileHandler(logfilename,
+    #         mode='a',
+            mode='w',
+            encoding="utf8"
+        )
+        handler.setFormatter(LOG_FORMATTER)
+        log.addHandler(handler)
+
+    # if args.stdout_log:
+    # handler = logging.StreamHandler()
+    # handler.setFormatter(LOG_FORMATTER)
+    # log.addHandler(handler)
+
 
 
     st = Wave2Bitstream(FILENAME,
@@ -874,7 +901,7 @@ if __name__ == "__main__":
 #         mid_volume_ratio=0.2, hysteresis_ratio=0.1
     )
     bitstream = iter(st)
-    bitstream.sync(16)
+    bitstream.sync(32)
     bitstream = itertools.imap(lambda x: x[1], bitstream)
     bit_list = array.array('B', bitstream)
 

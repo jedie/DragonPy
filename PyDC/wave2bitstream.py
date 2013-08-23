@@ -15,20 +15,14 @@ import logging
 
 # own modules
 from utils import average, diff_info, print_bitlist, TextLevelMeter, iter_window, \
-    human_duration, ProcessInfo
+    human_duration, ProcessInfo, LOG_LEVEL_DICT, LOG_FORMATTER
 import struct
 import time
 
 
 log = logging.getLogger("PyDC")
 
-LOG_FORMATTER = logging.Formatter("") # %(asctime)s %(message)s")
-LOG_LEVEL_DICT = {
-    0: logging.ERROR,
-    1: logging.WARNING,
-    2: logging.INFO,
-    3: logging.DEBUG
-}
+
 
 
 class Wave2Bitstream(object):
@@ -112,7 +106,6 @@ class Wave2Bitstream(object):
 
         self.half_sinus = False # in trigger yield the full cycle
 
-
         # create the generator chain:
 
         # get frame numer + volume value from the WAVE file
@@ -120,30 +113,29 @@ class Wave2Bitstream(object):
 
         # triggered frame numbers of a half sinus cycle
         self.iter_trigger_generator = self.iter_trigger(self.wave_values_generator)
-#         self.iter_trigger_generator = self.iter_simple_trigger(self.wave_values_generator)
 
         # duration of a complete sinus cycle
         self.iter_duration_generator = self.iter_duration(self.iter_trigger_generator)
 
-        self.auto_sync_duration_generator = self.auto_sync_duration(self.iter_duration_generator)
+#         self.auto_sync_duration_generator = self.auto_sync_duration(self.iter_duration_generator)
 
         # build from sinus cycle duration the bit stream
-        self.iter_bitstream_generator = self.iter_bitstream(self.auto_sync_duration_generator)
+        self.iter_bitstream_generator = self.iter_bitstream(self.iter_duration_generator)
 
     def sync(self, length):
         """
         synchronized weave sync trigger
         """
-        return
+
         # go in wave stream to the first bit
         try:
             first_bit_frame_no, first_bit = self.next()
         except StopIteration:
             print "Error: no bits identified!"
             sys.exit(-1)
-        print "First bit is at:", first_bit_frame_no
 
-        print "enable half sinus scan"
+        log.info("First bit is at: %s" % first_bit_frame_no)
+        log.debug("enable half sinus scan")
         self.half_sinus = True
 
         # Toggle sync test by consuming one half sinus sample
@@ -160,17 +152,17 @@ class Wave2Bitstream(object):
 #         test_durations = itertools.imap(lambda x: x[1], test_durations)
 
         diff1, diff2 = diff_info(test_durations)
-        print "sync diff info: %i vs. %i" % (diff1, diff2)
+        log.debug("sync diff info: %i vs. %i" % (diff1, diff2))
 
         if diff1 > diff2:
-            print "Sync one step."
+            log.info("Sync one step.")
             self.iter_trigger_generator.next()
-            print "Synced."
+            log.debug("Synced.")
         else:
-            print "No sync needed."
+            log.info("No sync needed.")
 
         self.half_sinus = False
-        print "disable half sinus scan"
+        log.debug("disable half sinus scan")
 
     def __iter__(self):
         return self
@@ -274,28 +266,19 @@ class Wave2Bitstream(object):
             diff2 = abs(current[1] - next_value[1])
 
             if diff1 < diff2:
-                log.debug("EVEN")
-                yield (current[0], previous[1] + current[1])
+                result = (previous[0], previous[1] + current[1])
+                log.debug("EVEN _%s_ + _%s_ | %s -> %s" % (
+                    repr(previous), repr(current), repr(next_value),
+                    repr(result)
+                ))
             else:
-                log.debug("ODD")
-                yield (current[0], current[1] + next_value[1])
+                result = (current[0], current[1] + next_value[1])
+                log.debug("ODD %s | _%s_ + _%s_ -> %s" % (
+                    repr(previous), repr(current), repr(next_value),
+                    repr(result)
+                ))
 
-
-#         old_frame = next(iter_duration)
-#         print "old frame:", old_frame
-#         count = 0
-#         while True:
-#             count += 1
-#             if count > 40:sys.exit()
-#             durations = itertools.islice(iter_duration, 3)
-#             print list(durations)
-#             diff += abs(no1 - no2)
-#
-#         old_frame_no = next(iter_trigger)
-#         for frame_no in iter_trigger:
-#             duration = frame_no - old_frame_no
-#             yield (frame_no, duration)
-#             old_frame_no = frame_no
+            yield result
 
     def iter_duration(self, iter_trigger):
         """
@@ -319,10 +302,11 @@ class Wave2Bitstream(object):
                 yield frame_no
                 last_state = True
             elif last_state == True and value < -self.trigger_value:
-                log.debug(" ---- go into netative sinus cycle ---------------")
-#                 if self.half_sinus:
-                log.debug(" -**- yield half sinus -**-------------------------")
-                yield frame_no
+                if self.half_sinus:
+                    log.debug(
+                        " ---- go into netative -> yield half sinus ----------"
+                    )
+                    yield frame_no
                 last_state = False
 #
 #     def iter_trigger(self, iter_wave_values):
@@ -425,14 +409,15 @@ if __name__ == "__main__":
 #     sys.exit()
 
 #     FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
-    FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 16Bit wave, 44100Hz
-#     FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
+#     FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 16Bit wave, 44100Hz
+    FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
 
     log_level = LOG_LEVEL_DICT[3] # args.verbosity
     log.setLevel(log_level)
 
     logfilename = FILENAME + ".log" # args.logfile
     if logfilename:
+        print "Log into '%s'" % logfilename
         handler = logging.FileHandler(logfilename,
     #         mode='a',
             mode='w',
@@ -455,7 +440,7 @@ if __name__ == "__main__":
     )
 
     bitstream = iter(st)
-    bitstream.sync(16)
+    bitstream.sync(32)
 
     bitstream = itertools.imap(lambda x: x[1], bitstream)
     bit_list = array.array('B', bitstream)
