@@ -52,9 +52,8 @@ class Wave2Bitstream(object):
             bit_nul_hz, # sinus cycle frequency in Hz for one "0" bit
             bit_one_hz, # sinus cycle frequency in Hz for one "1" bit
             hz_variation, # How much Hz can signal scatter to match 1 or 0 bit ?
-            min_volume_ratio=1, # Ignore sample frames if lower volume
-            mid_volume_ratio=5,
-            hysteresis_ratio=0.1
+            min_volume_ratio=5, # Ignore sample frames if lower volume
+            mid_volume_ratio=10,
         ):
         self.wave_filename = wave_filename
 
@@ -84,18 +83,6 @@ class Wave2Bitstream(object):
 
         self.trigger_value = int(round(self.max_value * mid_volume_ratio / 100))
         print "Use trigger value: %.f%% = %i" % (mid_volume_ratio, self.trigger_value)
-
-#         hysteresis_shift = self.trigger_value * hysteresis_ratio
-#         print "Hysteresis shift:", hysteresis_shift
-#
-#         self.hysteresis_min = self.trigger_value - hysteresis_shift
-#         assert self.hysteresis_min > 0, "hysteresis ratio to big! (min: %s)" % self.hysteresis_min
-#
-#         self.hysteresis_max = self.trigger_value + hysteresis_shift
-#         assert self.hysteresis_max < self.max_value, "hysteresis ratio to big! (max: %s)" % self.hysteresis_max
-#
-#         print "hysteresis trigger valume: %i - %i" % (self.hysteresis_min, self.hysteresis_max)
-
 
         # build min/max Hz values
         self.bit_nul_min_hz = bit_nul_hz - hz_variation
@@ -305,13 +292,19 @@ class Wave2Bitstream(object):
         last_state = True
         for frame_no, value in iter_wave_values:
             if last_state == False and value > self.trigger_value:
-                log.debug(" ==== go into positive sinus cycle ===============")
+                log.debug(
+                    " ==== go into positive sinus cycle (%s > %s)===============" % (
+                        value, self.trigger_value
+                    )
+                )
                 yield frame_no
                 last_state = True
             elif last_state == True and value < -self.trigger_value:
                 if self.half_sinus:
                     log.debug(
-                        " ---- go into netative -> yield half sinus ----------"
+                        " ---- go into netative -> yield half sinus (%s < -%s) ----------" % (
+                            value, self.trigger_value
+                        )
                     )
                     yield frame_no
                 last_state = False
@@ -379,11 +372,17 @@ class Wave2Bitstream(object):
                     skipped_values = 0
 
                 msg = tlm.feed(value)
-                log.debug(
-                    "%s value: %i (%.1f%%)" % (msg, value, abs(self.max_value / value))
-                )
+                if log.level>=logging.DEBUG:
+                    #~ try:
+                    percent = 100.0 / self.max_value * abs(value)
+                    #~ except
+
+                    log.debug(
+                        "%s value: %i (%.1f%%)" % (msg, value, percent)
+                    )
 
                 frame_no += 1
+                #~ if frame_no>100:sys.exit()
                 yield frame_no, value
 
 #     def iter_wave_valuesOLD(self):
@@ -421,8 +420,8 @@ if __name__ == "__main__":
     )
 #     sys.exit()
 
-    FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
-#     FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 16Bit wave, 44100Hz
+    #~ FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
+    FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 16Bit wave, 44100Hz
     #~ FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
 
     log_level = LOG_LEVEL_DICT[3] # args.verbosity
@@ -439,7 +438,7 @@ if __name__ == "__main__":
         handler.setFormatter(LOG_FORMATTER)
         log.addHandler(handler)
 
-    #~ # if args.stdout_log:
+    # if args.stdout_log:
     #~ handler = logging.StreamHandler()
     #~ handler.setFormatter(LOG_FORMATTER)
     #~ log.addHandler(handler)

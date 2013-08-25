@@ -177,6 +177,7 @@ def iter_window(g, window_size):
         if len(values) == window_size:
             yield list(values)
 
+
 def count_continuous_pattern(bits, pattern):
     """
     count 'pattern' matches without ceasing.
@@ -202,6 +203,7 @@ def count_continuous_pattern(bits, pattern):
     """
     pattern_len = len(pattern)
     pattern = [int(i) for i in pattern]
+    count=-1
     for count, data in enumerate(iter_steps(bits, pattern_len), 1):
         if data != pattern:
             count -= 1
@@ -373,6 +375,25 @@ class TextLevelMeter(object):
             float(value) / self.max_value * self.max_width + self.offset
         ))
         return self.source_msg[:value] + "*" + self.source_msg[value + 1:]
+
+
+def count_sign(values, min_value):
+    """
+    >>> count_sign([3,-1,-2], 0)
+    (1, 2)
+    >>> count_sign([3,-1,-2], 2)
+    (1, 0)
+    >>> count_sign([0,-1],0)
+    (0, 1)
+    """
+    positive_count = 0
+    negative_count = 0
+    for value in values:
+        if value > min_value:
+            positive_count += 1
+        elif value < -min_value:
+            negative_count += 1
+    return positive_count, negative_count
 
 
 if __name__ == "__main__":

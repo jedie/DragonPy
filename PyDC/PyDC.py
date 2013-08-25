@@ -26,23 +26,17 @@ import time
 import array
 import functools
 import itertools
-from wave2bitstream import Wave2Bitstream
 import logging
-
-try:
-    import audioop
-except ImportError, err:
-    # e.g. PyPy, see: http://bugs.pypy.org/msg4430
-    print "Can't use audioop:", err
-    audioop = None
 
 log = logging.getLogger("PyDC")
 
 
 # own modules
+from wave2bitstream import Wave2Bitstream
 from utils import ProcessInfo, human_duration, average, print_bitlist, \
     find_iter_window, list2str, count_continuous_pattern, LOG_LEVEL_DICT, \
-    LOG_FORMATTER
+    LOG_FORMATTER, iter_steps
+from bit_utils import bits2codepoint, bit_blocks2string, bit_blocks2codepoint
 from basic_tokens import BASIC_TOKENS, FUNCTION_TOKEN
 
 
@@ -50,8 +44,16 @@ BIT_ONE_HZ = 2400 # "1" is a single cycle at 2400 Hz
 BIT_NUL_HZ = 1200 # "0" is a single cycle at 1200 Hz
 MAX_HZ_VARIATION = 1000 # How much Hz can signal scatter to match 1 or 0 bit ?
 
-LEAD_IN_PATTERN = "10101010" # 0x55
-SYNC_BYTE = "00111100" # 0x3C
+# Normaly the Dragon LeadIn-Byte is 0x55: "10101010"
+# but in worst-case the last null can consume the first
+# null of the sync byte.
+# We use a reversed version of the LeadIn-Byte to avoid this.
+#~ LEAD_IN_PATTERN = "01010101"
+LEAD_IN_PATTERN = [0, 1, 0, 1, 0, 1, 0, 1]
+#~ LEAD_IN_PATTERN = "10101010" # 0x55
+
+#~ SYNC_BYTE = "00111100" # 0x3C
+SYNC_BYTE = [0,0,1,1,1,1,0,0] # 0x3C
 
 # Block types:
 FILENAME_BLOCK = 0x00
@@ -64,289 +66,12 @@ BLOCK_TYPE_DICT = {
     EOF_BLOCK: "end-of-file block",
 }
 
-# WAVE_RESAMPLE = 22050 # Downsample wave file to this sample rate
-# WAVE_RESAMPLE = 11025 # Downsample wave file to this sample rate
-# WAVE_RESAMPLE = 8000 # Downsample wave file to this sample rate
-
-WAVE_RESAMPLE = None # Don't change sample rate
-
-WAVE_READ_SIZE = 16 * 1024 # How many frames should be read from WAVE file at once?
-WAV_ARRAY_TYPECODE = {
-    1: "b", #  8-bit wave file
-    2: "h", # 16-bit wave file
-    4: "l", # 32-bit wave file TODO: Test it
-}
-MIN_TOGGLE_COUNT = 4 # How many samples must be in pos/neg to count a cycle?
-
 DISPLAY_BLOCK_COUNT = 8 # How many bit block should be printet in one line?
 
 
-def iter_steps(g, steps):
-    """
-    iterate over 'g' in blocks with a length of the given 'step' count.
-
-    >>> for v in iter_steps([1,2,3,4,5], steps=2): v
-    [1, 2]
-    [3, 4]
-    [5]
-    >>> for v in iter_steps([1,2,3,4,5,6,7,8,9], steps=3): v
-    [1, 2, 3]
-    [4, 5, 6]
-    [7, 8, 9]
-
-                                 12345678        12345678
-                                         12345678
-    >>> bits = [int(i) for i in "0101010101010101111000"]
-    >>> for v in iter_steps(bits, steps=8): v
-    [0, 1, 0, 1, 0, 1, 0, 1]
-    [0, 1, 0, 1, 0, 1, 0, 1]
-    [1, 1, 1, 0, 0, 0]
-    """
-    values = []
-    for value in g:
-        values.append(value)
-        if len(values) == steps:
-            yield list(values)
-            values = []
-    if values:
-        yield list(values)
-
-
-def iter_window(g, window_size):
-    """
-    interate over 'g' bit-by-bit and yield a window with the given 'window_size' width.
-
-    >>> for v in iter_window([1,2,3,4], window_size=2): v
-    [1, 2]
-    [2, 3]
-    [3, 4]
-    >>> for v in iter_window([1,2,3,4,5], window_size=3): v
-    [1, 2, 3]
-    [2, 3, 4]
-    [3, 4, 5]
-
-    >>> for v in iter_window([1,2,3,4], window_size=2):
-    ...    v
-    ...    v.append(True)
-    [1, 2]
-    [2, 3]
-    [3, 4]
-    """
-    values = collections.deque(maxlen=window_size)
-    for value in g:
-        values.append(value)
-        if len(values) == window_size:
-            yield list(values)
-
-
-def iter_wave_values(wavefile):
-    """
-    generator that yield integers for WAVE files.
-
-    returned sample values are in this ranges:
-         8-bit:        -255..255
-        16-bit:      -32768..32768
-        32-bit: -2147483648..2147483647
-    """
-    nchannels = wavefile.getnchannels() # typically 1 for mono, 2 for stereo
-    assert nchannels == 1, "Only MONO files are supported, yet!"
-    samplewidth = wavefile.getsampwidth() # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
-
-    try:
-        typecode = WAV_ARRAY_TYPECODE[samplewidth]
-    except KeyError:
-        raise NotImplementedError(
-            "Only %s wave files are supported, yet!" % ", ".join(["%sBit" % (i * 8) for i in WAV_ARRAY_TYPECODE.keys()])
-        )
-
-    def _print_status(frame_no, framerate):
-        ms = float(frame_no) / framerate
-        rest, eta, rate = process_info.update(frame_no)
-        sys.stdout.write(
-            "\r%i frames (wav pos:%s) eta: %s (rate: %iFrames/sec)   " % (
-                frame_no, human_duration(ms), eta, rate
-            )
-        )
-
-    framerate = wavefile.getframerate() # frames / second
-    frame_count = wavefile.getnframes()
-
-    process_info = ProcessInfo(frame_count, use_last_rates=4)
-    start_time = time.time()
-    next_status = start_time + 0.25
-
-    new_rate = None
-    if audioop is not None and WAVE_RESAMPLE is not None and framerate > WAVE_RESAMPLE:
-        new_rate = WAVE_RESAMPLE
-        print "resample from %iHz/sec. to %sHz/sec" % (framerate, new_rate)
-        framerate = WAVE_RESAMPLE
-
-    frame_no = 0
-    ratecv_state = None
-
-    get_wave_block_func = functools.partial(wavefile.readframes, WAVE_READ_SIZE)
-    for frames in iter(get_wave_block_func, ""):
-
-        if new_rate is not None:
-            # downsample the wave file
-            # FIXME! See: http://www.python-forum.de/viewtopic.php?f=11&t=6118&p=244377#p244377
-            print "before:", len(frames), new_rate
-            frames, ratecv_state = audioop.ratecv(
-                frames, samplewidth, nchannels, framerate, new_rate, ratecv_state, 1, 1
-            )
-            print "after:", len(frames), new_rate
-
-        if time.time() > next_status:
-            next_status = time.time() + 1
-            _print_status(frame_no, framerate)
-
-        for value in array.array(typecode, frames):
-            frame_no += 1
-            yield frame_no, value
-
-    _print_status(frame_no, framerate)
-    print
-
 
 MIN_SAMPLE_VALUE = 5
-def count_sign(values, min_value):
-    """
-    >>> count_sign([3,-1,-2], 0)
-    (1, 2)
-    >>> count_sign([3,-1,-2], 2)
-    (1, 0)
-    >>> count_sign([0,-1],0)
-    (0, 1)
-    """
-    positive_count = 0
-    negative_count = 0
-    for value in values:
-        if value > min_value:
-            positive_count += 1
-        elif value < -min_value:
-            negative_count += 1
-    return positive_count, negative_count
 
-
-def samples2bits(samples, framerate, frame_count, even_odd):
-    in_positive = even_odd
-    in_negative = not even_odd
-
-    toggle_count = 0 # Counter for detect a complete cycle
-    previous_frame_no = 0
-    bit_count = 0
-
-    process_info = ProcessInfo(frame_count, use_last_rates=4)
-    start_time = time.time()
-    next_status = start_time + 0.25
-
-    def _print_status(frame_no, framerate):
-        ms = float(frame_no) / framerate
-        rest, eta, rate = process_info.update(frame_no)
-        sys.stdout.write(
-            "\r%i frames (wav pos:%s) eta: %s (rate: %iFrames/sec)   " % (
-                frame_no, human_duration(ms), eta, rate
-            )
-        )
-
-    window_values = collections.deque(maxlen=MIN_TOGGLE_COUNT)
-
-    # Fill window deque
-    for frame_no, value in samples[:MIN_TOGGLE_COUNT]:
-        window_values.append(value)
-
-    bit_one_min_hz = BIT_ONE_HZ - MAX_HZ_VARIATION
-    bit_one_max_hz = BIT_ONE_HZ + MAX_HZ_VARIATION
-
-    bit_nul_min_hz = BIT_NUL_HZ - MAX_HZ_VARIATION
-    bit_nul_max_hz = BIT_NUL_HZ + MAX_HZ_VARIATION
-
-    one_hz_count = 0
-    one_hz_min = sys.maxint
-    one_hz_avg = None
-    one_hz_max = 0
-    nul_hz_count = 0
-    nul_hz_min = sys.maxint
-    nul_hz_avg = None
-    nul_hz_max = 0
-
-    old_status = (-1, -1)
-    for frame_no, value in samples[MIN_TOGGLE_COUNT:]:
-        window_values.append(value)
-
-        new_status = count_sign(window_values, MIN_SAMPLE_VALUE)
-        if new_status == old_status:
-            # ignore the frame if status not changed
-#             print new_status, "skip"
-            continue
-        positive_count, negative_count = old_status = new_status
-
-        # print window_values, positive_count, negative_count
-        if not in_positive and positive_count == MIN_TOGGLE_COUNT and negative_count == 0:
-            # go into a positive sinus area
-            in_positive = True
-            in_negative = False
-            toggle_count += 1
-        elif not in_negative and negative_count == MIN_TOGGLE_COUNT and positive_count == 0:
-            # go into a negative sinus area
-            in_negative = True
-            in_positive = False
-            toggle_count += 1
-        else:
-#             print "wrong:", positive_count, negative_count
-            continue
-
-        if toggle_count >= 2:
-            # a single sinus cycle complete
-            toggle_count = 0
-
-            frame_count = frame_no - previous_frame_no
-            previous_frame_no = frame_no
-            hz = framerate / frame_count
-#             print "%sHz" % hz
-
-            if hz > bit_one_min_hz and hz < bit_one_max_hz:
-#                 print "bit 1"
-                bit_count += 1
-                yield 1
-                one_hz_count += 1
-                if hz < one_hz_min:
-                    one_hz_min = hz
-                if hz > one_hz_max:
-                    one_hz_max = hz
-                one_hz_avg = average(one_hz_avg, hz, one_hz_count)
-            elif hz > bit_nul_min_hz and hz < bit_nul_max_hz:
-#                 print "bit 0"
-                bit_count += 1
-                yield 0
-                nul_hz_count += 1
-                if hz < nul_hz_min:
-                    nul_hz_min = hz
-                if hz > nul_hz_max:
-                    nul_hz_max = hz
-                nul_hz_avg = average(nul_hz_avg, hz, nul_hz_count)
-            else:
-                print "Skip signal with %sHz." % hz
-                continue
-
-            if time.time() > next_status:
-                next_status = time.time() + 1
-                _print_status(frame_no, framerate)
-
-    _print_status(frame_no, framerate)
-    print
-    duration = time.time() - start_time
-    rate = bit_count / duration / 8 / 1024
-    print "%i bits decoded from %i audio samples in %s (%.1fKBytes/s)" % (
-        bit_count, frame_no, human_duration(duration), rate
-    )
-    print
-    print "Bit 1: %s-%sHz avg: %.1fHz variation: %sHz" % (
-        one_hz_min, one_hz_max, one_hz_avg, one_hz_max - one_hz_min
-    )
-    print "Bit 0: %s-%sHz avg: %.1fHz variation: %sHz" % (
-        nul_hz_min, nul_hz_max, nul_hz_avg, nul_hz_max - nul_hz_min
-    )
 
 
 def pop_bytes_from_bit_list(bit_list, count):
@@ -376,61 +101,11 @@ def pop_bytes_from_bit_list(bit_list, count):
     return bit_list, data
 
 
-def bits2byte_no(bits):
-    """
-    >>> c = bits2byte_no([0, 0, 0, 1, 0, 0, 1, 0])
-    >>> c
-    72
-    >>> chr(c)
-    'H'
 
-    >>> bits2byte_no([0, 0, 1, 1, 0, 0, 1, 0])
-    76
-    """
-    bits = bits[::-1]
-    bits = list2str(bits)
-    return int(bits, 2)
-
-def bit_blocks2byte_no(block_bit_list):
-    """
-    >>> bit_list = (
-    ... [0,0,1,1,0,0,1,0], # L
-    ... [1,0,0,1,0,0,1,0], # I
-    ... )
-    >>> bit_blocks2byte_no(bit_list)
-    [76, 73]
-    """
-    byte_no = [bits2byte_no(block) for block in block_bit_list]
-    return byte_no
-
-def bit_blocks2string(block_bit_list):
-    """
-    >>> bit_list = (
-    ... [0,0,1,1,0,0,1,0], # L
-    ... [1,0,0,1,0,0,1,0], # I
-    ... )
-    >>> bit_blocks2string(bit_list)
-    'LI'
-    """
-    bytes = "".join([chr(byte_no) for byte_no in bit_blocks2byte_no(block_bit_list)])
-    return bytes
-
-def byte_list2bit_list(data):
-    """
-    >>> data = (0x0,0x1e,0x8b,0x20,0x49,0x0)
-    >>> byte_list2bit_list(data)
-    ['00000000', '01111000', '11010001', '00000100', '10010010', '00000000']
-    """
-    bit_list = []
-    for char in data:
-        bits = '{0:08b}'.format(char)
-        bits = bits[::-1]
-        bit_list.append(bits)
-    return bit_list
 
 def print_block_table(block_bit_list):
     for block in block_bit_list:
-        byte_no = bits2byte_no(block)
+        byte_no = bits2codepoint(block)
         character = chr(byte_no)
         print "%s %4s %3s %s" % (
             list2str(block), hex(byte_no), byte_no, repr(character)
@@ -440,7 +115,7 @@ def print_block_table(block_bit_list):
 def print_as_hex(block_bit_list):
     line = ""
     for block in block_bit_list:
-        byte_no = bits2byte_no(block)
+        byte_no = bits2codepoint(block)
         character = chr(byte_no)
         line += hex(byte_no)
     print line
@@ -449,7 +124,7 @@ def print_as_hex(block_bit_list):
 def print_as_hex_list(block_bit_list):
     line = []
     for block in block_bit_list:
-        byte_no = bits2byte_no(block)
+        byte_no = bits2codepoint(block)
         character = chr(byte_no)
         line.append(hex(byte_no))
     print ",".join(line)
@@ -458,31 +133,59 @@ def print_as_hex_list(block_bit_list):
 def get_block_info(bit_list):
     # Searching for lead-in byte
     leader_pos = find_iter_window(bit_list, LEAD_IN_PATTERN) # Search for LEAD_IN_PATTERN in bit-by-bit steps
-    print "Start leader '%s' found at position: %i" % (LEAD_IN_PATTERN, leader_pos)
+    print "Start leader '%s' found at position: %i" % (
+        list2str(LEAD_IN_PATTERN), leader_pos
+    )
 
     # Cut bits before the first 01010101 start leader
-    print "bits before header:", repr(list2str(bit_list[:leader_pos]))
-    bit_list = bit_list[leader_pos:]
+    bits_before_header = itertools.islice(bit_list, leader_pos)
+    print "bits before header:", repr(list2str(bits_before_header))
+    #~ bit_list = bit_list[leader_pos:]
 
-    # count lead-in byte matches without ceasing to get faster to the sync-byte
-    leader_count = count_continuous_pattern(bit_list, LEAD_IN_PATTERN)
-    print "Found %i leader bytes" % leader_count
-    if leader_count == 0:
-        print "WARNING: leader bytes not found! Maybe 'even_odd' bool wrong???"
-    to_cut = leader_count * 8
-    bit_list = bit_list[to_cut:]
+    # consume lead-in byte matches without ceasing to get faster to the sync-byte
+    #~ def not_LeaderByte(x):
+        #~ return x == LEAD_IN_PATTERN
+
+    #~ leader_count=0
+    #~ for leader_count, _ in enumerate(itertools.takewhile(not_LeaderByte, iter_steps(bit_list, len(LEAD_IN_PATTERN)))):
+        #~ continue
+    #~ print
+    #~ print "Found %i leader bytes" % leader_count
+    #~ if leader_count == 0:
+        #~ print "WARNING: leader bytes not found! Maybe 'even_odd' bool wrong???"
+
+    print "-"*79
+    print_bitlist(bit_list)
+    print "-"*79
 
     # Search for SYNC_BYTE in bit-by-bit steps
     # to get a byte-synchronized bit-sequence
     sync_pos = find_iter_window(bit_list, SYNC_BYTE)
+    print
     print "Find sync byte after %i Bits" % sync_pos
-    to_cut = sync_pos + 8 # Bits before sync byte + sync byte
-    bit_list = bit_list[to_cut:]
+    #~ to_cut = sync_pos + 8 # Bits before sync byte + sync byte
+    #~ bit_list = bit_list[to_cut:]
 
-    bit_list, bytes = pop_bytes_from_bit_list(bit_list, count=2)
+    #~ bit_list, bytes = pop_bytes_from_bit_list(bit_list, count=2)
 
-    block_type = bits2byte_no(bytes[0])
-    block_length = bits2byte_no(bytes[1])
+    print "-"*79
+    print_bitlist(bit_list)
+    print "-"*79
+
+    #~ block_type = itertools.islice(bit_list, 16)
+    #~ block_length = itertools.islice(bit_list, 16)
+    block_type = get_word(bit_list)
+    print "raw block type:", repr(block_type)
+    block_length = get_word(bit_list)
+    print "raw block length:", repr(block_length)
+
+    #~ block_type = bits2codepoint(bytes[0])
+    #~ block_length = bits2codepoint(bytes[1])
+
+    #~ print "-"*79
+    #~ print_bitlist(bit_list)
+    #~ print "-"*79
+    #~ sys.exit()
 
     return bit_list, block_type, block_length
 
@@ -729,7 +432,7 @@ class CassetteFile(object):
 
         self.filename = bit_blocks2string(block_bit_list[:8])
 
-        byte_no_block = bit_blocks2byte_no(file_block_data[8:])
+        byte_no_block = bit_blocks2codepoint(file_block_data[8:])
         print "file meta:", repr(byte_no_block)
 
         self.file_type = byte_no_block[0]
@@ -762,7 +465,7 @@ class CassetteFile(object):
     def add_block_data(self, block_length, block_bit_list):
         print "raw data length: %iBytes" % len(block_bit_list)
 #         print_as_hex_list(block_bit_list)
-        data = iter([bits2byte_no(bit_block) for bit_block in block_bit_list])
+        data = iter([bits2codepoint(bit_block) for bit_block in block_bit_list])
         if self.is_tokenized:
             self.file_content.add_block_data(block_length, data)
         else:
@@ -824,7 +527,7 @@ if __name__ == "__main__":
 
 
     # created by Xroar Emulator
-#     FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
+    FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
 #     Bit 1 min: 1696Hz avg: 2058.3Hz max: 2205Hz variation: 509Hz
 #     Bit 0 min: 595Hz avg: 1090.4Hz max: 1160Hz Variation: 565Hz
 #     4760 Bits: 2243 positive bits and 2517 negative bits
@@ -833,7 +536,7 @@ if __name__ == "__main__":
 
     # created by origin Dragon 32 machine
     # 16Bit 44.1KHz mono
-#     FILENAME = "HelloWorld1 origin.wav" # no sync neede
+    #~ FILENAME = "HelloWorld1 origin.wav" # no sync neede
     # Bit 1 min: 1764Hz avg: 2013.9Hz max: 2100Hz variation: 336Hz
     # Bit 0 min: 595Hz avg: 1090.2Hz max: 1336Hz Variation: 741Hz
     # 2710 Bits: 1217 positive bits and 1493 negative bits
@@ -858,7 +561,7 @@ if __name__ == "__main__":
 #     FILENAME = "Quickbeam Software - Duplicas v3.0.wav" # binary!
 
 
-    FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
+    #~ FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
     # Bit 1 min: 1696Hz avg: 2004.0Hz max: 2004Hz variation: 308Hz
     # Bit 0 min: 1025Hz avg: 1025.0Hz max: 1025Hz Variation: 0Hz
     # 155839 Bits: 73776 positive bits and 82063 negative bits
@@ -872,19 +575,19 @@ if __name__ == "__main__":
 
 
 
-    log_level = LOG_LEVEL_DICT[3] # args.verbosity
-    log.setLevel(log_level)
+    #~ log_level = LOG_LEVEL_DICT[3] # args.verbosity
+    #~ log.setLevel(log_level)
 
-    logfilename = FILENAME + ".log" # args.logfile
-    if logfilename:
-        print "Log into '%s'" % logfilename
-        handler = logging.FileHandler(logfilename,
-    #         mode='a',
-            mode='w',
-            encoding="utf8"
-        )
-        handler.setFormatter(LOG_FORMATTER)
-        log.addHandler(handler)
+    #~ logfilename = FILENAME + ".log" # args.logfile
+    #~ if logfilename:
+        #~ print "Log into '%s'" % logfilename
+        #~ handler = logging.FileHandler(logfilename,
+    #~ #         mode='a',
+            #~ mode='w',
+            #~ encoding="utf8"
+        #~ )
+        #~ handler.setFormatter(LOG_FORMATTER)
+        #~ log.addHandler(handler)
 
     # if args.stdout_log:
     # handler = logging.StreamHandler()
@@ -897,17 +600,16 @@ if __name__ == "__main__":
         bit_nul_hz=1200, # "0" is a single cycle at 1200 Hz
         bit_one_hz=2400, # "1" is a single cycle at 2400 Hz
         hz_variation=450, # How much Hz can signal scatter to match 1 or 0 bit ?
-#         min_volume_ratio=0.01, # Ignore sample frames if lower volume
-#         mid_volume_ratio=0.2, hysteresis_ratio=0.1
     )
     bitstream = iter(st)
     bitstream.sync(32)
-    bitstream = itertools.imap(lambda x: x[1], bitstream)
-    bit_list = array.array('B', bitstream)
+    bitstream = itertools.imap(lambda x: x[1], bitstream) # remove frame_no
 
-    print "-"*79
-    print_bitlist(bit_list)
-    print "-"*79
+    #~ bit_list = array.array('B', bitstream)
+
+    #~ print "-"*79
+    #~ print_bitlist(bit_list)
+    #~ print "-"*79
 #     print_block_table(bit_list)
 #     print "-"*79
 #     sys.exit()
@@ -916,7 +618,7 @@ if __name__ == "__main__":
 
     while True:
         print "_"*79
-        bit_list, block_type, block_length = get_block_info(bit_list)
+        bit_list, block_type, block_length = get_block_info(bitstream)
         try:
             block_type_name = BLOCK_TYPE_DICT[block_type]
         except KeyError:
