@@ -13,6 +13,13 @@ import array
 import itertools
 import logging
 
+try:
+    import audioop
+except ImportError, err:
+    # e.g. PyPy, see: http://bugs.pypy.org/msg4430
+    print "Can't use audioop:", err
+    audioop = None
+
 # own modules
 from utils import average, diff_info, print_bitlist, TextLevelMeter, iter_window, \
     human_duration, ProcessInfo, LOG_LEVEL_DICT, LOG_FORMATTER
@@ -355,6 +362,12 @@ class Wave2Bitstream(object):
         get_wave_block_func = functools.partial(self.wavefile.readframes, self.WAVE_READ_SIZE)
         skipped_values = 0
         for frames in iter(get_wave_block_func, ""):
+
+            if audioop is not None and self.samplewidth == 1:
+                # 8 bit samples are unsigned, see:
+                # http://docs.python.org/2/library/audioop.html#audioop.lin2lin
+                frames = audioop.bias(frames, 1, 128)
+
             for value in array.array(typecode, frames):
 
                 if abs(value) < self.min_volume:
@@ -408,9 +421,9 @@ if __name__ == "__main__":
     )
 #     sys.exit()
 
-#     FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
+    FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
 #     FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 16Bit wave, 44100Hz
-    FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
+    #~ FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
 
     log_level = LOG_LEVEL_DICT[3] # args.verbosity
     log.setLevel(log_level)
@@ -426,10 +439,10 @@ if __name__ == "__main__":
         handler.setFormatter(LOG_FORMATTER)
         log.addHandler(handler)
 
-    # if args.stdout_log:
-    # handler = logging.StreamHandler()
-    # handler.setFormatter(LOG_FORMATTER)
-    # log.addHandler(handler)
+    #~ # if args.stdout_log:
+    #~ handler = logging.StreamHandler()
+    #~ handler.setFormatter(LOG_FORMATTER)
+    #~ log.addHandler(handler)
 
     st = Wave2Bitstream(FILENAME,
         bit_nul_hz=1200, # "0" is a single cycle at 1200 Hz
