@@ -30,7 +30,8 @@ log = logging.getLogger("PyDC")
 from basic_tokens import BASIC_TOKENS, FUNCTION_TOKEN
 from utils import find_iter_window, iter_steps, MaxPosArraived, \
     print_bitlist, bits2codepoint, list2str, bitstream2codepoints, get_word, \
-    print_codepoint_stream
+    print_codepoint_stream, codepoints2string, print_as_hex_list, \
+    PatternNotFound
 from wave2bitstream import Wave2Bitstream
 
 
@@ -115,70 +116,11 @@ def print_as_hex(block_codepoints):
     print line
 
 
-def print_as_hex_list(block_codepoints):
-    line = []
-    for block in block_codepoints:
-        byte_no = bits2codepoint(block)
-        character = chr(byte_no)
-        line.append(hex(byte_no))
-    print ",".join(line)
-
-
-
 
 LEADER_MAX_POS = 8 * 256 # Max search window for get the Leader-Byte?
 
-def get_block_info(bitstream):
 
-#     bitstream = iter(itertools.islice(bitstream, 2500)) # TEST
-#     for i in xrange(119):
-#         next(bitstream)
-#     print "-"*79
-# #     print_bitlist(bitstream, no_repr=True)
-#     print_bitlist(bitstream)
-#     print "-"*79
-#     sys.exit()
-
-    """
-    00111100
-    00000000
-    11110000
-    00000100
-    00000100
-
-
- 240 - 10101010 10101010 10101010 10101010 10101010 10101010 10101010 10101010
- 248 - 00111100 00000000 11110000 00000100 00000100 00000100 00000100 00000100
- 256 - 00000100 00000100 00000100 00000000 00000000 00000000 00000000 00000000
- 264 - 00000000 00000000 11110000 10101010 10101010 10101010 10101010 10101010
-
- 240 - 10101010 10101010 10101010 10101010 10101010 10101010 10101010 10101010
-       0x55 'U' 0x55 'U' 0x55 'U' 0x55 'U' 0x55 'U' 0x55 'U' 0x55 'U' 0x55 'U'
- 248 - 00111100 00000000 11110000 00000100 00000100 00000100 00000100 00000100
-       0x3c '<'   0x0      0xf    0x20 ' ' 0x20 ' ' 0x20 ' ' 0x20 ' ' 0x20 ' '
- 256 - 00000100 00000100 00000100 00000000 00000000 00000000 00000000 00000000
-       0x20 ' ' 0x20 ' ' 0x20 ' '   0x0      0x0      0x0      0x0      0x0
- 264 - 00000000 00000000 11110000 10101010 10101010 10101010 10101010 10101010
-         0x0      0x0      0xf    0x55 'U' 0x55 'U' 0x55 'U' 0x55 'U' 0x55 'U'
-    """
-
-    # Searching for lead-in byte
-#     try:
-#
-#         leader_pos = find_iter_window(bitstream, LEAD_IN_PATTERN, LEADER_MAX_POS)
-#     except MaxPosArraived, err:
-#         print "\nError: Leader-Byte not found in the first %i Bytes! (%s)" % (
-#             LEADER_MAX_POS, err
-#         )
-#         sys.exit(-1)
-#     else:
-#         print "\nLeader-Byte '%s' found at %i Bytes" % (list2str(LEAD_IN_PATTERN), leader_pos)
-
-#     print "-"*79
-#     print_bitlist(bitstream, no_repr=True)
-#     print "-"*79
-#     sys.exit()
-
+def sync_stream(bitstream):
     try:
         sync_pos = find_iter_window(bitstream, SYNC_BYTE, LEADER_MAX_POS)
     except MaxPosArraived, err:
@@ -189,41 +131,54 @@ def get_block_info(bitstream):
     else:
         print "\nSync-Byte '%s' found at %i Bytes" % (list2str(SYNC_BYTE), sync_pos)
 
+
+def get_block_info(bitstream):
+#     print "-"*79
+#     bitstream = list(bitstream)
+#     print_bitlist(bitstream, no_repr=True)
+#     bitstream = iter(bitstream)
+#     print "-"*79
+
+    # Searching for lead-in byte
+    try:
+        leader_pos = find_iter_window(bitstream, LEAD_IN_PATTERN, LEADER_MAX_POS)
+    except MaxPosArraived, err:
+        print "\nError: Leader-Byte not found in the first %i Bytes! (%s)" % (
+            LEADER_MAX_POS, err
+        )
+        sys.exit(-1)
+    except PatternNotFound, err:
+        print "\nError: Leader-Byte doesn't exist in bitstream! (%s)" % err
+        sys.exit(-1)
+    else:
+        print "\nLeader-Byte '%s' found at %i Bytes" % (list2str(LEAD_IN_PATTERN), leader_pos)
+
 #     print "-"*79
 #     print_bitlist(bitstream, no_repr=True)
 #     print "-"*79
 #     sys.exit()
 
-    """
-    00111100 00000000 111100000 00001000 00001000 00001000 00001000 00001000 00001000 00001000
-
-    00111100
-    00000000
-    11110000
-    00000100
-    00000100
-
-    0 00001000 00001000 00001000 00001000 00001000
-    """
+    sync_stream(bitstream) # Sync bitstream with SYNC_BYTE
 
 #     print "-"*79
+#     bitstream = list(bitstream)
 #     print_bitlist(bitstream)
+#     bitstream = iter(bitstream)
 #     print "-"*79
-#     sys.exit()
 
     codepoint_stream = bitstream2codepoints(bitstream)
 #     print "-"*79
 #     print_codepoint_stream(codepoint_stream)
 #     print "-"*79
 
-    block_type = get_word(codepoint_stream)
-    print "raw block type:", repr(block_type), hex(block_type)
-    block_length = get_word(codepoint_stream)
-    print "raw block length:", repr(block_length)
+    block_type = next(codepoint_stream)
+#     print "raw block type:", repr(block_type), hex(block_type)
+    block_length = next(codepoint_stream)
+#     print "raw block length:", repr(block_length)
 
-#     sys.exit()
+    codepoint_stream = itertools.islice(codepoint_stream, block_length * 8)
 
-    return block_type, block_length
+    return block_type, block_length, codepoint_stream
 
 
 
@@ -347,16 +302,35 @@ class FileContent(object):
         32768 PRINT 32768
         63999 PRINT "END";63999
         """
+
+#         data = list(data)
+# #         print repr(data)
+#         print_as_hex_list(data)
+#         print_codepoint_stream(data)
+#         data = iter(data)
+#         sys.exit()
+
         byte_count = 0
         while True:
             line_pointer = get_word(data)
+#             print "line_pointer:", repr(line_pointer)
             byte_count += 2
             if not line_pointer:
                 # arrived [0x00, 0x00] -> end of block
                 break
 
-            line_number = get_word(data)
+            try:
+                line_number = get_word(data)
+            except StopIteration:
+                print "No line number anymore"
+                break
+#             print "line_number:", repr(line_number)
             byte_count += 2
+
+#             data = list(data)
+#             print_as_hex_list(data)
+#             print_codepoint_stream(data)
+#             data = iter(data)
 
             # get the code line:
             # new iterator to get all characters until 0x00 arraived
@@ -364,6 +338,9 @@ class FileContent(object):
 
             code = list(code) # for len()
             byte_count += len(code) + 1 # from 0x00 consumed in iter()
+
+#             print_as_hex_list(code)
+#             print_codepoint_stream(code)
 
             # convert to a plain ASCII string
             code = bytes2codeline(code)
@@ -449,17 +426,18 @@ class CassetteFile(object):
      5.6 Two bytes for the default load address
          of a binary file.
     """
-    def __init__(self, file_block_data):
-#         print_block_codepoints(block_codepoints)
-        print_block_table(block_codepoints)
-        print_as_hex_list(file_block_data)
+    def __init__(self, block_codepoints):
 
-        self.filename = bit_blocks2string(block_codepoints[:8])
+        raw_filename = list(itertools.islice(block_codepoints, 8))
+        self.filename = codepoints2string(raw_filename)
+        print "Filename: %s (%s)" % (repr(self.filename), raw_filename)
 
-        byte_no_block = bit_blocks2codepoint(file_block_data[8:])
-        print "file meta:", repr(byte_no_block)
+        codepoints = list(block_codepoints)
 
-        self.file_type = byte_no_block[0]
+#         print "file meta:"
+#         print_codepoint_stream(codepoints)
+
+        self.file_type = codepoints[0]
         print "file type:", repr(self.file_type)
         if self.file_type == 0x00:
             print "BASIC programm (0x00)"
@@ -474,7 +452,7 @@ class CassetteFile(object):
                 "Unknown file type %s is not supported, yet." % hex(self.file_type)
             )
 
-        ascii_flag = byte_no_block[1]
+        ascii_flag = codepoints[1]
         print "ASCII Flag is:", repr(ascii_flag)
         if ascii_flag == 0x00:
             print "tokenized BASIC"
@@ -483,17 +461,13 @@ class CassetteFile(object):
             print "ASCII BASIC"
             self.is_tokenized = False
 
-
         self.file_content = FileContent()
 
-    def add_block_data(self, block_length, block_codepoints):
-        print "raw data length: %iBytes" % len(block_codepoints)
-#         print_as_hex_list(block_codepoints)
-        data = iter([bits2codepoint(bit_block) for bit_block in block_codepoints])
+    def add_block_data(self, block_length, codepoints):
         if self.is_tokenized:
-            self.file_content.add_block_data(block_length, data)
+            self.file_content.add_block_data(block_length, codepoints)
         else:
-            self.file_content.add_ascii_block(block_length, data)
+            self.file_content.add_ascii_block(block_length, codepoints)
         print "*"*79
         self.file_content.print_code_lines()
         print "*"*79
@@ -551,7 +525,7 @@ if __name__ == "__main__":
 
 
     # created by Xroar Emulator
-#     FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
+    FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
 #     Bit 1 min: 1696Hz avg: 2058.3Hz max: 2205Hz variation: 509Hz
 #     Bit 0 min: 595Hz avg: 1090.4Hz max: 1160Hz Variation: 565Hz
 #     4760 Bits: 2243 positive bits and 2517 negative bits
@@ -560,7 +534,7 @@ if __name__ == "__main__":
 
     # created by origin Dragon 32 machine
     # 16Bit 44.1KHz mono
-    FILENAME = "HelloWorld1 origin.wav" # no sync neede
+#     FILENAME = "HelloWorld1 origin.wav" # no sync neede
     # Bit 1 min: 1764Hz avg: 2013.9Hz max: 2100Hz variation: 336Hz
     # Bit 0 min: 595Hz avg: 1090.2Hz max: 1336Hz Variation: 741Hz
     # 2710 Bits: 1217 positive bits and 1493 negative bits
@@ -585,7 +559,7 @@ if __name__ == "__main__":
 #     FILENAME = "Quickbeam Software - Duplicas v3.0.wav" # binary!
 
 
-    # FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
+#     FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
     # Bit 1 min: 1696Hz avg: 2004.0Hz max: 2004Hz variation: 308Hz
     # Bit 0 min: 1025Hz avg: 1025.0Hz max: 1025Hz Variation: 0Hz
     # 155839 Bits: 73776 positive bits and 82063 negative bits
@@ -631,18 +605,31 @@ if __name__ == "__main__":
 
     # bit_list = array.array('B', bitstream)
 
-    # print "-"*79
-    # print_bitlist(bit_list)
-    # print "-"*79
-#     print_block_table(bit_list)
+#     print "-"*79
+#     bitstream = list(bitstream)
+#     sync_stream(bitstream) # Sync bitstream with SYNC_BYTE
+#     print_bitlist(bitstream)
+#     bitstream = iter(bitstream)
 #     print "-"*79
 #     sys.exit()
+
+#     bitstream = list(bitstream)
+#     print " ***** Bitstream length:", len(bitstream)
+#     bitstream = iter(bitstream)
 
     cassette = Cassette()
 
     while True:
         print "_"*79
-        block_type, block_length = get_block_info(bitstream)
+#         bitstream = list(bitstream)
+#         print " ***** Bitstream length:", len(bitstream)
+#         bitstream = iter(bitstream)
+
+        block_type, block_length, codepoint_stream = get_block_info(bitstream)
+
+#         codepoint_stream = list(codepoint_stream)
+#         print " ***** codepoint_stream length:", len(codepoint_stream)
+#         codepoint_stream = iter(codepoint_stream)
 
         print "*** block length:", block_length
 
@@ -671,11 +658,13 @@ if __name__ == "__main__":
             print "-"*79
             sys.exit(-1)
 
-        block_bits = itertools.islice(bitstream, block_length)
-        block_codepoints = bitstream2codepoints(block_bits)
-#         print "".join([chr(i) for i in block_codepoints])
+#         block_codepoints = bitstream2codepoints(block_bits)
 
-        cassette.add_block(block_type, block_length, block_codepoints)
+#         block_codepoints = list(block_codepoints)
+#         print_codepoint_stream(block_codepoints)
+#         block_codepoints = iter(block_codepoints)
+
+        cassette.add_block(block_type, block_length, codepoint_stream)
         print "="*79
 
 

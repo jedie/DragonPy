@@ -394,6 +394,7 @@ def bits2codepoint(bits):
     bit_string = "".join([str(c) for c in reversed(bits)])
     return int(bit_string, 2)
 
+
 def bitstream2codepoints(bitstream):
     """
     >>> list(bitstream2codepoints([0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0]))
@@ -416,6 +417,7 @@ def bits2string(bits):
     codepoint = bits2codepoint(bits)
     return chr(codepoint)
 
+
 def bitstream2string(bitstream):
     """
     >>> list(bitstream2string([0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0]))
@@ -426,6 +428,7 @@ def bitstream2string(bitstream):
     """
     for bits in iter_steps(bitstream, 8):
         yield bits2string(bits)
+
 
 def byte2bit_string(data):
     """
@@ -499,7 +502,7 @@ def print_codepoint_stream(codepoint_stream, display_block_count=8, no_repr=Fals
     for no, codepoint in enumerate(codepoint_stream, 1):
         r = repr(chr(codepoint))
         if "\\x" in r: # FIXME
-            txt = "%s" % hex(codepoint)
+            txt = "%s %i" % (hex(codepoint), codepoint)
         else:
             txt = "%s %s" % (hex(codepoint), r)
 
@@ -515,6 +518,14 @@ def print_codepoint_stream(codepoint_stream, display_block_count=8, no_repr=Fals
 
     if in_line_count > 0:
         print
+
+
+def print_as_hex_list(codepoint_stream):
+    """
+    >>> print_as_hex_list([70, 111, 111, 32, 66, 97, 114, 32, 33])
+    0x46,0x6f,0x6f,0x20,0x42,0x61,0x72,0x20,0x21
+    """
+    print ",".join([hex(codepoint) for codepoint in codepoint_stream])
 
 
 def print_block_bit_list(block_bit_list, display_block_count=8, no_repr=False):
@@ -598,42 +609,22 @@ def get_word(byte_iterator):
     7698
     >>> hex(v)
     '0x1e12'
-
-    >>> g=iter([0x0,0xf,0x20,0,20])
-    >>> v=get_word(g)
-    >>> hex(v)
-    '0xf'
-    >>> v=get_word(g)
-    >>> v
-    8192
     """
     return (next(byte_iterator) << 8) | next(byte_iterator)
 
+def codepoints2string(codepoints):
+    """
+    >>> codepoints = [ord(c) for c in "Foo Bar !"]
+    >>> codepoints
+    [70, 111, 111, 32, 66, 97, 114, 32, 33]
+    >>> codepoints2string(codepoints)
+    'Foo Bar !'
+    """
+    return "".join([chr(c) for c in codepoints])
 
 
 if __name__ == "__main__":
-
-    data = (0xff,)
-    print list(byte_list2bit_list(data))
-
-
-    txt = (
-        "00000000"
-        "11110000"
-        "00000100"
-        "00000100"
-    )
-    bitlist = [int(i) for i in txt]
-    print list(bitstream2codepoints(bitlist))
-    print_bitlist(bitlist)
-#
-
-    g = iter([0x0, 0xf, 0x20, 0, 20])
-    g = iter([0xf, 0x0, 0x20, 0, 20])
-    v = get_word(g)
-    print v, repr(v), hex(v)
-
-    sys.exit()
+#     sys.exit()
 
 
     import doctest
