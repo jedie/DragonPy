@@ -52,8 +52,8 @@ class Wave2Bitstream(object):
             bit_nul_hz, # sinus cycle frequency in Hz for one "0" bit
             bit_one_hz, # sinus cycle frequency in Hz for one "1" bit
             hz_variation, # How much Hz can signal scatter to match 1 or 0 bit ?
-            min_volume_ratio=5, # Ignore sample frames if lower volume
-            mid_volume_ratio=10,
+            min_volume_ratio=5, # percent volume to ignore sample
+            mid_volume_ratio=10, # percent volume to trigger the sinus cycle
         ):
         self.wave_filename = wave_filename
 
@@ -79,10 +79,10 @@ class Wave2Bitstream(object):
         print "the max volume value is:", self.max_value
 
         self.min_volume = int(round(self.max_value * min_volume_ratio / 100))
-        print "Ignore sample lower than %.f%% = %i" % (min_volume_ratio, self.min_volume)
+        print "Ignore sample lower than %.1f%% = %i" % (min_volume_ratio, self.min_volume)
 
         self.trigger_value = int(round(self.max_value * mid_volume_ratio / 100))
-        print "Use trigger value: %.f%% = %i" % (mid_volume_ratio, self.trigger_value)
+        print "Use trigger value: %.1f%% = %i" % (mid_volume_ratio, self.trigger_value)
 
         # build min/max Hz values
         self.bit_nul_min_hz = bit_nul_hz - hz_variation
@@ -195,6 +195,7 @@ class Wave2Bitstream(object):
 
         bit_count = 0
 
+        frame_no = False
         for frame_no, duration in iter_duration_generator:
 #             if frame_no > 500:
 #                 sys.exit()
@@ -233,6 +234,11 @@ class Wave2Bitstream(object):
             if time.time() > next_status:
                 next_status = time.time() + 1
                 _print_status(frame_no, bit_count)
+
+        if frame_no == False:
+            print "ERROR: No information from wave to generate the bits"
+            print "trigger volume to high?"
+            sys.exit(-1)
 
         _print_status(frame_no, bit_count)
         print
@@ -378,9 +384,9 @@ class Wave2Bitstream(object):
                     # Ignore to lower amplitude
                     skipped_values += 1
                     continue
-                elif skipped_values > 0:
-                    log.debug(" *** Have %i samples skipped, because to lower amplitude." % skipped_values)
-                    skipped_values = 0
+#                 elif skipped_values > 0:
+#                     log.debug(" *** Have %i samples skipped, because to lower amplitude." % skipped_values)
+#                     skipped_values = 0
 
                 msg = tlm.feed(value)
                 if log.level >= logging.DEBUG:

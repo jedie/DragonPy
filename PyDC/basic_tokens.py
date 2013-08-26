@@ -126,7 +126,43 @@ FUNCTION_TOKEN = {
 }
 
 
+
+def bytes2codeline(raw_bytes):
+    """
+    >>> data = (0x87,0x20,0x22,0x48,0x45,0x4c,0x4c,0x4f,0x20,0x57,0x4f,0x52,0x4c,0x44,0x21,0x22)
+    >>> bytes2codeline(data)
+    'PRINT "HELLO WORLD!"'
+    """
+    code_line = ""
+    func_token = False
+    for byte_no in raw_bytes:
+        if byte_no == 0xff: # Next byte is a function token
+            func_token = True
+            continue
+        elif func_token == True:
+            func_token = False
+            try:
+                character = FUNCTION_TOKEN[byte_no]
+            except KeyError, err:
+                print "Error: BASIC function torken for '%s' not found!" % hex(byte_no)
+                character = chr(byte_no)
+        elif byte_no in BASIC_TOKENS:
+            try:
+                character = BASIC_TOKENS[byte_no]
+            except KeyError, err:
+                print "Error: BASIC torken for '%s' not found!" % hex(byte_no)
+                character = chr(byte_no)
+        else:
+            character = chr(byte_no)
+#         print byte_no, repr(character)
+        code_line += character
+    return code_line
+
+
 if __name__ == "__main__":
+    import doctest
+    print doctest.testmod()
+
     def pprint_formated(d):
         for k, v in sorted(d.items()):
             print '    %s: "%s",' % (hex(k), v.strip())

@@ -12,6 +12,7 @@ import collections
 import itertools
 import logging
 import types
+import string
 
 
 LOG_FORMATTER = logging.Formatter("") # %(asctime)s %(message)s")
@@ -377,6 +378,19 @@ def count_sign(values, min_value):
 def list2str(l):
     return "".join([str(c) for c in l])
 
+def string2codepoint(s):
+    """
+    >>> codepoints = list(string2codepoint("HELLO"))
+    >>> codepoints
+    [72, 69, 76, 76, 79]
+    >>> ",".join([hex(c) for c in codepoints])
+    '0x48,0x45,0x4c,0x4c,0x4f'
+    >>> print_codepoint_stream(codepoints) # doctest: +NORMALIZE_WHITESPACE
+       5 | 0x48 'H' | 0x45 'E' | 0x4c 'L' | 0x4c 'L' | 0x4f 'O' |
+    """
+    for char in s:
+        yield ord(char)
+
 def bits2codepoint(bits):
     """
     >>> c = bits2codepoint([0, 0, 0, 1, 0, 0, 1, 0])
@@ -434,6 +448,9 @@ def byte2bit_string(data):
     """
     >>> byte2bit_string("H")
     '00010010'
+
+    >>> byte2bit_string(0x55)
+    '10101010'
     """
     if isinstance(data, basestring):
         assert len(data) == 1
@@ -443,6 +460,19 @@ def byte2bit_string(data):
     bits = bits[::-1]
     return bits
 
+def codepoints2bitstream(codepoints):
+    """
+    >>> list(codepoints2bitstream([0x48,0x45]))
+    [0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 0]
+    >>> list(codepoints2bitstream(0x48))
+    [0, 0, 0, 1, 0, 0, 1, 0]
+    """
+    if isinstance(codepoints, int):
+        codepoints = [codepoints]
+    for codepoint in codepoints:
+        bit_string = byte2bit_string(codepoint)
+        for bit in bit_string:
+            yield int(bit)
 
 def byte_list2bit_list(data):
     """
@@ -527,6 +557,24 @@ def print_as_hex_list(codepoint_stream):
     """
     print ",".join([hex(codepoint) for codepoint in codepoint_stream])
 
+def pprint_codepoints(codepoints):
+    """
+    >>> pprint_codepoints([13, 70, 111, 111, 32, 66, 97, 114, 32, 33, 13])
+    ['\r', 'Foo Bar !', '\r']
+    """
+    printable = string.printable.replace("\n", "").replace("\r", "")
+    line = []
+    strings = ""
+    for codepoint in codepoints:
+        char = chr(codepoint)
+        if char in printable:
+            strings += char
+        else:
+            if strings != "":
+                line.append(strings)
+                strings = ""
+            line.append(char)
+    print line
 
 def print_block_bit_list(block_bit_list, display_block_count=8, no_repr=False):
     """
