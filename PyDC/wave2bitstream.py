@@ -21,8 +21,8 @@ except ImportError, err:
     audioop = None
 
 # own modules
-from utils import average, diff_info, print_bitlist, TextLevelMeter, iter_window, \
-    human_duration, ProcessInfo, LOG_LEVEL_DICT, LOG_FORMATTER
+from utils import average, diff_info, TextLevelMeter, iter_window, \
+    human_duration, ProcessInfo, LOG_LEVEL_DICT, LOG_FORMATTER, print_bitlist
 import struct
 import time
 
@@ -354,14 +354,25 @@ class Wave2Bitstream(object):
         frame_no = 0
         get_wave_block_func = functools.partial(self.wavefile.readframes, self.WAVE_READ_SIZE)
         skipped_values = 0
+
+        manually_audioop_bias = self.samplewidth == 1 and audioop is None
+
         for frames in iter(get_wave_block_func, ""):
 
-            if audioop is not None and self.samplewidth == 1:
-                # 8 bit samples are unsigned, see:
-                # http://docs.python.org/2/library/audioop.html#audioop.lin2lin
-                frames = audioop.bias(frames, 1, 128)
+            if self.samplewidth == 1:
+                if audioop is None:
+                    log.warning("use audioop.bias() work-a-round for missing audioop.")
+                else:
+                    # 8 bit samples are unsigned, see:
+                    # http://docs.python.org/2/library/audioop.html#audioop.lin2lin
+                    frames = audioop.bias(frames, 1, 128)
 
             for value in array.array(typecode, frames):
+
+                if manually_audioop_bias:
+                    # audioop.bias can't be used.
+                    # See: http://hg.python.org/cpython/file/482590320549/Modules/audioop.c#l957
+                    value = value % 0xff - 128
 
                 if abs(value) < self.min_volume:
                     # Ignore to lower amplitude
@@ -372,17 +383,17 @@ class Wave2Bitstream(object):
                     skipped_values = 0
 
                 msg = tlm.feed(value)
-                if log.level>=logging.DEBUG:
-                    #~ try:
+                if log.level >= logging.DEBUG:
+                    # ~ try:
                     percent = 100.0 / self.max_value * abs(value)
-                    #~ except
+                    # ~ except
 
                     log.debug(
                         "%s value: %i (%.1f%%)" % (msg, value, percent)
                     )
 
                 frame_no += 1
-                #~ if frame_no>100:sys.exit()
+#                 if frame_no > 100:sys.exit()
                 yield frame_no, value
 
 #     def iter_wave_valuesOLD(self):
@@ -420,28 +431,28 @@ if __name__ == "__main__":
     )
 #     sys.exit()
 
-    #~ FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
-    FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 16Bit wave, 44100Hz
-    #~ FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
+    FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
+#     FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 16Bit wave, 44100Hz
+    # ~ FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
 
-    log_level = LOG_LEVEL_DICT[3] # args.verbosity
-    log.setLevel(log_level)
-
-    logfilename = FILENAME + ".log" # args.logfile
-    if logfilename:
-        print "Log into '%s'" % logfilename
-        handler = logging.FileHandler(logfilename,
-    #         mode='a',
-            mode='w',
-            encoding="utf8"
-        )
-        handler.setFormatter(LOG_FORMATTER)
-        log.addHandler(handler)
+#     log_level = LOG_LEVEL_DICT[3] # args.verbosity
+#     log.setLevel(log_level)
+#
+#     logfilename = FILENAME + ".log" # args.logfile
+#     if logfilename:
+#         print "Log into '%s'" % logfilename
+#         handler = logging.FileHandler(logfilename,
+#     #         mode='a',
+#             mode='w',
+#             encoding="utf8"
+#         )
+#         handler.setFormatter(LOG_FORMATTER)
+#         log.addHandler(handler)
 
     # if args.stdout_log:
-    #~ handler = logging.StreamHandler()
-    #~ handler.setFormatter(LOG_FORMATTER)
-    #~ log.addHandler(handler)
+#     handler = logging.StreamHandler()
+#     handler.setFormatter(LOG_FORMATTER)
+#     log.addHandler(handler)
 
     st = Wave2Bitstream(FILENAME,
         bit_nul_hz=1200, # "0" is a single cycle at 1200 Hz
@@ -455,10 +466,10 @@ if __name__ == "__main__":
     bitstream.sync(32)
 
     bitstream = itertools.imap(lambda x: x[1], bitstream)
-    bit_list = array.array('B', bitstream)
+#     bit_list = array.array('B', bitstream)
 
     print "-"*79
-    print_bitlist(bit_list)
+    print_bitlist(bitstream, no_repr=True)
     print "-"*79
 
 

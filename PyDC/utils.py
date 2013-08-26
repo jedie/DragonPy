@@ -11,6 +11,7 @@ import time
 import collections
 import itertools
 import logging
+import types
 
 
 LOG_FORMATTER = logging.Formatter("") # %(asctime)s %(message)s")
@@ -178,68 +179,72 @@ def iter_window(g, window_size):
             yield list(values)
 
 
-def count_continuous_pattern(bits, pattern):
+def count_continuous_pattern(bitstream, pattern):
     """
-    count 'pattern' matches without ceasing.
-
-    >>> bit_str = (
-    ... "00111100"
-    ... "00111100"
-    ... "0101")
-    >>> pos = count_continuous_pattern([int(i) for i in bit_str], "00111100")
-    >>> bit_str[pos*8:]
-    '0101'
-    >>> pos
-    2
-
-    >>> count_continuous_pattern([1,1,1,2,3], "1")
+    >>> pattern = list(bytes2bit_strings("A"))
+    >>> bitstream = bytes2bit_strings("AAAXXX")
+    >>> count_continuous_pattern(bitstream, pattern)
     3
 
-    >>> count_continuous_pattern([1,2,3], "99")
+    >>> pattern = list(bytes2bit_strings("X"))
+    >>> bitstream = bytes2bit_strings("AAAXXX")
+    >>> count_continuous_pattern(bitstream, pattern)
     0
-
-    >>> count_continuous_pattern([0,1,0,1], "01")
-    2
     """
-    pattern_len = len(pattern)
-    pattern = [int(i) for i in pattern]
-    count=-1
-    for count, data in enumerate(iter_steps(bits, pattern_len), 1):
+    assert isinstance(bitstream, (collections.Iterable, types.GeneratorType))
+    assert isinstance(pattern, (list, tuple))
+
+    window_size = len(pattern)
+    count = -1
+    for count, data in enumerate(iter_steps(bitstream, window_size), 1):
+#         print count, data, pattern
         if data != pattern:
             count -= 1
             break
+
     return count
 
 
-def find_iter_window(bit_list, pattern):
+class MaxPosArraived(Exception):
+    pass
+class PatternNotFound(Exception):
+    pass
+
+
+def find_iter_window(bitstream, pattern, max_pos=None):
     """
-    Search for 'pattern' in bit-by-bit steps (iter window)
-    and return the number of bits before the 'pattern' match.
+    >>> pattern = list(bytes2bit_strings("B"))
+    >>> bitstream = bytes2bit_strings("AAABCCC")
+    >>> find_iter_window(bitstream, pattern)
+    24
+    >>> "".join(list(bitstream2string(bitstream)))
+    'CCC'
 
-    Useable for slicing all bits before the first 'pattern' match:
+    >>> find_iter_window(bytes2bit_strings("HELLO!"), list(bytes2bit_strings("LO")))
+    24
 
-    >>> bit_str = "111010111"
-    >>> pos = find_iter_window([int(i) for i in bit_str], "010")
-    >>> bit_str[pos:]
-    '010111'
-    >>> pos
-    3
+    >>> find_iter_window(bytes2bit_strings("HELLO!"), list(bytes2bit_strings("LO")), max_pos=16)
+    Traceback (most recent call last):
+    ...
+    MaxPosArraived: 17
 
-    >>> find_iter_window([1,1,1], "0")
-    0
-    >>> find_iter_window([1,0,0], "1")
-    0
-    >>> find_iter_window([0,1,0], "1")
-    1
-    >>> find_iter_window([0,0,1], "1")
-    2
+    >>> find_iter_window(bytes2bit_strings("HELLO!"), list(bytes2bit_strings("X")))
+    Traceback (most recent call last):
+    ...
+    PatternNotFound: 40
     """
-    pattern_len = len(pattern)
-    pattern = [int(i) for i in pattern]
-    for pos, data in enumerate(iter_window(bit_list, pattern_len)):
+    assert isinstance(bitstream, (collections.Iterable, types.GeneratorType))
+    assert isinstance(pattern, (list, tuple))
+
+    window_size = len(pattern)
+    pos = -1
+    for pos, data in enumerate(iter_window(bitstream, window_size)):
+#         print pos, data, pattern
         if data == pattern:
             return pos
-    return 0
+        if max_pos is not None and pos > max_pos:
+            raise MaxPosArraived(pos)
+    raise PatternNotFound(pos)
 
 # def match_count(g, pattern):
 #     """
@@ -250,7 +255,7 @@ def find_iter_window(bit_list, pattern):
 #     print "Start leader '%s' found at position: %i" % (LEAD_IN_PATTERN, leader_pos)
 #
 #     # Cut bits before the first 01010101 start leader
-#     print "bits before header:", repr(list2str(bit_list[:leader_pos]))
+#     print "bits before header:", repr(int_list2str(bit_list[:leader_pos]))
 #     bit_list = bit_list[leader_pos:]
 #
 #     # count lead-in byte matches without ceasing to get faster to the sync-byte
@@ -306,32 +311,6 @@ def iter_pare_sum(data):
             yield (current[0], previous[1] + current[1])
         else:
             yield (current[0], current[1] + next_value[1])
-
-
-def list2str(l):
-    """
-    >>> list2str([0, 0, 0, 1, 0, 0, 1, 0])
-    '00010010'
-    """
-    return "".join([str(c) for c in l])
-
-def print_block_bit_list(block_bit_list, display_block_count=8):
-    in_line_count = 0
-
-    line = ""
-    for no, block in enumerate(block_bit_list, -display_block_count + 1):
-        line += "%s " % list2str(block)
-        in_line_count += 1
-        if in_line_count >= display_block_count:
-            in_line_count = 0
-            print "%4s - %s" % (no, line)
-            line = ""
-    if in_line_count > 0:
-        print
-
-def print_bitlist(bit_list):
-    block_bit_list = iter_steps(bit_list, steps=8)
-    print_block_bit_list(block_bit_list)
 
 
 class TextLevelMeter(object):
@@ -395,8 +374,268 @@ def count_sign(values, min_value):
             negative_count += 1
     return positive_count, negative_count
 
+def list2str(l):
+    return "".join([str(c) for c in l])
+
+def bits2codepoint(bits):
+    """
+    >>> c = bits2codepoint([0, 0, 0, 1, 0, 0, 1, 0])
+    >>> c
+    72
+    >>> chr(c)
+    'H'
+
+    >>> bits2codepoint("00010010")
+    72
+
+    >>> bits2codepoint([0, 0, 1, 1, 0, 0, 1, 0])
+    76
+    """
+    bit_string = "".join([str(c) for c in reversed(bits)])
+    return int(bit_string, 2)
+
+def bitstream2codepoints(bitstream):
+    """
+    >>> list(bitstream2codepoints([0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0]))
+    [72, 65]
+
+    >>> [chr(i) for i in bitstream2codepoints(bytes2bitstream("HALLO!"))]
+    ['H', 'A', 'L', 'L', 'O', '!']
+    """
+    for bits in iter_steps(bitstream, 8):
+        yield bits2codepoint(bits)
+
+
+def bits2string(bits):
+    """
+    >>> bits2string([0, 0, 0, 1, 0, 0, 1, 0])
+    'H'
+    >>> bits2string("00010010")
+    'H'
+    """
+    codepoint = bits2codepoint(bits)
+    return chr(codepoint)
+
+def bitstream2string(bitstream):
+    """
+    >>> list(bitstream2string([0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0]))
+    ['H', 'A']
+
+    >>> "".join(list(bitstream2string(bytes2bitstream("FooBar !"))))
+    'FooBar !'
+    """
+    for bits in iter_steps(bitstream, 8):
+        yield bits2string(bits)
+
+def byte2bit_string(data):
+    """
+    >>> byte2bit_string("H")
+    '00010010'
+    """
+    if isinstance(data, basestring):
+        assert len(data) == 1
+        data = ord(data)
+
+    bits = '{0:08b}'.format(data)
+    bits = bits[::-1]
+    return bits
+
+
+def byte_list2bit_list(data):
+    """
+    generator that yield a list
+
+    >>> list(byte_list2bit_list("HELLO!"))
+    ['00010010', '10100010', '00110010', '00110010', '11110010', '10000100']
+
+    >>> data = (0x0,0x1e,0x8b,0x20,0x49,0x0)
+    >>> list(byte_list2bit_list(data))
+    ['00000000', '01111000', '11010001', '00000100', '10010010', '00000000']
+    """
+    for char in data:
+        yield byte2bit_string(char)
+
+
+def bytes2bit_strings(data):
+    """
+    generator that yield a list
+
+    >>> list(byte_list2bit_list("HELLO!"))
+    ['00010010', '10100010', '00110010', '00110010', '11110010', '10000100']
+
+    >>> data = (0x0,0x1e,0x8b,0x20,0x49,0x0)
+    >>> list(byte_list2bit_list(data))
+    ['00000000', '01111000', '11010001', '00000100', '10010010', '00000000']
+    """
+    for char in data:
+        for bit in byte2bit_string(char):
+            yield bit
+
+
+def bytes2bitstream(data):
+    """
+    >>> list(bytes2bitstream("H"))
+    [0, 0, 0, 1, 0, 0, 1, 0]
+
+    >>> list(bytes2bitstream("HA"))
+    [0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0]
+    """
+    for bit_string in bytes2bit_strings(data):
+        yield int(bit_string)
+
+
+def print_codepoint_stream(codepoint_stream, display_block_count=8, no_repr=False):
+    """
+    >>> def g(txt):
+    ...     for c in txt: yield ord(c)
+    >>> codepoint_stream = g("HELLO!")
+    >>> print_codepoint_stream(codepoint_stream)
+    ... # doctest: +NORMALIZE_WHITESPACE
+       6 | 0x48 'H' | 0x45 'E' | 0x4c 'L' | 0x4c 'L' | 0x4f 'O' | 0x21 '!' |
+    """
+    in_line_count = 0
+
+    line = []
+    for no, codepoint in enumerate(codepoint_stream, 1):
+        r = repr(chr(codepoint))
+        if "\\x" in r: # FIXME
+            txt = "%s" % hex(codepoint)
+        else:
+            txt = "%s %s" % (hex(codepoint), r)
+
+        line.append(txt.center(8))
+
+        in_line_count += 1
+        if in_line_count >= display_block_count:
+            in_line_count = 0
+            print "%4s | %s |" % (no, " | ".join(line))
+            line = []
+    if line:
+        print "%4s | %s |" % (no, " | ".join(line))
+
+    if in_line_count > 0:
+        print
+
+
+def print_block_bit_list(block_bit_list, display_block_count=8, no_repr=False):
+    """
+    >>> bit_list = (
+    ... [0,0,1,1,0,0,1,0], # L
+    ... [1,0,0,1,0,0,1,0], # I
+    ... )
+    >>> print_block_bit_list(bit_list)
+    ... # doctest: +NORMALIZE_WHITESPACE
+       2 - 00110010 10010010
+           0x4c 'L' 0x49 'I'
+    """
+    def print_line(no, line, line_info):
+        print "%4s - %s" % (no, line)
+        if no_repr:
+            return
+
+        line = []
+        for codepoint in line_info:
+            r = repr(chr(codepoint))
+            if "\\x" in r: # FIXME
+                txt = "%s" % hex(codepoint)
+            else:
+                txt = "%s %s" % (hex(codepoint), r)
+            txt = txt.center(8)
+            line.append(txt)
+
+        print "       %s" % " ".join(line)
+
+
+    in_line_count = 0
+
+    line = ""
+    line_info = []
+    for no, bits in enumerate(block_bit_list, 1):
+        line += "%s " % "".join([str(c) for c in bits])
+
+        codepoint = bits2codepoint(bits)
+        line_info.append(codepoint)
+
+        in_line_count += 1
+        if in_line_count >= display_block_count:
+            in_line_count = 0
+            print_line(no, line, line_info)
+            line_info = []
+            line = ""
+    if line:
+        print_line(no, line, line_info)
+
+    if in_line_count > 0:
+        print
+
+def print_bitlist(bitstream, no_repr=False):
+    """
+    >>> bitstream = bytes2bitstream("Hallo World!")
+    >>> print_bitlist(bitstream)
+    ... # doctest: +NORMALIZE_WHITESPACE
+       8 - 00010010 10000110 00110110 00110110 11110110 00000100 11101010 11110110
+           0x48 'H' 0x61 'a' 0x6c 'l' 0x6c 'l' 0x6f 'o' 0x20 ' ' 0x57 'W' 0x6f 'o'
+      12 - 01001110 00110110 00100110 10000100
+           0x72 'r' 0x6c 'l' 0x64 'd' 0x21 '!'
+
+    >>> bitstream = bytes2bitstream("Hallo World!")
+    >>> print_bitlist(bitstream, no_repr=True)
+    ... # doctest: +NORMALIZE_WHITESPACE
+       8 - 00010010 10000110 00110110 00110110 11110110 00000100 11101010 11110110
+      12 - 01001110 00110110 00100110 10000100
+    """
+    block_bit_list = iter_steps(bitstream, steps=8)
+    print_block_bit_list(block_bit_list, no_repr=no_repr)
+
+
+def get_word(byte_iterator):
+    """
+    return a uint16 value
+
+    >>> g=iter([0x1e, 0x12])
+    >>> v=get_word(g)
+    >>> v
+    7698
+    >>> hex(v)
+    '0x1e12'
+
+    >>> g=iter([0x0,0xf,0x20,0,20])
+    >>> v=get_word(g)
+    >>> hex(v)
+    '0xf'
+    >>> v=get_word(g)
+    >>> v
+    8192
+    """
+    return (next(byte_iterator) << 8) | next(byte_iterator)
+
+
 
 if __name__ == "__main__":
+
+    data = (0xff,)
+    print list(byte_list2bit_list(data))
+
+
+    txt = (
+        "00000000"
+        "11110000"
+        "00000100"
+        "00000100"
+    )
+    bitlist = [int(i) for i in txt]
+    print list(bitstream2codepoints(bitlist))
+    print_bitlist(bitlist)
+#
+
+    g = iter([0x0, 0xf, 0x20, 0, 20])
+    g = iter([0xf, 0x0, 0x20, 0, 20])
+    v = get_word(g)
+    print v, repr(v), hex(v)
+
+    sys.exit()
+
+
     import doctest
     print doctest.testmod()
 
