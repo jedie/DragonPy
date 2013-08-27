@@ -33,8 +33,11 @@ class CodeLine(object):
         self.line_no = line_no
         self.code = code
 
+    def get_ascii_codeline(self):
+        return "%i %s" % (self.line_no, self.code)
+
     def get_as_codepoints(self):
-        return string2codepoint("%i %s" % (self.line_no, self.code))
+        return string2codepoint(self.get_ascii_codeline())
 
     def __repr__(self):
         return "<CodeLine pointer: %s line no: %s code: %s>" % (
@@ -242,14 +245,18 @@ class FileContent(object):
     def get_as_codepoints(self):
         result = []
         delim = list(string2codepoint("\r"))[0]
-        for codepoints in self.code_lines:
+        for code_line in self.code_lines:
             result.append(delim)
-            result += list(codepoints.get_as_codepoints())
+            result += list(code_line.get_as_codepoints())
         result.append(delim)
 
         result += self.cfg.BASIC_CODE_END
         log.debug("code: %s" % repr(result))
         return result
+
+    def get_ascii_codeline(self):
+        for code_line in self.code_lines:
+            yield code_line.get_ascii_codeline()
 
     def print_code_lines(self):
         for code_line in self.code_lines:
@@ -263,27 +270,6 @@ class FileContent(object):
 
 
 class CassetteFile(object):
-    """
-    Representes a "file name block" and his "data block"
-
-     5.1 An 8 byte program name
-     5.2 A file ID byte where:
-         00=BASIC program
-         01=Data file
-         03=Binary file
-     5.3 An ASCII flag where:
-         00=Binary file
-         FF=ASCII file
-     5.4 A gap flag to indicate whether the
-         data stream is continuous (00) as
-         in binary or BASIC files, or in blocks
-         where the tape keeps stopping (FF) as
-         in data files.
-     5.5 Two bytes for the default EXEC address
-         of a binary file.
-     5.6 Two bytes for the default load address
-         of a binary file.
-    """
     def __init__(self, cfg):
         self.cfg = cfg
         self.is_tokenized = False
@@ -291,9 +277,10 @@ class CassetteFile(object):
     def create_from_bas(self, filename, file_content):
         filename2 = os.path.split(filename)[1]
         filename2 = filename2.upper()
+        filename2 = filename2.rstrip()
         filename2 = filename2.replace(" ", "_")
         # TODO: remove non ASCII!
-        filename2 = filename2[:8].ljust(8, " ")
+        filename2 = filename2[:8]
 
         log.debug("filename '%s' from: %s" % (filename2, filename))
 
@@ -311,7 +298,7 @@ class CassetteFile(object):
 
         raw_filename = list(itertools.islice(block_codepoints, 8))
 
-        self.filename = codepoints2string(raw_filename)
+        self.filename = codepoints2string(raw_filename).rstrip()
         print "\nFilename: %s" % repr(self.filename)
 
         codepoints = list(block_codepoints)
@@ -357,7 +344,7 @@ class CassetteFile(object):
 
     def get_filename_block_as_codepoints(self):
         codepoints = []
-        codepoints += list(string2codepoint(self.filename))
+        codepoints += list(string2codepoint(self.filename.ljust(8, " ")))
         codepoints.append(self.cfg.FTYPE_BASIC)
         codepoints.append(self.cfg.BASIC_ASCII) # ASCII BASIC
         return codepoints
@@ -496,6 +483,19 @@ class Cassette(object):
             assert isinstance(codepoint, int), "Codepoint %s is not int/hex" % repr(codepoint)
             for bit in codepoints2bitstream(codepoint):
                 yield bit
+
+    def save_bas(self, destination_file):
+        dest_filename, dest_ext = os.path.splitext(destination_file)
+        for file_obj in self.files:
+
+            bas_filename = file_obj.filename # Filename from CSAVE argument
+
+            out_filename = "%s_%s.bas" % (dest_filename, bas_filename)
+            log.info("Create %s..." % repr(out_filename))
+            with open(out_filename, "w") as f:
+                for line in file_obj.file_content.get_ascii_codeline():
+                    f.write("%s\n" % line)
+            print "\nFile %s saved." % repr(out_filename)
 
     def pprint_codepoint_stream(self):
         log_level = LOG_LEVEL_DICT[3]

@@ -68,7 +68,11 @@ class Wave2Bitstream(object):
         self.avg_count = avg_count
 
         print "open wave file '%s'..." % wave_filename
-        self.wavefile = wave.open(wave_filename, "rb")
+        try:
+            self.wavefile = wave.open(wave_filename, "rb")
+        except IOError, err:
+            log.error("Error opening %s: %s" % (repr(wave_filename), err))
+            sys.exit(-1)
 
         self.framerate = self.wavefile.getframerate() # frames / second
         print "Framerate:", self.framerate

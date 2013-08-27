@@ -2,15 +2,12 @@
 # coding: utf-8
 
 """
-    Convert dragon 32 Cassetts WAV files into plain text.
-    =====================================================
-
-    Currently ony supported:
-        * BASIC programs in tokenised form
+    Convert dragon 32 Cassetts WAV files
+    ====================================
 
     TODO:
-        - check BASIC programs in ASCII form: CSAVE "NAME",A
-        - detect even_odd startpoint!
+        - test block checksum, see:
+            http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4231&p=8905#p8905
         - add cli
         - write .BAS file
 
@@ -19,7 +16,6 @@
 """
 
 
-import sys
 import itertools
 import logging
 from configs import Dragon32Config
@@ -29,11 +25,9 @@ log = logging.getLogger("PyDC")
 
 
 # own modules
-from basic_tokens import BASIC_TOKENS, FUNCTION_TOKEN
 from utils import find_iter_window, iter_steps, MaxPosArraived, \
-    print_bitlist, bits2codepoint, list2str, bitstream2codepoints, get_word, \
-    print_codepoint_stream, codepoints2string, print_as_hex_list, \
-    PatternNotFound, LOG_LEVEL_DICT, LOG_FORMATTER, codepoints2bitstream, \
+    print_bitlist, bits2codepoint, list2str, bitstream2codepoints, \
+    PatternNotFound, LOG_FORMATTER, codepoints2bitstream, \
     pprint_codepoints
 from wave2bitstream import Wave2Bitstream
 
@@ -42,6 +36,10 @@ DISPLAY_BLOCK_COUNT = 8 # How many bit block should be printet in one line?
 
 MIN_SAMPLE_VALUE = 5
 
+
+
+class SyncByteNotFoundError(Exception):
+    pass
 
 
 def pop_bytes_from_bit_list(bit_list, count):
@@ -104,7 +102,11 @@ class BitstreamHandler(object):
     #         print " ***** Bitstream length:", len(bitstream)
     #         bitstream = iter(bitstream)
 
-            block_type, block_length, codepoint_stream = self.get_block_info(bitstream)
+            try:
+                block_type, block_length, codepoint_stream = self.get_block_info(bitstream)
+            except SyncByteNotFoundError, err:
+                log.error(err)
+                break
 
             codepoint_stream = list(codepoint_stream)
             print "\n***** codepoint_stream length:", len(codepoint_stream)
@@ -122,7 +124,7 @@ class BitstreamHandler(object):
                 print "Debug bitlist:"
                 print_bitlist(bitstream)
                 print "-"*79
-                sys.exit(-1)
+                break
 
 
             print "*** block type: 0x%x (%s)" % (block_type, block_type_name)
@@ -137,7 +139,7 @@ class BitstreamHandler(object):
                 print "Debug bitlist:"
                 print_bitlist(bitstream)
                 print "-"*79
-                sys.exit(-1)
+                break
 
     #         block_codepoints = bitstream2codepoints(block_bits)
 
@@ -157,20 +159,18 @@ class BitstreamHandler(object):
         try:
             leader_pos = find_iter_window(bitstream, lead_in_pattern, max_pos)
         except MaxPosArraived, err:
-            print "\nError: Leader-Byte '%s' (%s) not found in the first %i Bytes! (%s)" % (
+            log.error("Error: Leader-Byte '%s' (%s) not found in the first %i Bytes! (%s)" % (
                 list2str(lead_in_pattern), hex(self.cfg.LEAD_BYTE_CODEPOINT),
                 self.cfg.LEAD_BYTE_LEN, err
-            )
-            sys.exit(-1)
+            ))
         except PatternNotFound, err:
-            print "\nError: Leader-Byte '%s' (%s) doesn't exist in bitstream! (%s)" % (
+            log.error("Error: Leader-Byte '%s' (%s) doesn't exist in bitstream! (%s)" % (
                 list2str(lead_in_pattern), hex(self.cfg.LEAD_BYTE_CODEPOINT), err
-            )
-            sys.exit(-1)
+            ))
         else:
-            print "\nLeader-Byte '%s' (%s) found at %i Bytes" % (
+            log.info("Leader-Byte '%s' (%s) found at %i Bytes" % (
                 list2str(lead_in_pattern), hex(self.cfg.LEAD_BYTE_CODEPOINT), leader_pos
-            )
+            ))
 
         # Search for sync-byte
         sync_pattern = list(codepoints2bitstream(self.cfg.SYNC_BYTE_CODEPOINT))
@@ -178,17 +178,24 @@ class BitstreamHandler(object):
         try:
             sync_pos = find_iter_window(bitstream, sync_pattern, max_pos)
         except MaxPosArraived, err:
-            print "\nError: Sync-Byte not found in the first %i Bytes! (%s)" % (
-                self.cfg.LEAD_BYTE_LEN, err
+            raise SyncByteNotFoundError(
+                "Error: Sync-Byte '%s' (%s) not found in the first %i Bytes! (%s)" % (
+                    list2str(sync_pattern), hex(self.cfg.SYNC_BYTE_CODEPOINT),
+                    self.cfg.LEAD_BYTE_LEN, err
+                )
             )
-            sys.exit(-1)
         except PatternNotFound, err:
-            print "\nError: Sync-Byte doesn't exist in bitstream! (%s)" % err
-            sys.exit(-1)
-        else:
-            print "\nSync-Byte '%s' (%x) found at %i Bytes" % (
-                list2str(sync_pattern), self.cfg.SYNC_BYTE_CODEPOINT, sync_pos
+            raise SyncByteNotFoundError(
+                "Error: Sync-Byte '%s' (%s) doesn't exist in bitstream! (%s)" % (
+                    list2str(sync_pattern), hex(self.cfg.SYNC_BYTE_CODEPOINT),
+                    err
+                )
             )
+        else:
+            log.info("Sync-Byte '%s' (%s) found at %i Bytes" % (
+                list2str(sync_pattern), hex(self.cfg.SYNC_BYTE_CODEPOINT),
+                sync_pos
+            ))
 
 
     def get_block_info(self, bitstream):

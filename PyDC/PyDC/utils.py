@@ -22,6 +22,7 @@ LOG_LEVEL_DICT = {
     2: logging.INFO,
     3: logging.DEBUG
 }
+LOG_LEVELS = sorted(LOG_LEVEL_DICT.keys())
 
 
 def human_duration(t):

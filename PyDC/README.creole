@@ -7,6 +7,51 @@ Convert dragon 32 Cassetts WAV files into plain text.
 copyleft: 2013 by Jens Diemer
 license: GNU GPL v3 or above, see LICENSE for more details.
 
+=== PyDC_cli.py - usage
+
+{{{
+usage: PyDC_cli.py [-h] [-v] [--verbosity {0,10,20,30,40,50}]
+                   [--logfile {0,10,20,30,40,50}]
+                   [--hz_variation HZ_VARIATION]
+                   [--min_volume_ratio MIN_VOLUME_RATIO]
+                   [--avg_count AVG_COUNT] [--end_count END_COUNT]
+                   [--mid_count MID_COUNT]
+                   src dst
+
+Python dragon 32 converter
+
+positional arguments:
+  src                   Source filename (.wav/.bas)
+  dst                   Destination filename (.wav/.bas)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --version         show program's version number and exit
+  --verbosity {0,10,20,30,40,50}
+                        verbosity level to stdout (lower == more output!)
+                        (default: 30)
+  --logfile {0,10,20,30,40,50}
+                        verbosity level to log file (lower == more output!)
+                        (default: 20)
+  --hz_variation HZ_VARIATION
+                        How much Hz can signal scatter to match 1 or 0 bit ?
+                        (default: 450)
+  --min_volume_ratio MIN_VOLUME_RATIO
+                        percent volume to ignore sample (default: 5)
+  --avg_count AVG_COUNT
+                        How many samples should be merged into a average
+                        value? (default: 0)
+  --end_count END_COUNT
+                        Sample count that must be pos/neg at once (default: 2)
+  --mid_count MID_COUNT
+                        Sample count that can be around null (default: 1)
+}}}
+
+Example:
+{{{
+~$ python PyDC_cli.py FooBar.wav FooBar.bas
+}}}
+
 
 === Links
 
