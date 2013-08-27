@@ -148,11 +148,33 @@ class BitstreamHandler(object):
             self.cassette.add_block(block_type, block_length, codepoint_stream)
             print "="*79
 
+    def sync_bitstream(self, bitstream):
+        bitstream.sync(32) # Sync bitstream to wave sinus cycle
 
-    def sync_stream(self, bitstream):
+        # Searching for lead-in byte
+        lead_in_pattern = list(codepoints2bitstream(self.cfg.LEAD_BYTE_CODEPOINT))
+        max_pos = self.cfg.LEAD_BYTE_LEN * 8
+        try:
+            leader_pos = find_iter_window(bitstream, lead_in_pattern, max_pos)
+        except MaxPosArraived, err:
+            print "\nError: Leader-Byte '%s' (%s) not found in the first %i Bytes! (%s)" % (
+                list2str(lead_in_pattern), hex(self.cfg.LEAD_BYTE_CODEPOINT),
+                self.cfg.LEAD_BYTE_LEN, err
+            )
+            sys.exit(-1)
+        except PatternNotFound, err:
+            print "\nError: Leader-Byte '%s' (%s) doesn't exist in bitstream! (%s)" % (
+                list2str(lead_in_pattern), hex(self.cfg.LEAD_BYTE_CODEPOINT), err
+            )
+            sys.exit(-1)
+        else:
+            print "\nLeader-Byte '%s' (%s) found at %i Bytes" % (
+                list2str(lead_in_pattern), hex(self.cfg.LEAD_BYTE_CODEPOINT), leader_pos
+            )
+
+        # Search for sync-byte
         sync_pattern = list(codepoints2bitstream(self.cfg.SYNC_BYTE_CODEPOINT))
         max_pos = (self.cfg.LEAD_BYTE_LEN + 2) * 8
-
         try:
             sync_pos = find_iter_window(bitstream, sync_pattern, max_pos)
         except MaxPosArraived, err:
@@ -176,34 +198,12 @@ class BitstreamHandler(object):
 #         bitstream = iter(bitstream)
 #         print "-"*79
 
-        lead_in_pattern = list(codepoints2bitstream(self.cfg.LEAD_BYTE_CODEPOINT))
-        max_pos = self.cfg.LEAD_BYTE_LEN * 8
-
-        # Searching for lead-in byte
-        try:
-            leader_pos = find_iter_window(bitstream, lead_in_pattern, max_pos)
-        except MaxPosArraived, err:
-            print "\nError: Leader-Byte '%s' (%s) not found in the first %i Bytes! (%s)" % (
-                list2str(lead_in_pattern), hex(self.cfg.LEAD_BYTE_CODEPOINT),
-                self.cfg.LEAD_BYTE_LEN, err
-            )
-            sys.exit(-1)
-        except PatternNotFound, err:
-            print "\nError: Leader-Byte '%s' (%s) doesn't exist in bitstream! (%s)" % (
-                list2str(lead_in_pattern), hex(self.cfg.LEAD_BYTE_CODEPOINT), err
-            )
-            sys.exit(-1)
-        else:
-            print "\nLeader-Byte '%s' (%s) found at %i Bytes" % (
-                list2str(lead_in_pattern), hex(self.cfg.LEAD_BYTE_CODEPOINT), leader_pos
-            )
-
     #     print "-"*79
     #     print_bitlist(bitstream, no_repr=True)
     #     print "-"*79
     #     sys.exit()
 
-        self.sync_stream(bitstream) # Sync bitstream with SYNC_BYTE
+        self.sync_bitstream(bitstream) # Sync bitstream with SYNC_BYTE
 
     #     print "-"*79
     #     bitstream = list(bitstream)
@@ -276,20 +276,6 @@ if __name__ == "__main__":
     # 2710 Bits: 1217 positive bits and 1493 negative bits
 
 
-
-    """
-    The origin BASIC code of the two WAV file is:
-
-    10 FOR I = 1 TO 10
-    20 PRINT I;"HELLO WORLD!"
-    30 NEXT I
-
-    The WAV files are here:
-    https://github.com/jedie/python-code-snippets/raw/master/CodeSnippets/Dragon%2032/HelloWorld1%20origin.wav
-    https://github.com/jedie/python-code-snippets/raw/master/CodeSnippets/Dragon%2032/HelloWorld1%20xroar.wav
-    """
-
-
     # Test files from:
     # http://archive.worldofdragon.org/archive/index.php?dir=Tapes/Dragon/wav/
 #     FILENAME = "Quickbeam Software - Duplicas v3.0.wav" # binary!
@@ -310,7 +296,8 @@ if __name__ == "__main__":
 
 
 #     log_level = LOG_LEVEL_DICT[3] # args.verbosity
-#     log.setLevel(log_level)
+#     log.setLevel(logging.DEBUG)
+    log.setLevel(logging.INFO)
 #
 #     logfilename = FILENAME + ".log" # args.logfile
 #     if logfilename:
@@ -320,9 +307,9 @@ if __name__ == "__main__":
 #         log.addHandler(handler)
 #
 #     # if args.stdout_log:
-#     handler = logging.StreamHandler()
-#     handler.setFormatter(LOG_FORMATTER)
-#     log.addHandler(handler)
+    handler = logging.StreamHandler()
+    handler.setFormatter(LOG_FORMATTER)
+    log.addHandler(handler)
 
     d32cfg = Dragon32Config()
     c = Cassette(d32cfg)
@@ -336,8 +323,6 @@ if __name__ == "__main__":
         mid_volume_ratio=15, # percent volume to trigger the sinus cycle
     )
     bitstream = iter(st)
-    bitstream.sync(32)
-    bitstream = itertools.imap(lambda x: x[1], bitstream) # remove frame_no
 
 
     # Create a bitstream from a existing .bas file:

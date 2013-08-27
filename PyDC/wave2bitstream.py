@@ -99,6 +99,7 @@ class Wave2Bitstream(object):
         )
 
         self.half_sinus = False # in trigger yield the full cycle
+        self.frame_no = None
 
         # create the generator chain:
 
@@ -123,12 +124,12 @@ class Wave2Bitstream(object):
 
         # go in wave stream to the first bit
         try:
-            first_bit_frame_no, first_bit = self.next()
+            self.next()
         except StopIteration:
             print "Error: no bits identified!"
             sys.exit(-1)
 
-        log.info("First bit is at: %s" % first_bit_frame_no)
+        log.info("First bit is at: %s" % self.frame_no)
         log.debug("enable half sinus scan")
         self.half_sinus = True
 
@@ -149,11 +150,11 @@ class Wave2Bitstream(object):
         log.debug("sync diff info: %i vs. %i" % (diff1, diff2))
 
         if diff1 > diff2:
-            log.info("Sync one step.")
+            log.info("bit-sync one step.")
             self.iter_trigger_generator.next()
             log.debug("Synced.")
         else:
-            log.info("No sync needed.")
+            log.info("No bit-sync needed.")
 
         self.half_sinus = False
         log.debug("disable half sinus scan")
@@ -206,7 +207,7 @@ class Wave2Bitstream(object):
                     "bit 1 at %s in %sSamples = %sHz" % (frame_no, duration, hz)
                 )
                 bit_count += 1
-                yield (frame_no, 1)
+                yield 1
                 one_hz_count += 1
                 if hz < one_hz_min:
                     one_hz_min = hz
@@ -218,7 +219,7 @@ class Wave2Bitstream(object):
                     "bit 0 at %s in %sSamples = %sHz" % (frame_no, duration, hz)
                 )
                 bit_count += 1
-                yield (frame_no, 0)
+                yield 0
                 nul_hz_count += 1
                 if hz < nul_hz_min:
                     nul_hz_min = hz
@@ -296,14 +297,14 @@ class Wave2Bitstream(object):
         simmilar to a Schmitt trigger
         """
         last_state = True
-        for frame_no, value in iter_wave_values:
+        for value in iter_wave_values:
             if last_state == False and value > self.trigger_value:
                 log.debug(
                     " ==== go into positive sinus cycle (%s > %s)===============" % (
                         value, self.trigger_value
                     )
                 )
-                yield frame_no
+                yield self.frame_no
                 last_state = True
             elif last_state == True and value < -self.trigger_value:
                 if self.half_sinus:
@@ -312,7 +313,7 @@ class Wave2Bitstream(object):
                             value, self.trigger_value
                         )
                     )
-                    yield frame_no
+                    yield self.frame_no
                 last_state = False
 #
 #     def iter_trigger(self, iter_wave_values):
@@ -357,7 +358,7 @@ class Wave2Bitstream(object):
 
         tlm = TextLevelMeter(self.max_value, 79)
 
-        frame_no = 0
+        self.frame_no = 0
         get_wave_block_func = functools.partial(self.wavefile.readframes, self.WAVE_READ_SIZE)
         skipped_values = 0
 
@@ -398,9 +399,9 @@ class Wave2Bitstream(object):
                         "%s value: %i (%.1f%%)" % (msg, value, percent)
                     )
 
-                frame_no += 1
-#                 if frame_no > 100:sys.exit()
-                yield frame_no, value
+                self.frame_no += 1
+#                 if self.frame_no > 100:sys.exit()
+                yield value
 
 #     def iter_wave_valuesOLD(self):
 #         if self.samplewidth == 1:
@@ -460,7 +461,7 @@ if __name__ == "__main__":
 #     handler.setFormatter(LOG_FORMATTER)
 #     log.addHandler(handler)
 
-    st = Wave2Bitstream(FILENAME,
+    st = Wave2Bitstream("test_files/%s" % FILENAME,
         bit_nul_hz=1200, # "0" is a single cycle at 1200 Hz
         bit_one_hz=2400, # "1" is a single cycle at 2400 Hz
         hz_variation=450, # How much Hz can signal scatter to match 1 or 0 bit ?
@@ -470,9 +471,6 @@ if __name__ == "__main__":
 
     bitstream = iter(st)
     bitstream.sync(32)
-
-    bitstream = itertools.imap(lambda x: x[1], bitstream)
-#     bit_list = array.array('B', bitstream)
 
     print "-"*79
     print_bitlist(bitstream, no_repr=True)
