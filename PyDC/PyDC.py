@@ -270,7 +270,7 @@ if __name__ == "__main__":
 
 
     # created by origin Dragon 32 machine
-    FILENAME = "HelloWorld1 origin.wav" # 16Bit 44.1KHz mono
+#     FILENAME = "HelloWorld1 origin.wav" # 16Bit 44.1KHz mono
     # Bit 1 min: 1764Hz avg: 2013.9Hz max: 2100Hz variation: 336Hz
     # Bit 0 min: 595Hz avg: 1090.2Hz max: 1336Hz Variation: 741Hz
     # 2710 Bits: 1217 positive bits and 1493 negative bits
@@ -290,14 +290,14 @@ if __name__ == "__main__":
 #     FILENAME = "2_DBJ.WAV" # TODO
 
     # BASIC file with high line numbers:
-#     FILENAME = "LineNumber Test 01.wav" # tokenized BASIC - no sync
+    FILENAME = "LineNumber Test 01.wav" # tokenized BASIC - no sync
 #     FILENAME = "LineNumber Test 02.wav" # ASCII BASIC - no sync
 
 
 
 #     log_level = LOG_LEVEL_DICT[3] # args.verbosity
-    log.setLevel(logging.DEBUG)
-#     log.setLevel(logging.INFO)
+#     log.setLevel(logging.DEBUG)
+    log.setLevel(logging.INFO)
 #
 #     logfilename = FILENAME + ".log" # args.logfile
 #     if logfilename:
@@ -307,9 +307,9 @@ if __name__ == "__main__":
 #         log.addHandler(handler)
 #
 #     # if args.stdout_log:
-#     handler = logging.StreamHandler()
-#     handler.setFormatter(LOG_FORMATTER)
-#     log.addHandler(handler)
+    handler = logging.StreamHandler()
+    handler.setFormatter(LOG_FORMATTER)
+    log.addHandler(handler)
 
     d32cfg = Dragon32Config()
     c = Cassette(d32cfg)
@@ -320,7 +320,8 @@ if __name__ == "__main__":
         bit_one_hz=2400, # "1" is a single cycle at 2400 Hz
         hz_variation=450, # How much Hz can signal scatter to match 1 or 0 bit ?
         min_volume_ratio=5, # percent volume to ignore sample
-        mid_volume_ratio=15, # percent volume to trigger the sinus cycle
+        end_count=2, # Sample count that must be pos/neg at once
+        mid_count=1 # Sample count that can be around null
     )
     bitstream = iter(st)
 
@@ -333,7 +334,7 @@ if __name__ == "__main__":
 #     bitstream = c.get_as_bitstream()
 
 
-
+#     bitstream.sync(32) # Sync bitstream to wave sinus cycle
 #     bitstream = list(bitstream)
 #     print " ***** Bitstream length:", len(bitstream)
 #     print_bitlist(bitstream)
