@@ -1,6 +1,22 @@
-# ApplePy - an Apple ][ emulator in Python
-# James Tauber / http://jtauber.com/
-# originally written 2001, updated 2011
+
+"""
+    DragonPy - Dragon 32 emulator in Python
+    =======================================
+
+    Links:
+        http://dragondata.worldofdragon.org/Publications/inside-dragon.htm
+        http://www.burgins.com/m6809.html
+        http://mamedev.org/source/src/mess/drivers/dragon.c.html
+        http://mamedev.org/source/src/mess/machine/dragon.c.html
+        http://koti.mbnet.fi/~atjs/mc6809/
+
+    Based on:
+        ApplePy - an Apple ][ emulator in Python:
+        James Tauber / http://jtauber.com/ / https://github.com/jtauber/applepy
+        originally written 2001, updated 2011
+        origin source code licensed under MIT License
+"""
+
 
 
 import BaseHTTPServer
@@ -10,9 +26,13 @@ import select
 import socket
 import struct
 import sys
+import logging
 
+from configs import CfgDragon32
 
-bus = None  # socket for bus I/O
+log = logging.getLogger("DragonPy")
+
+bus = None # socket for bus I/O
 
 
 def signed(x):
@@ -22,69 +42,83 @@ def signed(x):
 
 
 class ROM:
-    
+
     def __init__(self, start, size):
         self.start = start
         self.end = start + size - 1
         self._mem = [0x00] * size
-    
+        print "init %s Bytes %s (start: %s end: %s size: %s)" % (
+            size, self.__class__.__name__, hex(start), hex(self.end), hex(size)
+        )
+
     def load(self, address, data):
         for offset, datum in enumerate(data):
             self._mem[address - self.start + offset] = datum
-    
+
     def load_file(self, address, filename):
         with open(filename, "rb") as f:
             for offset, datum in enumerate(f.read()):
-                self._mem[address - self.start + offset] = ord(datum)
-    
+                index = address - self.start + offset
+                try:
+                    self._mem[index] = ord(datum)
+                except IndexError:
+                    raise IndexError("ROM file %s bigger than: %s" % (filename, hex(index)))
+
     def read_byte(self, address):
-        assert self.start <= address <= self.end
-        return self._mem[address - self.start]
+        assert self.start <= address <= self.end, "Read %s from %s is not in range %s-%s" % (hex(address), self.__class__.__name__, hex(self.start), hex(self.end))
+        byte = self._mem[address - self.start]
+        log.debug("Read byte %s: %s" % (hex(address), repr(byte)))
+        return byte
 
 
 class RAM(ROM):
-    
+
     def write_byte(self, address, value):
         self._mem[address] = value
 
 
+
+
+
 class Memory:
-    
+
     def __init__(self, options=None, use_bus=True):
+        self.cfg = options.cfg
         self.use_bus = use_bus
-        self.rom = ROM(0xD000, 0x3000)
-        
+
+        self.rom = ROM(start=self.cfg.ROM_START, size=self.cfg.ROM_SIZE)
+
         if options:
-            self.rom.load_file(0xD000, options.rom)
-        
-        self.ram = RAM(0x0000, 0xC000)
-        
+            self.rom.load_file(self.cfg.ROM_START, options.rom)
+
+        self.ram = RAM(start=self.cfg.RAM_START, size=self.cfg.RAM_SIZE)
+
         if options and options.ram:
             self.ram.load_file(0x0000, options.ram)
-    
+
     def load(self, address, data):
-        if address < 0xC000:
+        if address < self.cfg.RAM_END:
             self.ram.load(address, data)
-    
+
     def read_byte(self, cycle, address):
-        if address < 0xC000:
+        if address < self.cfg.RAM_END:
             return self.ram.read_byte(address)
-        elif address < 0xD000:
-            return self.bus_read(cycle, address)
-        else:
+        elif self.cfg.ROM_START <= address <= self.cfg.ROM_END:
             return self.rom.read_byte(address)
-    
+        else:
+            return self.bus_read(cycle, address)
+
     def read_word(self, cycle, address):
         return self.read_byte(cycle, address) + (self.read_byte(cycle + 1, address + 1) << 8)
-    
+
     def read_word_bug(self, cycle, address):
         if address % 0x100 == 0xFF:
             return self.read_byte(cycle, address) + (self.read_byte(cycle + 1, address & 0xFF00) << 8)
         else:
             return self.read_word(cycle, address)
-    
+
     def write_byte(self, cycle, address, value):
-        if address < 0xC000:
+        if address < self.cfg.RAM_END:
             self.ram.write_byte(address, value)
         if 0x400 <= address < 0x800 or 0x2000 <= address < 0x5FFF:
             self.bus_write(cycle, address, value)
@@ -116,25 +150,25 @@ class Disassemble:
     def __init__(self, cpu, memory):
         self.cpu = cpu
         self.memory = memory
-        
+
         self.setup_ops()
-    
+
     def setup_ops(self):
         self.ops = [(1, "???")] * 0x100
-        self.ops[0x00] = (1, "BRK", )
+        self.ops[0x00] = (1, "BRK",)
         self.ops[0x01] = (2, "ORA", self.indirect_x_mode)
         self.ops[0x05] = (2, "ORA", self.zero_page_mode)
         self.ops[0x06] = (2, "ASL", self.zero_page_mode)
-        self.ops[0x08] = (1, "PHP", )
+        self.ops[0x08] = (1, "PHP",)
         self.ops[0x09] = (2, "ORA", self.immediate_mode)
-        self.ops[0x0A] = (1, "ASL", )
+        self.ops[0x0A] = (1, "ASL",)
         self.ops[0x0D] = (3, "ORA", self.absolute_mode)
         self.ops[0x0E] = (3, "ASL", self.absolute_mode)
         self.ops[0x10] = (2, "BPL", self.relative_mode)
         self.ops[0x11] = (2, "ORA", self.indirect_y_mode)
         self.ops[0x15] = (2, "ORA", self.zero_page_x_mode)
         self.ops[0x16] = (2, "ASL", self.zero_page_x_mode)
-        self.ops[0x18] = (1, "CLC", )
+        self.ops[0x18] = (1, "CLC",)
         self.ops[0x19] = (3, "ORA", self.absolute_y_mode)
         self.ops[0x1D] = (3, "ORA", self.absolute_x_mode)
         self.ops[0x1E] = (3, "ASL", self.absolute_x_mode)
@@ -143,9 +177,9 @@ class Disassemble:
         self.ops[0x24] = (2, "BIT", self.zero_page_mode)
         self.ops[0x25] = (2, "AND", self.zero_page_mode)
         self.ops[0x26] = (2, "ROL", self.zero_page_mode)
-        self.ops[0x28] = (1, "PLP", )
+        self.ops[0x28] = (1, "PLP",)
         self.ops[0x29] = (2, "AND", self.immediate_mode)
-        self.ops[0x2A] = (1, "ROL", )
+        self.ops[0x2A] = (1, "ROL",)
         self.ops[0x2C] = (3, "BIT", self.absolute_mode)
         self.ops[0x2D] = (3, "AND", self.absolute_mode)
         self.ops[0x2E] = (3, "ROL", self.absolute_mode)
@@ -153,17 +187,17 @@ class Disassemble:
         self.ops[0x31] = (2, "AND", self.indirect_y_mode)
         self.ops[0x35] = (2, "AND", self.zero_page_x_mode)
         self.ops[0x36] = (2, "ROL", self.zero_page_x_mode)
-        self.ops[0x38] = (1, "SEC", )
+        self.ops[0x38] = (1, "SEC",)
         self.ops[0x39] = (3, "AND", self.absolute_y_mode)
         self.ops[0x3D] = (3, "AND", self.absolute_x_mode)
         self.ops[0x3E] = (3, "ROL", self.absolute_x_mode)
-        self.ops[0x40] = (1, "RTI", )
+        self.ops[0x40] = (1, "RTI",)
         self.ops[0x41] = (2, "EOR", self.indirect_x_mode)
         self.ops[0x45] = (2, "EOR", self.zero_page_mode)
         self.ops[0x46] = (2, "LSR", self.zero_page_mode)
-        self.ops[0x48] = (1, "PHA", )
+        self.ops[0x48] = (1, "PHA",)
         self.ops[0x49] = (2, "EOR", self.immediate_mode)
-        self.ops[0x4A] = (1, "LSR", )
+        self.ops[0x4A] = (1, "LSR",)
         self.ops[0x4C] = (3, "JMP", self.absolute_mode)
         self.ops[0x4D] = (3, "EOR", self.absolute_mode)
         self.ops[0x4E] = (3, "LSR", self.absolute_mode)
@@ -171,17 +205,17 @@ class Disassemble:
         self.ops[0x51] = (2, "EOR", self.indirect_y_mode)
         self.ops[0x55] = (2, "EOR", self.zero_page_x_mode)
         self.ops[0x56] = (2, "LSR", self.zero_page_x_mode)
-        self.ops[0x58] = (1, "CLI", )
+        self.ops[0x58] = (1, "CLI",)
         self.ops[0x59] = (3, "EOR", self.absolute_y_mode)
         self.ops[0x5D] = (3, "EOR", self.absolute_x_mode)
         self.ops[0x5E] = (3, "LSR", self.absolute_x_mode)
-        self.ops[0x60] = (1, "RTS", )
+        self.ops[0x60] = (1, "RTS",)
         self.ops[0x61] = (2, "ADC", self.indirect_x_mode)
         self.ops[0x65] = (2, "ADC", self.zero_page_mode)
         self.ops[0x66] = (2, "ROR", self.zero_page_mode)
-        self.ops[0x68] = (1, "PLA", )
+        self.ops[0x68] = (1, "PLA",)
         self.ops[0x69] = (2, "ADC", self.immediate_mode)
-        self.ops[0x6A] = (1, "ROR", )
+        self.ops[0x6A] = (1, "ROR",)
         self.ops[0x6C] = (3, "JMP", self.indirect_mode)
         self.ops[0x6D] = (3, "ADC", self.absolute_mode)
         self.ops[0x6E] = (3, "ROR", self.absolute_mode)
@@ -189,7 +223,7 @@ class Disassemble:
         self.ops[0x71] = (2, "ADC", self.indirect_y_mode)
         self.ops[0x75] = (2, "ADC", self.zero_page_x_mode)
         self.ops[0x76] = (2, "ROR", self.zero_page_x_mode)
-        self.ops[0x78] = (1, "SEI", )
+        self.ops[0x78] = (1, "SEI",)
         self.ops[0x79] = (3, "ADC", self.absolute_y_mode)
         self.ops[0x7D] = (3, "ADC", self.absolute_x_mode)
         self.ops[0x7E] = (3, "ROR", self.absolute_x_mode)
@@ -197,8 +231,8 @@ class Disassemble:
         self.ops[0x84] = (2, "STY", self.zero_page_mode)
         self.ops[0x85] = (2, "STA", self.zero_page_mode)
         self.ops[0x86] = (2, "STX", self.zero_page_mode)
-        self.ops[0x88] = (1, "DEY", )
-        self.ops[0x8A] = (1, "TXA", )
+        self.ops[0x88] = (1, "DEY",)
+        self.ops[0x8A] = (1, "TXA",)
         self.ops[0x8C] = (3, "STY", self.absolute_mode)
         self.ops[0x8D] = (3, "STA", self.absolute_mode)
         self.ops[0x8E] = (3, "STX", self.absolute_mode)
@@ -207,9 +241,9 @@ class Disassemble:
         self.ops[0x94] = (2, "STY", self.zero_page_x_mode)
         self.ops[0x95] = (2, "STA", self.zero_page_x_mode)
         self.ops[0x96] = (2, "STX", self.zero_page_y_mode)
-        self.ops[0x98] = (1, "TYA", )
+        self.ops[0x98] = (1, "TYA",)
         self.ops[0x99] = (3, "STA", self.absolute_y_mode)
-        self.ops[0x9A] = (1, "TXS", )
+        self.ops[0x9A] = (1, "TXS",)
         self.ops[0x9D] = (3, "STA", self.absolute_x_mode)
         self.ops[0xA0] = (2, "LDY", self.immediate_mode)
         self.ops[0xA1] = (2, "LDA", self.indirect_x_mode)
@@ -217,9 +251,9 @@ class Disassemble:
         self.ops[0xA4] = (2, "LDY", self.zero_page_mode)
         self.ops[0xA5] = (2, "LDA", self.zero_page_mode)
         self.ops[0xA6] = (2, "LDX", self.zero_page_mode)
-        self.ops[0xA8] = (1, "TAY", )
+        self.ops[0xA8] = (1, "TAY",)
         self.ops[0xA9] = (2, "LDA", self.immediate_mode)
-        self.ops[0xAA] = (1, "TAX", )
+        self.ops[0xAA] = (1, "TAX",)
         self.ops[0xAC] = (3, "LDY", self.absolute_mode)
         self.ops[0xAD] = (3, "LDA", self.absolute_mode)
         self.ops[0xAE] = (3, "LDX", self.absolute_mode)
@@ -228,9 +262,9 @@ class Disassemble:
         self.ops[0xB4] = (2, "LDY", self.zero_page_x_mode)
         self.ops[0xB5] = (2, "LDA", self.zero_page_x_mode)
         self.ops[0xB6] = (2, "LDX", self.zero_page_y_mode)
-        self.ops[0xB8] = (1, "CLV", )
+        self.ops[0xB8] = (1, "CLV",)
         self.ops[0xB9] = (3, "LDA", self.absolute_y_mode)
-        self.ops[0xBA] = (1, "TSX", )
+        self.ops[0xBA] = (1, "TSX",)
         self.ops[0xBC] = (3, "LDY", self.absolute_x_mode)
         self.ops[0xBD] = (3, "LDA", self.absolute_x_mode)
         self.ops[0xBE] = (3, "LDX", self.absolute_y_mode)
@@ -239,9 +273,9 @@ class Disassemble:
         self.ops[0xC4] = (2, "CPY", self.zero_page_mode)
         self.ops[0xC5] = (2, "CMP", self.zero_page_mode)
         self.ops[0xC6] = (2, "DEC", self.zero_page_mode)
-        self.ops[0xC8] = (1, "INY", )
+        self.ops[0xC8] = (1, "INY",)
         self.ops[0xC9] = (2, "CMP", self.immediate_mode)
-        self.ops[0xCA] = (1, "DEX", )
+        self.ops[0xCA] = (1, "DEX",)
         self.ops[0xCC] = (3, "CPY", self.absolute_mode)
         self.ops[0xCD] = (3, "CMP", self.absolute_mode)
         self.ops[0xCE] = (3, "DEC", self.absolute_mode)
@@ -249,7 +283,7 @@ class Disassemble:
         self.ops[0xD1] = (2, "CMP", self.indirect_y_mode)
         self.ops[0xD5] = (2, "CMP", self.zero_page_x_mode)
         self.ops[0xD6] = (2, "DEC", self.zero_page_x_mode)
-        self.ops[0xD8] = (1, "CLD", )
+        self.ops[0xD8] = (1, "CLD",)
         self.ops[0xD9] = (3, "CMP", self.absolute_y_mode)
         self.ops[0xDD] = (3, "CMP", self.absolute_x_mode)
         self.ops[0xDE] = (3, "DEC", self.absolute_x_mode)
@@ -258,9 +292,9 @@ class Disassemble:
         self.ops[0xE4] = (2, "CPX", self.zero_page_mode)
         self.ops[0xE5] = (2, "SBC", self.zero_page_mode)
         self.ops[0xE6] = (2, "INC", self.zero_page_mode)
-        self.ops[0xE8] = (1, "INX", )
+        self.ops[0xE8] = (1, "INX",)
         self.ops[0xE9] = (2, "SBC", self.immediate_mode)
-        self.ops[0xEA] = (1, "NOP", )
+        self.ops[0xEA] = (1, "NOP",)
         self.ops[0xEC] = (3, "CPX", self.absolute_mode)
         self.ops[0xED] = (3, "SBC", self.absolute_mode)
         self.ops[0xEE] = (3, "INC", self.absolute_mode)
@@ -268,18 +302,18 @@ class Disassemble:
         self.ops[0xF1] = (2, "SBC", self.indirect_y_mode)
         self.ops[0xF5] = (2, "SBC", self.zero_page_x_mode)
         self.ops[0xF6] = (2, "INC", self.zero_page_x_mode)
-        self.ops[0xF8] = (1, "SED", )
+        self.ops[0xF8] = (1, "SED",)
         self.ops[0xF9] = (3, "SBC", self.absolute_y_mode)
         self.ops[0xFD] = (3, "SBC", self.absolute_x_mode)
         self.ops[0xFE] = (3, "INC", self.absolute_x_mode)
-    
+
     def absolute_mode(self, pc):
         a = self.cpu.read_word(pc + 1)
         return {
             "operand": "$%04X" % a,
             "memory": [a, 2, self.cpu.read_word(a)],
         }
-    
+
     def absolute_x_mode(self, pc):
         a = self.cpu.read_word(pc + 1)
         e = a + self.cpu.x_index
@@ -287,7 +321,7 @@ class Disassemble:
             "operand": "$%04X,X" % a,
             "memory": [e, 1, self.cpu.read_byte(e)],
         }
-    
+
     def absolute_y_mode(self, pc):
         a = self.cpu.read_word(pc + 1)
         e = a + self.cpu.y_index
@@ -295,19 +329,19 @@ class Disassemble:
             "operand": "$%04X,Y" % a,
             "memory": [e, 1, self.cpu.read_byte(e)],
         }
-    
+
     def immediate_mode(self, pc):
         return {
             "operand": "#$%02X" % (self.cpu.read_byte(pc + 1)),
         }
-    
+
     def indirect_mode(self, pc):
         a = self.cpu.read_word(pc + 1)
         return {
             "operand": "($%04X)" % a,
             "memory": [a, 2, self.cpu.read_word(a)],
         }
-    
+
     def indirect_x_mode(self, pc):
         z = self.cpu.read_byte(pc + 1)
         a = self.cpu.read_word((z + self.cpu.x_index) % 0x100)
@@ -315,7 +349,7 @@ class Disassemble:
             "operand": "($%02X,X)" % z,
             "memory": [a, 1, self.cpu.read_byte(a)],
         }
-    
+
     def indirect_y_mode(self, pc):
         z = self.cpu.read_byte(pc + 1)
         a = self.cpu.read_word(z) + self.cpu.y_index
@@ -323,19 +357,19 @@ class Disassemble:
             "operand": "($%02X),Y" % z,
             "memory": [a, 1, self.cpu.read_byte(a)],
         }
-    
+
     def relative_mode(self, pc):
         return {
             "operand": "$%04X" % (pc + signed(self.cpu.read_byte(pc + 1) + 2)),
         }
-    
+
     def zero_page_mode(self, pc):
         a = self.cpu.read_byte(pc + 1)
         return {
             "operand": "$%02X" % a,
             "memory": [a, 1, self.cpu.read_byte(a)],
         }
-    
+
     def zero_page_x_mode(self, pc):
         z = self.cpu.read_byte(pc + 1)
         a = (z + self.cpu.x_index) % 0x100
@@ -343,7 +377,7 @@ class Disassemble:
             "operand": "$%02X,X" % z,
             "memory": [a, 1, self.cpu.read_byte(a)],
         }
-    
+
     def zero_page_y_mode(self, pc):
         z = self.cpu.read_byte(pc + 1)
         a = (z + self.cpu.y_index) % 0x100
@@ -351,7 +385,7 @@ class Disassemble:
             "operand": "$%02X,Y" % z,
             "memory": [a, 1, self.cpu.read_byte(a)],
         }
-    
+
     def disasm(self, pc):
         op = self.cpu.read_byte(pc)
         info = self.ops[op]
@@ -501,19 +535,21 @@ class ControlHandlerFactory:
 
 
 class CPU:
-    
+
     STACK_PAGE = 0x100
-    RESET_VECTOR = 0xFFFC
-    
+#     RESET_VECTOR = 0xb44f
+    RESET_VECTOR = 0xB3B4
+#     RESET_VECTOR = 0xfffe
+
     def __init__(self, options, memory):
         self.memory = memory
 
-        self.control_server = BaseHTTPServer.HTTPServer(("127.0.0.1", 6502), ControlHandlerFactory(self))
-        
+        self.control_server = BaseHTTPServer.HTTPServer(("127.0.0.1", 6809), ControlHandlerFactory(self))
+
         self.accumulator = 0x00
         self.x_index = 0x00
         self.y_index = 0x00
-        
+
         self.carry_flag = 0
         self.zero_flag = 0
         self.interrupt_disable_flag = 0
@@ -521,18 +557,18 @@ class CPU:
         self.break_flag = 1
         self.overflow_flag = 0
         self.sign_flag = 0
-        
+
         self.stack_pointer = 0xFF
-        
+
         self.cycles = 0
-        
+
         self.setup_ops()
         self.reset()
         if options.pc is not None:
             self.program_counter = options.pc
         self.running = True
         self.quit = False
-    
+
     def setup_ops(self):
         self.ops = [None] * 0x100
         self.ops[0x00] = lambda: self.BRK()
@@ -686,10 +722,10 @@ class CPU:
         self.ops[0xF9] = lambda: self.SBC(self.absolute_y_mode())
         self.ops[0xFD] = lambda: self.SBC(self.absolute_x_mode())
         self.ops[0xFE] = lambda: self.INC(self.absolute_x_mode(rmw=True))
-    
+
     def reset(self):
         self.program_counter = self.read_word(self.RESET_VECTOR)
-    
+
     def run(self, bus_port):
         global bus
         bus = socket.socket()
@@ -725,7 +761,7 @@ class CPU:
                 else:
                     self.ops[op]()
                 count -= 1
-    
+
     def test_run(self, start, end):
         self.program_counter = start
         while True:
@@ -741,34 +777,34 @@ class CPU:
                 break
             else:
                 self.ops[op]()
-    
+
     ####
-    
+
     def get_pc(self, inc=1):
         pc = self.program_counter
         self.program_counter += inc
         return pc
-    
+
     def read_byte(self, address):
         return self.memory.read_byte(self.cycles, address)
-    
+
     def read_word(self, address):
         return self.memory.read_word(self.cycles, address)
-    
+
     def read_word_bug(self, address):
         return self.memory.read_word_bug(self.cycles, address)
-    
+
     def read_pc_byte(self):
         return self.read_byte(self.get_pc())
-    
+
     def read_pc_word(self):
         return self.read_word(self.get_pc(2))
 
     def write_byte(self, address, value):
         self.memory.write_byte(self.cycles, address, value)
-    
+
     ####
-    
+
     def status_from_byte(self, status):
         self.carry_flag = [0, 1][0 != status & 1]
         self.zero_flag = [0, 1][0 != status & 2]
@@ -777,143 +813,143 @@ class CPU:
         self.break_flag = [0, 1][0 != status & 16]
         self.overflow_flag = [0, 1][0 != status & 64]
         self.sign_flag = [0, 1][0 != status & 128]
-    
+
     def status_as_byte(self):
-        return self.carry_flag | self.zero_flag << 1 | self.interrupt_disable_flag << 2 | self.decimal_mode_flag << 3 | self.break_flag << 4 | 1 << 5 | self.overflow_flag << 6 | self.sign_flag << 7 
-    
+        return self.carry_flag | self.zero_flag << 1 | self.interrupt_disable_flag << 2 | self.decimal_mode_flag << 3 | self.break_flag << 4 | 1 << 5 | self.overflow_flag << 6 | self.sign_flag << 7
+
     ####
-    
+
     def push_byte(self, byte):
         self.write_byte(self.STACK_PAGE + self.stack_pointer, byte)
         self.stack_pointer = (self.stack_pointer - 1) % 0x100
-    
+
     def pull_byte(self):
         self.stack_pointer = (self.stack_pointer + 1) % 0x100
         return self.read_byte(self.STACK_PAGE + self.stack_pointer)
-    
+
     def push_word(self, word):
         hi, lo = divmod(word, 0x100)
         self.push_byte(hi)
         self.push_byte(lo)
-    
+
     def pull_word(self):
         s = self.STACK_PAGE + self.stack_pointer + 1
         self.stack_pointer += 2
         return self.read_word(s)
-    
+
     ####
-    
+
     def immediate_mode(self):
         return self.get_pc()
-    
+
     def absolute_mode(self):
         self.cycles += 2
         return self.read_pc_word()
-    
+
     def absolute_x_mode(self, rmw=False):
         if rmw:
             self.cycles += 1
         return self.absolute_mode() + self.x_index
-    
+
     def absolute_y_mode(self, rmw=False):
         if rmw:
             self.cycles += 1
         return self.absolute_mode() + self.y_index
-    
+
     def zero_page_mode(self):
         self.cycles += 1
         return self.read_pc_byte()
-    
+
     def zero_page_x_mode(self):
         self.cycles += 1
         return (self.zero_page_mode() + self.x_index) % 0x100
-    
+
     def zero_page_y_mode(self):
         self.cycles += 1
         return (self.zero_page_mode() + self.y_index) % 0x100
-    
+
     def indirect_mode(self):
         self.cycles += 2
         return self.read_word_bug(self.absolute_mode())
-    
+
     def indirect_x_mode(self):
         self.cycles += 4
         return self.read_word_bug((self.read_pc_byte() + self.x_index) % 0x100)
-    
+
     def indirect_y_mode(self, rmw=False):
         if rmw:
             self.cycles += 4
         else:
             self.cycles += 3
         return self.read_word_bug(self.read_pc_byte()) + self.y_index
-    
+
     def relative_mode(self):
         pc = self.get_pc()
         return pc + 1 + signed(self.read_byte(pc))
-    
+
     ####
-    
+
     def update_nz(self, value):
         value = value % 0x100
         self.zero_flag = [0, 1][(value == 0)]
         self.sign_flag = [0, 1][((value & 0x80) != 0)]
         return value
-    
+
     def update_nzc(self, value):
         self.carry_flag = [0, 1][(value > 0xFF)]
         return self.update_nz(value)
-    
+
     ####
-    
+
     # LOAD / STORE
-    
+
     def LDA(self, operand_address):
         self.accumulator = self.update_nz(self.read_byte(operand_address))
-    
+
     def LDX(self, operand_address):
         self.x_index = self.update_nz(self.read_byte(operand_address))
-    
+
     def LDY(self, operand_address):
         self.y_index = self.update_nz(self.read_byte(operand_address))
-    
+
     def STA(self, operand_address):
         self.write_byte(operand_address, self.accumulator)
-    
+
     def STX(self, operand_address):
         self.write_byte(operand_address, self.x_index)
-    
+
     def STY(self, operand_address):
         self.write_byte(operand_address, self.y_index)
-    
+
     # TRANSFER
-    
+
     def TAX(self):
         self.x_index = self.update_nz(self.accumulator)
-    
+
     def TXA(self):
         self.accumulator = self.update_nz(self.x_index)
-    
+
     def TAY(self):
         self.y_index = self.update_nz(self.accumulator)
-    
+
     def TYA(self):
         self.accumulator = self.update_nz(self.y_index)
-    
+
     def TSX(self):
         self.x_index = self.update_nz(self.stack_pointer)
-    
+
     def TXS(self):
         self.stack_pointer = self.x_index
-    
+
     # SHIFTS / ROTATES
-    
+
     def ASL(self, operand_address=None):
         if operand_address is None:
             self.accumulator = self.update_nzc(self.accumulator << 1)
         else:
             self.cycles += 2
             self.write_byte(operand_address, self.update_nzc(self.read_byte(operand_address) << 1))
-    
+
     def ROL(self, operand_address=None):
         if operand_address is None:
             a = self.accumulator << 1
@@ -926,7 +962,7 @@ class CPU:
             if self.carry_flag:
                 m = m | 0x01
             self.write_byte(operand_address, self.update_nzc(m))
-    
+
     def ROR(self, operand_address=None):
         if operand_address is None:
             if self.carry_flag:
@@ -940,7 +976,7 @@ class CPU:
                 m = m | 0x100
             self.carry_flag = m % 2
             self.write_byte(operand_address, self.update_nz(m >> 1))
-    
+
     def LSR(self, operand_address=None):
         if operand_address is None:
             self.carry_flag = self.accumulator % 2
@@ -948,246 +984,247 @@ class CPU:
         else:
             self.cycles += 2
             self.carry_flag = self.read_byte(operand_address) % 2
-            self.write_byte(operand_address,  self.update_nz(self.read_byte(operand_address) >> 1))
-    
+            self.write_byte(operand_address, self.update_nz(self.read_byte(operand_address) >> 1))
+
     # JUMPS / RETURNS
-    
+
     def JMP(self, operand_address):
         self.cycles -= 1
         self.program_counter = operand_address
-    
+
     def JSR(self, operand_address):
         self.cycles += 2
         self.push_word(self.program_counter - 1)
         self.program_counter = operand_address
-    
+
     def RTS(self):
         self.cycles += 4
         self.program_counter = self.pull_word() + 1
-    
+
     # BRANCHES
-    
+
     def BCC(self, operand_address):
         if not self.carry_flag:
             self.cycles += 1
             self.program_counter = operand_address
-    
+
     def BCS(self, operand_address):
         if self.carry_flag:
             self.cycles += 1
             self.program_counter = operand_address
-    
+
     def BEQ(self, operand_address):
         if self.zero_flag:
             self.cycles += 1
             self.program_counter = operand_address
-    
+
     def BNE(self, operand_address):
         if not self.zero_flag:
             self.cycles += 1
             self.program_counter = operand_address
-    
+
     def BMI(self, operand_address):
         if self.sign_flag:
             self.cycles += 1
             self.program_counter = operand_address
-    
+
     def BPL(self, operand_address):
         if not self.sign_flag:
             self.cycles += 1
             self.program_counter = operand_address
-    
+
     def BVC(self, operand_address):
         if not self.overflow_flag:
             self.cycles += 1
             self.program_counter = operand_address
-    
+
     def BVS(self, operand_address):
         if self.overflow_flag:
             self.cycles += 1
             self.program_counter = operand_address
-    
+
     # SET / CLEAR FLAGS
-    
+
     def CLC(self):
         self.carry_flag = 0
-    
+
     def CLD(self):
         self.decimal_mode_flag = 0
-    
+
     def CLI(self):
         self.interrupt_disable_flag = 0
-    
+
     def CLV(self):
         self.overflow_flag = 0
-    
+
     def SEC(self):
         self.carry_flag = 1
-    
+
     def SED(self):
         self.decimal_mode_flag = 1
-    
+
     def SEI(self):
         self.interrupt_disable_flag = 1
-    
+
     # INCREMENT / DECREMENT
-    
+
     def DEC(self, operand_address):
         self.cycles += 2
         self.write_byte(operand_address, self.update_nz(self.read_byte(operand_address) - 1))
-    
+
     def DEX(self):
         self.x_index = self.update_nz(self.x_index - 1)
-    
+
     def DEY(self):
         self.y_index = self.update_nz(self.y_index - 1)
-    
+
     def INC(self, operand_address):
         self.cycles += 2
         self.write_byte(operand_address, self.update_nz(self.read_byte(operand_address) + 1))
-    
+
     def INX(self):
         self.x_index = self.update_nz(self.x_index + 1)
-    
+
     def INY(self):
         self.y_index = self.update_nz(self.y_index + 1)
-    
+
     # PUSH / PULL
-    
+
     def PHA(self):
         self.cycles += 1
         self.push_byte(self.accumulator)
-    
+
     def PHP(self):
         self.cycles += 1
         self.push_byte(self.status_as_byte())
-    
+
     def PLA(self):
         self.cycles += 2
         self.accumulator = self.update_nz(self.pull_byte())
-    
+
     def PLP(self):
         self.cycles += 2
         self.status_from_byte(self.pull_byte())
-    
+
     # LOGIC
-    
+
     def AND(self, operand_address):
         self.accumulator = self.update_nz(self.accumulator & self.read_byte(operand_address))
-    
+
     def ORA(self, operand_address):
         self.accumulator = self.update_nz(self.accumulator | self.read_byte(operand_address))
-    
+
     def EOR(self, operand_address):
         self.accumulator = self.update_nz(self.accumulator ^ self.read_byte(operand_address))
-    
+
     # ARITHMETIC
-    
+
     def ADC(self, operand_address):
         # @@@ doesn't handle BCD yet
         assert not self.decimal_mode_flag
-        
+
         a2 = self.accumulator
         a1 = signed(a2)
         m2 = self.read_byte(operand_address)
         m1 = signed(m2)
-        
+
         # twos complement addition
         result1 = a1 + m1 + self.carry_flag
-        
+
         # unsigned addition
         result2 = a2 + m2 + self.carry_flag
-        
+
         self.accumulator = self.update_nzc(result2)
-        
+
         # perhaps this could be calculated from result2 but result1 is more intuitive
         self.overflow_flag = [0, 1][(result1 > 127) | (result1 < -128)]
-    
+
     def SBC(self, operand_address):
         # @@@ doesn't handle BCD yet
         assert not self.decimal_mode_flag
-        
+
         a2 = self.accumulator
         a1 = signed(a2)
         m2 = self.read_byte(operand_address)
         m1 = signed(m2)
-        
+
         # twos complement subtraction
         result1 = a1 - m1 - [1, 0][self.carry_flag]
-        
+
         # unsigned subtraction
         result2 = a2 - m2 - [1, 0][self.carry_flag]
-        
+
         self.accumulator = self.update_nz(result2)
         self.carry_flag = [0, 1][(result2 >= 0)]
-        
+
         # perhaps this could be calculated from result2 but result1 is more intuitive
         self.overflow_flag = [0, 1][(result1 > 127) | (result1 < -128)]
-    
+
     # BIT
-    
+
     def BIT(self, operand_address):
         value = self.read_byte(operand_address)
         self.sign_flag = ((value >> 7) % 2) # bit 7
         self.overflow_flag = ((value >> 6) % 2) # bit 6
         self.zero_flag = [0, 1][((self.accumulator & value) == 0)]
-    
+
     # COMPARISON
-    
+
     def CMP(self, operand_address):
         result = self.accumulator - self.read_byte(operand_address)
         self.carry_flag = [0, 1][(result >= 0)]
         self.update_nz(result)
-    
+
     def CPX(self, operand_address):
         result = self.x_index - self.read_byte(operand_address)
         self.carry_flag = [0, 1][(result >= 0)]
         self.update_nz(result)
-    
+
     def CPY(self, operand_address):
         result = self.y_index - self.read_byte(operand_address)
         self.carry_flag = [0, 1][(result >= 0)]
         self.update_nz(result)
-    
+
     # SYSTEM
-    
+
     def NOP(self):
         pass
-    
+
     def BRK(self):
         self.cycles += 5
         self.push_word(self.program_counter + 1)
         self.push_byte(self.status_as_byte())
         self.program_counter = self.read_word(0xFFFE)
         self.break_flag = 1
-    
+
     def RTI(self):
         self.cycles += 4
         self.status_from_byte(self.pull_byte())
         self.program_counter = self.pull_word()
-    
-    
+
+
     # @@@ IRQ
     # @@@ NMI
 
 
 def usage():
-    print >>sys.stderr, "ApplePy - an Apple ][ emulator in Python"
-    print >>sys.stderr, "James Tauber / http://jtauber.com/"
-    print >>sys.stderr
-    print >>sys.stderr, "Usage: cpu6502.py [options]"
-    print >>sys.stderr
-    print >>sys.stderr, "    -b, --bus      Bus port number"
-    print >>sys.stderr, "    -p, --pc       Initial PC value"
-    print >>sys.stderr, "    -R, --rom      ROM file to use (default A2ROM.BIN)"
-    print >>sys.stderr, "    -r, --ram      RAM file to load (default none)"
+    print >> sys.stderr, "ApplePy - an Apple ][ emulator in Python"
+    print >> sys.stderr, "James Tauber / http://jtauber.com/"
+    print >> sys.stderr
+    print >> sys.stderr, "Usage: cpu6809.py [options]"
+    print >> sys.stderr
+    print >> sys.stderr, "    -b, --bus      Bus port number"
+    print >> sys.stderr, "    -p, --pc       Initial PC value"
+    print >> sys.stderr, "    -R, --rom      ROM file to use (default A2ROM.BIN)"
+    print >> sys.stderr, "    -r, --ram      RAM file to load (default none)"
     sys.exit(1)
 
 
 def get_options():
     class Options:
         def __init__(self):
-            self.rom = "A2ROM.BIN"
+            self.rom = "Dragon 32 - IC17.ROM"
+            self.cfg = CfgDragon32()
             self.ram = None
             self.bus = None
             self.pc = None
@@ -1218,13 +1255,27 @@ def get_options():
 
 
 if __name__ == "__main__":
+
+    log.setLevel(logging.DEBUG)
+#     log.setLevel(logging.INFO)
+    handler = logging.StreamHandler()
+#     handler.setFormatter(LOG_FORMATTER)
+    log.addHandler(handler)
+
+
     options = get_options()
     if options.bus is None:
         print "ApplePy cpu core"
-        print "Run applepy.py instead"
+        print "Run DragonPy.py instead"
+
+        import subprocess
+        args = [sys.executable, "DragonPy.py"]
+        subprocess.Popen(args)
         sys.exit(0)
 
+    print "Use bus port:", repr(options.bus)
+
     mem = Memory(options)
-    
+
     cpu = CPU(options, mem)
     cpu.run(options.bus)

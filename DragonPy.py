@@ -106,7 +106,7 @@ class Display:
     
     def __init__(self):
         self.screen = pygame.display.set_mode((560, 384))
-        pygame.display.set_caption("ApplePy")
+        pygame.display.set_caption("DragonPy")
         self.mix = False
         self.flash_time = time.time()
         self.flash_on = False
@@ -375,7 +375,7 @@ class Apple2:
 
         args = [
             sys.executable,
-            "cpu6502.py",
+            "cpu6809.py",
             "--bus", str(listener.getsockname()[1]),
             "--rom", options.rom,
         ]
@@ -452,7 +452,7 @@ def get_options():
     class Options:
         def __init__(self):
             self.cassette = None
-            self.rom = "A2ROM.BIN"
+            self.rom = "Dragon 32 - IC17.ROM"
             self.ram = None
             self.pc = None
             self.quiet = False

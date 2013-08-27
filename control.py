@@ -3,7 +3,7 @@ import readline
 import sys
 import urllib
 
-URL_PREFIX = "http://localhost:6502"
+URL_PREFIX = "http://localhost:6809"
 
 def get(url):
     return json.loads(urllib.urlopen(URL_PREFIX + url).read())
@@ -145,7 +145,7 @@ Commands = {
 def main():
     print "ApplePy control console"
     while True:
-        s = raw_input("6502> ")
+        s = raw_input("6809> ")
         a = s.strip().split()
         f = Commands.get(a[0])
         if f is not None:

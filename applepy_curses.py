@@ -63,7 +63,7 @@ def run(win):
 
     args = [
         sys.executable,
-        "cpu6502.py",
+        "cpu6809.py",
         "--bus", str(listener.getsockname()[1]),
         "--rom", options.rom,
     ]
