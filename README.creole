@@ -8,6 +8,14 @@ Some links:
  * http://mamedev.org/source/src/mess/machine/dragon.c.html
  * http://koti.mbnet.fi/~atjs/mc6809/
 
+Dragon 32 resources:
+
+ * Forum: http://archive.worldofdragon.org/phpBB3/index.php
+ * Wiki: http://archive.worldofdragon.org/index.php?title=Main_Page
+ 
+Dragon 32 Emulator that works:
+
+ * http://archive.worldofdragon.org/index.php?title=Emulation
 
 == Credits
 
