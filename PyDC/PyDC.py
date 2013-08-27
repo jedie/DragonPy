@@ -320,6 +320,7 @@ if __name__ == "__main__":
         bit_one_hz=2400, # "1" is a single cycle at 2400 Hz
         hz_variation=450, # How much Hz can signal scatter to match 1 or 0 bit ?
         min_volume_ratio=5, # percent volume to ignore sample
+        avg_count=0, # How many samples should be merged into a average value?
         end_count=2, # Sample count that must be pos/neg at once
         mid_count=1 # Sample count that can be around null
     )
