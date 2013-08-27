@@ -1,0 +1,30 @@
+=== Dragon 32 emulator in Python
+
+Some links:
+
+ * http://www.burgins.com/m6809.html
+ * http://dragondata.worldofdragon.org/Publications/inside-dragon.htm
+ * http://mamedev.org/source/src/mess/drivers/dragon.c.html
+ * http://mamedev.org/source/src/mess/machine/dragon.c.html
+ * http://koti.mbnet.fi/~atjs/mc6809/
+
+
+== Credits
+
+Based on:
+    
+ApplePy - an Apple ][ emulator in Python by James Tauber:
+
+ * https://github.com/jtauber/applepy
+
+origin source code licensed under MIT License
+
+
+== Status
+
+Can't do anything, yet ;)
+
+
+== License
+
+This code is made available under an MIT License. See LICENSE.
