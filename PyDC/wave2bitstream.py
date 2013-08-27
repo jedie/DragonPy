@@ -22,7 +22,8 @@ except ImportError, err:
 
 # own modules
 from utils import average, diff_info, TextLevelMeter, iter_window, \
-    human_duration, ProcessInfo, LOG_LEVEL_DICT, LOG_FORMATTER, print_bitlist
+    human_duration, ProcessInfo, LOG_LEVEL_DICT, LOG_FORMATTER, print_bitlist, \
+    count_sign
 import struct
 import time
 
@@ -257,30 +258,6 @@ class Wave2Bitstream(object):
                 one_hz_min, one_hz_max, one_hz_avg, one_hz_max - one_hz_min
             )
 
-
-    def auto_sync_duration(self, iter_duration):
-        """
-        yield the duration of two frames in a row.
-        """
-        for previous, current, next_value in itertools.islice(iter_window(iter_duration, window_size=3), 1, None, 2):
-            diff1 = abs(previous[1] - current[1])
-            diff2 = abs(current[1] - next_value[1])
-
-            if diff1 < diff2:
-                result = (previous[0], previous[1] + current[1])
-                log.debug("EVEN _%s_ + _%s_ | %s -> %s" % (
-                    repr(previous), repr(current), repr(next_value),
-                    repr(result)
-                ))
-            else:
-                result = (current[0], current[1] + next_value[1])
-                log.debug("ODD %s | _%s_ + _%s_ -> %s" % (
-                    repr(previous), repr(current), repr(next_value),
-                    repr(result)
-                ))
-
-            yield result
-
     def iter_duration(self, iter_trigger):
         """
         yield the duration of two frames in a row.
@@ -291,31 +268,87 @@ class Wave2Bitstream(object):
             yield (frame_no, duration)
             old_frame_no = frame_no
 
-    def iter_trigger(self, iter_wave_values):
-        """
-        yield only the triggered frame numbers
-        simmilar to a Schmitt trigger
-        """
-        last_state = True
-        for value in iter_wave_values:
-            if last_state == False and value > self.trigger_value:
-                log.debug(
-                    " ==== go into positive sinus cycle (%s > %s)===============" % (
-                        value, self.trigger_value
-                    )
-                )
-                yield self.frame_no
-                last_state = True
-            elif last_state == True and value < -self.trigger_value:
+
+    def iter_trigger(self, iter_wave_values,
+#             end_count=4, mid_count=3
+            end_count=3, mid_count=1
+#             end_count=2, mid_count=1
+        ):
+        window_size = (2 * end_count) + mid_count
+
+        # sinus curve goes from negative into positive:
+        pos_null_transit = [(0, end_count), (end_count, 0)]
+
+        # sinus curve goes from positive into negative:
+        neg_null_transit = [(end_count, 0), (0, end_count)]
+
+        if mid_count > 3:
+            mid_index = int(round(mid_count / 2.0))
+        else:
+            mid_index = 0
+
+        in_pos = False
+        for values in iter_window(iter_wave_values, window_size):
+#             if self.frame_no > 20: sys.exit()
+
+#             print values
+            previous_values = values[:end_count] # e.g.: 123-----
+            mid_values = values[end_count:end_count + mid_count] # e.g.: ---45---
+            next_values = values[-end_count:] # e.g.: -----678
+
+#             print previous_values, mid_values, next_values
+
+            previous_values = [i[1] for i in previous_values]
+            next_values = [i[1] for i in next_values]
+
+#             print previous_values, mid_values, next_values
+
+            sign_info = [
+                count_sign(previous_values, 0),
+                count_sign(next_values, 0)
+            ]
+#             print sign_info
+            if in_pos == False and sign_info == pos_null_transit:
+                log.debug("sinus curve goes from negative into positive")
+#                 log.debug(" %s | %s | %s" % (previous_values, mid_values, next_values))
+                yield mid_values[mid_index][0]
+                in_pos = True
+            elif  in_pos == True and sign_info == neg_null_transit:
                 if self.half_sinus:
-                    log.debug(
-                        " ---- go into netative -> yield half sinus (%s < -%s) ----------" % (
-                            value, self.trigger_value
-                        )
-                    )
-                    yield self.frame_no
-                last_state = False
+                    log.debug("sinus curve goes from positive into negative")
+#                     log.debug(" %s | %s | %s" % (previous_values, mid_values, next_values))
+                    yield mid_values[mid_index][0]
+                in_pos = False
+
+#             print
+
+
+#     def iter_trigger(self, iter_wave_values):
+#         """
+#         yield only the triggered frame numbers
+#         simmilar to a Schmitt trigger
+#         """
+#         last_state = True
+#         for value in iter_wave_values:
+#             if last_state == False and value > self.trigger_value:
+#                 log.debug(
+#                     " ==== go into positive sinus cycle (%s > %s)===============" % (
+#                         value, self.trigger_value
+#                     )
+#                 )
+#                 yield self.frame_no
+#                 last_state = True
+#             elif last_state == True and value < -self.trigger_value:
+#                 if self.half_sinus:
+#                     log.debug(
+#                         " ---- go into netative -> yield half sinus (%s < -%s) ----------" % (
+#                             value, self.trigger_value
+#                         )
+#                     )
+#                     yield self.frame_no
+#                 last_state = False
 #
+
 #     def iter_trigger(self, iter_wave_values):
 #         """
 #         yield only the triggered frame numbers
@@ -401,7 +434,7 @@ class Wave2Bitstream(object):
 
                 self.frame_no += 1
 #                 if self.frame_no > 100:sys.exit()
-                yield value
+                yield self.frame_no, value
 
 #     def iter_wave_valuesOLD(self):
 #         if self.samplewidth == 1:

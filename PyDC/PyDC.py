@@ -262,7 +262,7 @@ if __name__ == "__main__":
 
 
     # created by Xroar Emulator
-    FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
+#     FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
 #     Bit 1 min: 1696Hz avg: 2058.3Hz max: 2205Hz variation: 509Hz
 #     Bit 0 min: 595Hz avg: 1090.4Hz max: 1160Hz Variation: 565Hz
 #     4760 Bits: 2243 positive bits and 2517 negative bits
@@ -270,7 +270,7 @@ if __name__ == "__main__":
 
 
     # created by origin Dragon 32 machine
-#     FILENAME = "HelloWorld1 origin.wav" # 16Bit 44.1KHz mono
+    FILENAME = "HelloWorld1 origin.wav" # 16Bit 44.1KHz mono
     # Bit 1 min: 1764Hz avg: 2013.9Hz max: 2100Hz variation: 336Hz
     # Bit 0 min: 595Hz avg: 1090.2Hz max: 1336Hz Variation: 741Hz
     # 2710 Bits: 1217 positive bits and 1493 negative bits
@@ -296,8 +296,8 @@ if __name__ == "__main__":
 
 
 #     log_level = LOG_LEVEL_DICT[3] # args.verbosity
-#     log.setLevel(logging.DEBUG)
-    log.setLevel(logging.INFO)
+    log.setLevel(logging.DEBUG)
+#     log.setLevel(logging.INFO)
 #
 #     logfilename = FILENAME + ".log" # args.logfile
 #     if logfilename:
@@ -307,9 +307,9 @@ if __name__ == "__main__":
 #         log.addHandler(handler)
 #
 #     # if args.stdout_log:
-    handler = logging.StreamHandler()
-    handler.setFormatter(LOG_FORMATTER)
-    log.addHandler(handler)
+#     handler = logging.StreamHandler()
+#     handler.setFormatter(LOG_FORMATTER)
+#     log.addHandler(handler)
 
     d32cfg = Dragon32Config()
     c = Cassette(d32cfg)
