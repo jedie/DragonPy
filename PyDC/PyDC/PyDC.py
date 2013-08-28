@@ -174,14 +174,14 @@ class BitstreamHandler(object):
 
         # Search for sync-byte
         sync_pattern = list(codepoints2bitstream(self.cfg.SYNC_BYTE_CODEPOINT))
-        max_pos = (self.cfg.LEAD_BYTE_LEN + 2) * 8
+        max_search_bits = self.cfg.MAX_SYNC_BYTE_SEARCH * 8
         try:
-            sync_pos = find_iter_window(bitstream, sync_pattern, max_pos)
+            sync_pos = find_iter_window(bitstream, sync_pattern, max_search_bits)
         except MaxPosArraived, err:
             raise SyncByteNotFoundError(
                 "Error: Sync-Byte '%s' (%s) not found in the first %i Bytes! (%s)" % (
                     list2str(sync_pattern), hex(self.cfg.SYNC_BYTE_CODEPOINT),
-                    self.cfg.LEAD_BYTE_LEN, err
+                    self.cfg.MAX_SYNC_BYTE_SEARCH, err
                 )
             )
         except PatternNotFound, err:

@@ -64,6 +64,7 @@ class Dragon32Config(BaseConfig):
     LEAD_BYTE_CODEPOINT = 0x55 # 10101010
     LEAD_BYTE_LEN = 255
     SYNC_BYTE_CODEPOINT = 0x3C # 00111100
+    MAX_SYNC_BYTE_SEARCH = 600 # search size in **Bytes**
 
     # Block types:
     FILENAME_BLOCK = 0x00
