@@ -13,11 +13,8 @@ import logging
 import os
 import sys
 
-from PyDC import TITLE_LINE, VERSION_STRING
-from PyDC.CassetteObjects import Cassette
-from PyDC.PyDC import BitstreamHandler
+from PyDC import TITLE_LINE, VERSION_STRING, wav2bas
 from PyDC.configs import Dragon32Config
-from PyDC.wave2bitstream import Wave2Bitstream
 from PyDC.base_cli import Base_CLI
 
 
@@ -94,43 +91,22 @@ class PyDC_CLI(Base_CLI):
         self.logfilename = dest_filename + ".log"
         self.setup_logging(self.args)
 
-        self.d32cfg = Dragon32Config()
+        self.cfg = Dragon32Config()
+
+        self.cfg.HZ_VARIATION = self.args.hz_variation # How much Hz can signal scatter to match 1 or 0 bit ?
+        self.cfg.MIN_VOLUME_RATIO = self.args.min_volume_ratio # percent volume to ignore sample
+        self.cfg.AVG_COUNT = self.args.avg_count # How many samples should be merged into a average value?
+        self.cfg.END_COUNT = self.args.end_count # Sample count that must be pos/neg at once
+        self.cfg.MID_COUNT = self.args.mid_count # Sample count that can be around null
 
         if source_ext.startswith(".wav") and dest_ext.startswith(".bas"):
-            self.wav2bas()
+            wav2bas(self.source_file, self.destination_file, self.cfg)
         elif source_ext.startswith(".bas") and dest_ext.startswith(".wav"):
-            self.bas2wav()
+            raise NotImplementedError("TBD")
         else:
             print "ERROR:"
             print "%s to %s ???" % (repr(self.source_file), repr(self.destination_file))
             sys.exit(-1)
-
-    def bas2wav(self):
-        raise NotImplementedError("TBD")
-        # Create a bitstream from a existing .bas file:
-    #     c.add_from_bas("test_files/HelloWorld1.bas")
-    #     c.add_from_bas("test_files/Dragon Data Ltd - Examples from the Manual - 39~58 [run].bas")
-    #     c.add_from_bas("test_files/LineNumberTest.bas")
-    #     c.print_debug_info()
-    #     bitstream = c.get_as_bitstream()
-
-    def wav2bas(self):
-        # get bitstream from WAVE file:
-        st = Wave2Bitstream(self.source_file,
-            bit_nul_hz=1200, # "0" is a single cycle at 1200 Hz
-            bit_one_hz=2400, # "1" is a single cycle at 2400 Hz
-            hz_variation=self.args.hz_variation, # How much Hz can signal scatter to match 1 or 0 bit ?
-
-            min_volume_ratio=self.args.min_volume_ratio, # percent volume to ignore sample
-            avg_count=self.args.avg_count, # How many samples should be merged into a average value?
-            end_count=self.args.end_count, # Sample count that must be pos/neg at once
-            mid_count=self.args.mid_count # Sample count that can be around null
-        )
-        bitstream = iter(st)
-
-        bh = BitstreamHandler(self.d32cfg)
-        bh.feed(bitstream)
-        bh.cassette.save_bas(self.destination_file)
 
 
 if __name__ == "__main__":
@@ -140,7 +116,7 @@ if __name__ == "__main__":
 #         # verbose=True
 #     )
 
-    sys.argv.append("--help")
+#     sys.argv.append("--help")
 
 #     sys.argv.append("test_files/HelloWorld1 origin.wav")
 #     sys.argv.append("HelloWorld1 origin.bas")

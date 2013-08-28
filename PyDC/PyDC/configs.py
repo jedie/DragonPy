@@ -36,12 +36,18 @@ class BaseConfig(object):
 class Dragon32Config(BaseConfig):
     """
     >>> d32cfg = Dragon32Config()
-    >>> d32cfg.print_debug_info() # doctest: +NORMALIZE_WHITESPACE
+    >>> d32cfg.print_debug_info() # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     Config: 'Dragon32Config'
+               AVG_COUNT = 0    (in hex:   '0x0' - binary: 00000000)
+             BASIC_ASCII = 255  (in hex:  '0xff' - binary: 11111111)
+          BASIC_CODE_END = [0, 0]
+         BASIC_TOKENIZED = 0    (in hex:   '0x0' - binary: 00000000)
+         BASIC_TYPE_DICT = {0: 'tokenized BASIC (0x00)', 255: 'ASCII BASIC (0xff)'}
               BIT_NUL_HZ = 1200 (in hex: '0x4b0' - binary: 00001101001)
               BIT_ONE_HZ = 2400 (in hex: '0x960' - binary: 000001101001)
          BLOCK_TYPE_DICT = {0: 'filename block (0x00)', 1: 'data block (0x01)', 255: 'end-of-file block (0xff)'}
               DATA_BLOCK = 1    (in hex:   '0x1' - binary: 10000000)
+               END_COUNT = 2    (in hex:   '0x2' - binary: 01000000)
                EOF_BLOCK = 255  (in hex:  '0xff' - binary: 11111111)
           FILENAME_BLOCK = 0    (in hex:   '0x0' - binary: 00000000)
            FILETYPE_DICT = {0: 'BASIC programm (0x00)', 1: 'Data file (0x01)', 255: 'Binary file (0xFF)'}
@@ -51,15 +57,20 @@ class Dragon32Config(BaseConfig):
             HZ_VARIATION = 450  (in hex: '0x1c2' - binary: 010000111)
      LEAD_BYTE_CODEPOINT = 85   (in hex:  '0x55' - binary: 10101010)
            LEAD_BYTE_LEN = 255  (in hex:  '0xff' - binary: 11111111)
+    MAX_SYNC_BYTE_SEARCH = 600  (in hex: '0x258' - binary: 0001101001)
+               MID_COUNT = 1    (in hex:   '0x1' - binary: 10000000)
+        MIN_VOLUME_RATIO = 5    (in hex:   '0x5' - binary: 10100000)
      SYNC_BYTE_CODEPOINT = 60   (in hex:  '0x3c' - binary: 00111100)
-
-    >>> ",".join([hex(c) for c in d32cfg.get_header_codepoint_stream()])
-    ... # doctest: +ELLIPSIS
-    '0x55,0x55,0x55,...,0x55,0x55,0x55,0x3c'
     """
+
     BIT_NUL_HZ = 1200 # "0" is a single cycle at 1200 Hz
     BIT_ONE_HZ = 2400 # "1" is a single cycle at 2400 Hz
     HZ_VARIATION = 450 # How much Hz can signal scatter to match 1 or 0 bit ?
+
+    MIN_VOLUME_RATIO = 5 # percent volume to ignore sample
+    AVG_COUNT = 0 # How many samples should be merged into a average value?
+    END_COUNT = 2 # Sample count that must be pos/neg at once
+    MID_COUNT = 1 # Sample count that can be around null
 
     LEAD_BYTE_CODEPOINT = 0x55 # 10101010
     LEAD_BYTE_LEN = 255
@@ -70,13 +81,13 @@ class Dragon32Config(BaseConfig):
     FILENAME_BLOCK = 0x00
     DATA_BLOCK = 0x01
     EOF_BLOCK = 0xff
-
     BLOCK_TYPE_DICT = {
         FILENAME_BLOCK: "filename block (0x00)",
         DATA_BLOCK: "data block (0x01)",
         EOF_BLOCK: "end-of-file block (0xff)",
     }
 
+    # File types:
     FTYPE_BASIC = 0x00
     FTYPE_DATA = 0x01
     FTYPE_BIN = 0xff
@@ -86,6 +97,7 @@ class Dragon32Config(BaseConfig):
         FTYPE_BIN:"Binary file (0xFF)",
     }
 
+    # Basic format types:
     BASIC_TOKENIZED = 0x00
     BASIC_ASCII = 0xff
     BASIC_TYPE_DICT = {

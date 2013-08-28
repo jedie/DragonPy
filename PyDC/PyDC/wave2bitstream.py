@@ -26,7 +26,7 @@ except ImportError, err:
 from utils import average, diff_info, TextLevelMeter, iter_window, \
     human_duration, ProcessInfo, LOG_LEVEL_DICT, LOG_FORMATTER, print_bitlist, \
     count_sign, iter_steps
-
+from configs import Dragon32Config
 
 
 log = logging.getLogger("PyDC")
@@ -50,22 +50,12 @@ class Wave2Bitstream(object):
         4: 2147483647, # 32-bit wave file
     }
 
-    def __init__(self, wave_filename,
-            bit_nul_hz, # sinus cycle frequency in Hz for one "0" bit
-            bit_one_hz, # sinus cycle frequency in Hz for one "1" bit
-            hz_variation, # How much Hz can signal scatter to match 1 or 0 bit ?
-            min_volume_ratio=5, # percent volume to ignore sample
-            avg_count=0, # How many samples should be merged into a average value?
-            end_count=2, # Sample count that must be pos/neg at once
-            mid_count=1 # Sample count that can be around null
-        ):
+    def __init__(self, wave_filename, cfg):
         self.wave_filename = wave_filename
+        self.cfg = cfg
 
-        assert end_count > 0
-        assert mid_count > 0
-        self.end_count = end_count
-        self.mid_count = mid_count
-        self.avg_count = avg_count
+        assert cfg.END_COUNT > 0 # Sample count that must be pos/neg at once
+        assert cfg.MID_COUNT > 0 # Sample count that can be around null
 
         print "open wave file '%s'..." % wave_filename
         try:
@@ -90,15 +80,15 @@ class Wave2Bitstream(object):
         self.max_value = self.MAX_VALUES[self.samplewidth]
         print "the max volume value is:", self.max_value
 
-        self.min_volume = int(round(self.max_value * min_volume_ratio / 100))
-        print "Ignore sample lower than %.1f%% = %i" % (min_volume_ratio, self.min_volume)
+        self.min_volume = int(round(self.max_value * cfg.MIN_VOLUME_RATIO / 100))
+        print "Ignore sample lower than %.1f%% = %i" % (cfg.MIN_VOLUME_RATIO, self.min_volume)
 
         # build min/max Hz values
-        self.bit_nul_min_hz = bit_nul_hz - hz_variation
-        self.bit_nul_max_hz = bit_nul_hz + hz_variation
+        self.bit_nul_min_hz = cfg.BIT_NUL_HZ - cfg.HZ_VARIATION
+        self.bit_nul_max_hz = cfg.BIT_NUL_HZ + cfg.HZ_VARIATION
 
-        self.bit_one_min_hz = bit_one_hz - hz_variation
-        self.bit_one_max_hz = bit_one_hz + hz_variation
+        self.bit_one_min_hz = cfg.BIT_ONE_HZ - cfg.HZ_VARIATION
+        self.bit_one_max_hz = cfg.BIT_ONE_HZ + cfg.HZ_VARIATION
         print "bit-0 in %sHz - %sHz  |  bit-1 in %sHz - %sHz" % (
             self.bit_nul_min_hz, self.bit_nul_max_hz,
             self.bit_one_min_hz, self.bit_one_max_hz,
@@ -115,7 +105,7 @@ class Wave2Bitstream(object):
         # get frame numer + volume value from the WAVE file
         self.wave_values_generator = self.iter_wave_values()
 
-        if avg_count > 1:
+        if cfg.AVG_COUNT > 1:
             # merge samples to a average sample
             log.debug("Merge %s audio sample to one average sample" % self.avg_count)
             self.avg_wave_values_generator = self.iter_avg_wave_values(self.wave_values_generator)
@@ -281,36 +271,41 @@ class Wave2Bitstream(object):
 
 
     def iter_trigger(self, iter_wave_values):
-        window_size = (2 * self.end_count) + self.mid_count
+        """
+        trigger middle crossing of the wave sinus curve
+        """
+        window_size = (2 * self.cfg.END_COUNT) + self.cfg.MID_COUNT
 
         # sinus curve goes from negative into positive:
-        pos_null_transit = [(0, self.end_count), (self.end_count, 0)]
+        pos_null_transit = [(0, self.cfg.END_COUNT), (self.cfg.END_COUNT, 0)]
 
         # sinus curve goes from positive into negative:
-        neg_null_transit = [(self.end_count, 0), (0, self.end_count)]
+        neg_null_transit = [(self.cfg.END_COUNT, 0), (0, self.cfg.END_COUNT)]
 
-        if self.mid_count > 3:
-            mid_index = int(round(self.mid_count / 2.0))
+        if self.cfg.MID_COUNT > 3:
+            mid_index = int(round(self.cfg.MID_COUNT / 2.0))
         else:
             mid_index = 0
 
         in_pos = False
         for values in iter_window(iter_wave_values, window_size):
-#             if self.frame_no > 20: sys.exit()
 
-#             print values
-            previous_values = values[:self.end_count] # e.g.: 123-----
-            mid_values = values[self.end_count:self.end_count + self.mid_count] # e.g.: ---45---
-            next_values = values[-self.end_count:] # e.g.: -----678
+            # Split the window
+            previous_values = values[:self.cfg.END_COUNT] # e.g.: 123-----
+            mid_values = values[self.cfg.END_COUNT:self.cfg.END_COUNT + self.cfg.MID_COUNT] # e.g.: ---45---
+            next_values = values[-self.cfg.END_COUNT:] # e.g.: -----678
 
-            # (frame_no, value) tuple -> value list
+            # get only the value and strip the frame_no
+            # e.g.: (frame_no, value) tuple -> value list
             previous_values = [i[1] for i in previous_values]
             next_values = [i[1] for i in next_values]
 
+            # Count sign from previous and next values
             sign_info = [
                 count_sign(previous_values, 0),
                 count_sign(next_values, 0)
             ]
+            # yield the mid crossing
             if in_pos == False and sign_info == pos_null_transit:
                 log.debug("sinus curve goes from negative into positive")
 #                 log.debug(" %s | %s | %s" % (previous_values, mid_values, next_values))
@@ -322,8 +317,6 @@ class Wave2Bitstream(object):
 #                     log.debug(" %s | %s | %s" % (previous_values, mid_values, next_values))
                     yield mid_values[mid_index][0]
                 in_pos = False
-
-#             print
 
     def iter_avg_wave_values(self, wave_values_generator):
         if self.avg_count == 3:
@@ -443,15 +436,9 @@ if __name__ == "__main__":
     handler.setFormatter(LOG_FORMATTER)
     log.addHandler(handler)
 
-    st = Wave2Bitstream("test_files/%s" % FILENAME,
-        bit_nul_hz=1200, # "0" is a single cycle at 1200 Hz
-        bit_one_hz=2400, # "1" is a single cycle at 2400 Hz
-        hz_variation=450, # How much Hz can signal scatter to match 1 or 0 bit ?
+    d32cfg = Dragon32Config()
 
-#         avg_count=2, # How many samples should be merged into a average value?
-#         end_count=2, # Sample count that must be pos/neg at once
-#         mid_count=1 # Sample count that can be around null
-    )
+    st = Wave2Bitstream("../test_files/%s" % FILENAME, d32cfg)
 
     bitstream = iter(st)
     bitstream.sync(32)

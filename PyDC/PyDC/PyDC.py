@@ -250,8 +250,6 @@ def print_bit_list_stats(bit_list):
     print "%i positive bits and %i negative bits" % (positive_count, negative_count)
 
 
-
-
 if __name__ == "__main__":
     import doctest
     print doctest.testmod(
@@ -264,18 +262,9 @@ if __name__ == "__main__":
 
     # created by Xroar Emulator
 #     FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
-#     Bit 1 min: 1696Hz avg: 2058.3Hz max: 2205Hz variation: 509Hz
-#     Bit 0 min: 595Hz avg: 1090.4Hz max: 1160Hz Variation: 565Hz
-#     4760 Bits: 2243 positive bits and 2517 negative bits
-
-
 
     # created by origin Dragon 32 machine
 #     FILENAME = "HelloWorld1 origin.wav" # 16Bit 44.1KHz mono
-    # Bit 1 min: 1764Hz avg: 2013.9Hz max: 2100Hz variation: 336Hz
-    # Bit 0 min: 595Hz avg: 1090.2Hz max: 1336Hz Variation: 741Hz
-    # 2710 Bits: 1217 positive bits and 1493 negative bits
-
 
     # Test files from:
     # http://archive.worldofdragon.org/archive/index.php?dir=Tapes/Dragon/wav/
@@ -283,9 +272,6 @@ if __name__ == "__main__":
 
 
     FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
-    # Bit 1 min: 1696Hz avg: 2004.0Hz max: 2004Hz variation: 308Hz
-    # Bit 0 min: 1025Hz avg: 1025.0Hz max: 1025Hz Variation: 0Hz
-    # 155839 Bits: 73776 positive bits and 82063 negative bits
 
 #     FILENAME = "1_MANIA.WAV" # 148579 frames, 4879 bits (raw)
 #     FILENAME = "2_DBJ.WAV" # TODO
