@@ -558,10 +558,11 @@ def print_as_hex_list(codepoint_stream):
     """
     print ",".join([hex(codepoint) for codepoint in codepoint_stream])
 
-def pprint_codepoints(codepoints):
+def pformat_codepoints(codepoints):
     """
-    >>> pprint_codepoints([13, 70, 111, 111, 32, 66, 97, 114, 32, 33, 13])
-    ['\r', 'Foo Bar !', '\r']
+    >>> l = pformat_codepoints([13, 70, 111, 111, 32, 66, 97, 114, 32, 33, 13])
+    >>> repr(l)
+    "['\\r', 'Foo Bar !', '\\r']"
     """
     printable = string.printable.replace("\n", "").replace("\r", "")
     line = []
@@ -575,7 +576,7 @@ def pprint_codepoints(codepoints):
                 line.append(strings)
                 strings = ""
             line.append(char)
-    print line
+    return line
 
 def print_block_bit_list(block_bit_list, display_block_count=8, no_repr=False):
     """
@@ -659,7 +660,12 @@ def get_word(byte_iterator):
     >>> hex(v)
     '0x1e12'
     """
-    return (next(byte_iterator) << 8) | next(byte_iterator)
+    byte_values = list(itertools.islice(byte_iterator, 2))
+    try:
+        word = (byte_values[0] << 8) | byte_values[1]
+    except TypeError, err:
+        raise TypeError("Can't build word from %s: %s" % (repr(byte_values), err))
+    return word
 
 def codepoints2string(codepoints):
     """

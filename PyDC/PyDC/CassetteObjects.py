@@ -11,16 +11,16 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import itertools
 import logging
 import os
+import sys
 
 # own modules
 from basic_tokens import bytes2codeline
 from configs import Dragon32Config
 from utils import get_word, codepoints2string, string2codepoint, LOG_LEVEL_DICT, \
-    LOG_FORMATTER, codepoints2bitstream, pprint_codepoints
-import sys
+    LOG_FORMATTER, codepoints2bitstream, pformat_codepoints
+
 
 
 log = logging.getLogger("PyDC")
@@ -142,8 +142,10 @@ class FileContent(object):
 # #         print repr(data)
 #         print_as_hex_list(data)
 #         print_codepoint_stream(data)
-#         data = iter(data)
 #         sys.exit()
+
+        # create from codepoint list a iterator
+        data = iter(data)
 
         byte_count = 0
         while True:
@@ -289,24 +291,19 @@ class CassetteFile(object):
         self.file_content = FileContent(self.cfg)
         self.file_content.create_from_bas(file_content)
 
-    def create_from_wave(self, block_codepoints):
+    def create_from_wave(self, codepoints):
 
-        block_codepoints = list(block_codepoints)
-        print "filename data:",
-        pprint_codepoints(block_codepoints)
-        block_codepoints = iter(block_codepoints)
+        log.debug("filename data: %s" % pformat_codepoints(codepoints))
 
-        raw_filename = list(itertools.islice(block_codepoints, 8))
+        raw_filename = codepoints[:8]
 
         self.filename = codepoints2string(raw_filename).rstrip()
         print "\nFilename: %s" % repr(self.filename)
 
-        codepoints = list(block_codepoints)
-
 #         print "file meta:"
 #         print_codepoint_stream(codepoints)
 
-        self.file_type = codepoints[0]
+        self.file_type = codepoints[9]
 
         if not self.file_type in self.cfg.FILETYPE_DICT:
             raise NotImplementedError(
@@ -320,7 +317,7 @@ class CassetteFile(object):
         elif self.file_type == self.cfg.FTYPE_BIN:
             raise NotImplementedError("Binary files are not supported, yet.")
 
-        ascii_flag = codepoints[1]
+        ascii_flag = codepoints[10]
         print "ASCII Flag is:", repr(ascii_flag)
         if ascii_flag == self.cfg.BASIC_TOKENIZED:
             self.is_tokenized = True
@@ -366,7 +363,7 @@ class Cassette(object):
     """
     >>> d32cfg = Dragon32Config()
     >>> c = Cassette(d32cfg)
-    >>> c.add_from_bas("test_files/HelloWorld1.bas")
+    >>> c.add_from_bas("../test_files/HelloWorld1.bas")
     >>> c.print_debug_info() # doctest: +NORMALIZE_WHITESPACE
     There exists 1 files:
         Filename: 'HELLOWOR'
@@ -449,7 +446,7 @@ class Cassette(object):
             log.debug("\nyield %s" % self.cfg.BLOCK_TYPE_DICT[block_type])
             print "-"*79
             block_codepoints = list(block_codepoints)
-            pprint_codepoints(block_codepoints)
+            print pformat_codepoints(block_codepoints)
             block_codepoints = iter(block_codepoints)
             print "-"*79
             for codepoint in block_codepoints:
@@ -516,6 +513,14 @@ class Cassette(object):
 
 
 if __name__ == "__main__":
+#     import doctest
+#     print doctest.testmod(
+#         verbose=False
+#         # verbose=True
+#     )
+#     sys.exit()
+
+
     log_level = LOG_LEVEL_DICT[3]
     log.setLevel(log_level)
 
@@ -525,14 +530,9 @@ if __name__ == "__main__":
 
     d32cfg = Dragon32Config()
     c = Cassette(d32cfg)
-    c.add_from_bas("test_files/HelloWorld1.bas")
+    c.add_from_bas("../test_files/HelloWorld1.bas")
     c.print_debug_info()
 #     print list(c.codepoint_stream())
     print list(c.get_as_bitstream())
 
-    import doctest
-    print doctest.testmod(
-        verbose=False
-        # verbose=True
-    )
-#     sys.exit()
+

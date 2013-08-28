@@ -6,10 +6,8 @@
     ====================================
 
     TODO:
-        - test block checksum, see:
-            http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4231&p=8905#p8905
-        - add cli
         - write .BAS file
+        - create GUI
 
     :copyleft: 2013 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
@@ -18,8 +16,12 @@
 
 import itertools
 import logging
+import os
+
+# own modules
 from configs import Dragon32Config
 from CassetteObjects import Cassette
+
 
 log = logging.getLogger("PyDC")
 
@@ -27,8 +29,7 @@ log = logging.getLogger("PyDC")
 # own modules
 from utils import find_iter_window, iter_steps, MaxPosArraived, \
     print_bitlist, bits2codepoint, list2str, bitstream2codepoints, \
-    PatternNotFound, LOG_FORMATTER, codepoints2bitstream, \
-    pprint_codepoints
+    PatternNotFound, LOG_FORMATTER, codepoints2bitstream, pformat_codepoints
 from wave2bitstream import Wave2Bitstream
 
 
@@ -103,18 +104,10 @@ class BitstreamHandler(object):
     #         bitstream = iter(bitstream)
 
             try:
-                block_type, block_length, codepoint_stream = self.get_block_info(bitstream)
+                block_type, block_length, codepoints, checksum = self.get_block_info(bitstream)
             except SyncByteNotFoundError, err:
                 log.error(err)
                 break
-
-            codepoint_stream = list(codepoint_stream)
-            print "\n***** codepoint_stream length:", len(codepoint_stream)
-            pprint_codepoints(codepoint_stream)
-            print " -"*40
-            codepoint_stream = iter(codepoint_stream)
-
-            print "*** block length:", block_length
 
             try:
                 block_type_name = self.cfg.BLOCK_TYPE_DICT[block_type]
@@ -141,17 +134,14 @@ class BitstreamHandler(object):
                 print "-"*79
                 break
 
-    #         block_codepoints = bitstream2codepoints(block_bits)
-
-    #         block_codepoints = list(block_codepoints)
-    #         print_codepoint_stream(block_codepoints)
-    #         block_codepoints = iter(block_codepoints)
-
-            self.cassette.add_block(block_type, block_length, codepoint_stream)
+            self.cassette.add_block(block_type, block_length, codepoints)
             print "="*79
 
     def sync_bitstream(self, bitstream):
         bitstream.sync(32) # Sync bitstream to wave sinus cycle
+
+#         test_bitstream = list(itertools.islice(bitstream, 258 * 8))
+#         print_bitlist(test_bitstream)
 
         # Searching for lead-in byte
         lead_in_pattern = list(codepoints2bitstream(self.cfg.LEAD_BYTE_CODEPOINT))
@@ -199,38 +189,42 @@ class BitstreamHandler(object):
 
 
     def get_block_info(self, bitstream):
-#         print "-"*79
-#         bitstream = list(bitstream)
-#         print_bitlist(bitstream, no_repr=True)
-#         bitstream = iter(bitstream)
-#         print "-"*79
-
-    #     print "-"*79
-    #     print_bitlist(bitstream, no_repr=True)
-    #     print "-"*79
-    #     sys.exit()
-
         self.sync_bitstream(bitstream) # Sync bitstream with SYNC_BYTE
 
-    #     print "-"*79
-    #     bitstream = list(bitstream)
-    #     print_bitlist(bitstream)
-    #     bitstream = iter(bitstream)
-    #     print "-"*79
-
+        # convert the raw bitstream to codepoint stream
         codepoint_stream = bitstream2codepoints(bitstream)
-    #     print "-"*79
-    #     print_codepoint_stream(codepoint_stream)
-    #     print "-"*79
 
         block_type = next(codepoint_stream)
-    #     print "raw block type:", repr(block_type), hex(block_type)
+        log.info("raw block type: %s (%s)" % (hex(block_type), repr(block_type)))
+
         block_length = next(codepoint_stream)
-    #     print "raw block length:", repr(block_length)
 
-        codepoint_stream = itertools.islice(codepoint_stream, block_length)
+        # Get the complete block content
+        codepoints = list(itertools.islice(codepoint_stream, block_length))
 
-        return block_type, block_length, codepoint_stream
+        real_block_len = len(codepoints)
+        if real_block_len == block_length:
+            log.info("Block length: %sBytes, ok." % block_length)
+        else:
+            log.error("Block should be %sBytes but are: %sBytes!" % (block_length, real_block_len))
+
+        # Check block checksum
+
+        origin_checksum = next(codepoint_stream)
+
+        calc_checksum = sum([codepoint for codepoint in codepoints])
+        calc_checksum += block_type
+        calc_checksum += block_length
+        calc_checksum = calc_checksum & 0xFF
+
+        if calc_checksum == origin_checksum:
+            log.info("Block checksum %s is ok." % hex(origin_checksum))
+        else:
+            log.error("Block checksum %s is not equal with calculated checksum: %s" % (
+                hex(origin_checksum), hex(calc_checksum)
+            ))
+
+        return block_type, block_length, codepoints, origin_checksum
 
 
 
@@ -288,7 +282,7 @@ if __name__ == "__main__":
 #     FILENAME = "Quickbeam Software - Duplicas v3.0.wav" # binary!
 
 
-#     FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
+    FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
     # Bit 1 min: 1696Hz avg: 2004.0Hz max: 2004Hz variation: 308Hz
     # Bit 0 min: 1025Hz avg: 1025.0Hz max: 1025Hz Variation: 0Hz
     # 155839 Bits: 73776 positive bits and 82063 negative bits
@@ -297,7 +291,7 @@ if __name__ == "__main__":
 #     FILENAME = "2_DBJ.WAV" # TODO
 
     # BASIC file with high line numbers:
-    FILENAME = "LineNumber Test 01.wav" # tokenized BASIC - no sync
+#     FILENAME = "LineNumber Test 01.wav" # tokenized BASIC - no sync
 #     FILENAME = "LineNumber Test 02.wav" # ASCII BASIC - no sync
 
 
@@ -321,8 +315,11 @@ if __name__ == "__main__":
     d32cfg = Dragon32Config()
     c = Cassette(d32cfg)
 
+#     filepath = os.path.abspath("../test_files/%s" % FILENAME)
+    filepath = "../test_files/%s" % FILENAME
+
     # get bitstream from WAVE file:
-    st = Wave2Bitstream("test_files/%s" % FILENAME,
+    st = Wave2Bitstream(filepath,
         bit_nul_hz=1200, # "0" is a single cycle at 1200 Hz
         bit_one_hz=2400, # "1" is a single cycle at 2400 Hz
         hz_variation=450, # How much Hz can signal scatter to match 1 or 0 bit ?
