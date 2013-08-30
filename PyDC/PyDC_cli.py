@@ -71,8 +71,6 @@ class PyDC_CLI(Base_CLI):
     def parse_args(self):
         args = super(PyDC_CLI, self).parse_args()
 
-        self.setup_logging(args)
-
         self.source_file = args.src
         print "source file.......: %s" % self.source_file
 
@@ -91,6 +89,9 @@ class PyDC_CLI(Base_CLI):
         dest_ext = dest_ext.lower()
 
         self.logfilename = dest_filename + ".log"
+        log.info("Logfile: %s" % self.logfilename)
+
+        self.setup_logging(self.args) # XXX: setup logging after the logfilename is set!
 
         self.cfg = Dragon32Config()
 
