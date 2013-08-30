@@ -13,9 +13,9 @@ import logging
 import os
 import sys
 
-from PyDC import TITLE_LINE, VERSION_STRING, wav2bas
-from PyDC.configs import Dragon32Config
+from PyDC import TITLE_LINE, VERSION_STRING, wav2bas, bas2wav
 from PyDC.base_cli import Base_CLI
+from PyDC.configs import Dragon32Config
 
 
 log = logging.getLogger("PyDC")
@@ -103,7 +103,7 @@ class PyDC_CLI(Base_CLI):
         if source_ext.startswith(".wav") and dest_ext.startswith(".bas"):
             wav2bas(self.source_file, self.destination_file, self.cfg)
         elif source_ext.startswith(".bas") and dest_ext.startswith(".wav"):
-            raise NotImplementedError("TBD")
+            bas2wav(self.source_file, self.destination_file, self.cfg)
         else:
             print "ERROR:"
             print "%s to %s ???" % (repr(self.source_file), repr(self.destination_file))

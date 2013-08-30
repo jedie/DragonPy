@@ -214,6 +214,8 @@ class FileContent(object):
         10 PRINT "TEST"
         20 PRINT "HELLO WORLD!"
         """
+        data = iter(data)
+
         data.next() # Skip first \r
         byte_count = 1 # incl. first \r
         while True:
@@ -545,6 +547,7 @@ if __name__ == "__main__":
 #         verbose=False
 #         # verbose=True
 #     )
+#     sys.exit()
 
     import time, subprocess
     subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",

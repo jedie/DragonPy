@@ -258,17 +258,17 @@ def print_bit_list_stats(bit_list):
     print "%i positive bits and %i negative bits" % (positive_count, negative_count)
 
 
-
 if __name__ == "__main__":
-#     import doctest
-#     print doctest.testmod(
-#         verbose=False
-#         # verbose=True
-#     )
+    import doctest
+    print doctest.testmod(
+        verbose=False
+        # verbose=True
+    )
+#     sys.exit()
 
     # test via CLI:
 
-    import sys, subprocess
+    import subprocess
 
     # bas -> wav
     subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",

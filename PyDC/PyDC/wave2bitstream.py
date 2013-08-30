@@ -66,7 +66,6 @@ class WaveBase(object):
 
 
 class Wave2Bitstream(WaveBase):
-
     def __init__(self, wave_filename, cfg):
         self.wave_filename = wave_filename
         self.cfg = cfg
@@ -324,13 +323,13 @@ class Wave2Bitstream(WaveBase):
             ]
             # yield the mid crossing
             if in_pos == False and sign_info == pos_null_transit:
-                log.log(5,"sinus curve goes from negative into positive")
+                log.log(5, "sinus curve goes from negative into positive")
 #                 log.debug(" %s | %s | %s" % (previous_values, mid_values, next_values))
                 yield mid_values[mid_index][0]
                 in_pos = True
             elif  in_pos == True and sign_info == neg_null_transit:
                 if self.half_sinus:
-                    log.log(5,"sinus curve goes from positive into negative")
+                    log.log(5, "sinus curve goes from positive into negative")
 #                     log.debug(" %s | %s | %s" % (previous_values, mid_values, next_values))
                     yield mid_values[mid_index][0]
                 in_pos = False
@@ -357,6 +356,7 @@ class Wave2Bitstream(WaveBase):
                 log.log(5, "average %s samples to: %s" % (repr(value_tuples), repr(result)))
 #             print "average %s samples to: %s" % (repr(value_tuples), repr(result))
             yield result
+
 
     def iter_wave_values(self):
         """
@@ -417,7 +417,7 @@ class Wave2Bitstream(WaveBase):
                     skip_count += 1
                     continue
 
-                
+
                 if log.level >= 5:
                     msg = tlm.feed(value)
                     percent = 100.0 / self.max_value * abs(value)
@@ -494,6 +494,7 @@ if __name__ == "__main__":
         verbose=False
         # verbose=True
     )
+#     sys.exit()
 
     # test via CLI:
 

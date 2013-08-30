@@ -13,6 +13,7 @@ import itertools
 import logging
 import types
 import string
+import math
 
 
 LOG_FORMATTER = logging.Formatter("") # %(asctime)s %(message)s")
@@ -285,34 +286,34 @@ def diff_info(data):
     return diff1, diff2
 
 
-def iter_pare_sum(data):
-    """
-    >>> def g(data):
-    ...     for no, i in enumerate(data): yield (no, i)
-
-    >>> l = [5,5,10,10,5,5,10,10,5,5,10,10,10,10,5,5,5,5]
-    >>> len(l)
-    18
-    >>> list(iter_pare_sum(g(l)))
-    [(2, 20), (4, 10), (6, 20), (8, 10), (10, 20), (12, 20), (14, 10), (16, 10)]
-
-
-    >>> l = [5,10,10,5,5,10,10,5,5,10,10,10,10,5,5,5,5]
-    >>> len(l)
-    17
-    >>> list(iter_pare_sum(g(l)))
-    [(2, 20), (4, 10), (6, 20), (8, 10), (10, 20), (12, 20), (14, 10), (16, 10)]
-    [(2, 20), (4, 10), (6, 20), (8, 10), (10, 20), (12, 20), (14, 10)]
-    """
-    for previous, current, next_value in itertools.islice(iter_window(data, window_size=3), 0, None, 2):
-        # ~ print previous, current, next_value
-        diff1 = abs(previous[1] - current[1])
-        diff2 = abs(current[1] - next_value[1])
-
-        if diff1 < diff2:
-            yield (current[0], previous[1] + current[1])
-        else:
-            yield (current[0], current[1] + next_value[1])
+# def iter_pare_sum(data):
+#     """
+#     >>> def g(data):
+#     ...     for no, i in enumerate(data): yield (no, i)
+#
+#     >>> l = [5,5,10,10,5,5,10,10,5,5,10,10,10,10,5,5,5,5]
+#     >>> len(l)
+#     18
+#     >>> list(iter_pare_sum(g(l)))
+#     [(2, 20), (4, 10), (6, 20), (8, 10), (10, 20), (12, 20), (14, 10), (16, 10)]
+#
+#
+#     >>> l = [5,10,10,5,5,10,10,5,5,10,10,10,10,5,5,5,5]
+#     >>> len(l)
+#     17
+#     >>> list(iter_pare_sum(g(l)))
+#     [(2, 20), (4, 10), (6, 20), (8, 10), (10, 20), (12, 20), (14, 10), (16, 10)]
+#     [(2, 20), (4, 10), (6, 20), (8, 10), (10, 20), (12, 20), (14, 10)]
+#     """
+#     for previous, current, next_value in itertools.islice(iter_window(data, window_size=3), 0, None, 2):
+#         # print previous, current, next_value
+#         diff1 = abs(previous[1] - current[1])
+#         diff2 = abs(current[1] - next_value[1])
+#
+#         if diff1 < diff2:
+#             yield (current[0], previous[1] + current[1])
+#         else:
+#             yield (current[0], current[1] + next_value[1])
 
 
 class TextLevelMeter(object):
@@ -562,7 +563,7 @@ def pformat_codepoints(codepoints):
     """
     >>> l = pformat_codepoints([13, 70, 111, 111, 32, 66, 97, 114, 32, 33, 13])
     >>> repr(l)
-    "['\\r', 'Foo Bar !', '\\r']"
+    "['\\\\r', 'Foo Bar !', '\\\\r']"
     """
     printable = string.printable.replace("\n", "").replace("\r", "")
     line = []
@@ -667,6 +668,7 @@ def get_word(byte_iterator):
         raise TypeError("Can't build word from %s: %s" % (repr(byte_values), err))
     return word
 
+
 def codepoints2string(codepoints):
     """
     >>> codepoints = [ord(c) for c in "Foo Bar !"]
@@ -678,24 +680,81 @@ def codepoints2string(codepoints):
     return "".join([chr(c) for c in codepoints])
 
 
+def sinus_values(count, max_value):
+    """
+    >>> values = list(sinus_values(10, 32768))
+    >>> len(values)
+    10
+    >>> values
+    [0, 21063, 32270, 28378, 11207, -11207, -28378, -32270, -21063, 0]
+
+    >>> tl = TextLevelMeter(32768, width=40)
+    >>> for v in values:
+    ...     tl.feed(v)
+    '|                  *                  |'
+    '|                  |           *      |'
+    '|                  |                 *|'
+    '|                  |               *  |'
+    '|                  |     *            |'
+    '|            *     |                  |'
+    '|  *               |                  |'
+    '|*                 |                  |'
+    '|      *           |                  |'
+    '|                  *                  |'
+    """
+    count -= 1
+    for index in xrange(0, count + 1):
+        angle = 360.0 / count * index
+        y = math.sin(math.radians(angle)) * max_value
+        y = int(round(y))
+        yield y
+
+def sinus_values_by_hz(framerate, hz, max_value):
+    """
+    Create sinus values with the given framerate and Hz.
+    Note:
+    We skip the first zero-crossing, so the values can be used directy in a loop.
+
+    >>> values = sinus_values_by_hz(22050, 1200, 255)
+    >>> len(values) # 22050 / 1200Hz = 18,375
+    18
+    >>> values
+    (87, 164, 221, 251, 251, 221, 164, 87, 0, -87, -164, -221, -251, -251, -221, -164, -87, 0)
+
+    >>> tl = TextLevelMeter(255, width=40)
+    >>> for v in values:
+    ...     tl.feed(v)
+    '|                  |     *            |'
+    '|                  |           *      |'
+    '|                  |               *  |'
+    '|                  |                 *|'
+    '|                  |                 *|'
+    '|                  |               *  |'
+    '|                  |           *      |'
+    '|                  |     *            |'
+    '|                  *                  |'
+    '|            *     |                  |'
+    '|      *           |                  |'
+    '|  *               |                  |'
+    '|*                 |                  |'
+    '|*                 |                  |'
+    '|  *               |                  |'
+    '|      *           |                  |'
+    '|            *     |                  |'
+    '|                  *                  |'
+
+    >>> values = sinus_values_by_hz(44100, 1200, 255)
+    >>> len(values) # 44100 / 1200Hz = 36,75
+    37
+    """
+    count = int(round(float(framerate) / float(hz)))
+    count += 1
+    values = tuple(sinus_values(count, max_value))
+    values = values[1:]
+    return values
+
+
 if __name__ == "__main__":
-#     sys.exit()
-
-
     import doctest
     print doctest.testmod()
 
-
-    # ~ import math
-
-    # ~ count = 32
-    # ~ max_value = 255
-    # ~ width = 79
-
-    # ~ tl = TextLevelMeter(max_value, width)
-    # ~ for index in xrange(0, count + 1):
-        # ~ angle = 360.0 / count * index
-        # ~ y = math.sin(math.radians(angle)) * max_value
-        # ~ y = round(y)
-        # ~ print tl.feed(y)
-    # ~ #     print "%i - %.1f� %i" % (index, angle, y)
