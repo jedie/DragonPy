@@ -303,22 +303,22 @@ class CassetteFile(object):
 #         print "file meta:"
 #         print_codepoint_stream(codepoints)
 
-        self.file_type = codepoints[9]
+        self.file_type = codepoints[8]
 
         if not self.file_type in self.cfg.FILETYPE_DICT:
             raise NotImplementedError(
                 "Unknown file type %s is not supported, yet." % hex(self.file_type)
             )
 
-        print "file type:", self.cfg.FILETYPE_DICT[self.file_type]
+        log.info("file type: %s" % self.cfg.FILETYPE_DICT[self.file_type])
 
         if self.file_type == self.cfg.FTYPE_DATA:
             raise NotImplementedError("Data files are not supported, yet.")
         elif self.file_type == self.cfg.FTYPE_BIN:
             raise NotImplementedError("Binary files are not supported, yet.")
 
-        ascii_flag = codepoints[10]
-        print "ASCII Flag is:", repr(ascii_flag)
+        ascii_flag = codepoints[9]
+        log.info("Raw ASCII flag is: %s" % repr(ascii_flag))
         if ascii_flag == self.cfg.BASIC_TOKENIZED:
             self.is_tokenized = True
         elif ascii_flag == self.cfg.BASIC_ASCII:
@@ -326,7 +326,7 @@ class CassetteFile(object):
         else:
             raise NotImplementedError("Unknown BASIC type: '%s'" % hex(ascii_flag))
 
-        print "code type is:", self.cfg.BASIC_TYPE_DICT[ascii_flag]
+        log.info("ASCII flag: %s" % self.cfg.BASIC_TYPE_DICT[ascii_flag])
 
         self.file_content = FileContent(self.cfg)
 
@@ -335,6 +335,7 @@ class CassetteFile(object):
             self.file_content.add_block_data(block_length, codepoints)
         else:
             self.file_content.add_ascii_block(block_length, codepoints)
+
         print "*"*79
         self.file_content.print_code_lines()
         print "*"*79
@@ -342,8 +343,13 @@ class CassetteFile(object):
     def get_filename_block_as_codepoints(self):
         codepoints = []
         codepoints += list(string2codepoint(self.filename.ljust(8, " ")))
-        codepoints.append(self.cfg.FTYPE_BASIC)
-        codepoints.append(self.cfg.BASIC_ASCII) # ASCII BASIC
+        codepoints.append(self.cfg.FTYPE_BASIC) # one byte file type
+        codepoints.append(self.cfg.BASIC_ASCII) # one byte ASCII flag
+        codepoints.append(0x00) # one byte gap flag (00=no gaps, FF=gaps)
+        # FIXME, see: http://five.pairlist.net/pipermail/coco/2013-August/070938.html
+        codepoints += [0x00, 0x00] # two bytes machine code starting address
+        codepoints += [0x00, 0x00] # two bytes machine code loading address
+        log.debug("filename block: %s" % pformat_codepoints(codepoints))
         return codepoints
 
     def get_code_block_as_codepoints(self):
@@ -416,7 +422,7 @@ class Cassette(object):
         elif block_type == self.cfg.FILENAME_BLOCK:
             self.current_file = CassetteFile(self.cfg)
             self.current_file.create_from_wave(block_codepoints)
-            print "Add file %s" % repr(self.current_file)
+            log.info("Add file %s" % repr(self.current_file))
             self.files.append(self.current_file)
         elif block_type == self.cfg.DATA_BLOCK:
             self.current_file.add_block_data(block_length, block_codepoints)
@@ -429,28 +435,49 @@ class Cassette(object):
             file_obj.print_debug_info()
 
     def block2codepoint_stream(self, block_type, block_codepoints):
-        log.debug("%s x LEAD_BYTE_CODEPOINT" % self.cfg.LEAD_BYTE_LEN)
+        log.debug("yield %sx lead byte %s" % (
+            self.cfg.LEAD_BYTE_LEN, hex(self.cfg.LEAD_BYTE_CODEPOINT)
+        ))
         for count in xrange(self.cfg.LEAD_BYTE_LEN):
             yield self.cfg.LEAD_BYTE_CODEPOINT
-        log.debug("\n1x SYNC_BYTE_CODEPOINT")
+            
+        log.debug("yield sync byte %s" % hex(self.cfg.SYNC_BYTE_CODEPOINT))
         yield self.cfg.SYNC_BYTE_CODEPOINT
 
-        log.debug("\nblock type is: '%s'" % self.cfg.BLOCK_TYPE_DICT[block_type])
+        log.debug("yield block type '%s'" % self.cfg.BLOCK_TYPE_DICT[block_type])
         yield block_type
 
         block_length = len(block_codepoints)
-        log.debug("\nblock length: %s" % hex(block_length))
+        log.debug("yield block length %s (%sBytes)" % (hex(block_length), block_length))
         yield block_length
 
-        if block_codepoints: # not if EOF block
-            log.debug("\nyield %s" % self.cfg.BLOCK_TYPE_DICT[block_type])
-            print "-"*79
-            block_codepoints = list(block_codepoints)
-            print pformat_codepoints(block_codepoints)
-            block_codepoints = iter(block_codepoints)
-            print "-"*79
+        if not block_codepoints:
+            # EOF block
+            # FIXME checksum
+            checksum = block_type
+            checksum += block_length
+            checksum = checksum & 0xFF
+            log.debug("yield calculated checksum %s" % hex(checksum))
+            yield checksum
+            log.debug("yield magic byte %s" % hex(self.cfg.MAGIC_BYTE))
+            yield self.cfg.MAGIC_BYTE # 0x55
+        else:
+            log.debug("yield '%s':" % self.cfg.BLOCK_TYPE_DICT[block_type])
+            log.debug("-"*79)
+            log.debug(pformat_codepoints(block_codepoints))
+            log.debug("-"*79)
+            checksum = 0x00
             for codepoint in block_codepoints:
+                checksum += codepoint
                 yield codepoint
+
+            checksum += block_type
+            checksum += block_length
+            checksum = checksum & 0xFF
+            log.debug("yield calculated checksum %s" % hex(checksum))
+            yield checksum
+            log.debug("yield magic byte %s" % hex(self.cfg.MAGIC_BYTE))
+            yield self.cfg.MAGIC_BYTE # 0x55
 
     def codepoint_stream(self):
         for file_obj in self.files:
@@ -518,21 +545,20 @@ if __name__ == "__main__":
 #         verbose=False
 #         # verbose=True
 #     )
-#     sys.exit()
 
+    import time, subprocess
+    subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
+        # bas -> wav
+        "../test_files/HelloWorld1.bas", "../test.wav"
+    ]).wait()
 
-    log_level = LOG_LEVEL_DICT[3]
-    log.setLevel(log_level)
+    print "="*79
+    subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
+        # wav -> bas
+        "../test.wav", "../test.bas",
+#         "../test_files/HelloWorld1 origin.wav", "../test_files/HelloWorld1.bas",
+    ]).wait()
 
-    handler = logging.StreamHandler(stream=sys.stdout)
-    handler.setFormatter(LOG_FORMATTER)
-    log.addHandler(handler)
-
-    d32cfg = Dragon32Config()
-    c = Cassette(d32cfg)
-    c.add_from_bas("../test_files/HelloWorld1.bas")
-    c.print_debug_info()
-#     print list(c.codepoint_stream())
-    print list(c.get_as_bitstream())
+    print "-- END --"
 
 

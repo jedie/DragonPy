@@ -71,6 +71,8 @@ class PyDC_CLI(Base_CLI):
     def parse_args(self):
         args = super(PyDC_CLI, self).parse_args()
 
+        self.setup_logging(args)
+
         self.source_file = args.src
         print "source file.......: %s" % self.source_file
 
@@ -89,7 +91,6 @@ class PyDC_CLI(Base_CLI):
         dest_ext = dest_ext.lower()
 
         self.logfilename = dest_filename + ".log"
-        self.setup_logging(self.args)
 
         self.cfg = Dragon32Config()
 
@@ -110,17 +111,6 @@ class PyDC_CLI(Base_CLI):
 
 
 if __name__ == "__main__":
-#     import doctest
-#     print doctest.testmod(
-#         verbose=False
-#         # verbose=True
-#     )
-
-#     sys.argv.append("--help")
-
-#     sys.argv.append("test_files/HelloWorld1 origin.wav")
-#     sys.argv.append("HelloWorld1 origin.bas")
-
     cli = PyDC_CLI()
     cli.run()
 

@@ -11,12 +11,11 @@
 
 import argparse
 import logging
-import os
-import sys
 
 
 def get_log_levels():
-    levels = [level for level in logging._levelNames if isinstance(level, int)]
+    levels = [5] # FIXME
+    levels += [level for level in logging._levelNames if isinstance(level, int)]
     return levels
 
 LOG_LEVELS = get_log_levels()
@@ -27,7 +26,7 @@ class Base_CLI(object):
     DESCRIPTION = None
     EPOLOG = None
     VERSION = None
-    LOG_FORMATTER = logging.Formatter("%(asctime)s %(message)s")
+    DEFAULT_LOG_FORMATTER = "%(message)s"
 
     def __init__(self):
         self.logfilename = None
@@ -48,21 +47,27 @@ class Base_CLI(object):
             "--verbosity", type=int, choices=LOG_LEVELS, default=logging.WARNING,
             help=(
                 "verbosity level to stdout (lower == more output!)"
-                " (default: %s)" % logging.WARNING
+                " (default: %s)" % logging.INFO
             )
         )
         self.parser.add_argument(
             "--logfile", type=int, choices=LOG_LEVELS, default=logging.INFO,
             help=(
                 "verbosity level to log file (lower == more output!)"
-                " (default: %s)" % logging.INFO
+                " (default: %s)" % logging.DEBUG
+            )
+        )
+        self.parser.add_argument(
+            "--log_format", default=self.DEFAULT_LOG_FORMATTER,
+            help=(
+                "see: http://docs.python.org/2/library/logging.html#logrecord-attributes"
             )
         )
 
     def parse_args(self):
         if self.DESCRIPTION is not None:
             print
-            print self.DESCRIPTION
+            print self.DESCRIPTION, self.VERSION
             print "-"*79
             print
 
@@ -99,8 +104,14 @@ class Base_CLI(object):
             handler.setFormatter(self.LOG_FORMATTER)
             self.log.addHandler(handler)
 
+        self.log.debug(" ".join(sys.argv))
+
+        verbosity_level_name = logging.getLevelName(self.verbosity)
         self.log.info("Verbosity log level: %s" % verbosity_level_name)
+
+        logfile_level_name = logging.getLevelName(self.logfile)
         self.log.info("logfile log level: %s" % logfile_level_name)
+
 
 if __name__ == "__main__":
     import doctest

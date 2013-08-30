@@ -123,7 +123,7 @@ class BitstreamHandler(object):
             print "*** block type: 0x%x (%s)" % (block_type, block_type_name)
 
             if block_type == self.cfg.EOF_BLOCK:
-                print "EOF-Block found"
+                log.info("EOF-Block found")
                 break
 
             if block_length == 0:
@@ -224,6 +224,8 @@ class BitstreamHandler(object):
                 hex(origin_checksum), hex(calc_checksum)
             ))
 
+        # Check if the magic byte exists
+
         magic_byte = next(codepoint_stream)
         if magic_byte != self.cfg.MAGIC_BYTE:
             log.error("Magic Byte %s is not %s" % (hex(magic_byte), hex(self.cfg.MAGIC_BYTE)))
@@ -258,25 +260,27 @@ def print_bit_list_stats(bit_list):
 
 
 if __name__ == "__main__":
-    import doctest
-    print doctest.testmod(
-        verbose=False
-        # verbose=True
-    )
-#     sys.exit()
+#     import doctest
+#     print doctest.testmod(
+#         verbose=False
+#         # verbose=True
+#     )
 
-    import sys, time, subprocess
+    # test via CLI:
+
+    import sys, subprocess
+
+    # bas -> wav
     subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
-        # bas -> wav
+#         "--log_format=%(module)s %(lineno)d: %(message)s",
         "../test_files/HelloWorld1.bas", "../test.wav"
-    ])
-    sys.stderr.flush()
-    sys.stdout.flush()
-    print "="*79
+    ]).wait()
+
+    # wav -> bas
     subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
-        # wav -> bas
-        "../test.wav", "../test.bas",
-#         "../test_files/HelloWorld1 origin.wav", "../test_files/HelloWorld1.bas",
-    ])
+#         "--log_format=%(module)s %(lineno)d: %(message)s",
+#         "../test.wav", "../test.bas",
+        "../test_files/HelloWorld1 origin.wav", "../test_files/HelloWorld1.bas",
+    ]).wait()
 
     print "-- END --"

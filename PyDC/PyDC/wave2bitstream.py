@@ -14,6 +14,8 @@ import itertools
 import logging
 import struct
 import time
+import math
+
 
 try:
     import audioop
@@ -24,31 +26,46 @@ except ImportError, err:
 
 # own modules
 from utils import average, diff_info, TextLevelMeter, iter_window, \
-    human_duration, ProcessInfo, LOG_LEVEL_DICT, LOG_FORMATTER, print_bitlist, \
-    count_sign, iter_steps
-from configs import Dragon32Config
-
+    human_duration, ProcessInfo, print_bitlist, \
+    count_sign, iter_steps, sinus_values_by_hz
 
 log = logging.getLogger("PyDC")
 
 
+WAVE_READ_SIZE = 16 * 1024 # How many frames should be read from WAVE file at once?
+WAV_ARRAY_TYPECODE = {
+    1: "b", #  8-bit wave file
+    2: "h", # 16-bit wave file
+    4: "l", # 32-bit wave file TODO: Test it
+}
+
+# Maximum volume value in wave files:
+MAX_VALUES = {
+    1: 255, # 8-bit wave file
+    2: 32768, # 16-bit wave file
+    4: 2147483647, # 32-bit wave file
+}
+HUMAN_SAMPLEWIDTH = {
+    1: "8-bit",
+    2: "16-bit",
+    4: "32-bit",
+}
 
 
-class Wave2Bitstream(object):
+class WaveBase(object):
+    def get_typecode(self, samplewidth):
+        try:
+            typecode = WAV_ARRAY_TYPECODE[samplewidth]
+        except KeyError:
+            raise NotImplementedError(
+                "Only %s wave files are supported, yet!" % (
+                    ", ".join(["%sBit" % (i * 8) for i in WAV_ARRAY_TYPECODE.keys()])
+                )
+            )
+        return typecode
 
-    WAVE_READ_SIZE = 16 * 1024 # How many frames should be read from WAVE file at once?
-    WAV_ARRAY_TYPECODE = {
-        1: "b", #  8-bit wave file
-        2: "h", # 16-bit wave file
-        4: "l", # 32-bit wave file TODO: Test it
-    }
 
-    # Maximum volume value in wave files:
-    MAX_VALUES = {
-        1: 255, # 8-bit wave file
-        2: 32768, # 16-bit wave file
-        4: 2147483647, # 32-bit wave file
-    }
+class Wave2Bitstream(WaveBase):
 
     def __init__(self, wave_filename, cfg):
         self.wave_filename = wave_filename
@@ -77,7 +94,7 @@ class Wave2Bitstream(object):
         self.samplewidth = self.wavefile.getsampwidth() # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
         print "samplewidth: %i (%sBit wave file)" % (self.samplewidth, self.samplewidth * 8)
 
-        self.max_value = self.MAX_VALUES[self.samplewidth]
+        self.max_value = MAX_VALUES[self.samplewidth]
         print "the max volume value is:", self.max_value
 
         self.min_volume = int(round(self.max_value * cfg.MIN_VOLUME_RATIO / 100))
@@ -207,7 +224,7 @@ class Wave2Bitstream(object):
 
             hz = self.framerate / duration
             if hz > self.bit_one_min_hz and hz < self.bit_one_max_hz:
-                log.debug(
+                log.log(5,
                     "bit 1 at %s in %sSamples = %sHz" % (frame_no, duration, hz)
                 )
                 bit_count += 1
@@ -219,7 +236,7 @@ class Wave2Bitstream(object):
                     one_hz_max = hz
                 one_hz_avg = average(one_hz_avg, hz, one_hz_count)
             elif hz > self.bit_nul_min_hz and hz < self.bit_nul_max_hz:
-                log.debug(
+                log.log(5,
                     "bit 0 at %s in %sSamples = %sHz" % (frame_no, duration, hz)
                 )
                 bit_count += 1
@@ -231,7 +248,7 @@ class Wave2Bitstream(object):
                     nul_hz_max = hz
                 nul_hz_avg = average(nul_hz_avg, hz, nul_hz_count)
             else:
-                log.debug(
+                log.log(5,
                     "Skip signal at %s with %sSamples = %sHz" % (frame_no, duration, hz)
                 )
                 continue
@@ -307,13 +324,13 @@ class Wave2Bitstream(object):
             ]
             # yield the mid crossing
             if in_pos == False and sign_info == pos_null_transit:
-                log.debug("sinus curve goes from negative into positive")
+                log.log(5,"sinus curve goes from negative into positive")
 #                 log.debug(" %s | %s | %s" % (previous_values, mid_values, next_values))
                 yield mid_values[mid_index][0]
                 in_pos = True
             elif  in_pos == True and sign_info == neg_null_transit:
                 if self.half_sinus:
-                    log.debug("sinus curve goes from positive into negative")
+                    log.log(5,"sinus curve goes from positive into negative")
 #                     log.debug(" %s | %s | %s" % (previous_values, mid_values, next_values))
                     yield mid_values[mid_index][0]
                 in_pos = False
@@ -336,29 +353,28 @@ class Wave2Bitstream(object):
                 print "\nError getting %i from; %s: %s" % (mid_index, repr(value_tuples), err)
                 frame_no = value_tuples[0][0]
             result = (frame_no, values)
-#             if log.level >= logging.DEBUG:
-#                 log.debug("average %s samples to: %s" % (repr(value_tuples), repr(result)))
+            if log.level >= 5:
+                log.log(5, "average %s samples to: %s" % (repr(value_tuples), repr(result)))
 #             print "average %s samples to: %s" % (repr(value_tuples), repr(result))
             yield result
-
 
     def iter_wave_values(self):
         """
         yield frame numer + volume value from the WAVE file
         """
-        try:
-            typecode = self.WAV_ARRAY_TYPECODE[self.samplewidth]
-        except KeyError:
-            raise NotImplementedError(
-                "Only %s wave files are supported, yet!" % (
-                    ", ".join(["%sBit" % (i * 8) for i in self.WAV_ARRAY_TYPECODE.keys()])
-                )
-            )
+        typecode = self.get_typecode(self.samplewidth)
 
         tlm = TextLevelMeter(self.max_value, 79)
 
+        # Use only a read size which is a quare divider of the samplewidth
+        # Otherwise array.array will raise: ValueError: string length not a multiple of item size
+        divider = int(round(float(WAVE_READ_SIZE) / self.samplewidth))
+        read_size = self.samplewidth * divider
+        if read_size != WAVE_READ_SIZE:
+            log.info("Real use wave read size: %i Bytes" % read_size)
+
         self.frame_no = 0
-        get_wave_block_func = functools.partial(self.wavefile.readframes, self.WAVE_READ_SIZE)
+        get_wave_block_func = functools.partial(self.wavefile.readframes, read_size)
         skip_count = 0
 
         manually_audioop_bias = self.samplewidth == 1 and audioop is None
@@ -373,7 +389,23 @@ class Wave2Bitstream(object):
                     # http://docs.python.org/2/library/audioop.html#audioop.lin2lin
                     frames = audioop.bias(frames, 1, 128)
 
-            for value in array.array(typecode, frames):
+            try:
+                values = array.array(typecode, frames)
+            except ValueError, err:
+                # e.g.:
+                #     ValueError: string length not a multiple of item size
+                # Work-a-round: Skip the last frames of this block
+                frame_count = len(frames)
+                divider = int(math.floor(float(frame_count) / self.samplewidth))
+                new_count = self.samplewidth * divider
+                frames = frames[:new_count] # skip frames
+                log.error(
+                    "Can't make array from %s frames: Value error: %s (Skip %i and use %i frames)" % (
+                        frame_count, err, frame_count - new_count, len(frames)
+                ))
+                values = array.array(typecode, frames)
+
+            for value in values:
 
                 if manually_audioop_bias:
                     # audioop.bias can't be used.
@@ -385,13 +417,11 @@ class Wave2Bitstream(object):
                     skip_count += 1
                     continue
 
-                msg = tlm.feed(value)
-                if log.level >= logging.DEBUG:
-                    # ~ try:
+                
+                if log.level >= 5:
+                    msg = tlm.feed(value)
                     percent = 100.0 / self.max_value * abs(value)
-                    # ~ except
-
-                    log.debug(
+                    log.log(5,
                         "%s value: %i (%.1f%%)" % (msg, value, percent)
                     )
 
@@ -404,48 +434,82 @@ class Wave2Bitstream(object):
             skip_count, self.min_volume
         ))
 
+
+class Bitstream2Wave(WaveBase):
+    def __init__(self, bitstream, cfg):
+        self.bitstream = bitstream
+        self.cfg = cfg
+
+        wave_max_value = MAX_VALUES[self.cfg.SAMPLEWIDTH]
+        self.used_max_values = int(round(
+            float(wave_max_value) / 100 * self.cfg.VOLUME_RATIO
+        ))
+        log.info("Create %s wave file with %sHz and %s max volumen (%s%%)" % (
+            HUMAN_SAMPLEWIDTH[self.cfg.SAMPLEWIDTH],
+            self.cfg.FRAMERATE,
+            self.used_max_values, self.cfg.VOLUME_RATIO
+        ))
+
+        typecode = self.get_typecode(self.cfg.SAMPLEWIDTH)
+
+        self.bit_nul_samples = self.get_samples(typecode, self.cfg.BIT_NUL_HZ)
+        self.bit_one_samples = self.get_samples(typecode, self.cfg.BIT_ONE_HZ)
+
+    def get_samples(self, typecode, hz):
+        values = tuple(
+            sinus_values_by_hz(self.cfg.FRAMERATE, hz, self.used_max_values)
+        )
+        real_hz = float(self.cfg.FRAMERATE) / len(values)
+        log.debug("Real frequency: %.2f" % real_hz)
+        return array.array(typecode, values)
+
+    def write_wave(self, destination_filepath):
+        print "create wave file '%s'..." % destination_filepath
+        try:
+            wavefile = wave.open(destination_filepath, "wb")
+        except IOError, err:
+            log.error("Error opening %s: %s" % (repr(destination_filepath), err))
+            sys.exit(-1)
+
+        wavefile.setnchannels(1) # Mono
+        wavefile.setsampwidth(self.cfg.SAMPLEWIDTH)
+        wavefile.setframerate(self.cfg.FRAMERATE)
+
+        for bit in self.bitstream:
+            if bit == 0:
+#                 wavefile.writeframes(self.bit_nul_samples)
+                wavefile.writeframesraw(self.bit_nul_samples)
+            elif bit == 1:
+#                 wavefile.writeframes(self.bit_one_samples)
+                wavefile.writeframesraw(self.bit_one_samples)
+            else:
+                raise TypeError
+
+        wavefile.close()
+
+
 if __name__ == "__main__":
     import doctest
     print doctest.testmod(
         verbose=False
         # verbose=True
     )
-#     sys.exit()
 
-    FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
-#     FILENAME = "HelloWorld1 origin.wav" # 109922 frames, 16Bit wave, 44100Hz
-    # ~ FILENAME = "LineNumber Test 01.wav" # tokenized BASIC
+    # test via CLI:
 
-#     log_level = LOG_LEVEL_DICT[3] # args.verbosity
-#     log.setLevel(logging.DEBUG)
-    log.setLevel(logging.INFO)
-#
-#     logfilename = FILENAME + ".log" # args.logfile
-#     if logfilename:
-#         print "Log into '%s'" % logfilename
-#         handler = logging.FileHandler(logfilename,
-#     #         mode='a',
-#             mode='w',
-#             encoding="utf8"
-#         )
-#         handler.setFormatter(LOG_FORMATTER)
-#         log.addHandler(handler)
+    import sys, subprocess
 
-    # if args.stdout_log:
-    handler = logging.StreamHandler()
-    handler.setFormatter(LOG_FORMATTER)
-    log.addHandler(handler)
+    # bas -> wav
+    subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
+#         "--log_format=%(module)s %(lineno)d: %(message)s",
+        "../test_files/HelloWorld1.bas", "../test.wav"
+    ]).wait()
 
-    d32cfg = Dragon32Config()
-
-    st = Wave2Bitstream("../test_files/%s" % FILENAME, d32cfg)
-
-    bitstream = iter(st)
-    bitstream.sync(32)
-
-    print "-"*79
-    print_bitlist(bitstream, no_repr=True)
-    print "-"*79
-
+    # wav -> bas
+    subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
+#         "--log_format=%(module)s %(lineno)d: %(message)s",
+#         "../test.wav", "../test.bas",
+        "../test_files/HelloWorld1 origin.wav", "../test_files/HelloWorld1.bas",
+    ]).wait()
 
     print "-- END --"
