@@ -104,7 +104,7 @@ class BitstreamHandler(object):
     #         bitstream = iter(bitstream)
 
             try:
-                block_type, block_length, codepoints, checksum = self.get_block_info(bitstream)
+                block_type, block_length, codepoints = self.get_block_info(bitstream)
             except SyncByteNotFoundError, err:
                 log.error(err)
                 break
@@ -224,7 +224,13 @@ class BitstreamHandler(object):
                 hex(origin_checksum), hex(calc_checksum)
             ))
 
-        return block_type, block_length, codepoints, origin_checksum
+        magic_byte = next(codepoint_stream)
+        if magic_byte != self.cfg.MAGIC_BYTE:
+            log.error("Magic Byte %s is not %s" % (hex(magic_byte), hex(self.cfg.MAGIC_BYTE)))
+        else:
+            log.info("Magic Byte %s, ok." % hex(magic_byte))
+
+        return block_type, block_length, codepoints
 
 
 
@@ -250,6 +256,7 @@ def print_bit_list_stats(bit_list):
     print "%i positive bits and %i negative bits" % (positive_count, negative_count)
 
 
+
 if __name__ == "__main__":
     import doctest
     print doctest.testmod(
@@ -258,80 +265,18 @@ if __name__ == "__main__":
     )
 #     sys.exit()
 
+    import sys, time, subprocess
+    subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
+        # bas -> wav
+        "../test_files/HelloWorld1.bas", "../test.wav"
+    ])
+    sys.stderr.flush()
+    sys.stdout.flush()
+    print "="*79
+    subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
+        # wav -> bas
+        "../test.wav", "../test.bas",
+#         "../test_files/HelloWorld1 origin.wav", "../test_files/HelloWorld1.bas",
+    ])
 
-
-    # created by Xroar Emulator
-#     FILENAME = "HelloWorld1 xroar.wav" # 8Bit 22050Hz
-
-    # created by origin Dragon 32 machine
-#     FILENAME = "HelloWorld1 origin.wav" # 16Bit 44.1KHz mono
-
-    # Test files from:
-    # http://archive.worldofdragon.org/archive/index.php?dir=Tapes/Dragon/wav/
-#     FILENAME = "Quickbeam Software - Duplicas v3.0.wav" # binary!
-
-
-    FILENAME = "Dragon Data Ltd - Examples from the Manual - 39~58 [run].wav"
-
-#     FILENAME = "1_MANIA.WAV" # 148579 frames, 4879 bits (raw)
-#     FILENAME = "2_DBJ.WAV" # TODO
-
-    # BASIC file with high line numbers:
-#     FILENAME = "LineNumber Test 01.wav" # tokenized BASIC - no sync
-#     FILENAME = "LineNumber Test 02.wav" # ASCII BASIC - no sync
-
-
-
-#     log_level = LOG_LEVEL_DICT[3] # args.verbosity
-#     log.setLevel(logging.DEBUG)
-    log.setLevel(logging.INFO)
-#
-#     logfilename = FILENAME + ".log" # args.logfile
-#     if logfilename:
-#         print "Log into '%s'" % logfilename
-#         handler = logging.FileHandler(logfilename, mode='w', encoding="utf8")
-#         handler.setFormatter(LOG_FORMATTER)
-#         log.addHandler(handler)
-#
-#     # if args.stdout_log:
-    handler = logging.StreamHandler()
-    handler.setFormatter(LOG_FORMATTER)
-    log.addHandler(handler)
-
-    d32cfg = Dragon32Config()
-    c = Cassette(d32cfg)
-
-#     filepath = os.path.abspath("../test_files/%s" % FILENAME)
-    filepath = "../test_files/%s" % FILENAME
-
-    # get bitstream from WAVE file:
-    st = Wave2Bitstream(filepath,
-        bit_nul_hz=1200, # "0" is a single cycle at 1200 Hz
-        bit_one_hz=2400, # "1" is a single cycle at 2400 Hz
-        hz_variation=450, # How much Hz can signal scatter to match 1 or 0 bit ?
-        min_volume_ratio=5, # percent volume to ignore sample
-        avg_count=0, # How many samples should be merged into a average value?
-        end_count=2, # Sample count that must be pos/neg at once
-        mid_count=1 # Sample count that can be around null
-    )
-    bitstream = iter(st)
-
-
-    # Create a bitstream from a existing .bas file:
-#     c.add_from_bas("test_files/HelloWorld1.bas")
-#     c.add_from_bas("test_files/Dragon Data Ltd - Examples from the Manual - 39~58 [run].bas")
-#     c.add_from_bas("test_files/LineNumberTest.bas")
-#     c.print_debug_info()
-#     bitstream = c.get_as_bitstream()
-
-
-#     bitstream.sync(32) # Sync bitstream to wave sinus cycle
-#     bitstream = list(bitstream)
-#     print " ***** Bitstream length:", len(bitstream)
-#     print_bitlist(bitstream)
-#     bitstream = iter(bitstream)
-
-
-    bh = BitstreamHandler(d32cfg)
-    bh.feed(bitstream)
-
+    print "-- END --"
