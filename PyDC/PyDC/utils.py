@@ -76,6 +76,12 @@ def human_duration(t):
     return u"%(number).1f %(type)s" % {'number': count, 'type': name}
 
 
+def pformat_frame_no(frame_no, framerate):
+    sec = float(frame_no) / framerate
+    return "%s (frame no.: %s)" % (human_duration(sec), frame_no)
+
+
+
 class ProcessInfo(object):
     """
     >>> p = ProcessInfo(100)

@@ -24,10 +24,12 @@ except ImportError, err:
     print "Can't use audioop:", err
     audioop = None
 
+
 # own modules
 from utils import average, diff_info, TextLevelMeter, iter_window, \
-    human_duration, ProcessInfo, print_bitlist, \
+    human_duration, ProcessInfo, pformat_frame_no, \
     count_sign, iter_steps, sinus_values_by_hz
+
 
 log = logging.getLogger("PyDC")
 
@@ -66,9 +68,13 @@ class WaveBase(object):
 
 
 class Wave2Bitstream(WaveBase):
+
     def __init__(self, wave_filename, cfg):
         self.wave_filename = wave_filename
         self.cfg = cfg
+
+        self.half_sinus = False # in trigger yield the full cycle
+        self.wave_pos = 0 # Absolute position in the frame stream
 
         assert cfg.END_COUNT > 0 # Sample count that must be pos/neg at once
         assert cfg.MID_COUNT > 0 # Sample count that can be around null
@@ -151,7 +157,7 @@ class Wave2Bitstream(WaveBase):
             print "Error: no bits identified!"
             sys.exit(-1)
 
-        log.info("First bit is at: %s" % self.frame_no)
+        log.info("First bit is at: %s" % pformat_frame_no(self.wave_pos, self.framerate))
         log.debug("enable half sinus scan")
         self.half_sinus = True
 
@@ -323,13 +329,13 @@ class Wave2Bitstream(WaveBase):
             ]
             # yield the mid crossing
             if in_pos == False and sign_info == pos_null_transit:
-                log.log(5, "sinus curve goes from negative into positive")
+                log.log(5,"sinus curve goes from negative into positive")
 #                 log.debug(" %s | %s | %s" % (previous_values, mid_values, next_values))
                 yield mid_values[mid_index][0]
                 in_pos = True
             elif  in_pos == True and sign_info == neg_null_transit:
                 if self.half_sinus:
-                    log.log(5, "sinus curve goes from positive into negative")
+                    log.log(5,"sinus curve goes from positive into negative")
 #                     log.debug(" %s | %s | %s" % (previous_values, mid_values, next_values))
                     yield mid_values[mid_index][0]
                 in_pos = False
@@ -356,7 +362,6 @@ class Wave2Bitstream(WaveBase):
                 log.log(5, "average %s samples to: %s" % (repr(value_tuples), repr(result)))
 #             print "average %s samples to: %s" % (repr(value_tuples), repr(result))
             yield result
-
 
     def iter_wave_values(self):
         """
@@ -406,6 +411,7 @@ class Wave2Bitstream(WaveBase):
                 values = array.array(typecode, frames)
 
             for value in values:
+                self.wave_pos += 1 # Absolute position in the frame stream
 
                 if manually_audioop_bias:
                     # audioop.bias can't be used.
@@ -417,7 +423,6 @@ class Wave2Bitstream(WaveBase):
                     skip_count += 1
                     continue
 
-
                 if log.level >= 5:
                     msg = tlm.feed(value)
                     percent = 100.0 / self.max_value * abs(value)
@@ -425,14 +430,12 @@ class Wave2Bitstream(WaveBase):
                         "%s value: %i (%.1f%%)" % (msg, value, percent)
                     )
 
-                self.frame_no += 1
-#                 if self.frame_no > 100:sys.exit()
-#                 if self.frame_no > 4000:break
-                yield self.frame_no, value
+                yield self.wave_pos, value
 
         log.info("Skip %i samples that are lower than %i" % (
             skip_count, self.min_volume
         ))
+        log.info("Last readed Frame is: %s" % pformat_frame_no(self.wave_pos, self.framerate))
 
 
 class Bitstream2Wave(WaveBase):
@@ -464,7 +467,7 @@ class Bitstream2Wave(WaveBase):
         return array.array(typecode, values)
 
     def write_wave(self, destination_filepath):
-        print "create wave file '%s'..." % destination_filepath
+        log.info("create wave file '%s'..." % destination_filepath)
         try:
             wavefile = wave.open(destination_filepath, "wb")
         except IOError, err:
@@ -486,6 +489,7 @@ class Bitstream2Wave(WaveBase):
                 raise TypeError
 
         wavefile.close()
+        log.info("Wave file %s written." % destination_filepath)
 
 
 if __name__ == "__main__":
@@ -494,7 +498,6 @@ if __name__ == "__main__":
         verbose=False
         # verbose=True
     )
-#     sys.exit()
 
     # test via CLI:
 
