@@ -151,8 +151,8 @@ class FileContent(object):
         while True:
             try:
                 line_pointer = get_word(data)
-            except StopIteration:
-                print "No line pointer information in code line data."
+            except (StopIteration, IndexError), err:
+                log.error("No line pointer information in code line data. (%s)" % err)
                 break
 #             print "line_pointer:", repr(line_pointer)
             byte_count += 2
@@ -162,8 +162,8 @@ class FileContent(object):
 
             try:
                 line_number = get_word(data)
-            except StopIteration:
-                print "No line number information in code line data."
+            except (StopIteration, IndexError), err:
+                log.error("No line number information in code line data. (%s)" % err)
                 break
 #             print "line_number:", repr(line_number)
             byte_count += 2
