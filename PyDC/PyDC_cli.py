@@ -13,7 +13,7 @@ import logging
 import os
 import sys
 
-from PyDC import TITLE_LINE, VERSION_STRING, wav2bas, bas2wav
+from PyDC import TITLE_LINE, VERSION_STRING, wav2bas, bas2wav, analyze
 from PyDC.base_cli import Base_CLI
 from PyDC.configs import Dragon32Config
 
@@ -32,7 +32,16 @@ class PyDC_CLI(Base_CLI):
         super(PyDC_CLI, self).__init__()
 
         self.parser.add_argument("src", help="Source filename (.wav/.bas)")
-        self.parser.add_argument("dst", help="Destination filename (.wav/.bas)")
+        self.parser.add_argument("--dst",
+            help="Destination filename (.wav/.bas)"
+        )
+
+        self.parser.add_argument(
+            "--analyze", action="store_true",
+            help=(
+                "Display zeror crossing information in the given wave file."
+            )
+        )
 
         # For Wave2Bitstream():
         self.parser.add_argument(
@@ -74,8 +83,9 @@ class PyDC_CLI(Base_CLI):
         self.source_file = args.src
         print "source file.......: %s" % self.source_file
 
-        self.destination_file = args.dst
-        print "destination file..: %s" % self.destination_file
+        if args.dst:
+            self.destination_file = args.dst
+            print "destination file..: %s" % self.destination_file
 
         return args
 
@@ -83,12 +93,15 @@ class PyDC_CLI(Base_CLI):
         self.args = self.parse_args()
 
         source_filename, source_ext = os.path.splitext(self.source_file)
-        dest_filename, dest_ext = os.path.splitext(self.destination_file)
-
         source_ext = source_ext.lower()
-        dest_ext = dest_ext.lower()
 
-        self.logfilename = dest_filename + ".log"
+        if self.args.dst:
+            dest_filename, dest_ext = os.path.splitext(self.destination_file)
+            dest_ext = dest_ext.lower()
+
+            self.logfilename = dest_filename + ".log"
+        else:
+            self.logfilename = source_filename + ".log"
         log.info("Logfile: %s" % self.logfilename)
 
         self.setup_logging(self.args) # XXX: setup logging after the logfilename is set!
@@ -101,7 +114,9 @@ class PyDC_CLI(Base_CLI):
         self.cfg.END_COUNT = self.args.end_count # Sample count that must be pos/neg at once
         self.cfg.MID_COUNT = self.args.mid_count # Sample count that can be around null
 
-        if source_ext.startswith(".wav") and dest_ext.startswith(".bas"):
+        if self.args.analyze:
+            analyze(self.source_file, self.cfg)
+        elif source_ext.startswith(".wav") and dest_ext.startswith(".bas"):
             wav2bas(self.source_file, self.destination_file, self.cfg)
         elif source_ext.startswith(".bas") and dest_ext.startswith(".wav"):
             bas2wav(self.source_file, self.destination_file, self.cfg)

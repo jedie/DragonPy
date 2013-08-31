@@ -21,6 +21,11 @@ VERSION_STRING = '.'.join(str(part) for part in __version__)
 TITLE_LINE = "PyDC v%s copyleft 2013 by htfx.de - Jens Diemer, GNU GPL v3 or above" % VERSION_STRING
 
 
+def analyze(wave_file, cfg):
+    wb = Wave2Bitstream(wave_file, cfg)
+    wb.analyze()
+
+
 def bas2wav(source_filepath, destination_filepath, cfg):
     """
     Create a bitstream from a existing .bas file

@@ -17,6 +17,7 @@ import unittest
 # own modules
 import configs
 from __init__ import wav2bas
+from wave2bitstream import Wave2Bitstream
 
 
 class TestDragon32Conversion(unittest.TestCase):
@@ -31,7 +32,7 @@ class TestDragon32Conversion(unittest.TestCase):
 
     def tearDown(self):
         print "\n"*2
-        print " >>>>>> unittest tearDown() >>>>>> ",
+        print " >>>unittest tearDown() >>>",
 
     def _src_file_path(self, filename):
         return os.path.relpath(
@@ -122,22 +123,31 @@ class TestDragon32Conversion(unittest.TestCase):
             '63999 PRINT "END";63999\n'
         ))
 
+    def test_statistics(self):
+        source_filepath = self._src_file_path("HelloWorld1 xroar.wav")
+        wb = Wave2Bitstream(source_filepath, self.cfg)
+        statistics = wb._get_statistics(128)
+        self.assertEqual(
+            statistics, {10: 17, 11: 44, 12: 4, 19: 5, 20: 44, 21: 15}
+        )
+
 
 if __name__ == '__main__':
-    log = logging.getLogger("PyDC")
-    log.setLevel(
-        #~ logging.ERROR
-        logging.INFO
-#         logging.WARNING
-#         logging.DEBUG
-    )
-    log.addHandler(logging.StreamHandler())
+#     log = logging.getLogger("PyDC")
+#     log.setLevel(
+#         #~ logging.ERROR
+#         logging.INFO
+# #         logging.WARNING
+# #         logging.DEBUG
+#     )
+#     log.addHandler(logging.StreamHandler())
 
     unittest.main(
         argv=(
             sys.argv[0],
 #             "TestDragon32Conversion.test_wav2bas01",
 #             "TestDragon32Conversion.test_wav2bas04",
+#             "TestDragon32Conversion.test_statistics",
         ),
 #         verbosity=1,
         verbosity=2,

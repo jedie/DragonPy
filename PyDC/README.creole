@@ -10,29 +10,38 @@ license: GNU GPL v3 or above, see LICENSE for more details.
 === PyDC_cli.py - usage
 
 {{{
-usage: PyDC_cli.py [-h] [-v] [--verbosity {0,10,20,30,40,50}]
-                   [--logfile {0,10,20,30,40,50}]
+Python dragon 32 converter 0.1.0.dev
+-------------------------------------------------------------------------------
+
+usage: PyDC_cli.py [-h] [-v] [--verbosity {5,7,0,10,20,30,40,50}]
+                   [--logfile {5,7,0,10,20,30,40,50}]
+                   [--log_format LOG_FORMAT] [--dst DST] [--analyze]
                    [--hz_variation HZ_VARIATION]
                    [--min_volume_ratio MIN_VOLUME_RATIO]
                    [--avg_count AVG_COUNT] [--end_count END_COUNT]
                    [--mid_count MID_COUNT]
-                   src dst
+                   src
 
 Python dragon 32 converter
 
 positional arguments:
   src                   Source filename (.wav/.bas)
-  dst                   Destination filename (.wav/.bas)
 
 optional arguments:
   -h, --help            show this help message and exit
   -v, --version         show program's version number and exit
-  --verbosity {0,10,20,30,40,50}
+  --verbosity {5,7,0,10,20,30,40,50}
                         verbosity level to stdout (lower == more output!)
-                        (default: 30)
-  --logfile {0,10,20,30,40,50}
-                        verbosity level to log file (lower == more output!)
                         (default: 20)
+  --logfile {5,7,0,10,20,30,40,50}
+                        verbosity level to log file (lower == more output!)
+                        (default: 10)
+  --log_format LOG_FORMAT
+                        see: http://docs.python.org/2/library/logging.html
+                        #logrecord-attributes
+  --dst DST             Destination filename (.wav/.bas)
+  --analyze             Display zeror crossing information in the given wave
+                        file.
   --hz_variation HZ_VARIATION
                         How much Hz can signal scatter to match 1 or 0 bit ?
                         (default: 450)
@@ -45,11 +54,40 @@ optional arguments:
                         Sample count that must be pos/neg at once (default: 2)
   --mid_count MID_COUNT
                         Sample count that can be around null (default: 1)
+
+PyDC v0.1.0.dev copyleft 2013 by htfx.de - Jens Diemer, GNU GPL v3 or above
 }}}
 
 Example:
 {{{
-~$ python PyDC_cli.py FooBar.wav FooBar.bas
+~$ python PyDC_cli.py FooBar.wav --dst=FooBar.bas
+}}}
+
+To display statistics about zeror crossing counts, to this:
+{{{
+~$ python PyDC_cli.py --analyze FooBar.wav
+}}}
+
+The Output will look like this:
+{{{
+Found this zeror crossing timings in the wave file:
+
+  394Hz (   28 Samples) exist:    1 
+  613Hz (   18 Samples) exist:    1 
+  788Hz (   14 Samples) exist:    1 
+  919Hz (   12 Samples) exist:  329 *********
+ 1002Hz (   11 Samples) exist: 1704 **********************************************
+ 1103Hz (   10 Samples) exist: 1256 **********************************
+ 1225Hz (    9 Samples) exist: 1743 ***********************************************
+ 1378Hz (    8 Samples) exist:    1 
+ 1575Hz (    7 Samples) exist:  322 *********
+ 1838Hz (    6 Samples) exist: 1851 **************************************************
+ 2205Hz (    5 Samples) exist: 1397 **************************************
+ 2756Hz (    4 Samples) exist:  913 *************************
+
+Notes:
+ - Hz values are converted to full sinus cycle duration.
+ - Sample cound is from half sinus cycle.
 }}}
 
 

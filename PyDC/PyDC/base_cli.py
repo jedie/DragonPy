@@ -16,7 +16,7 @@ import sys
 
 
 def get_log_levels():
-    levels = [5] # FIXME
+    levels = [5, 7] # FIXME
     levels += [level for level in logging._levelNames if isinstance(level, int)]
     return levels
 
