@@ -63,6 +63,9 @@ Example:
 ~$ python PyDC_cli.py FooBar.wav --dst=FooBar.bas
 }}}
 
+
+==== analyze
+
 To display statistics about zeror crossing counts, to this:
 {{{
 ~$ python PyDC_cli.py --analyze FooBar.wav
@@ -89,6 +92,18 @@ Notes:
  - Hz values are converted to full sinus cycle duration.
  - Sample cound is from half sinus cycle.
 }}}
+
+Some statistics from WAVES files are here:
+* http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4326 
+
+
+=== TODO
+
+support CAS files, too:
+* CAS2BAS
+* CAS2WAV
+* BAS2CAS
+* WAV2CAS
 
 
 === Links
