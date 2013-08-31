@@ -16,7 +16,7 @@ import string
 import math
 
 
-LOG_FORMATTER = logging.Formatter("") # %(asctime)s %(message)s")
+LOG_FORMATTER = logging.Formatter("")  # %(asctime)s %(message)s")
 LOG_LEVEL_DICT = {
     0: logging.ERROR,
     1: logging.WARNING,
@@ -74,12 +74,6 @@ def human_duration(t):
             count = round(count, 1)
             break
     return u"%(number).1f %(type)s" % {'number': count, 'type': name}
-
-
-def pformat_frame_no(frame_no, framerate):
-    sec = float(frame_no) / framerate
-    return "%s (frame no.: %s)" % (human_duration(sec), frame_no)
-
 
 
 class ProcessInfo(object):
@@ -539,7 +533,7 @@ def print_codepoint_stream(codepoint_stream, display_block_count=8, no_repr=Fals
     line = []
     for no, codepoint in enumerate(codepoint_stream, 1):
         r = repr(chr(codepoint))
-        if "\\x" in r: # FIXME
+        if "\\x" in r:  # FIXME
             txt = "%s %i" % (hex(codepoint), codepoint)
         else:
             txt = "%s %s" % (hex(codepoint), r)
@@ -604,7 +598,7 @@ def print_block_bit_list(block_bit_list, display_block_count=8, no_repr=False):
         line = []
         for codepoint in line_info:
             r = repr(chr(codepoint))
-            if "\\x" in r: # FIXME
+            if "\\x" in r:  # FIXME
                 txt = "%s" % hex(codepoint)
             else:
                 txt = "%s %s" % (hex(codepoint), r)
