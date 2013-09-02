@@ -63,8 +63,10 @@ class Dragon32Config(BaseConfig):
      SYNC_BYTE_CODEPOINT = 60   (in hex:  '0x3c' - binary: 00111100)
     """
 
-    BIT_NUL_HZ = 1200 # "0" is a single cycle at 1200 Hz
-    BIT_ONE_HZ = 2400 # "1" is a single cycle at 2400 Hz
+    # For reading WAVE files:
+    BIT_NUL_HZ = 1100 # Spec says: 1200Hz - Bit "0" is a single cycle at 1200 Hz
+    BIT_ONE_HZ = 2100 # Spec says: 2400Hz - Bit "1" is a single cycle at 2400 Hz
+    # see: http://five.pairlist.net/pipermail/coco/2013-August/070879.html
     HZ_VARIATION = 450 # How much Hz can signal scatter to match 1 or 0 bit ?
 
     MIN_VOLUME_RATIO = 5 # percent volume to ignore sample
