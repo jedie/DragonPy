@@ -23,7 +23,7 @@ class TestDragon32Conversion(unittest.TestCase):
 
     def setUp(self):
         print
-        print "="*79
+        print " <<<<<< unittest setUp() <<<<<< "
         self.base_path = os.path.normpath(
             os.path.join(os.path.split(configs.__file__)[0], "..")
         )
@@ -31,6 +31,7 @@ class TestDragon32Conversion(unittest.TestCase):
 
     def tearDown(self):
         print "\n"*2
+        print " >>>>>> unittest tearDown() >>>>>> ",
 
     def _src_file_path(self, filename):
         return os.path.relpath(
