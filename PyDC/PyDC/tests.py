@@ -22,10 +22,15 @@ from __init__ import wav2bas
 class TestDragon32Conversion(unittest.TestCase):
 
     def setUp(self):
+        print
+        print "="*79
         self.base_path = os.path.normpath(
             os.path.join(os.path.split(configs.__file__)[0], "..")
         )
         self.cfg = configs.Dragon32Config()
+
+    def tearDown(self):
+        print "\n"*2
 
     def _src_file_path(self, filename):
         return os.path.relpath(
@@ -120,7 +125,8 @@ class TestDragon32Conversion(unittest.TestCase):
 if __name__ == '__main__':
     log = logging.getLogger("PyDC")
     log.setLevel(
-        logging.ERROR
+        #~ logging.ERROR
+        logging.INFO
 #         logging.WARNING
 #         logging.DEBUG
     )
