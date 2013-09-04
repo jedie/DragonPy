@@ -26,7 +26,8 @@ except ImportError, err:
 
 # own modules
 from utils import average, diff_info, TextLevelMeter, iter_window, \
-    human_duration, ProcessInfo, count_sign, iter_steps, sinus_values_by_hz
+    human_duration, ProcessInfo, count_sign, iter_steps, sinus_values_by_hz, \
+    hz2duration, duration2hz
 
 
 log = logging.getLogger("PyDC")
@@ -50,14 +51,6 @@ HUMAN_SAMPLEWIDTH = {
     2: "16-bit",
     4: "32-bit",
 }
-
-
-
-def hz2duration(hz, framerate):
-    return int(round(float(framerate) / hz))
-
-def duration2hz(duration, framerate):
-    return int(round(float(framerate) / duration))
 
 
 class WaveBase(object):
@@ -140,6 +133,12 @@ class Wave2Bitstream(WaveBase):
     def _pformat_pos(self):
         sec = float(self.wave_pos) / self.framerate
         return "%s (frame no.: %s)" % (human_duration(sec), self.wave_pos)
+
+    def _hz2duration(self, hz):
+        return hz2duration(hz, framerate=self.framerate)
+
+    def _duration2hz(self, duration):
+        return duration2hz(duration, framerate=self.framerate)
 
     def _print_status(self, process_info):
         percent = float(self.wave_pos) / self.frame_count * 100
@@ -257,13 +256,21 @@ class Wave2Bitstream(WaveBase):
 
         bit_one_min_hz = self.cfg.BIT_ONE_HZ - self.cfg.HZ_VARIATION
         bit_one_max_hz = self.cfg.BIT_ONE_HZ + self.cfg.HZ_VARIATION
-        print "bit-0 in %sHz - %sHz  |  bit-1 in %sHz - %sHz" % (
-            bit_nul_min_hz, bit_nul_max_hz,
-            bit_one_min_hz, bit_one_max_hz,
-        )
-        assert bit_nul_max_hz < bit_one_min_hz, "hz variation %sHz to big!" % (
+
+        bit_nul_max_duration = self._hz2duration(bit_nul_min_hz)
+        bit_nul_min_duration = self._hz2duration(bit_nul_max_hz)
+
+        bit_one_max_duration = self._hz2duration(bit_one_min_hz)
+        bit_one_min_duration = self._hz2duration(bit_one_max_hz)
+
+        log.info("bit-0 in %sHz - %sHz (duration: %s-%s)  |  bit-1 in %sHz - %sHz (duration: %s-%s)" % (
+            bit_nul_min_hz, bit_nul_max_hz, bit_nul_min_duration, bit_nul_max_duration,
+            bit_one_min_hz, bit_one_max_hz, bit_one_min_duration, bit_one_max_duration,
+        ))
+        assert bit_nul_max_hz < bit_one_min_hz, "HZ_VARIATION value is %sHz too high!" % (
             ((bit_nul_max_hz - bit_one_min_hz) / 2) + 1
         )
+        assert bit_one_max_duration < bit_nul_min_duration, "HZ_VARIATION value is too high!"
 
         # for end statistics
         one_hz_count = 0
@@ -279,8 +286,8 @@ class Wave2Bitstream(WaveBase):
 
         for duration in iter_duration_generator:
 
-            hz = self.framerate / duration
-            if hz > bit_one_min_hz and hz < bit_one_max_hz:
+            if bit_one_min_duration < duration < bit_one_max_duration:
+                hz = self._duration2hz(duration)
                 log.log(5,
                     "bit 1 at %s in %sSamples = %sHz" % (
                         self._pformat_pos(), duration, hz
@@ -294,7 +301,8 @@ class Wave2Bitstream(WaveBase):
                 if hz > one_hz_max:
                     one_hz_max = hz
                 one_hz_avg = average(one_hz_avg, hz, one_hz_count)
-            elif hz > bit_nul_min_hz and hz < bit_nul_max_hz:
+            elif bit_nul_min_duration < duration < bit_nul_max_duration:
+                hz = self._duration2hz(duration)
                 log.log(5,
                     "bit 0 at %s in %sSamples = %sHz" % (
                         self._pformat_pos(), duration, hz
@@ -309,7 +317,7 @@ class Wave2Bitstream(WaveBase):
                     nul_hz_max = hz
                 nul_hz_avg = average(nul_hz_avg, hz, nul_hz_count)
             else:
-                hz = duration2hz(duration, self.framerate)
+                hz = self._duration2hz(duration)
                 log.log(7,
                     "Skip signal at %s with %sHz (%sSamples) out of frequency range." % (
                         self._pformat_pos(), hz, duration
@@ -568,13 +576,12 @@ if __name__ == "__main__":
 #     subprocess.Popen([sys.executable, "../PyDC_cli.py", "--help"])
 #     sys.exit()
 
-    subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
-#         "--log_format=%(module)s %(lineno)d: %(message)s",
-        "--analyze",
-        "../test_files/HelloWorld1 xroar.wav"
-#         "../test_files/HelloWorld1 origin.wav"
-    ])
-    sys.exit()
+#     subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
+# #         "--log_format=%(module)s %(lineno)d: %(message)s",
+#         "--analyze",
+#         "../test_files/HelloWorld1 xroar.wav"
+# #         "../test_files/HelloWorld1 origin.wav"
+#     ])
 
     # bas -> wav
 #     subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",

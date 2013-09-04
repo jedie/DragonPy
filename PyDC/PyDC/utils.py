@@ -754,6 +754,26 @@ def sinus_values_by_hz(framerate, hz, max_value):
     return values
 
 
+def hz2duration(hz, framerate):
+    """
+    >>> hz2duration(hz=1200, framerate=44100)
+    37
+    >>> hz2duration(hz=2400, framerate=44100)
+    18
+    """
+    return int(round(float(framerate) / hz))
+
+
+def duration2hz(duration, framerate):
+    """
+    >>> duration2hz(duration=37, framerate=44100)
+    1192
+    >>> duration2hz(duration=18, framerate=44100)
+    2450
+    """
+    return int(round(float(framerate) / duration))
+
+
 if __name__ == "__main__":
     import doctest
     print doctest.testmod()
