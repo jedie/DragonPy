@@ -25,12 +25,20 @@ def analyze(wave_file, cfg):
     wb = Wave2Bitstream(wave_file, cfg)
     wb.analyze()
 
+def bas2cas(source_filepath, destination_filepath, cfg):
+    """
+    Create a .cas file from a existing .bas file
+    """
+    c = Cassette(cfg)
+    c.add_from_bas(source_filepath)
+    c.print_debug_info()
+    c.write_cas(destination_filepath)
+
 
 def bas2wav(source_filepath, destination_filepath, cfg):
     """
-    Create a bitstream from a existing .bas file
+    Create a wave file from a existing .bas file
     """
-
     c = Cassette(cfg)
 
     c.add_from_bas(source_filepath)

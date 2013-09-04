@@ -527,6 +527,16 @@ class Cassette(object):
                 assert isinstance(codepoint, int), "Codepoint %s is not int/hex" % repr(codepoint)
             wav.write_codepoint(codepoint)
 
+    def write_cas(self, destination_file):
+        log.info("Create %s..." % repr(destination_file))
+        with open(destination_file, "wb") as f:
+            for codepoint in self.codepoint_stream():
+                if isinstance(codepoint, (tuple, list)):
+                    for item in codepoint:
+                        f.write(chr(item))
+                else:
+                    f.write(chr(codepoint))
+        print "\nFile %s saved." % repr(destination_file)
 
     def save_bas(self, destination_file):
         dest_filename, dest_ext = os.path.splitext(destination_file)

@@ -13,7 +13,7 @@ import logging
 import os
 import sys
 
-from PyDC import TITLE_LINE, VERSION_STRING, wav2bas, bas2wav, analyze
+from PyDC import TITLE_LINE, VERSION_STRING, wav2bas, bas2wav, analyze, bas2cas
 from PyDC.base_cli import Base_CLI
 from PyDC.configs import Dragon32Config
 
@@ -33,7 +33,7 @@ class PyDC_CLI(Base_CLI):
 
         self.parser.add_argument("src", help="Source filename (.wav/.bas)")
         self.parser.add_argument("--dst",
-            help="Destination filename (.wav/.bas)"
+            help="Destination filename (.wav/.bas/.cas)"
         )
 
         self.parser.add_argument(
@@ -116,10 +116,14 @@ class PyDC_CLI(Base_CLI):
 
         if self.args.analyze:
             analyze(self.source_file, self.cfg)
+
         elif source_ext.startswith(".wav") and dest_ext.startswith(".bas"):
             wav2bas(self.source_file, self.destination_file, self.cfg)
         elif source_ext.startswith(".bas") and dest_ext.startswith(".wav"):
             bas2wav(self.source_file, self.destination_file, self.cfg)
+
+        elif source_ext.startswith(".bas") and dest_ext.startswith(".cas"):
+            bas2cas(self.source_file, self.destination_file, self.cfg)
         else:
             print "ERROR:"
             print "%s to %s ???" % (repr(self.source_file), repr(self.destination_file))
