@@ -166,8 +166,7 @@ class Wave2Bitstream(WaveBase):
     def _get_statistics(self, max=None):
         statistics = {}
         iter_duration_generator = self.iter_duration(self.iter_trigger_generator)
-        for count, data in enumerate(iter_duration_generator):
-            frame_no, duration = data
+        for count, duration in enumerate(iter_duration_generator):
             try:
                 statistics[duration] += 1
             except KeyError:
@@ -240,9 +239,6 @@ class Wave2Bitstream(WaveBase):
 
         test_durations = list(test_durations)
 
-        # Create only a duration list:
-        test_durations = [i[1] for i in test_durations]
-
         diff1, diff2 = diff_info(test_durations)
         log.debug("sync diff info: %i vs. %i" % (diff1, diff2))
 
@@ -280,15 +276,14 @@ class Wave2Bitstream(WaveBase):
 
         bit_count = 0
 
-        frame_no = False
-        for frame_no, duration in iter_duration_generator:
-#             if frame_no > 500:
-#                 sys.exit()
+        for duration in iter_duration_generator:
 
             hz = self.framerate / duration
             if hz > self.bit_one_min_hz and hz < self.bit_one_max_hz:
                 log.log(5,
-                    "bit 1 at %s in %sSamples = %sHz" % (frame_no, duration, hz)
+                    "bit 1 at %s in %sSamples = %sHz" % (
+                        self._pformat_pos(), duration, hz
+                    )
                 )
                 bit_count += 1
                 yield 1
@@ -300,7 +295,9 @@ class Wave2Bitstream(WaveBase):
                 one_hz_avg = average(one_hz_avg, hz, one_hz_count)
             elif hz > self.bit_nul_min_hz and hz < self.bit_nul_max_hz:
                 log.log(5,
-                    "bit 0 at %s in %sSamples = %sHz" % (frame_no, duration, hz)
+                    "bit 0 at %s in %sSamples = %sHz" % (
+                        self._pformat_pos(), duration, hz
+                    )
                 )
                 bit_count += 1
                 yield 0
@@ -314,7 +311,7 @@ class Wave2Bitstream(WaveBase):
                 hz = duration2hz(duration, self.framerate)
                 log.log(7,
                     "Skip signal at %s with %sHz (%sSamples) out of frequency range." % (
-                        self.wave_pos, hz, duration
+                        self._pformat_pos(), hz, duration
                     )
                 )
                 continue
@@ -348,7 +345,7 @@ class Wave2Bitstream(WaveBase):
         for pos in iter_trigger:
             duration = pos - old_pos
 #             log.log(5, "Duration: %s" % duration)
-            yield self.wave_pos, duration
+            yield duration
             old_pos = pos
 
             if time.time() > next_status:
