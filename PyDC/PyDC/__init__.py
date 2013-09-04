@@ -35,11 +35,14 @@ def bas2wav(source_filepath, destination_filepath, cfg):
 
     c.add_from_bas(source_filepath)
     c.print_debug_info()
-    bitstream = c.get_as_bitstream()
-#     print_bitlist(bitstream)
 
-    bw = Bitstream2Wave(bitstream, cfg)
-    bw.write_wave(destination_filepath)
+    wav = Bitstream2Wave(destination_filepath, cfg)
+
+    c.write_wave(wav)
+
+    wav.close()
+
+
 
 
 def wav2bas(source_filepath, destination_filepath, cfg):

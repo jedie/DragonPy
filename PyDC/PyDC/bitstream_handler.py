@@ -107,6 +107,7 @@ class BitstreamHandler(object):
                 block_type, block_length, codepoints = self.get_block_info(bitstream)
             except SyncByteNotFoundError, err:
                 log.error(err)
+                log.info("Last wave pos: %s" % bitstream.pformat_pos())
                 break
 
             try:
@@ -138,10 +139,13 @@ class BitstreamHandler(object):
             print "="*79
 
     def sync_bitstream(self, bitstream):
+        log.debug("start sync bitstream at wave pos: %s" % bitstream.pformat_pos())
         bitstream.sync(32) # Sync bitstream to wave sinus cycle
 
 #         test_bitstream = list(itertools.islice(bitstream, 258 * 8))
 #         print_bitlist(test_bitstream)
+
+        log.debug("Searching for lead-in byte at wave pos: %s" % bitstream.pformat_pos())
 
         # Searching for lead-in byte
         lead_in_pattern = list(codepoints2bitstream(self.cfg.LEAD_BYTE_CODEPOINT))
@@ -158,9 +162,12 @@ class BitstreamHandler(object):
                 list2str(lead_in_pattern), hex(self.cfg.LEAD_BYTE_CODEPOINT), err
             ))
         else:
-            log.info("Leader-Byte '%s' (%s) found at %i Bytes" % (
-                list2str(lead_in_pattern), hex(self.cfg.LEAD_BYTE_CODEPOINT), leader_pos
+            log.info("Leader-Byte '%s' (%s) found at %i Bytes (wave pos: %s)" % (
+                list2str(lead_in_pattern), hex(self.cfg.LEAD_BYTE_CODEPOINT),
+                leader_pos, bitstream.pformat_pos()
             ))
+
+        log.debug("Search for sync-byte at wave pos: %s" % bitstream.pformat_pos())
 
         # Search for sync-byte
         sync_pattern = list(codepoints2bitstream(self.cfg.SYNC_BYTE_CODEPOINT))
@@ -182,9 +189,9 @@ class BitstreamHandler(object):
                 )
             )
         else:
-            log.info("Sync-Byte '%s' (%s) found at %i Bytes" % (
+            log.info("Sync-Byte '%s' (%s) found at %i Bytes (wave pos: %s)" % (
                 list2str(sync_pattern), hex(self.cfg.SYNC_BYTE_CODEPOINT),
-                sync_pos
+                sync_pos, bitstream.pformat_pos()
             ))
 
 

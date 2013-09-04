@@ -131,6 +131,9 @@ class TestDragon32Conversion(unittest.TestCase):
             statistics, {10: 17, 11: 44, 12: 4, 19: 5, 20: 44, 21: 15}
         )
 
+#     def test_bas2ascii_wav(self):
+#         pass # TODO
+
 
 if __name__ == '__main__':
 #     log = logging.getLogger("PyDC")
@@ -148,6 +151,7 @@ if __name__ == '__main__':
 #             "TestDragon32Conversion.test_wav2bas01",
 #             "TestDragon32Conversion.test_wav2bas04",
 #             "TestDragon32Conversion.test_statistics",
+#             "TestDragon32Conversion.test_bas2ascii_wav", # TODO
         ),
 #         verbosity=1,
         verbosity=2,

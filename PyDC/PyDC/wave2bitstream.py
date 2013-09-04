@@ -27,7 +27,7 @@ except ImportError, err:
 # own modules
 from utils import average, diff_info, TextLevelMeter, iter_window, \
     human_duration, ProcessInfo, count_sign, iter_steps, sinus_values_by_hz, \
-    hz2duration, duration2hz
+    hz2duration, duration2hz, codepoints2bitstream, bits2codepoint
 
 
 log = logging.getLogger("PyDC")
@@ -64,6 +64,16 @@ class WaveBase(object):
                 )
             )
         return typecode
+
+    def pformat_pos(self):
+        sec = float(self.wave_pos) / self.framerate
+        return "%s (frame no.: %s)" % (human_duration(sec), self.wave_pos)
+
+    def _hz2duration(self, hz):
+        return hz2duration(hz, framerate=self.framerate)
+
+    def _duration2hz(self, duration):
+        return duration2hz(duration, framerate=self.framerate)
 
 
 class Wave2Bitstream(WaveBase):
@@ -130,21 +140,11 @@ class Wave2Bitstream(WaveBase):
         # build from sinus cycle duration the bit stream
         self.iter_bitstream_generator = self.iter_bitstream(self.iter_duration_generator)
 
-    def _pformat_pos(self):
-        sec = float(self.wave_pos) / self.framerate
-        return "%s (frame no.: %s)" % (human_duration(sec), self.wave_pos)
-
-    def _hz2duration(self, hz):
-        return hz2duration(hz, framerate=self.framerate)
-
-    def _duration2hz(self, duration):
-        return duration2hz(duration, framerate=self.framerate)
-
     def _print_status(self, process_info):
         percent = float(self.wave_pos) / self.frame_count * 100
         rest, eta, rate = process_info.update(self.wave_pos)
         sys.stdout.write("\r%.1f%% wav pos:%s - eta: %s (rate: %iFrames/sec)       " % (
-            percent, self._pformat_pos(), eta, rate
+            percent, self.pformat_pos(), eta, rate
         ))
         sys.stdout.flush()
 
@@ -211,7 +211,7 @@ class Wave2Bitstream(WaveBase):
             print "Error: no bits identified!"
             sys.exit(-1)
 
-        log.info("First bit is at: %s" % self._pformat_pos())
+        log.info("First bit is at: %s" % self.pformat_pos())
         log.debug("enable half sinus scan")
         self.half_sinus = True
 
@@ -290,7 +290,7 @@ class Wave2Bitstream(WaveBase):
                 hz = self._duration2hz(duration)
                 log.log(5,
                     "bit 1 at %s in %sSamples = %sHz" % (
-                        self._pformat_pos(), duration, hz
+                        self.pformat_pos(), duration, hz
                     )
                 )
                 bit_count += 1
@@ -305,7 +305,7 @@ class Wave2Bitstream(WaveBase):
                 hz = self._duration2hz(duration)
                 log.log(5,
                     "bit 0 at %s in %sSamples = %sHz" % (
-                        self._pformat_pos(), duration, hz
+                        self.pformat_pos(), duration, hz
                     )
                 )
                 bit_count += 1
@@ -320,7 +320,7 @@ class Wave2Bitstream(WaveBase):
                 hz = self._duration2hz(duration)
                 log.log(7,
                     "Skip signal at %s with %sHz (%sSamples) out of frequency range." % (
-                        self._pformat_pos(), hz, duration
+                        self.pformat_pos(), hz, duration
                     )
                 )
                 continue
@@ -504,12 +504,12 @@ class Wave2Bitstream(WaveBase):
         log.info("Skip %i samples that are lower than %i" % (
             skip_count, self.min_volume
         ))
-        log.info("Last readed Frame is: %s" % self._pformat_pos())
+        log.info("Last readed Frame is: %s" % self.pformat_pos())
 
 
 class Bitstream2Wave(WaveBase):
-    def __init__(self, bitstream, cfg):
-        self.bitstream = bitstream
+    def __init__(self, destination_filepath, cfg):
+        self.destination_filepath = destination_filepath
         self.cfg = cfg
 
         wave_max_value = MAX_VALUES[self.cfg.SAMPLEWIDTH]
@@ -522,43 +522,69 @@ class Bitstream2Wave(WaveBase):
             self.used_max_values, self.cfg.VOLUME_RATIO
         ))
 
-        typecode = self.get_typecode(self.cfg.SAMPLEWIDTH)
+        self.typecode = self.get_typecode(self.cfg.SAMPLEWIDTH)
 
-        self.bit_nul_samples = self.get_samples(typecode, self.cfg.BIT_NUL_HZ)
-        self.bit_one_samples = self.get_samples(typecode, self.cfg.BIT_ONE_HZ)
+        self.bit_nul_samples = self.get_samples(self.cfg.BIT_NUL_HZ)
+        self.bit_one_samples = self.get_samples(self.cfg.BIT_ONE_HZ)
 
-    def get_samples(self, typecode, hz):
+        log.info("create wave file '%s'..." % destination_filepath)
+        try:
+            self.wavefile = wave.open(destination_filepath, "wb")
+        except IOError, err:
+            log.error("Error opening %s: %s" % (repr(destination_filepath), err))
+            sys.exit(-1)
+
+        self.wavefile.setnchannels(1) # Mono
+        self.wavefile.setsampwidth(self.cfg.SAMPLEWIDTH)
+        self.wavefile.setframerate(self.cfg.FRAMERATE)
+        self.framerate = self.cfg.FRAMERATE
+
+        self.wave_pos = self.wavefile._nframeswritten
+
+    def get_samples(self, hz):
         values = tuple(
             sinus_values_by_hz(self.cfg.FRAMERATE, hz, self.used_max_values)
         )
         real_hz = float(self.cfg.FRAMERATE) / len(values)
         log.debug("Real frequency: %.2f" % real_hz)
-        return array.array(typecode, values)
+        return array.array(self.typecode, values)
 
-    def write_wave(self, destination_filepath):
-        log.info("create wave file '%s'..." % destination_filepath)
-        try:
-            wavefile = wave.open(destination_filepath, "wb")
-        except IOError, err:
-            log.error("Error opening %s: %s" % (repr(destination_filepath), err))
-            sys.exit(-1)
-
-        wavefile.setnchannels(1) # Mono
-        wavefile.setsampwidth(self.cfg.SAMPLEWIDTH)
-        wavefile.setframerate(self.cfg.FRAMERATE)
-
-        for bit in self.bitstream:
+    def write_codepoint(self, codepoints):
+        written_codepoints = []
+        bits = []
+        for bit in codepoints2bitstream(codepoints):
+            bits.append(bit)
+            if len(bits) == 8:
+                written_codepoints.append(bits2codepoint(bits))
+                bits = []
+                
             if bit == 0:
 #                 wavefile.writeframes(self.bit_nul_samples)
-                wavefile.writeframesraw(self.bit_nul_samples)
+                self.wavefile.writeframes(self.bit_nul_samples)
             elif bit == 1:
 #                 wavefile.writeframes(self.bit_one_samples)
-                wavefile.writeframesraw(self.bit_one_samples)
+                self.wavefile.writeframes(self.bit_one_samples)
             else:
                 raise TypeError
+        log.debug("Written at %s: %s" % (
+            self.pformat_pos(), ",".join([hex(x) for x in written_codepoints])
+        ))
+        self.wave_pos = self.wavefile._nframeswritten
 
-        wavefile.close()
-        log.info("Wave file %s written." % destination_filepath)
+    def write_silence(self, sec):
+        # the filename block was written
+        silence = [0x00 for _ in xrange(sec * self.framerate)]
+        silence = array.array(self.typecode, silence)
+        self.wavefile.writeframes(silence)
+        log.debug("Write %ssec. silence at %s" % (sec, self.pformat_pos()))
+        self.wave_pos = self.wavefile._nframeswritten
+
+    def close(self):
+        self.wavefile.close()
+        self.wave_pos = self.wavefile._nframeswritten
+        log.info("Wave file %s written (%s)" % (
+            self.destination_filepath, self.pformat_pos()
+        ))
 
 
 if __name__ == "__main__":
@@ -583,11 +609,22 @@ if __name__ == "__main__":
 # #         "../test_files/HelloWorld1 origin.wav"
 #     ])
 
+#     print "\n"*3
+#     print "="*79
+#     print "\n"*3
+
     # bas -> wav
-#     subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
-# #         "--log_format=%(module)s %(lineno)d: %(message)s",
-#         "../test_files/HelloWorld1.bas", "../test.wav"
-#     ]).wait()
+    subprocess.Popen([sys.executable, "../PyDC_cli.py",
+        "--verbosity=10",
+#         "--verbosity=5",
+#         "--logfile=5",
+#         "--log_format=%(module)s %(lineno)d: %(message)s",
+        "../test_files/HelloWorld1.bas", "--dst=../test.wav"
+    ]).wait()
+
+    print "\n"*3
+    print "="*79
+    print "\n"*3
 
     # wav -> bas
     subprocess.Popen([sys.executable, "../PyDC_cli.py",
@@ -595,8 +632,8 @@ if __name__ == "__main__":
 #         "--verbosity=5",
 #         "--logfile=5",
 #         "--log_format=%(module)s %(lineno)d: %(message)s",
-#         "../test.wav", "../test.bas",
-        "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
+        "../test.wav", "--dst=../test.bas",
+#         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
     ]).wait()
 
     print "-- END --"

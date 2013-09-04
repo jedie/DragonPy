@@ -349,8 +349,8 @@ class CassetteFile(object):
         codepoints.append(self.cfg.BASIC_ASCII) # one byte ASCII flag
         codepoints.append(0x00) # one byte gap flag (00=no gaps, FF=gaps)
         # FIXME, see: http://five.pairlist.net/pipermail/coco/2013-August/070938.html
-        codepoints += [0x00, 0x00] # two bytes machine code starting address
-        codepoints += [0x00, 0x00] # two bytes machine code loading address
+        codepoints += [0x0c, 0x00] # two bytes machine code starting address
+        codepoints += [0x0c, 0x00] # two bytes machine code loading address
         log.debug("filename block: %s" % pformat_codepoints(codepoints))
         return codepoints
 
@@ -409,6 +409,7 @@ class Cassette(object):
         self.cfg = cfg
         self.files = []
         self.current_file = None
+        self.wav = None # Bitstream2Wave instance only if write_wave() used!
 
     def add_from_bas(self, filename):
         with open(filename, "r") as f:
@@ -440,10 +441,12 @@ class Cassette(object):
         log.debug("yield %sx lead byte %s" % (
             self.cfg.LEAD_BYTE_LEN, hex(self.cfg.LEAD_BYTE_CODEPOINT)
         ))
-        for count in xrange(self.cfg.LEAD_BYTE_LEN):
-            yield self.cfg.LEAD_BYTE_CODEPOINT
-            
+        leadin = [self.cfg.LEAD_BYTE_CODEPOINT for _ in xrange(self.cfg.LEAD_BYTE_LEN)]
+        yield leadin
+
         log.debug("yield sync byte %s" % hex(self.cfg.SYNC_BYTE_CODEPOINT))
+        if self.wav:
+            log.debug("wave pos: %s" % self.wav.pformat_pos())
         yield self.cfg.SYNC_BYTE_CODEPOINT
 
         log.debug("yield block type '%s'" % self.cfg.BLOCK_TYPE_DICT[block_type])
@@ -464,14 +467,15 @@ class Cassette(object):
             log.debug("yield magic byte %s" % hex(self.cfg.MAGIC_BYTE))
             yield self.cfg.MAGIC_BYTE # 0x55
         else:
-            log.debug("yield '%s':" % self.cfg.BLOCK_TYPE_DICT[block_type])
+            log.debug("content of '%s':" % self.cfg.BLOCK_TYPE_DICT[block_type])
             log.debug("-"*79)
             log.debug(pformat_codepoints(block_codepoints))
             log.debug("-"*79)
             checksum = 0x00
-            for codepoint in block_codepoints:
-                checksum += codepoint
-                yield codepoint
+            yield block_codepoints
+#             for codepoint in block_codepoints:
+#                 checksum += codepoint
+#                 yield codepoint
 
             checksum += block_type
             checksum += block_length
@@ -490,12 +494,18 @@ class Cassette(object):
                 ):
                 yield codepoints
 
+            if self.wav:
+                self.wav.write_silence(sec=2)
+
             # yield file content
             for codepoints in self.block2codepoint_stream(
                 block_type=self.cfg.DATA_BLOCK,
                 block_codepoints=file_obj.get_code_block_as_codepoints()
                 ):
                 yield codepoints
+
+            if self.wav:
+                self.wav.write_silence(sec=2)
 
         # yield EOF
         for codepoints in self.block2codepoint_stream(
@@ -504,11 +514,19 @@ class Cassette(object):
             ):
             yield codepoints
 
-    def get_as_bitstream(self):
+        if self.wav:
+            self.wav.write_silence(sec=2)
+
+    def write_wave(self, wav):
+        self.wav = wav # Bitstream2Wave instance
         for codepoint in self.codepoint_stream():
-            assert isinstance(codepoint, int), "Codepoint %s is not int/hex" % repr(codepoint)
-            for bit in codepoints2bitstream(codepoint):
-                yield bit
+            if isinstance(codepoint, (tuple, list)):
+                for item in codepoint:
+                    assert isinstance(item, int), "Codepoint %s is not int/hex" % repr(codepoint)
+            else:
+                assert isinstance(codepoint, int), "Codepoint %s is not int/hex" % repr(codepoint)
+            wav.write_codepoint(codepoint)
+
 
     def save_bas(self, destination_file):
         dest_filename, dest_ext = os.path.splitext(destination_file)
@@ -549,17 +567,27 @@ if __name__ == "__main__":
 #     )
 #     sys.exit()
 
-    import time, subprocess
-    subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
-        # bas -> wav
-        "../test_files/HelloWorld1.bas", "../test.wav"
+    import subprocess
+
+    # bas -> wav
+    subprocess.Popen([sys.executable, "../PyDC_cli.py",
+        "--verbosity=10",
+#         "--verbosity=5",
+#         "--logfile=5",
+#         "--log_format=%(module)s %(lineno)d: %(message)s",
+        "../test_files/HelloWorld1.bas", "--dst=../test.wav"
     ]).wait()
 
+    print "\n"*3
     print "="*79
-    subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
-        # wav -> bas
-        "../test.wav", "../test.bas",
-#         "../test_files/HelloWorld1 origin.wav", "../test_files/HelloWorld1.bas",
+    print "\n"*3
+
+#     # wav -> bas
+    subprocess.Popen([sys.executable, "../PyDC_cli.py",
+#         "--verbosity=10",
+        "--verbosity=7",
+        "../test.wav", "--dst=../test.bas",
+#         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
     ]).wait()
 
     print "-- END --"
