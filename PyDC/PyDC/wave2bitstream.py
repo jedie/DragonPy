@@ -111,20 +111,6 @@ class Wave2Bitstream(WaveBase):
         self.min_volume = int(round(self.max_value * cfg.MIN_VOLUME_RATIO / 100))
         print "Ignore sample lower than %.1f%% = %i" % (cfg.MIN_VOLUME_RATIO, self.min_volume)
 
-        # build min/max Hz values
-        self.bit_nul_min_hz = cfg.BIT_NUL_HZ - cfg.HZ_VARIATION
-        self.bit_nul_max_hz = cfg.BIT_NUL_HZ + cfg.HZ_VARIATION
-
-        self.bit_one_min_hz = cfg.BIT_ONE_HZ - cfg.HZ_VARIATION
-        self.bit_one_max_hz = cfg.BIT_ONE_HZ + cfg.HZ_VARIATION
-        print "bit-0 in %sHz - %sHz  |  bit-1 in %sHz - %sHz" % (
-            self.bit_nul_min_hz, self.bit_nul_max_hz,
-            self.bit_one_min_hz, self.bit_one_max_hz,
-        )
-        assert self.bit_nul_max_hz < self.bit_one_min_hz, "hz variation %sHz to big!" % (
-            ((self.bit_nul_max_hz - self.bit_one_min_hz) / 2) + 1
-        )
-
         self.half_sinus = False # in trigger yield the full cycle
         self.frame_no = None
 
@@ -265,6 +251,21 @@ class Wave2Bitstream(WaveBase):
         """
         assert self.half_sinus == False # Allways trigger full sinus cycle
 
+        # build min/max Hz values
+        bit_nul_min_hz = self.cfg.BIT_NUL_HZ - self.cfg.HZ_VARIATION
+        bit_nul_max_hz = self.cfg.BIT_NUL_HZ + self.cfg.HZ_VARIATION
+
+        bit_one_min_hz = self.cfg.BIT_ONE_HZ - self.cfg.HZ_VARIATION
+        bit_one_max_hz = self.cfg.BIT_ONE_HZ + self.cfg.HZ_VARIATION
+        print "bit-0 in %sHz - %sHz  |  bit-1 in %sHz - %sHz" % (
+            bit_nul_min_hz, bit_nul_max_hz,
+            bit_one_min_hz, bit_one_max_hz,
+        )
+        assert bit_nul_max_hz < bit_one_min_hz, "hz variation %sHz to big!" % (
+            ((bit_nul_max_hz - bit_one_min_hz) / 2) + 1
+        )
+
+        # for end statistics
         one_hz_count = 0
         one_hz_min = sys.maxint
         one_hz_avg = None
@@ -279,7 +280,7 @@ class Wave2Bitstream(WaveBase):
         for duration in iter_duration_generator:
 
             hz = self.framerate / duration
-            if hz > self.bit_one_min_hz and hz < self.bit_one_max_hz:
+            if hz > bit_one_min_hz and hz < bit_one_max_hz:
                 log.log(5,
                     "bit 1 at %s in %sSamples = %sHz" % (
                         self._pformat_pos(), duration, hz
@@ -293,7 +294,7 @@ class Wave2Bitstream(WaveBase):
                 if hz > one_hz_max:
                     one_hz_max = hz
                 one_hz_avg = average(one_hz_avg, hz, one_hz_count)
-            elif hz > self.bit_nul_min_hz and hz < self.bit_nul_max_hz:
+            elif hz > bit_nul_min_hz and hz < bit_nul_max_hz:
                 log.log(5,
                     "bit 0 at %s in %sSamples = %sHz" % (
                         self._pformat_pos(), duration, hz
