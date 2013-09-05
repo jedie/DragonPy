@@ -419,6 +419,55 @@ class Cassette(object):
         self.current_file.create_from_bas(filename, file_content)
         self.files.append(self.current_file)
 
+    def add_from_cas(self, source_filepath):
+        log.debug("Open %s..." % repr(source_filepath))
+
+        class CasStream(object):
+            def __init__(self, source_filepath):
+                self.source_filepath = source_filepath
+                self.f = open(source_filepath, "rb")
+                self.pos = 0
+
+            def __iter__(self):
+                return self
+            def next(self):
+                self.last_byte = self.f.read(1)
+                if self.last_byte == "":
+                    raise StopIteration
+                self.pos += 1
+                self.last_codepoint = ord(self.last_byte)
+                return (self.pos, self.last_codepoint)
+
+        cas_stream = CasStream(source_filepath)
+
+        leadin_count = None
+#         for i in iter(cas_stream.next, self.cfg.LEAD_BYTE_CODEPOINT):
+#             print i
+#             break
+
+        log.debug("Count leading byte.")
+#         for leadin_count, leadin_byte in iter(cas_stream.next, self.cfg.LEAD_BYTE_CODEPOINT):
+        for leadin_count, leadin_byte in cas_stream:
+            if leadin_byte != self.cfg.LEAD_BYTE_CODEPOINT:
+                break
+
+        if leadin_count is None:
+            log.error("Leadin byte not found in file!")
+            sys.exit(-1)
+        log.info("%s x leadin bytes found." % leadin_count)
+
+#         sync_byte = cas_stream.next()
+        sync_byte = cas_stream.last_codepoint
+        if sync_byte != self.cfg.SYNC_BYTE_CODEPOINT:
+            log.error("Sync byte wrong. Get %s but excepted %s" % (
+                repr(sync_byte), hex(self.cfg.SYNC_BYTE_CODEPOINT)
+            ))
+        else:
+            log.debug("Sync byte, ok.")
+
+        raise TODO
+
+
     def add_block(self, block_type, block_length, block_codepoints):
         if block_type == self.cfg.EOF_BLOCK:
             return
@@ -579,24 +628,26 @@ if __name__ == "__main__":
 
     import subprocess
 
-    # bas -> wav
-    subprocess.Popen([sys.executable, "../PyDC_cli.py",
-        "--verbosity=10",
-#         "--verbosity=5",
-#         "--logfile=5",
-#         "--log_format=%(module)s %(lineno)d: %(message)s",
-        "../test_files/HelloWorld1.bas", "--dst=../test.wav"
-    ]).wait()
-
-    print "\n"*3
-    print "="*79
-    print "\n"*3
+#     # bas -> wav
+#     subprocess.Popen([sys.executable, "../PyDC_cli.py",
+#         "--verbosity=10",
+# #         "--verbosity=5",
+# #         "--logfile=5",
+# #         "--log_format=%(module)s %(lineno)d: %(message)s",
+# #         "../test_files/HelloWorld1.bas", "--dst=../test.wav"
+#         "../test_files/HelloWorld1.bas", "--dst=../test.cas"
+#     ]).wait()
+#
+#     print "\n"*3
+#     print "="*79
+#     print "\n"*3
 
 #     # wav -> bas
     subprocess.Popen([sys.executable, "../PyDC_cli.py",
 #         "--verbosity=10",
         "--verbosity=7",
-        "../test.wav", "--dst=../test.bas",
+#         "../test.wav", "--dst=../test.bas",
+        "../test.cas", "--dst=../test.bas",
 #         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
     ]).wait()
 

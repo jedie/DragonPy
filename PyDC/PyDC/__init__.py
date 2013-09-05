@@ -35,6 +35,16 @@ def bas2cas(source_filepath, destination_filepath, cfg):
     c.write_cas(destination_filepath)
 
 
+def cas2bas(source_filepath, destination_filepath, cfg):
+    """
+    Read .cas file and create a .bas file
+    """
+    c = Cassette(cfg)
+    c.add_from_cas(source_filepath)
+    c.print_debug_info()
+    c.save_bas(destination_filepath)
+
+
 def bas2wav(source_filepath, destination_filepath, cfg):
     """
     Create a wave file from a existing .bas file

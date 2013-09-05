@@ -13,7 +13,8 @@ import logging
 import os
 import sys
 
-from PyDC import TITLE_LINE, VERSION_STRING, wav2bas, bas2wav, analyze, bas2cas
+from PyDC import TITLE_LINE, VERSION_STRING, wav2bas, bas2wav, analyze, bas2cas, \
+    cas2bas
 from PyDC.base_cli import Base_CLI
 from PyDC.configs import Dragon32Config
 
@@ -124,6 +125,9 @@ class PyDC_CLI(Base_CLI):
 
         elif source_ext.startswith(".bas") and dest_ext.startswith(".cas"):
             bas2cas(self.source_file, self.destination_file, self.cfg)
+        elif source_ext.startswith(".cas") and dest_ext.startswith(".bas"):
+            cas2bas(self.source_file, self.destination_file, self.cfg)
+
         else:
             print "ERROR:"
             print "%s to %s ???" % (repr(self.source_file), repr(self.destination_file))
