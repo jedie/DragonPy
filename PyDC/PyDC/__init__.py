@@ -10,9 +10,10 @@
 """
 
 from CassetteObjects import Cassette
-from bitstream_handler import BitstreamHandler
+from bitstream_handler import BitstreamHandler, CasStream, BytestreamHandler
 from utils import print_bitlist
 from wave2bitstream import Wave2Bitstream, Bitstream2Wave
+import sys
 
 
 __version__ = (0, 1, 0, 'dev')
@@ -39,10 +40,17 @@ def cas2bas(source_filepath, destination_filepath, cfg):
     """
     Read .cas file and create a .bas file
     """
-    c = Cassette(cfg)
-    c.add_from_cas(source_filepath)
-    c.print_debug_info()
-    c.save_bas(destination_filepath)
+    cas_stream = CasStream(source_filepath)
+    bh = BytestreamHandler(cfg)
+    bh.feed(cas_stream)
+
+    # save .bas file
+    bh.cassette.save_bas(destination_filepath)
+
+#     c = Cassette(cfg)
+#     c.add_from_cas(source_filepath)
+#     c.print_debug_info()
+#     c.save_bas(destination_filepath)
 
 
 def bas2wav(source_filepath, destination_filepath, cfg):
@@ -84,20 +92,31 @@ if __name__ == "__main__":
 #         verbose=False
 #         # verbose=True
 #     )
-    print TITLE_LINE
+#     sys.exit()
 
-    # test via CLI:
+    import subprocess
 
-    import sys, subprocess
-    subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
-        # bas -> wav
-        "../test_files/HelloWorld1.bas", "../test.wav"
+    # bas -> wav
+    subprocess.Popen([sys.executable, "../PyDC_cli.py",
+        "--verbosity=10",
+#         "--verbosity=5",
+#         "--logfile=5",
+#         "--log_format=%(module)s %(lineno)d: %(message)s",
+#         "../test_files/HelloWorld1.bas", "--dst=../test.wav"
+        "../test_files/HelloWorld1.bas", "--dst=../test.cas"
     ]).wait()
 
-    subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
-        # wav -> bas
-#         "../test.wav", "../test.bas",
-        "../test_files/HelloWorld1 origin.wav", "../test_files/HelloWorld1.bas",
+    print "\n"*3
+    print "="*79
+    print "\n"*3
+
+#     # wav -> bas
+    subprocess.Popen([sys.executable, "../PyDC_cli.py",
+#         "--verbosity=10",
+        "--verbosity=7",
+#         "../test.wav", "--dst=../test.bas",
+        "../test.cas", "--dst=../test.bas",
+#         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
     ]).wait()
 
     print "-- END --"

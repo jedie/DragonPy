@@ -16,7 +16,7 @@ import string
 import math
 
 
-LOG_FORMATTER = logging.Formatter("")  # %(asctime)s %(message)s")
+LOG_FORMATTER = logging.Formatter("") # %(asctime)s %(message)s")
 LOG_LEVEL_DICT = {
     0: logging.ERROR,
     1: logging.WARNING,
@@ -249,20 +249,21 @@ def find_iter_window(bitstream, pattern, max_pos=None):
             raise MaxPosArraived(pos)
     raise PatternNotFound(pos)
 
-# def match_count(g, pattern):
-#     """
-#     >>> match_count([, pattern)
-#     """
-#     # Searching for lead-in byte
-#     leader_pos = find_iter_window(bit_list, LEAD_IN_PATTERN) # Search for LEAD_IN_PATTERN in bit-by-bit steps
-#     print "Start leader '%s' found at position: %i" % (LEAD_IN_PATTERN, leader_pos)
-#
-#     # Cut bits before the first 01010101 start leader
-#     print "bits before header:", repr(int_list2str(bit_list[:leader_pos]))
-#     bit_list = bit_list[leader_pos:]
-#
-#     # count lead-in byte matches without ceasing to get faster to the sync-byte
-#     leader_count = count_continuous_pattern(bit_list, LEAD_IN_PATTERN)
+
+def count_the_same(iterable, sentinel):
+    """
+    >>> count_the_same([0x55,0x55,0x55,0x55,0x3C,"foo","bar"],0x55)
+    (4, 60)
+    >>> 0x3C == 60
+    True
+    """
+    count = 0
+    x = None
+    for count, x in enumerate(iterable):
+        if x != sentinel:
+            break
+    return count, x
+
 
 def diff_info(data):
     """
@@ -533,7 +534,7 @@ def print_codepoint_stream(codepoint_stream, display_block_count=8, no_repr=Fals
     line = []
     for no, codepoint in enumerate(codepoint_stream, 1):
         r = repr(chr(codepoint))
-        if "\\x" in r:  # FIXME
+        if "\\x" in r: # FIXME
             txt = "%s %i" % (hex(codepoint), codepoint)
         else:
             txt = "%s %s" % (hex(codepoint), r)
@@ -598,7 +599,7 @@ def print_block_bit_list(block_bit_list, display_block_count=8, no_repr=False):
         line = []
         for codepoint in line_info:
             r = repr(chr(codepoint))
-            if "\\x" in r:  # FIXME
+            if "\\x" in r: # FIXME
                 txt = "%s" % hex(codepoint)
             else:
                 txt = "%s %s" % (hex(codepoint), r)

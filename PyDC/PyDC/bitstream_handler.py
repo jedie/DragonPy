@@ -21,6 +21,8 @@ import os
 # own modules
 from configs import Dragon32Config
 from CassetteObjects import Cassette
+from PyDC.utils import count_the_same
+import functools
 
 
 log = logging.getLogger("PyDC")
@@ -91,7 +93,7 @@ def print_as_hex(block_codepoints):
 
 
 
-class BitstreamHandler(object):
+class BitstreamHandlerBase(object):
     def __init__(self, cfg):
         self.cfg = cfg
         self.cassette = Cassette(cfg)
@@ -104,11 +106,13 @@ class BitstreamHandler(object):
     #         bitstream = iter(bitstream)
 
             try:
-                block_type, block_length, codepoints = self.get_block_info(bitstream)
+                self.sync_bitstream(bitstream) # Sync bitstream with SYNC_BYTE
             except SyncByteNotFoundError, err:
                 log.error(err)
                 log.info("Last wave pos: %s" % bitstream.pformat_pos())
                 break
+
+            block_type, block_length, codepoints = self.get_block_info(bitstream)
 
             try:
                 block_type_name = self.cfg.BLOCK_TYPE_DICT[block_type]
@@ -137,6 +141,59 @@ class BitstreamHandler(object):
 
             self.cassette.add_block(block_type, block_length, codepoints)
             print "="*79
+
+    def get_block_info(self, codepoint_stream):
+        block_type = next(codepoint_stream)
+        log.info("raw block type: %s (%s)" % (hex(block_type), repr(block_type)))
+
+        block_length = next(codepoint_stream)
+
+        # Get the complete block content
+        codepoints = list(itertools.islice(codepoint_stream, block_length))
+
+        real_block_len = len(codepoints)
+        if real_block_len == block_length:
+            log.info("Block length: %sBytes, ok." % block_length)
+        else:
+            log.error("Block should be %sBytes but are: %sBytes!" % (block_length, real_block_len))
+
+        # Check block checksum
+
+        origin_checksum = next(codepoint_stream)
+
+        calc_checksum = sum([codepoint for codepoint in codepoints])
+        calc_checksum += block_type
+        calc_checksum += block_length
+        calc_checksum = calc_checksum & 0xFF
+
+        if calc_checksum == origin_checksum:
+            log.info("Block checksum %s is ok." % hex(origin_checksum))
+        else:
+            log.error("Block checksum %s is not equal with calculated checksum: %s" % (
+                hex(origin_checksum), hex(calc_checksum)
+            ))
+
+        # Check if the magic byte exists
+
+        magic_byte = next(codepoint_stream)
+        if magic_byte != self.cfg.MAGIC_BYTE:
+            log.error("Magic Byte %s is not %s" % (hex(magic_byte), hex(self.cfg.MAGIC_BYTE)))
+        else:
+            log.info("Magic Byte %s, ok." % hex(magic_byte))
+
+        return block_type, block_length, codepoints
+
+
+
+class BitstreamHandler(BitstreamHandlerBase):
+    """
+    feed with wave bitstream
+    """
+    def get_block_info(self, bitstream):
+        # convert the raw bitstream to codepoint stream
+        codepoint_stream = bitstream2codepoints(bitstream)
+
+        return super(BitstreamHandler, self).get_block_info(codepoint_stream)
 
     def sync_bitstream(self, bitstream):
         log.debug("start sync bitstream at wave pos: %s" % bitstream.pformat_pos())
@@ -195,55 +252,59 @@ class BitstreamHandler(object):
             ))
 
 
-    def get_block_info(self, bitstream):
-        self.sync_bitstream(bitstream) # Sync bitstream with SYNC_BYTE
+class CasStream(object):
+    def __init__(self, source_filepath):
+        self.source_filepath = source_filepath
+        self.stat = os.stat(source_filepath)
+        self.file_size = self.stat.st_size
+        log.debug("file sizes: %s Bytes" % self.file_size)
+        self.pos = 0
+        self.file_generator = self.__file_generator()
 
-        # convert the raw bitstream to codepoint stream
-        codepoint_stream = bitstream2codepoints(bitstream)
+        self.yield_ord = True
 
-        block_type = next(codepoint_stream)
-        log.info("raw block type: %s (%s)" % (hex(block_type), repr(block_type)))
+    def __iter__(self):
+        return self
 
-        block_length = next(codepoint_stream)
-
-        # Get the complete block content
-        codepoints = list(itertools.islice(codepoint_stream, block_length))
-
-        real_block_len = len(codepoints)
-        if real_block_len == block_length:
-            log.info("Block length: %sBytes, ok." % block_length)
+    def next(self):
+        byte = self.file_generator.next()
+        if self.yield_ord:
+            return ord(byte)
         else:
-            log.error("Block should be %sBytes but are: %sBytes!" % (block_length, real_block_len))
+            return byte
 
-        # Check block checksum
+    def __file_generator(self):
+        max = self.file_size + 1
+        with open(self.source_filepath, "rb") as f:
+            for chunk in iter(functools.partial(f.read, 1024), ""):
+                for byte in chunk:
+                    self.pos += 1
+                    assert self.pos < max
+                    yield byte
 
-        origin_checksum = next(codepoint_stream)
+    def get_ord(self):
+        byte = self.next()
+        codepoint = ord(byte)
+        return codepoint
 
-        calc_checksum = sum([codepoint for codepoint in codepoints])
-        calc_checksum += block_type
-        calc_checksum += block_length
-        calc_checksum = calc_checksum & 0xFF
 
-        if calc_checksum == origin_checksum:
-            log.info("Block checksum %s is ok." % hex(origin_checksum))
-        else:
-            log.error("Block checksum %s is not equal with calculated checksum: %s" % (
-                hex(origin_checksum), hex(calc_checksum)
+class BytestreamHandler(BitstreamHandlerBase):
+    """
+    feed with byte stream e.g.: from cas file
+    """
+    def sync_bitstream(self, bitstream):
+        leadin_bytes_count, sync_byte = count_the_same(bitstream, self.cfg.LEAD_BYTE_CODEPOINT)
+        if leadin_bytes_count == 0:
+            log.error("Leadin byte not found in file!")
+            sys.exit(-1)
+        log.info("%s x leadin bytes (%s) found." % (leadin_bytes_count, hex(self.cfg.LEAD_BYTE_CODEPOINT)))
+
+        if sync_byte != self.cfg.SYNC_BYTE_CODEPOINT:
+            log.error("Sync byte wrong. Get %s but excepted %s" % (
+                hex(sync_byte), hex(self.cfg.SYNC_BYTE_CODEPOINT)
             ))
-
-        # Check if the magic byte exists
-
-        magic_byte = next(codepoint_stream)
-        if magic_byte != self.cfg.MAGIC_BYTE:
-            log.error("Magic Byte %s is not %s" % (hex(magic_byte), hex(self.cfg.MAGIC_BYTE)))
         else:
-            log.info("Magic Byte %s, ok." % hex(magic_byte))
-
-        return block_type, block_length, codepoints
-
-
-
-
+            log.debug("Sync %s byte, ok." % hex(self.cfg.SYNC_BYTE_CODEPOINT))
 
 
 
