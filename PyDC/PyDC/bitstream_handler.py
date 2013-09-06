@@ -302,8 +302,8 @@ class BytestreamHandler(BitstreamHandlerBase):
         leadin_bytes_count, sync_byte = count_the_same(bitstream, self.cfg.LEAD_BYTE_CODEPOINT)
         if leadin_bytes_count == 0:
             log.error("Leadin byte not found in file!")
-            sys.exit(-1)
-        log.info("%s x leadin bytes (%s) found." % (leadin_bytes_count, hex(self.cfg.LEAD_BYTE_CODEPOINT)))
+        else:
+            log.info("%s x leadin bytes (%s) found." % (leadin_bytes_count, hex(self.cfg.LEAD_BYTE_CODEPOINT)))
 
         if sync_byte != self.cfg.SYNC_BYTE_CODEPOINT:
             log.error("Sync byte wrong. Get %s but excepted %s" % (
