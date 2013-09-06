@@ -31,6 +31,7 @@ class PyDC_CLI(Base_CLI):
 
     def __init__(self):
         super(PyDC_CLI, self).__init__()
+        self.cfg = Dragon32Config()
 
         self.parser.add_argument("src", help="Source filename (.wav/.bas)")
         self.parser.add_argument("--dst",
@@ -46,36 +47,52 @@ class PyDC_CLI(Base_CLI):
 
         # For Wave2Bitstream():
         self.parser.add_argument(
-            "--hz_variation", type=int, default=450,
+            "--bit_one_hz", type=int, default=self.cfg.BIT_ONE_HZ,
+            help=(
+                "Frequency of bit '1' in Hz"
+                " (default: %s)"
+            ) % self.cfg.BIT_ONE_HZ
+        )
+        self.parser.add_argument(
+            "--bit_nul_hz", type=int, default=self.cfg.BIT_NUL_HZ,
+            help=(
+                "Frequency of bit '0' in Hz"
+                " (default: %s)"
+            ) % self.cfg.BIT_NUL_HZ
+        )
+
+        self.parser.add_argument(
+            "--hz_variation", type=int, default=self.cfg.HZ_VARIATION,
             help=(
                 "How much Hz can signal scatter to match 1 or 0 bit ?"
-                " (default: 450)"
-            )
+                " (default: %s)"
+            ) % self.cfg.HZ_VARIATION
+        )
+
+        self.parser.add_argument(
+            "--min_volume_ratio", type=int, default=self.cfg.MIN_VOLUME_RATIO,
+            help="percent volume to ignore sample (default: %s)" % self.cfg.MIN_VOLUME_RATIO
         )
         self.parser.add_argument(
-            "--min_volume_ratio", type=int, default=5,
-            help="percent volume to ignore sample (default: 5)"
-        )
-        self.parser.add_argument(
-            "--avg_count", type=int, default=0,
+            "--avg_count", type=int, default=self.cfg.AVG_COUNT,
             help=(
                 "How many samples should be merged into a average value?"
-                " (default: 0)"
-            )
+                " (default: %s)"
+            ) % self.cfg.AVG_COUNT
         )
         self.parser.add_argument(
-            "--end_count", type=int, default=2,
+            "--end_count", type=int, default=self.cfg.END_COUNT,
             help=(
                 "Sample count that must be pos/neg at once"
-                " (default: 2)"
-            )
+                " (default: %s)"
+            ) % self.cfg.END_COUNT
         )
         self.parser.add_argument(
-            "--mid_count", type=int, default=1,
+            "--mid_count", type=int, default=self.cfg.MID_COUNT,
             help=(
                 "Sample count that can be around null"
-                " (default: 1)"
-            )
+                " (default: %s)"
+            ) % self.cfg.MID_COUNT
         )
 
     def parse_args(self):
@@ -107,9 +124,10 @@ class PyDC_CLI(Base_CLI):
 
         self.setup_logging(self.args) # XXX: setup logging after the logfilename is set!
 
-        self.cfg = Dragon32Config()
-
+        self.cfg.BIT_ONE_HZ = self.args.bit_one_hz # Frequency of bit '1' in Hz
+        self.cfg.BIT_NUL_HZ = self.args.bit_nul_hz # Frequency of bit '0' in Hz
         self.cfg.HZ_VARIATION = self.args.hz_variation # How much Hz can signal scatter to match 1 or 0 bit ?
+
         self.cfg.MIN_VOLUME_RATIO = self.args.min_volume_ratio # percent volume to ignore sample
         self.cfg.AVG_COUNT = self.args.avg_count # How many samples should be merged into a average value?
         self.cfg.END_COUNT = self.args.end_count # Sample count that must be pos/neg at once

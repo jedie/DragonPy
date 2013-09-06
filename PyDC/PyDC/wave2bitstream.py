@@ -278,16 +278,14 @@ class Wave2Bitstream(WaveBase):
         assert bit_one_max_duration < bit_nul_min_duration, "HZ_VARIATION value is too high!"
 
         # for end statistics
-        one_hz_count = 0
+        bit_one_count = 0
         one_hz_min = sys.maxint
         one_hz_avg = None
         one_hz_max = 0
-        nul_hz_count = 0
+        bit_nul_count = 0
         nul_hz_min = sys.maxint
         nul_hz_avg = None
         nul_hz_max = 0
-
-        bit_count = 0
 
         for duration in iter_duration_generator:
 
@@ -298,14 +296,13 @@ class Wave2Bitstream(WaveBase):
                         self.pformat_pos(), duration, hz
                     )
                 )
-                bit_count += 1
                 yield 1
-                one_hz_count += 1
+                bit_one_count += 1
                 if hz < one_hz_min:
                     one_hz_min = hz
                 if hz > one_hz_max:
                     one_hz_max = hz
-                one_hz_avg = average(one_hz_avg, hz, one_hz_count)
+                one_hz_avg = average(one_hz_avg, hz, bit_one_count)
             elif bit_nul_min_duration < duration < bit_nul_max_duration:
                 hz = self._duration2hz(duration)
                 log.log(5,
@@ -313,14 +310,13 @@ class Wave2Bitstream(WaveBase):
                         self.pformat_pos(), duration, hz
                     )
                 )
-                bit_count += 1
                 yield 0
-                nul_hz_count += 1
+                bit_nul_count += 1
                 if hz < nul_hz_min:
                     nul_hz_min = hz
                 if hz > nul_hz_max:
                     nul_hz_max = hz
-                nul_hz_avg = average(nul_hz_avg, hz, nul_hz_count)
+                nul_hz_avg = average(nul_hz_avg, hz, bit_nul_count)
             else:
                 hz = self._duration2hz(duration)
                 log.log(7,
@@ -330,20 +326,23 @@ class Wave2Bitstream(WaveBase):
                 )
                 continue
 
+        bit_count = bit_one_count + bit_nul_count
+
         if bit_count == 0:
             print "ERROR: No information from wave to generate the bits"
             print "trigger volume to high?"
             sys.exit(-1)
 
         log.info("\n%i Bits: %i positive bits and %i negative bits" % (
-            bit_count, one_hz_count, nul_hz_count
+            bit_count, bit_one_count, bit_nul_count
         ))
-        if bit_count > 0:
-            log.info("Bit 0: %sHz - %sHz avg: %.1fHz variation: %sHz" % (
-                nul_hz_min, nul_hz_max, nul_hz_avg, nul_hz_max - nul_hz_min
-            ))
+        if bit_one_count > 0:
             log.info("Bit 1: %sHz - %sHz avg: %.1fHz variation: %sHz" % (
                 one_hz_min, one_hz_max, one_hz_avg, one_hz_max - one_hz_min
+            ))
+        if bit_nul_count > 0:
+            log.info("Bit 0: %sHz - %sHz avg: %.1fHz variation: %sHz" % (
+                nul_hz_min, nul_hz_max, nul_hz_avg, nul_hz_max - nul_hz_min
             ))
 
     def iter_duration(self, iter_trigger):

@@ -312,8 +312,7 @@ class CassetteFile(object):
         self.filename = codepoints2string(raw_filename).rstrip()
         print "\nFilename: %s" % repr(self.filename)
 
-#         print "file meta:"
-#         print_codepoint_stream(codepoints)
+
 
         self.file_type = codepoints[8]
 
@@ -339,6 +338,17 @@ class CassetteFile(object):
             raise NotImplementedError("Unknown BASIC type: '%s'" % hex(ascii_flag))
 
         log.info("ASCII flag: %s" % self.cfg.BASIC_TYPE_DICT[ascii_flag])
+
+        self.gap_flag = codepoints[10]
+        log.info("gap flag is %s (0x00=no gaps, 0xff=gaps)" % hex(self.gap_flag))
+
+        codepoints = iter(codepoints)
+
+        self.start_address = get_word(codepoints)
+        log.info("machine code starting address: %s" % hex(self.start_address))
+
+        self.load_address = get_word(codepoints)
+        log.info("machine code loading address: %s" % hex(self.load_address))
 
         self.file_content = FileContent(self.cfg)
 
