@@ -152,10 +152,18 @@ class BitstreamHandlerBase(object):
         # Get the complete block content
         codepoints = tuple(itertools.islice(codepoint_stream, block_length))
 
-        log.debug("content of '%s':" % self.cfg.BLOCK_TYPE_DICT[block_type])
-        log.debug("-"*79)
-        log.debug(pformat_codepoints(codepoints))
-        log.debug("-"*79)
+        try:
+            verbose_block_type = self.cfg.BLOCK_TYPE_DICT[block_type]
+        except KeyError:
+            log.error("Blocktype unknown!")
+            print pformat_codepoints(codepoints)
+            sys.exit()
+            verbose_block_type = hex(block_type)
+
+#         log.debug("content of '%s':" % verbose_block_type)
+#         log.debug("-"*79)
+#         log.debug(pformat_codepoints(codepoints))
+#         log.debug("-"*79)
 
         real_block_len = len(codepoints)
         if real_block_len == block_length:
