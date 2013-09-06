@@ -220,12 +220,21 @@ class FileContent(object):
         """
         data = iter(data)
 
+        basic_code_end = "".join([chr(i) for i in self.cfg.BASIC_CODE_END])
+
         data.next() # Skip first \r
         byte_count = 1 # incl. first \r
         while True:
             code = iter(data.next, 0xd) # until \r
             code = "".join([chr(c) for c in code])
+
             if not code:
+                log.warning("code ended.")
+                break
+
+            if code == basic_code_end:
+                log.debug("BASIC code end marker %s found." % pformat_codepoints(self.cfg.BASIC_CODE_END))
+                byte_count += len(code)
                 break
 
             byte_count += len(code) + 1 # and \r consumed in iter()
