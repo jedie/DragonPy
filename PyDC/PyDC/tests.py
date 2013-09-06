@@ -18,6 +18,7 @@ import unittest
 import configs
 from __init__ import wav2bas, bas2cas, cas2bas
 from wave2bitstream import Wave2Bitstream
+import itertools
 
 
 class TestDragon32Conversion(unittest.TestCase):
@@ -132,32 +133,67 @@ class TestDragon32Conversion(unittest.TestCase):
             statistics, {10: 17, 11: 44, 12: 4, 19: 5, 20: 44, 21: 15}
         )
 
-#     def test_cas01(self):
-#         # create cas
-#         source_filepath = self._src_file_path("HelloWorld1.bas")
-#         destination_filepath = self._dst_file_path("unittest_HelloWorld1.cas")
-#
-#         cfg = configs.Dragon32Config()
-#         cfg.LEAD_BYTE_LEN = 3
-#         bas2cas(source_filepath, destination_filepath, cfg)
-#
-#         dest_content = self._get_and_delete_dst(destination_filepath)
-#
-#         print repr(dest_content)
-#
-#         'UUU<\x00\x0fHELLOWOR\x00\xff\x00\x0c\x00\x0c\x00\x92UUUU<\x01:\r10 FOR I = 1 TO 10\r20 PRINT I;"HELLO WORLD!"\r30 NEXT I\r\x00\x00\x91UUUU<\xff\x00\xffU'
-#
-#         self.assertMultiLineEqual(dest_content, (
-#             '1 PRINT "LINE NUMBER TEST"\n'
-#             '10 PRINT 10\n'
-#             '100 PRINT 100\n'
-#             '1000 PRINT 1000\n'
-#             '10000 PRINT 10000\n'
-#             '32768 PRINT 32768\n'
-#             '63999 PRINT "END";63999\n'
-#         ))
+    def test_bas2cas01(self):
+        # create cas
+        source_filepath = self._src_file_path("HelloWorld1.bas")
+        destination_filepath = self._dst_file_path("unittest_HelloWorld1.cas")
 
-    def test_cas02(self):
+        cfg = configs.Dragon32Config()
+        cfg.LEAD_BYTE_LEN = 35
+        bas2cas(source_filepath, destination_filepath, cfg)
+
+        dest_content = self._get_and_delete_dst(destination_filepath)
+#         print repr(dest_content)
+
+        cas = (
+            ("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU", "35x Leadin bytes 0x55"),
+            ("<", "Sync byte 0x3C"),
+
+            ("\x00", "block type: filename block (0x00)"),
+            ("\x0f", "block length (15Bytes)"),
+
+            ("HELLOWOR", "filename"),
+            ("\x00", "File type: BASIC programm (0x00)"),
+            ("\xff", "format: ASCII BASIC (0xff)"),
+            ("\x00", "gap flag (00=no gaps, FF=gaps)"),
+            ("\x0c\x00", "machine code starting address"),
+            ("\x0c\x00", "machine code loading address"),
+
+            ("\x92", "block checksum"),
+            ("U", "magic byte block terminator 0x3C"),
+
+            ("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU", "35x Leadin bytes 0x55"),
+            ("<", "Sync byte 0x3C"),
+
+            ("\x01", "block type: data block (0x01)"),
+            (":", "block length 0x3a (58Bytes)"),
+            (
+                '\r10 FOR I = 1 TO 10\r20 PRINT I;"HELLO WORLD!"\r30 NEXT I\r',
+                "Basic code in ASCII format"
+            ),
+            ("\x00\x00", "code end terminator"),
+            ("\x91", "block checksum"),
+            ("U", "magic byte block terminator 0x3C"),
+
+            ("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU", "35x Leadin bytes 0x55"),
+            ("<", "Sync byte 0x3C"),
+
+            ("\xff", "block type: end-of-file block (0xff)"),
+            ("\x00", "block length (0Bytes)"),
+            ("\xff", "block checksum"),
+            ("U", "magic byte block terminator 0x3C"),
+        )
+
+        dest_content = iter(dest_content)
+        for no, data in enumerate(cas):
+            part, desc = data
+            part_len = len(part)
+            dest_part = "".join(tuple(itertools.islice(dest_content, part_len)))
+            self.assertEqual(part, dest_part,
+                msg="Error in part %i '%s': %s != %s" % (no, desc, repr(part), repr(dest_part))
+            )
+
+    def test_cas01(self):
         # create cas
         source_filepath = self._src_file_path("LineNumberTest.bas")
         cas_filepath = self._dst_file_path("unittest_LineNumberTest.cas")
@@ -189,10 +225,10 @@ class TestDragon32Conversion(unittest.TestCase):
 if __name__ == '__main__':
 #     log = logging.getLogger("PyDC")
 #     log.setLevel(
-#         #~ logging.ERROR
-#         logging.INFO
+# #         logging.ERROR
+# #         logging.INFO
 # #         logging.WARNING
-# #         logging.DEBUG
+#         logging.DEBUG
 #     )
 #     log.addHandler(logging.StreamHandler())
 
@@ -202,6 +238,7 @@ if __name__ == '__main__':
 #             "TestDragon32Conversion.test_wav2bas01",
 #             "TestDragon32Conversion.test_wav2bas04",
 #             "TestDragon32Conversion.test_statistics",
+#             "TestDragon32Conversion.test_bas2cas01",
 #             "TestDragon32Conversion.test_cas01",
 #             "TestDragon32Conversion.test_bas2ascii_wav", # TODO
         ),
