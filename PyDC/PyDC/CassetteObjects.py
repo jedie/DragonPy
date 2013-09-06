@@ -475,12 +475,11 @@ class Cassette(object):
             log.debug("-"*79)
             log.debug(pformat_codepoints(block_codepoints))
             log.debug("-"*79)
-            checksum = 0x00
-            yield block_codepoints
-#             for codepoint in block_codepoints:
-#                 checksum += codepoint
-#                 yield codepoint
 
+            codepoints = tuple(block_codepoints)
+            yield codepoints
+
+            checksum = sum([codepoint for codepoint in codepoints])
             checksum += block_type
             checksum += block_length
             checksum = checksum & 0xFF
