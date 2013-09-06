@@ -17,6 +17,7 @@
 import itertools
 import logging
 import os
+import sys
 
 # own modules
 from configs import Dragon32Config
@@ -149,7 +150,12 @@ class BitstreamHandlerBase(object):
         block_length = next(codepoint_stream)
 
         # Get the complete block content
-        codepoints = list(itertools.islice(codepoint_stream, block_length))
+        codepoints = tuple(itertools.islice(codepoint_stream, block_length))
+
+        log.debug("content of '%s':" % self.cfg.BLOCK_TYPE_DICT[block_type])
+        log.debug("-"*79)
+        log.debug(pformat_codepoints(codepoints))
+        log.debug("-"*79)
 
         real_block_len = len(codepoints)
         if real_block_len == block_length:
@@ -336,19 +342,29 @@ if __name__ == "__main__":
 
     # test via CLI:
 
-    import subprocess
+    import sys, subprocess
 
     # bas -> wav
-    subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
+    subprocess.Popen([sys.executable, "../PyDC_cli.py",
+        "--verbosity=10",
+#         "--verbosity=5",
+#         "--logfile=5",
 #         "--log_format=%(module)s %(lineno)d: %(message)s",
-        "../test_files/HelloWorld1.bas", "../test.wav"
+#         "../test_files/HelloWorld1.bas", "--dst=../test.wav"
+        "../test_files/HelloWorld1.bas", "--dst=../test.cas"
     ]).wait()
 
-    # wav -> bas
-    subprocess.Popen([sys.executable, "../PyDC_cli.py", "--verbosity=10",
-#         "--log_format=%(module)s %(lineno)d: %(message)s",
-#         "../test.wav", "../test.bas",
-        "../test_files/HelloWorld1 origin.wav", "../test_files/HelloWorld1.bas",
+    print "\n"*3
+    print "="*79
+    print "\n"*3
+
+#     # wav -> bas
+    subprocess.Popen([sys.executable, "../PyDC_cli.py",
+#         "--verbosity=10",
+        "--verbosity=7",
+#         "../test.wav", "--dst=../test.bas",
+        "../test.cas", "--dst=../test.bas",
+#         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
     ]).wait()
 
     print "-- END --"
