@@ -495,6 +495,9 @@ class Cassette(object):
             yield self.cfg.MAGIC_BYTE # 0x55
 
     def codepoint_stream(self):
+        if self.wav:
+            self.wav.write_silence(sec=0.1)
+
         for file_obj in self.files:
             # yield filename
             for codepoints in self.block2codepoint_stream(
@@ -504,7 +507,7 @@ class Cassette(object):
                 yield codepoints
 
             if self.wav:
-                self.wav.write_silence(sec=2)
+                self.wav.write_silence(sec=0.1)
 
             # yield file content
             for codepoints in self.block2codepoint_stream(
@@ -514,7 +517,7 @@ class Cassette(object):
                 yield codepoints
 
             if self.wav:
-                self.wav.write_silence(sec=2)
+                self.wav.write_silence(sec=0.1)
 
         # yield EOF
         for codepoints in self.block2codepoint_stream(
@@ -524,7 +527,7 @@ class Cassette(object):
             yield codepoints
 
         if self.wav:
-            self.wav.write_silence(sec=2)
+            self.wav.write_silence(sec=0.1)
 
     def write_wave(self, wav):
         self.wav = wav # Bitstream2Wave instance
@@ -594,23 +597,23 @@ if __name__ == "__main__":
 #         "--verbosity=5",
 #         "--logfile=5",
 #         "--log_format=%(module)s %(lineno)d: %(message)s",
-#         "../test_files/HelloWorld1.bas", "--dst=../test.wav"
-        "../test_files/HelloWorld1.bas", "--dst=../test.cas"
+        "../test_files/HelloWorld1.bas", "--dst=../test.wav"
+#         "../test_files/HelloWorld1.bas", "--dst=../test.cas"
     ]).wait()
 
-    print "\n"*3
-    print "="*79
-    print "\n"*3
-
-#     # wav -> bas
-    subprocess.Popen([sys.executable, "../PyDC_cli.py",
-#         "--verbosity=10",
-        "--verbosity=7",
-#         "../test.wav", "--dst=../test.bas",
-        "../test.cas", "--dst=../test.bas",
-#         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
-    ]).wait()
-
-    print "-- END --"
+#     print "\n"*3
+#     print "="*79
+#     print "\n"*3
+#
+# #     # wav -> bas
+#     subprocess.Popen([sys.executable, "../PyDC_cli.py",
+# #         "--verbosity=10",
+#         "--verbosity=7",
+# #         "../test.wav", "--dst=../test.bas",
+#         "../test.cas", "--dst=../test.bas",
+# #         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
+#     ]).wait()
+#
+#     print "-- END --"
 
 

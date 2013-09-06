@@ -66,7 +66,7 @@ class WaveBase(object):
         return typecode
 
     def pformat_pos(self):
-        sec = float(self.wave_pos) / self.framerate
+        sec = float(self.wave_pos) / self.framerate / self.samplewidth
         return "%s (frame no.: %s)" % (human_duration(sec), self.wave_pos)
 
     def _hz2duration(self, hz):
@@ -74,6 +74,20 @@ class WaveBase(object):
 
     def _duration2hz(self, duration):
         return duration2hz(duration, framerate=self.framerate)
+
+    def set_wave_properties(self):
+        self.framerate = self.wavefile.getframerate() # frames / second
+        self.samplewidth = self.wavefile.getsampwidth() # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
+        self.max_value = MAX_VALUES[self.samplewidth]
+        self.nchannels = self.wavefile.getnchannels() # typically 1 for mono, 2 for stereo
+
+        log.info("Framerate: %sHz samplewidth: %i (%sBit, max volume value: %s) channels: %s" % (
+            self.framerate,
+            self.samplewidth, self.samplewidth * 8, self.max_value,
+            self.nchannels,
+        ))
+
+        assert self.nchannels == 1, "Only MONO files are supported, yet!"
 
 
 class Wave2Bitstream(WaveBase):
@@ -92,24 +106,15 @@ class Wave2Bitstream(WaveBase):
         try:
             self.wavefile = wave.open(wave_filename, "rb")
         except IOError, err:
-            log.error("Error opening %s: %s" % (repr(wave_filename), err))
+            msg = "Error opening %s: %s" % (repr(wave_filename), err)
+            log.error(msg)
+            sys.stderr.write(msg)
             sys.exit(-1)
 
-        self.framerate = self.wavefile.getframerate() # frames / second
-        print "Framerate:", self.framerate
+        self.set_wave_properties()
 
         self.frame_count = self.wavefile.getnframes()
         print "Number of audio frames:", self.frame_count
-
-        self.nchannels = self.wavefile.getnchannels() # typically 1 for mono, 2 for stereo
-        print "channels:", self.nchannels
-        assert self.nchannels == 1, "Only MONO files are supported, yet!"
-
-        self.samplewidth = self.wavefile.getsampwidth() # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
-        print "samplewidth: %i (%sBit wave file)" % (self.samplewidth, self.samplewidth * 8)
-
-        self.max_value = MAX_VALUES[self.samplewidth]
-        print "the max volume value is:", self.max_value
 
         self.min_volume = int(round(self.max_value * cfg.MIN_VOLUME_RATIO / 100))
         print "Ignore sample lower than %.1f%% = %i" % (cfg.MIN_VOLUME_RATIO, self.min_volume)
@@ -537,9 +542,20 @@ class Bitstream2Wave(WaveBase):
         self.wavefile.setnchannels(1) # Mono
         self.wavefile.setsampwidth(self.cfg.SAMPLEWIDTH)
         self.wavefile.setframerate(self.cfg.FRAMERATE)
-        self.framerate = self.cfg.FRAMERATE
 
-        self.wave_pos = self.wavefile._nframeswritten
+        self.set_wave_properties()
+
+    @property
+    def wave_pos(self):
+        pos = self.wavefile._nframeswritten * self.samplewidth
+        return pos
+
+    def pack_values(self, values):
+        value_length = len(values)
+        pack_format = "%i%s" % (value_length, self.typecode)
+        packed_samples = struct.pack(pack_format, *values)
+
+        return packed_samples
 
     def get_samples(self, hz):
         values = tuple(
@@ -547,7 +563,8 @@ class Bitstream2Wave(WaveBase):
         )
         real_hz = float(self.cfg.FRAMERATE) / len(values)
         log.debug("Real frequency: %.2f" % real_hz)
-        return array.array(self.typecode, values)
+        return self.pack_values(values)
+
 
     def write_codepoint(self, codepoints):
         written_codepoints = []
@@ -569,19 +586,20 @@ class Bitstream2Wave(WaveBase):
         log.debug("Written at %s: %s" % (
             self.pformat_pos(), ",".join([hex(x) for x in written_codepoints])
         ))
-        self.wave_pos = self.wavefile._nframeswritten
 
     def write_silence(self, sec):
-        # the filename block was written
-        silence = [0x00 for _ in xrange(sec * self.framerate)]
-        silence = array.array(self.typecode, silence)
-        self.wavefile.writeframes(silence)
-        log.debug("Write %ssec. silence at %s" % (sec, self.pformat_pos()))
-        self.wave_pos = self.wavefile._nframeswritten
+        start_pos = self.pformat_pos()
+        silence = [0x00] * int(round((sec * self.framerate)))
+
+        packed_samples = self.pack_values(silence)
+
+        self.wavefile.writeframes(packed_samples)
+        log.debug("Write %ssec. silence %s - %s" % (
+            sec, start_pos, self.pformat_pos()
+        ))
 
     def close(self):
         self.wavefile.close()
-        self.wave_pos = self.wavefile._nframeswritten
         log.info("Wave file %s written (%s)" % (
             self.destination_filepath, self.pformat_pos()
         ))
@@ -622,18 +640,18 @@ if __name__ == "__main__":
         "../test_files/HelloWorld1.bas", "--dst=../test.wav"
     ]).wait()
 
-    print "\n"*3
-    print "="*79
-    print "\n"*3
-
-    # wav -> bas
-    subprocess.Popen([sys.executable, "../PyDC_cli.py",
-        "--verbosity=10",
-#         "--verbosity=5",
-#         "--logfile=5",
-#         "--log_format=%(module)s %(lineno)d: %(message)s",
-        "../test.wav", "--dst=../test.bas",
-#         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
-    ]).wait()
-
-    print "-- END --"
+#     print "\n"*3
+#     print "="*79
+#     print "\n"*3
+#
+#     # wav -> bas
+#     subprocess.Popen([sys.executable, "../PyDC_cli.py",
+#         "--verbosity=10",
+# #         "--verbosity=5",
+# #         "--logfile=5",
+# #         "--log_format=%(module)s %(lineno)d: %(message)s",
+#         "../test.wav", "--dst=../test.bas",
+# #         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
+#     ]).wait()
+#
+#     print "-- END --"

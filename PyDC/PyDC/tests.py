@@ -13,12 +13,12 @@ import logging
 import os
 import sys
 import unittest
+import itertools
 
 # own modules
+from __init__ import wav2bas, bas2cas, cas2bas, bas2wav
 import configs
-from __init__ import wav2bas, bas2cas, cas2bas
 from wave2bitstream import Wave2Bitstream
-import itertools
 
 
 class TestDragon32Conversion(unittest.TestCase):
@@ -203,6 +203,9 @@ class TestDragon32Conversion(unittest.TestCase):
         destination_filepath = self._dst_file_path("unittest_LineNumberTest.bas")
         cas2bas(cas_filepath, destination_filepath, self.cfg)
 
+        os.remove(cas_filepath)
+
+        # filename 'LINENUMB' used in CSAVE:
         destination_filepath = self._dst_file_path("unittest_LineNumberTest_LINENUMB.bas")
         dest_content = self._get_and_delete_dst(destination_filepath)
 
@@ -216,10 +219,30 @@ class TestDragon32Conversion(unittest.TestCase):
             '63999 PRINT "END";63999\n'
         ))
 
-        os.remove(cas_filepath)
+    def test_bas2ascii_wav(self):
+        # create wav
+        source_filepath = self._src_file_path("HelloWorld1.bas")
+        destination_filepath = self._dst_file_path("unittest_HelloWorld1.wav")
 
-#     def test_bas2ascii_wav(self):
-#         pass # TODO
+        cfg = configs.Dragon32Config()
+        cfg.LEAD_BYTE_LEN = 128
+        bas2wav(source_filepath, destination_filepath, cfg)
+
+        # read wave and compare
+        source_filepath = self._dst_file_path("unittest_HelloWorld1.wav")
+        destination_filepath = self._dst_file_path("unittest_bas2ascii_wav.bas")
+        wav2bas(source_filepath, destination_filepath, self.cfg)
+
+        # filename 'HELLOWOR' used in CSAVE:
+        destination_filepath = self._dst_file_path("unittest_bas2ascii_wav_HELLOWOR.bas")
+
+        dest_content = self._get_and_delete_dst(destination_filepath)
+
+        self.assertEqual(dest_content, (
+            '10 FOR I = 1 TO 10\n'
+            '20 PRINT I;"HELLO WORLD!"\n'
+            '30 NEXT I\n'
+        ))
 
 
 if __name__ == '__main__':
@@ -240,7 +263,7 @@ if __name__ == '__main__':
 #             "TestDragon32Conversion.test_statistics",
 #             "TestDragon32Conversion.test_bas2cas01",
 #             "TestDragon32Conversion.test_cas01",
-#             "TestDragon32Conversion.test_bas2ascii_wav", # TODO
+#             "TestDragon32Conversion.test_bas2ascii_wav",
         ),
 #         verbosity=1,
         verbosity=2,
