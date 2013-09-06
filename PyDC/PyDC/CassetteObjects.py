@@ -19,10 +19,7 @@ import sys
 from basic_tokens import bytes2codeline
 from configs import Dragon32Config
 from utils import get_word, codepoints2string, string2codepoint, LOG_LEVEL_DICT, \
-    LOG_FORMATTER, codepoints2bitstream, pformat_codepoints
-import functools
-import itertools
-from PyDC.utils import count_the_same
+    LOG_FORMATTER, pformat_codepoints
 
 
 
