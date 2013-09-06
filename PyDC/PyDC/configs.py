@@ -104,11 +104,11 @@ class Dragon32Config(BaseConfig):
     # File types:
     FTYPE_BASIC = 0x00
     FTYPE_DATA = 0x01
-    FTYPE_BIN = 0xff
+    FTYPE_BIN = 0x02
     FILETYPE_DICT = {
         FTYPE_BASIC:"BASIC programm (0x00)",
         FTYPE_DATA:"Data file (0x01)",
-        FTYPE_BIN:"Binary file (0xFF)",
+        FTYPE_BIN:"Binary machine code file (0x02)",
     }
 
     # Basic format types:
