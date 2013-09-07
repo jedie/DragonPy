@@ -156,10 +156,10 @@ class TestDragon32Conversion(unittest.TestCase):
             ("\x00", "File type: BASIC programm (0x00)"),
             ("\xff", "format: ASCII BASIC (0xff)"),
             ("\x00", "gap flag (00=no gaps, FF=gaps)"),
-            ("\x0c\x00", "machine code starting address"),
-            ("\x0c\x00", "machine code loading address"),
+            ("HE", "machine code starting address"),
+            ("LL", "machine code loading address"),
 
-            ("\x92", "block checksum"),
+            ("\x9f", "block checksum"),
             ("U", "magic byte block terminator 0x3C"),
 
             ("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU", "35x Leadin bytes 0x55"),

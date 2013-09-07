@@ -312,8 +312,6 @@ class CassetteFile(object):
         self.filename = codepoints2string(raw_filename).rstrip()
         print "\nFilename: %s" % repr(self.filename)
 
-
-
         self.file_type = codepoints[8]
 
         if not self.file_type in self.cfg.FILETYPE_DICT:
@@ -369,8 +367,13 @@ class CassetteFile(object):
         codepoints.append(self.cfg.BASIC_ASCII) # one byte ASCII flag
         codepoints.append(0x00) # one byte gap flag (00=no gaps, FF=gaps)
         # FIXME, see: http://five.pairlist.net/pipermail/coco/2013-August/070938.html
-        codepoints += [0x0c, 0x00] # two bytes machine code starting address
-        codepoints += [0x0c, 0x00] # two bytes machine code loading address
+
+        # two bytes machine code starting address:
+        codepoints += [ord(self.filename[0]), ord(self.filename[1])]
+
+        # two bytes machine code loading address:
+        codepoints += [ord(self.filename[2]), ord(self.filename[3])]
+
         log.debug("filename block: %s" % pformat_codepoints(codepoints))
         return codepoints
 
