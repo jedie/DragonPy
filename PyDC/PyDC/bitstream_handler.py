@@ -14,16 +14,15 @@
 """
 
 
+import functools
 import itertools
 import logging
 import os
 import sys
 
 # own modules
-from configs import Dragon32Config
 from CassetteObjects import Cassette
 from PyDC.utils import count_the_same
-import functools
 
 
 log = logging.getLogger("PyDC")
@@ -128,6 +127,8 @@ class BitstreamHandlerBase(object):
 
             print "*** block type: 0x%x (%s)" % (block_type, block_type_name)
 
+            self.cassette.add_block(block_type, block_length, codepoints)
+
             if block_type == self.cfg.EOF_BLOCK:
                 log.info("EOF-Block found")
                 break
@@ -140,7 +141,6 @@ class BitstreamHandlerBase(object):
                 print "-"*79
                 break
 
-            self.cassette.add_block(block_type, block_length, codepoints)
             print "="*79
 
     def get_block_info(self, codepoint_stream):

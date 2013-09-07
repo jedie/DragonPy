@@ -244,6 +244,12 @@ class TestDragon32Conversion(unittest.TestCase):
             '30 NEXT I\n'
         ))
 
+    def test_more_than_one_code_block(self):
+        """
+        TODO: Test if wav/cas has more than 256Bytes code (code in more than one block)
+        """
+        pass
+
 
 if __name__ == '__main__':
 #     log = logging.getLogger("PyDC")

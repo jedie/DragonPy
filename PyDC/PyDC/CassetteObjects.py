@@ -11,17 +11,15 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+import itertools
 import logging
 import os
 import sys
 
 # own modules
 from basic_tokens import bytes2codeline
-from configs import Dragon32Config
 from utils import get_word, codepoints2string, string2codepoint, LOG_LEVEL_DICT, \
     LOG_FORMATTER, pformat_codepoints
-
-
 
 
 log = logging.getLogger("PyDC")
@@ -434,6 +432,10 @@ class Cassette(object):
         self.current_file = None
         self.wav = None # Bitstream2Wave instance only if write_wave() used!
 
+        # temp storage for code block
+        self.temp_file_data = []
+        self.temp_data_length = 0
+
     def add_from_bas(self, filename):
         with open(filename, "r") as f:
             file_content = f.read()
@@ -442,16 +444,30 @@ class Cassette(object):
         self.current_file.create_from_bas(filename, file_content)
         self.files.append(self.current_file)
 
+    def add_code(self):
+        if self.current_file is not None and self.temp_file_data:
+            self.current_file.add_block_data(self.temp_data_length, self.temp_file_data)
+            self.temp_file_data = []
+            self.temp_data_length = 0
+
     def add_block(self, block_type, block_length, block_codepoints):
         if block_type == self.cfg.EOF_BLOCK:
+            self.add_code()
             return
         elif block_type == self.cfg.FILENAME_BLOCK:
+            self.add_code()
             self.current_file = CassetteFile(self.cfg)
             self.current_file.create_from_wave(block_codepoints)
             log.info("Add file %s" % repr(self.current_file))
             self.files.append(self.current_file)
         elif block_type == self.cfg.DATA_BLOCK:
-            self.current_file.add_block_data(block_length, block_codepoints)
+            # store code until end marker
+            block = list(itertools.islice(block_codepoints, block_length))
+            self.temp_file_data += block
+            self.temp_data_length += block_length
+            if block[-2:] == self.cfg.BASIC_CODE_END: # code terminator is [0x00, 0x00]
+                # code block ends
+                self.add_code()
         else:
             raise TypeError("Block type %s unkown!" & hex(block_type))
 
@@ -605,27 +621,28 @@ if __name__ == "__main__":
     import subprocess
 
     # bas -> wav
-    subprocess.Popen([sys.executable, "../PyDC_cli.py",
-        "--verbosity=10",
-#         "--verbosity=5",
-#         "--logfile=5",
-#         "--log_format=%(module)s %(lineno)d: %(message)s",
-        "../test_files/HelloWorld1.bas", "--dst=../test.wav"
-#         "../test_files/HelloWorld1.bas", "--dst=../test.cas"
-    ]).wait()
+#     subprocess.Popen([sys.executable, "../PyDC_cli.py",
+#         "--verbosity=10",
+# #         "--verbosity=5",
+# #         "--logfile=5",
+# #         "--log_format=%(module)s %(lineno)d: %(message)s",
+#         "../test_files/HelloWorld1.bas", "--dst=../test.wav"
+# #         "../test_files/HelloWorld1.bas", "--dst=../test.cas"
+#     ]).wait()
 
 #     print "\n"*3
 #     print "="*79
 #     print "\n"*3
 #
 # #     # wav -> bas
-#     subprocess.Popen([sys.executable, "../PyDC_cli.py",
-# #         "--verbosity=10",
-#         "--verbosity=7",
-# #         "../test.wav", "--dst=../test.bas",
+    subprocess.Popen([sys.executable, "../PyDC_cli.py",
+#         "--verbosity=10",
+        "--verbosity=7",
+#         "../test.wav", "--dst=../test.bas",
 #         "../test.cas", "--dst=../test.bas",
-# #         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
-#     ]).wait()
+#         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
+        "../test_files/LineNumber Test 02.wav", "--dst=../test.bas",
+    ]).wait()
 #
 #     print "-- END --"
 
