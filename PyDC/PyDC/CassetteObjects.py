@@ -58,6 +58,10 @@ class FileContent(object):
         for line in file_content.splitlines():
             line_number, code = line.split(" ", 1)
             line_number = int(line_number)
+
+            if self.cfg.case_convert:
+                code = code.upper()
+
             self.code_lines.append(
                 CodeLine(None, line_number, code)
             )
@@ -632,6 +636,8 @@ class Cassette(object):
             log.info("Create %s..." % repr(out_filename))
             with open(out_filename, "w") as f:
                 for line in file_obj.file_content.get_ascii_codeline():
+                    if self.cfg.case_convert:
+                        line = line.lower()
                     f.write("%s\n" % line)
             print "\nFile %s saved." % repr(out_filename)
 

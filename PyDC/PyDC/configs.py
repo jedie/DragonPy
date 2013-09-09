@@ -121,6 +121,9 @@ class Dragon32Config(BaseConfig):
     NO_GAPS = 0x00
     GAPS = 0xff
 
+    # Convert to uppercase if source is .bas and to lowercase if destination is .bas
+    case_convert = False
+
 
 if __name__ == "__main__":
     import doctest

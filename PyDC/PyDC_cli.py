@@ -93,6 +93,14 @@ class PyDC_CLI(Base_CLI):
             ) % self.cfg.MID_COUNT
         )
 
+        self.parser.add_argument(
+            "--case_convert", action="store_true",
+            help=(
+                "Convert to uppercase if source is .bas"
+                " and to lowercase if destination is .bas"
+            )
+        )
+
     def parse_args(self):
         args = super(PyDC_CLI, self).parse_args()
 
@@ -126,6 +134,8 @@ class PyDC_CLI(Base_CLI):
         self.cfg.AVG_COUNT = self.args.avg_count # How many samples should be merged into a average value?
         self.cfg.END_COUNT = self.args.end_count # Sample count that must be pos/neg at once
         self.cfg.MID_COUNT = self.args.mid_count # Sample count that can be around null
+
+        self.cfg.case_convert = self.args.case_convert
 
         if self.args.analyze:
             analyze(self.source_file, self.cfg)

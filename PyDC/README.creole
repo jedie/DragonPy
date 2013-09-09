@@ -58,6 +58,8 @@ optional arguments:
                         Sample count that must be pos/neg at once (default: 2)
   --mid_count MID_COUNT
                         Sample count that can be around null (default: 1)
+  --case_convert        Convert to uppercase if source is .bas and to
+                        lowercase if destination is .bas
 
 PyDC v0.1.0.dev copyleft 2013 by htfx.de - Jens Diemer, GNU GPL v3 or above
 
@@ -104,6 +106,23 @@ Notes:
 
 Some statistics from WAVES files are here:
 * http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4326 
+
+
+==== case convertion
+
+With {{{--case_convert}}} you can convert upper and lower case:
+# if source is a {{.bas}} file: All cased characters converted to lowercase
+# if destination is {{.cas}} or {{.wav}}: All cased characters converted to uppercase
+
+So you can write a local {{{.bas}}} files on pc in "normal" way, like this:
+{{{
+10 print "hello world!"
+}}}
+With {{{--case_convert}}} the content will be saved in {{.cas}} or {{.wav}} so:
+{{{
+10 PRINT "HELLO WORLD!"
+}}}
+Other way around, vice versa.
 
 
 === TODO

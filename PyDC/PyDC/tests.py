@@ -9,16 +9,17 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+import itertools
 import logging
 import os
 import sys
+import tempfile
 import unittest
-import itertools
 
 # own modules
 from __init__ import convert
-import configs
 from wave2bitstream import Wave2Bitstream
+import configs
 
 
 class TestDragon32Conversion(unittest.TestCase):
@@ -31,9 +32,24 @@ class TestDragon32Conversion(unittest.TestCase):
         )
         self.cfg = configs.Dragon32Config()
 
+        self.temp_files = []
+
     def tearDown(self):
         print "\n"*2
         print " >>>unittest tearDown() >>>",
+        for filename in self.temp_files:
+            if os.path.exists(filename):
+                try:
+                    os.remove(filename)
+                except Exception, err:
+                    print "Error remove temp file: %s" % err
+
+        self.temp_files = []
+
+    def _get_named_temp_file(self, *args, **kwargs):
+        f = tempfile.NamedTemporaryFile(*args, **kwargs)
+        self.temp_files.append(f.name)
+        return f
 
     def _src_file_path(self, filename):
         return os.path.relpath(
@@ -190,17 +206,18 @@ class TestDragon32Conversion(unittest.TestCase):
     def test_cas01(self):
         # create cas
         source_filepath = self._src_file_path("LineNumberTest.bas")
-        cas_filepath = self._dst_file_path("unittest_LineNumberTest.cas")
-        convert(source_filepath, cas_filepath, self.cfg)
+        cas_file = self._get_named_temp_file(
+            prefix="test_cas01", suffix=".cas", delete=False
+        )
+
+        convert(source_filepath, cas_file.name, self.cfg)
 
         # create bas from created cas file
-        destination_filepath = self._dst_file_path("unittest_LineNumberTest.bas")
-        convert(cas_filepath, destination_filepath, self.cfg)
-
-        os.remove(cas_filepath)
+        destination_filepath = self._dst_file_path("unittest_cas01.bas")
+        convert(cas_file.name, destination_filepath, self.cfg)
 
         # filename 'LINENUMB' used in CSAVE:
-        destination_filepath = self._dst_file_path("unittest_LineNumberTest_LINENUMB.bas")
+        destination_filepath = self._dst_file_path("unittest_cas01_LINENUMB.bas")
         dest_content = self._get_and_delete_dst(destination_filepath)
 
         self.assertMultiLineEqual(dest_content, (
@@ -238,6 +255,50 @@ class TestDragon32Conversion(unittest.TestCase):
             '30 NEXT I\n'
         ))
 
+    def test_case_convert01(self):
+        """
+        UPPERCASE from wave to lowercase .bas
+        """
+        source_filepath = self._src_file_path("HelloWorld1 xroar.wav")
+        destination_filepath = self._dst_file_path("unittest_case_convert01.bas")
+
+        cfg = configs.Dragon32Config()
+        cfg.case_convert = True
+        convert(source_filepath, destination_filepath, cfg)
+
+        # no filename used in CSAVE:
+        destination_filepath = self._dst_file_path("unittest_case_convert01_.bas")
+
+        dest_content = self._get_and_delete_dst(destination_filepath)
+
+        lowcase_content = (
+            '10 for i = 1 to 10\n'
+            '20 print i;"hello world!"\n'
+            '30 next i\n'
+        )
+        self.assertMultiLineEqual(dest_content, lowcase_content)
+
+    def test_case_convert02(self):
+        """
+        lowercase from .bas to UPPERCASE .cas
+        """
+        source = self._get_named_temp_file(suffix=".bas", delete=False)
+        source.write('10 print "lowercase?"')
+        source.close()
+        dest = self._get_named_temp_file(suffix=".cas", delete=False)
+        dest.close()
+
+        cfg = configs.Dragon32Config()
+        cfg.case_convert = True
+        convert(source.name, dest.name, cfg)
+
+        dest_content = self._get_and_delete_dst(dest.name)
+
+        dest_content = dest_content.replace("U", "") # "remove" LeadInByte
+
+        self.assertIn('\r10 PRINT "LOWERCASE?"\r' , dest_content)
+
+
     def test_more_than_one_code_block(self):
         """
         TODO: Test if wav/cas has more than 256Bytes code (code in more than one block)
@@ -265,6 +326,8 @@ if __name__ == '__main__':
 #             "TestDragon32Conversion.test_bas2cas01",
 #             "TestDragon32Conversion.test_cas01",
 #             "TestDragon32Conversion.test_bas2ascii_wav",
+#             "TestDragon32Conversion.test_case_convert01",
+#             "TestDragon32Conversion.test_case_convert02",
         ),
 #         verbosity=1,
         verbosity=2,
