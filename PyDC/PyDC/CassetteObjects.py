@@ -38,7 +38,7 @@ class CodeLine(object):
         return "%i %s" % (self.line_no, self.code)
 
     def get_as_codepoints(self):
-        return string2codepoint(self.get_ascii_codeline())
+        return tuple(string2codepoint(self.get_ascii_codeline()))
 
     def __repr__(self):
         return "<CodeLine pointer: %s line no: %s code: %s>" % (
@@ -262,7 +262,6 @@ class FileContent(object):
             result.append(delim)
             result += list(code_line.get_as_codepoints())
         result.append(delim)
-
         return result
 
     def get_ascii_codeline(self):
@@ -584,14 +583,21 @@ class Cassette(object):
                 self.wav.write_silence(sec=0.1)
 
             # yield file content
-            for codepoints in self.block2codepoint_stream(
-                block_type=self.cfg.DATA_BLOCK,
-                block_codepoints=file_obj.get_code_block_as_codepoints()
-                ):
-                yield codepoints
+            codepoints = tuple(file_obj.get_code_block_as_codepoints())
+            codepoints = iter(codepoints)
+            while True:
+                raw_codepoints = tuple(itertools.islice(codepoints, 0, 255))
+                if not raw_codepoints:
+                    break
+                # Add meta information
+                codepoint_stream = self.block2codepoint_stream(
+                    block_type=self.cfg.DATA_BLOCK, block_codepoints=raw_codepoints
+                )
+                for codepoints2 in codepoint_stream:
+                    yield codepoints2
 
-            if self.wav:
-                self.wav.write_silence(sec=0.1)
+                if self.wav:
+                    self.wav.write_silence(sec=0.1)
 
         # yield EOF
         for codepoints in self.block2codepoint_stream(
@@ -617,13 +623,22 @@ class Cassette(object):
 
     def write_cas(self, destination_file):
         log.info("Create %s..." % repr(destination_file))
+
+        def _write(f, codepoint):
+            try:
+                f.write(chr(codepoint))
+            except ValueError, err:
+                log.error("Value error with %s: %s" % (repr(codepoint), err))
+                raise
+
         with open(destination_file, "wb") as f:
             for codepoint in self.codepoint_stream():
                 if isinstance(codepoint, (tuple, list)):
                     for item in codepoint:
-                        f.write(chr(item))
+                        _write(f, item)
                 else:
-                    f.write(chr(codepoint))
+                    _write(f, codepoint)
+
         print "\nFile %s saved." % repr(destination_file)
 
     def write_bas(self, destination_file):
@@ -670,28 +685,28 @@ if __name__ == "__main__":
     import subprocess
 
     # bas -> wav
-#     subprocess.Popen([sys.executable, "../PyDC_cli.py",
+    subprocess.Popen([sys.executable, "../PyDC_cli.py",
 #         "--verbosity=10",
-# #         "--verbosity=5",
-# #         "--logfile=5",
-# #         "--log_format=%(module)s %(lineno)d: %(message)s",
+        "--verbosity=5",
+#         "--logfile=5",
+#         "--log_format=%(module)s %(lineno)d: %(message)s",
 #         "../test_files/HelloWorld1.bas", "--dst=../test.wav"
-# #         "../test_files/HelloWorld1.bas", "--dst=../test.cas"
-#     ]).wait()
+        "../test_files/HelloWorld1.bas", "--dst=../test.cas"
+    ]).wait()
 
 #     print "\n"*3
 #     print "="*79
 #     print "\n"*3
 #
 # #     # wav -> bas
-    subprocess.Popen([sys.executable, "../PyDC_cli.py",
-#         "--verbosity=10",
-        "--verbosity=7",
-#         "../test.wav", "--dst=../test.bas",
-#         "../test.cas", "--dst=../test.bas",
-#         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
-        "../test_files/LineNumber Test 02.wav", "--dst=../test.bas",
-    ]).wait()
+#     subprocess.Popen([sys.executable, "../PyDC_cli.py",
+# #         "--verbosity=10",
+#         "--verbosity=7",
+# #         "../test.wav", "--dst=../test.bas",
+# #         "../test.cas", "--dst=../test.bas",
+# #         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
+#         "../test_files/LineNumber Test 02.wav", "--dst=../test.bas",
+#     ]).wait()
 #
 #     print "-- END --"
 

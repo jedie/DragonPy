@@ -128,7 +128,6 @@ Other way around, vice versa.
 === TODO
 
 * add tokenized BASIC output, too. Currently {{{.wav}}} and {{{.cas}}} would be always output as ASCII BASIC.
-* support for longer listing as 255 characters. Currently the blocks would not be limited to 255Bytes ;(
 
 === Links
 
