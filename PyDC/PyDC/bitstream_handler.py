@@ -20,19 +20,12 @@ import logging
 import os
 import sys
 
-# own modules
-from CassetteObjects import Cassette
-from PyDC.utils import count_the_same
-
-
 log = logging.getLogger("PyDC")
-
 
 # own modules
 from utils import find_iter_window, iter_steps, MaxPosArraived, \
     print_bitlist, bits2codepoint, list2str, bitstream2codepoints, \
-    PatternNotFound, LOG_FORMATTER, codepoints2bitstream, pformat_codepoints
-from wave2bitstream import Wave2Bitstream
+    PatternNotFound, count_the_same, codepoints2bitstream, pformat_codepoints
 
 
 DISPLAY_BLOCK_COUNT = 8 # How many bit block should be printet in one line?
@@ -94,9 +87,9 @@ def print_as_hex(block_codepoints):
 
 
 class BitstreamHandlerBase(object):
-    def __init__(self, cfg):
+    def __init__(self, cassette, cfg):
+        self.cassette = cassette
         self.cfg = cfg
-        self.cassette = Cassette(cfg)
 
     def feed(self, bitstream):
         while True:
@@ -125,9 +118,11 @@ class BitstreamHandlerBase(object):
                 break
 
 
-            print "*** block type: 0x%x (%s)" % (block_type, block_type_name)
+            log.debug(
+                "block type: 0x%x (%s)" % (block_type, block_type_name)
+            )
 
-            self.cassette.add_block(block_type, block_length, codepoints)
+            self.cassette.buffer_block(block_type, block_length, codepoints)
 
             if block_type == self.cfg.EOF_BLOCK:
                 log.info("EOF-Block found")
@@ -142,6 +137,8 @@ class BitstreamHandlerBase(object):
                 break
 
             print "="*79
+
+        self.cassette.buffer2file()
 
     def get_block_info(self, codepoint_stream):
         block_type = next(codepoint_stream)

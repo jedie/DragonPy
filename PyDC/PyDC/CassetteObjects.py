@@ -20,6 +20,8 @@ import sys
 from basic_tokens import bytes2codeline
 from utils import get_word, codepoints2string, string2codepoint, LOG_LEVEL_DICT, \
     LOG_FORMATTER, pformat_codepoints
+from wave2bitstream import Wave2Bitstream, Bitstream2Wave
+from bitstream_handler import BitstreamHandler, CasStream, BytestreamHandler
 
 
 log = logging.getLogger("PyDC")
@@ -215,8 +217,6 @@ class FileContent(object):
         """
         data = iter(data)
 
-        basic_code_end = "".join([chr(i) for i in self.cfg.BASIC_CODE_END])
-
         data.next() # Skip first \r
         byte_count = 1 # incl. first \r
         while True:
@@ -225,11 +225,6 @@ class FileContent(object):
 
             if not code:
                 log.warning("code ended.")
-                break
-
-            if code == basic_code_end:
-                log.debug("BASIC code end marker %s found." % pformat_codepoints(self.cfg.BASIC_CODE_END))
-                byte_count += len(code)
                 break
 
             byte_count += len(code) + 1 # and \r consumed in iter()
@@ -252,7 +247,9 @@ class FileContent(object):
 
         print "%i Bytes parsed" % byte_count
         if block_length != byte_count:
-            print "\nERROR: Block length value %i is not equal to parsed bytes!" % block_length
+            log.error(
+                "Block length value %i is not equal to parsed bytes!" % block_length
+            )
 
     def get_as_codepoints(self):
         result = []
@@ -370,7 +367,6 @@ class CassetteFile(object):
         codepoints += list(string2codepoint(self.filename.ljust(8, " ")))
         codepoints.append(self.cfg.FTYPE_BASIC) # one byte file type
         codepoints.append(self.cfg.BASIC_ASCII) # one byte ASCII flag
-    
 
         # one byte gap flag (0x00=no gaps, 0xFF=gaps)
         # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4231&p=9110#p9110
@@ -382,7 +378,7 @@ class CassetteFile(object):
 #             codepoints.append(self.cfg.NO_GAPS)
 #         else:
 #             raise NotImplementedError("Unknown BASIC type: '%s'" % hex(self.ascii_flag))
-        
+
         # machine code starting/loading address
         if self.file_type != self.cfg.FTYPE_BASIC: # BASIC programm (0x00)
             codepoints = iter(codepoints)
@@ -467,8 +463,20 @@ class Cassette(object):
         self.wav = None # Bitstream2Wave instance only if write_wave() used!
 
         # temp storage for code block
-        self.temp_file_data = []
-        self.temp_data_length = 0
+        self.buffer = []
+        self.buffered_block_length = 0
+
+    def add_from_wav(self, source_file):
+        bitstream = iter(Wave2Bitstream(source_file, self.cfg))
+
+        # store bitstream into python objects
+        bh = BitstreamHandler(self, self.cfg)
+        bh.feed(bitstream)
+
+    def add_from_cas(self, source_file):
+        cas_stream = CasStream(source_file)
+        bh = BytestreamHandler(self, self.cfg)
+        bh.feed(cas_stream)
 
     def add_from_bas(self, filename):
         with open(filename, "r") as f:
@@ -478,30 +486,33 @@ class Cassette(object):
         self.current_file.create_from_bas(filename, file_content)
         self.files.append(self.current_file)
 
-    def add_code(self):
-        if self.current_file is not None and self.temp_file_data:
-            self.current_file.add_block_data(self.temp_data_length, self.temp_file_data)
-            self.temp_file_data = []
-            self.temp_data_length = 0
+    def buffer2file(self):
+        """
+        add the code buffer content to CassetteFile() instance
+        """
+        if self.current_file is not None and self.buffer:
+            self.current_file.add_block_data(self.buffered_block_length, self.buffer)
+            self.buffer = []
+            self.buffered_block_length = 0
 
-    def add_block(self, block_type, block_length, block_codepoints):
+    def buffer_block(self, block_type, block_length, block_codepoints):
+
+        block = tuple(itertools.islice(block_codepoints, block_length))
+        log.debug("pprint block: %s" % pformat_codepoints(block))
+
         if block_type == self.cfg.EOF_BLOCK:
-            self.add_code()
+            self.buffer2file()
             return
         elif block_type == self.cfg.FILENAME_BLOCK:
-            self.add_code()
+            self.buffer2file()
             self.current_file = CassetteFile(self.cfg)
-            self.current_file.create_from_wave(block_codepoints)
+            self.current_file.create_from_wave(block)
             log.info("Add file %s" % repr(self.current_file))
             self.files.append(self.current_file)
         elif block_type == self.cfg.DATA_BLOCK:
             # store code until end marker
-            block = list(itertools.islice(block_codepoints, block_length))
-            self.temp_file_data += block
-            self.temp_data_length += block_length
-            if block[-2:] == self.cfg.BASIC_CODE_END: # code terminator is [0x00, 0x00]
-                # code block ends
-                self.add_code()
+            self.buffer += block
+            self.buffered_block_length += block_length
         else:
             raise TypeError("Block type %s unkown!" & hex(block_type))
 
@@ -537,8 +548,6 @@ class Cassette(object):
             checksum = checksum & 0xFF
             log.debug("yield calculated checksum %s" % hex(checksum))
             yield checksum
-#             log.debug("yield magic byte %s" % hex(self.cfg.MAGIC_BYTE))
-#             yield self.cfg.MAGIC_BYTE # 0x55
         else:
             log.debug("content of '%s':" % self.cfg.BLOCK_TYPE_DICT[block_type])
             log.debug("-"*79)
@@ -554,8 +563,6 @@ class Cassette(object):
             checksum = checksum & 0xFF
             log.debug("yield calculated checksum %s" % hex(checksum))
             yield checksum
-#             log.debug("yield magic byte %s" % hex(self.cfg.MAGIC_BYTE))
-#             yield self.cfg.MAGIC_BYTE # 0x55
 
     def codepoint_stream(self):
         if self.wav:
@@ -592,8 +599,8 @@ class Cassette(object):
         if self.wav:
             self.wav.write_silence(sec=0.1)
 
-    def write_wave(self, wav):
-        self.wav = wav # Bitstream2Wave instance
+    def write_wave(self, destination_file):
+        wav = Bitstream2Wave(destination_file, self.cfg)
         for codepoint in self.codepoint_stream():
             if isinstance(codepoint, (tuple, list)):
                 for item in codepoint:
@@ -601,6 +608,8 @@ class Cassette(object):
             else:
                 assert isinstance(codepoint, int), "Codepoint %s is not int/hex" % repr(codepoint)
             wav.write_codepoint(codepoint)
+
+        wav.close()
 
     def write_cas(self, destination_file):
         log.info("Create %s..." % repr(destination_file))
@@ -613,8 +622,8 @@ class Cassette(object):
                     f.write(chr(codepoint))
         print "\nFile %s saved." % repr(destination_file)
 
-    def save_bas(self, destination_file):
-        dest_filename, dest_ext = os.path.splitext(destination_file)
+    def write_bas(self, destination_file):
+        dest_filename = os.path.splitext(destination_file)[0]
         for file_obj in self.files:
 
             bas_filename = file_obj.filename # Filename from CSAVE argument

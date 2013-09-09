@@ -16,7 +16,7 @@ import unittest
 import itertools
 
 # own modules
-from __init__ import wav2bas, bas2cas, cas2bas, bas2wav
+from __init__ import convert
 import configs
 from wave2bitstream import Wave2Bitstream
 
@@ -56,7 +56,7 @@ class TestDragon32Conversion(unittest.TestCase):
     def test_wav2bas01(self):
         source_filepath = self._src_file_path("HelloWorld1 xroar.wav")
         destination_filepath = self._dst_file_path("unittest_wav2bas01.bas")
-        wav2bas(source_filepath, destination_filepath, self.cfg)
+        convert(source_filepath, destination_filepath, self.cfg)
 
         # no filename used in CSAVE:
         destination_filepath = self._dst_file_path("unittest_wav2bas01_.bas")
@@ -72,7 +72,7 @@ class TestDragon32Conversion(unittest.TestCase):
     def test_wav2bas02(self):
         source_filepath = self._src_file_path("HelloWorld1 origin.wav")
         destination_filepath = self._dst_file_path("unittest_wav2bas02.bas")
-        wav2bas(source_filepath, destination_filepath, self.cfg)
+        convert(source_filepath, destination_filepath, self.cfg)
 
         # no filename used in CSAVE:
         destination_filepath = self._dst_file_path("unittest_wav2bas02_.bas")
@@ -88,7 +88,7 @@ class TestDragon32Conversion(unittest.TestCase):
     def test_wav2bas03(self):
         source_filepath = self._src_file_path("LineNumber Test 01.wav")
         destination_filepath = self._dst_file_path("unittest_wav2bas03.bas")
-        wav2bas(source_filepath, destination_filepath, self.cfg)
+        convert(source_filepath, destination_filepath, self.cfg)
 
         # filename 'LINENO01' used in CSAVE:
         destination_filepath = self._dst_file_path("unittest_wav2bas03_LINENO01.bas")
@@ -108,7 +108,7 @@ class TestDragon32Conversion(unittest.TestCase):
     def test_wav2bas04(self):
         source_filepath = self._src_file_path("LineNumber Test 02.wav")
         destination_filepath = self._dst_file_path("unittest_wav2bas03.bas")
-        wav2bas(source_filepath, destination_filepath, self.cfg)
+        convert(source_filepath, destination_filepath, self.cfg)
 
         # filename 'LINENO02' used in CSAVE:
         destination_filepath = self._dst_file_path("unittest_wav2bas03_LINENO02.bas")
@@ -140,7 +140,7 @@ class TestDragon32Conversion(unittest.TestCase):
 
         cfg = configs.Dragon32Config()
         cfg.LEAD_BYTE_LEN = 35
-        bas2cas(source_filepath, destination_filepath, cfg)
+        convert(source_filepath, destination_filepath, cfg)
 
         dest_content = self._get_and_delete_dst(destination_filepath)
 #         print repr(dest_content)
@@ -163,13 +163,12 @@ class TestDragon32Conversion(unittest.TestCase):
             ("<", "Sync byte 0x3C"),
 
             ("\x01", "block type: data block (0x01)"),
-            (":", "block length 0x3a (58Bytes)"),
+            ("8", "block length 0x38 (56Bytes)"),
             (
                 '\r10 FOR I = 1 TO 10\r20 PRINT I;"HELLO WORLD!"\r30 NEXT I\r',
                 "Basic code in ASCII format"
             ),
-            ("\x00\x00", "code end terminator"),
-            ("\x91", "block checksum"),
+            ("\x8f", "block checksum"),
 
             ("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU", "35x Leadin bytes 0x55"),
             ("<", "Sync byte 0x3C"),
@@ -192,11 +191,11 @@ class TestDragon32Conversion(unittest.TestCase):
         # create cas
         source_filepath = self._src_file_path("LineNumberTest.bas")
         cas_filepath = self._dst_file_path("unittest_LineNumberTest.cas")
-        bas2cas(source_filepath, cas_filepath, self.cfg)
+        convert(source_filepath, cas_filepath, self.cfg)
 
         # create bas from created cas file
         destination_filepath = self._dst_file_path("unittest_LineNumberTest.bas")
-        cas2bas(cas_filepath, destination_filepath, self.cfg)
+        convert(cas_filepath, destination_filepath, self.cfg)
 
         os.remove(cas_filepath)
 
@@ -221,12 +220,12 @@ class TestDragon32Conversion(unittest.TestCase):
 
         cfg = configs.Dragon32Config()
         cfg.LEAD_BYTE_LEN = 128
-        bas2wav(source_filepath, destination_filepath, cfg)
+        convert(source_filepath, destination_filepath, cfg)
 
         # read wave and compare
         source_filepath = self._dst_file_path("unittest_HelloWorld1.wav")
         destination_filepath = self._dst_file_path("unittest_bas2ascii_wav.bas")
-        wav2bas(source_filepath, destination_filepath, self.cfg)
+        convert(source_filepath, destination_filepath, self.cfg)
 
         # filename 'HELLOWOR' used in CSAVE:
         destination_filepath = self._dst_file_path("unittest_bas2ascii_wav_HELLOWOR.bas")
@@ -252,7 +251,8 @@ if __name__ == '__main__':
 # #         logging.ERROR
 # #         logging.INFO
 # #         logging.WARNING
-#         logging.DEBUG
+# #         logging.DEBUG
+#         7
 #     )
 #     log.addHandler(logging.StreamHandler())
 

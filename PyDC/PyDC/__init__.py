@@ -9,11 +9,12 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+import os
+import sys
+
 from CassetteObjects import Cassette
-from bitstream_handler import BitstreamHandler, CasStream, BytestreamHandler
 from utils import print_bitlist
 from wave2bitstream import Wave2Bitstream, Bitstream2Wave
-import sys
 
 
 __version__ = (0, 1, 0, 'dev')
@@ -26,63 +27,49 @@ def analyze(wave_file, cfg):
     wb = Wave2Bitstream(wave_file, cfg)
     wb.analyze()
 
-def bas2cas(source_filepath, destination_filepath, cfg):
-    """
-    Create a .cas file from a existing .bas file
-    """
-    c = Cassette(cfg)
-    c.add_from_bas(source_filepath)
-    c.print_debug_info()
-    c.write_cas(destination_filepath)
 
-
-def cas2bas(source_filepath, destination_filepath, cfg):
+def convert(source_file, destination_file, cfg):
     """
-    Read .cas file and create a .bas file
+    convert in every way.
     """
-    cas_stream = CasStream(source_filepath)
-    bh = BytestreamHandler(cfg)
-    bh.feed(cas_stream)
+    source_ext = os.path.splitext(source_file)[1]
+    source_ext = source_ext.lower()
 
-    # save .bas file
-    bh.cassette.save_bas(destination_filepath)
+    dest_ext = os.path.splitext(destination_file)[1]
+    dest_ext = dest_ext.lower()
 
-#     c = Cassette(cfg)
-#     c.add_from_cas(source_filepath)
-#     c.print_debug_info()
-#     c.save_bas(destination_filepath)
+    if source_ext not in (".wav", ".cas", ".bas"):
+        raise AssertionError(
+            "Source file type %r not supported." % repr(source_ext)
+        )
+    if dest_ext not in (".wav", ".cas", ".bas"):
+        raise AssertionError(
+            "Destination file type %r not supported." % repr(dest_ext)
+        )
 
+    print "Convert %s -> %s" % (source_ext, dest_ext)
 
-def bas2wav(source_filepath, destination_filepath, cfg):
-    """
-    Create a wave file from a existing .bas file
-    """
     c = Cassette(cfg)
 
-    c.add_from_bas(source_filepath)
+    if source_ext == ".wav":
+        c.add_from_wav(source_file)
+    elif source_ext == ".cas":
+        c.add_from_cas(source_file)
+    elif source_ext == ".bas":
+        c.add_from_bas(source_file)
+    else:
+        raise RuntimeError # Should never happen
+
     c.print_debug_info()
 
-    wav = Bitstream2Wave(destination_filepath, cfg)
-
-    c.write_wave(wav)
-
-    wav.close()
-
-
-
-
-def wav2bas(source_filepath, destination_filepath, cfg):
-    """
-    get bitstream generator from WAVE file
-    """
-    bitstream = iter(Wave2Bitstream(source_filepath, cfg))
-
-    # store bitstream into python objects
-    bh = BitstreamHandler(cfg)
-    bh.feed(bitstream)
-
-    # save .bas file
-    bh.cassette.save_bas(destination_filepath)
+    if dest_ext == ".wav":
+        c.write_wave(destination_file)
+    elif dest_ext == ".cas":
+        c.write_cas(destination_file)
+    elif dest_ext == ".bas":
+        c.write_bas(destination_file)
+    else:
+        raise RuntimeError # Should never happen
 
 
 

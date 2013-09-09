@@ -3,7 +3,6 @@
 
 Convert dragon 32 Cassetts WAV files into plain text.
 
-
 copyleft: 2013 by Jens Diemer
 license: GNU GPL v3 or above, see LICENSE for more details.
 
@@ -16,6 +15,7 @@ Python dragon 32 converter 0.1.0.dev
 usage: PyDC_cli.py [-h] [-v] [--verbosity {5,7,0,10,20,30,40,50}]
                    [--logfile {5,7,0,10,20,30,40,50}]
                    [--log_format LOG_FORMAT] [--dst DST] [--analyze]
+                   [--bit_one_hz BIT_ONE_HZ] [--bit_nul_hz BIT_NUL_HZ]
                    [--hz_variation HZ_VARIATION]
                    [--min_volume_ratio MIN_VOLUME_RATIO]
                    [--avg_count AVG_COUNT] [--end_count END_COUNT]
@@ -25,7 +25,7 @@ usage: PyDC_cli.py [-h] [-v] [--verbosity {5,7,0,10,20,30,40,50}]
 Python dragon 32 converter
 
 positional arguments:
-  src                   Source filename (.wav/.bas)
+  src                   Source filename (.wav/.cas/.bas)
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -39,9 +39,13 @@ optional arguments:
   --log_format LOG_FORMAT
                         see: http://docs.python.org/2/library/logging.html
                         #logrecord-attributes
-  --dst DST             Destination filename (.wav/.bas)
+  --dst DST             Destination filename (.wav/.cas/.bas)
   --analyze             Display zeror crossing information in the given wave
                         file.
+  --bit_one_hz BIT_ONE_HZ
+                        Frequency of bit '1' in Hz (default: 2100)
+  --bit_nul_hz BIT_NUL_HZ
+                        Frequency of bit '0' in Hz (default: 1100)
   --hz_variation HZ_VARIATION
                         How much Hz can signal scatter to match 1 or 0 bit ?
                         (default: 450)
@@ -56,12 +60,17 @@ optional arguments:
                         Sample count that can be around null (default: 1)
 
 PyDC v0.1.0.dev copyleft 2013 by htfx.de - Jens Diemer, GNU GPL v3 or above
+
 }}}
 
 Example:
 {{{
 ~$ python PyDC_cli.py FooBar.wav --dst=FooBar.bas
+~$ python PyDC_cli.py FooBar.wav --dst=FooBar.cas --verbosity=7
 }}}
+
+Not every convert variant between {{{.wav}}}, {{{.cas}}}, {{{.bas}}} is useable.
+So you can also use {{{.wav}}} as source and {{{.wav}}} as destination, too.
 
 
 ==== analyze
@@ -99,12 +108,8 @@ Some statistics from WAVES files are here:
 
 === TODO
 
-support CAS files, too:
-* CAS2BAS
-* CAS2WAV
-* BAS2CAS
-* WAV2CAS
-
+* add tokenized BASIC output, too. Currently {{{.wav}}} and {{{.cas}}} would be always output as ASCII BASIC.
+* support for longer listing as 255 characters. Currently the blocks would not be limited to 255Bytes ;(
 
 === Links
 

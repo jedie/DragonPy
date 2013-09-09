@@ -11,10 +11,8 @@
 
 import logging
 import os
-import sys
 
-from PyDC import TITLE_LINE, VERSION_STRING, wav2bas, bas2wav, analyze, bas2cas, \
-    cas2bas
+from PyDC import TITLE_LINE, VERSION_STRING, analyze, convert
 from PyDC.base_cli import Base_CLI
 from PyDC.configs import Dragon32Config
 
@@ -33,9 +31,9 @@ class PyDC_CLI(Base_CLI):
         super(PyDC_CLI, self).__init__()
         self.cfg = Dragon32Config()
 
-        self.parser.add_argument("src", help="Source filename (.wav/.bas)")
+        self.parser.add_argument("src", help="Source filename (.wav/.cas/.bas)")
         self.parser.add_argument("--dst",
-            help="Destination filename (.wav/.bas/.cas)"
+            help="Destination filename (.wav/.cas/.bas)"
         )
 
         self.parser.add_argument(
@@ -110,13 +108,9 @@ class PyDC_CLI(Base_CLI):
     def run(self):
         self.args = self.parse_args()
 
-        source_filename, source_ext = os.path.splitext(self.source_file)
-        source_ext = source_ext.lower()
-
+        source_filename = os.path.splitext(self.source_file)[0]
         if self.args.dst:
-            dest_filename, dest_ext = os.path.splitext(self.destination_file)
-            dest_ext = dest_ext.lower()
-
+            dest_filename = os.path.splitext(self.destination_file)[0]
             self.logfilename = dest_filename + ".log"
         else:
             self.logfilename = source_filename + ".log"
@@ -135,21 +129,8 @@ class PyDC_CLI(Base_CLI):
 
         if self.args.analyze:
             analyze(self.source_file, self.cfg)
-
-        elif source_ext.startswith(".wav") and dest_ext.startswith(".bas"):
-            wav2bas(self.source_file, self.destination_file, self.cfg)
-        elif source_ext.startswith(".bas") and dest_ext.startswith(".wav"):
-            bas2wav(self.source_file, self.destination_file, self.cfg)
-
-        elif source_ext.startswith(".bas") and dest_ext.startswith(".cas"):
-            bas2cas(self.source_file, self.destination_file, self.cfg)
-        elif source_ext.startswith(".cas") and dest_ext.startswith(".bas"):
-            cas2bas(self.source_file, self.destination_file, self.cfg)
-
         else:
-            print "ERROR:"
-            print "%s to %s ???" % (repr(self.source_file), repr(self.destination_file))
-            sys.exit(-1)
+            convert(self.source_file, self.destination_file, self.cfg)
 
 
 if __name__ == "__main__":
