@@ -324,27 +324,33 @@ class CassetteFile(object):
         elif self.file_type == self.cfg.FTYPE_BIN:
             raise NotImplementedError("Binary files are not supported, yet.")
 
-        ascii_flag = codepoints[9]
-        log.info("Raw ASCII flag is: %s" % repr(ascii_flag))
-        if ascii_flag == self.cfg.BASIC_TOKENIZED:
+        self.ascii_flag = codepoints[9]
+        log.info("Raw ASCII flag is: %s" % repr(self.ascii_flag))
+        if self.ascii_flag == self.cfg.BASIC_TOKENIZED:
             self.is_tokenized = True
-        elif ascii_flag == self.cfg.BASIC_ASCII:
+        elif self.ascii_flag == self.cfg.BASIC_ASCII:
             self.is_tokenized = False
         else:
-            raise NotImplementedError("Unknown BASIC type: '%s'" % hex(ascii_flag))
+            raise NotImplementedError("Unknown BASIC type: '%s'" % hex(self.ascii_flag))
 
-        log.info("ASCII flag: %s" % self.cfg.BASIC_TYPE_DICT[ascii_flag])
+        log.info("ASCII flag: %s" % self.cfg.BASIC_TYPE_DICT[self.ascii_flag])
 
         self.gap_flag = codepoints[10]
         log.info("gap flag is %s (0x00=no gaps, 0xff=gaps)" % hex(self.gap_flag))
 
-        codepoints = iter(codepoints)
+        # machine code starting/loading address
+        if self.file_type != self.cfg.FTYPE_BASIC: # BASIC programm (0x00)
+            codepoints = iter(codepoints)
 
-        self.start_address = get_word(codepoints)
-        log.info("machine code starting address: %s" % hex(self.start_address))
+            self.start_address = get_word(codepoints)
+            log.info("machine code starting address: %s" % hex(self.start_address))
 
-        self.load_address = get_word(codepoints)
-        log.info("machine code loading address: %s" % hex(self.load_address))
+            self.load_address = get_word(codepoints)
+            log.info("machine code loading address: %s" % hex(self.load_address))
+        else:
+            # not needed in BASIC files
+            # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4341&p=9109#p9109
+            pass
 
         self.file_content = FileContent(self.cfg)
 
@@ -359,18 +365,39 @@ class CassetteFile(object):
         print "*"*79
 
     def get_filename_block_as_codepoints(self):
+        """
+        TODO: Support tokenized BASIC. Now we only create ASCII BASIC.
+        """
         codepoints = []
         codepoints += list(string2codepoint(self.filename.ljust(8, " ")))
         codepoints.append(self.cfg.FTYPE_BASIC) # one byte file type
         codepoints.append(self.cfg.BASIC_ASCII) # one byte ASCII flag
-        codepoints.append(0x00) # one byte gap flag (00=no gaps, FF=gaps)
-        # FIXME, see: http://five.pairlist.net/pipermail/coco/2013-August/070938.html
+    
 
-        # two bytes machine code starting address:
-        codepoints += [ord(self.filename[0]), ord(self.filename[1])]
+        # one byte gap flag (0x00=no gaps, 0xFF=gaps)
+        # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4231&p=9110#p9110
+        codepoints.append(self.cfg.GAPS)
 
-        # two bytes machine code loading address:
-        codepoints += [ord(self.filename[2]), ord(self.filename[3])]
+#         if self.ascii_flag == self.cfg.BASIC_ASCII:
+#             codepoints.append(self.cfg.GAPS)
+#         elif self.ascii_flag == self.cfg.BASIC_TOKENIZED:
+#             codepoints.append(self.cfg.NO_GAPS)
+#         else:
+#             raise NotImplementedError("Unknown BASIC type: '%s'" % hex(self.ascii_flag))
+        
+        # machine code starting/loading address
+        if self.file_type != self.cfg.FTYPE_BASIC: # BASIC programm (0x00)
+            codepoints = iter(codepoints)
+
+            self.start_address = get_word(codepoints)
+            log.info("machine code starting address: %s" % hex(self.start_address))
+
+            self.load_address = get_word(codepoints)
+            log.info("machine code loading address: %s" % hex(self.load_address))
+        else:
+            # not needed in BASIC files
+            # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4341&p=9109#p9109
+            pass
 
         log.debug("filename block: %s" % pformat_codepoints(codepoints))
         return codepoints
@@ -503,8 +530,8 @@ class Cassette(object):
             checksum = checksum & 0xFF
             log.debug("yield calculated checksum %s" % hex(checksum))
             yield checksum
-            log.debug("yield magic byte %s" % hex(self.cfg.MAGIC_BYTE))
-            yield self.cfg.MAGIC_BYTE # 0x55
+#             log.debug("yield magic byte %s" % hex(self.cfg.MAGIC_BYTE))
+#             yield self.cfg.MAGIC_BYTE # 0x55
         else:
             log.debug("content of '%s':" % self.cfg.BLOCK_TYPE_DICT[block_type])
             log.debug("-"*79)
@@ -520,8 +547,8 @@ class Cassette(object):
             checksum = checksum & 0xFF
             log.debug("yield calculated checksum %s" % hex(checksum))
             yield checksum
-            log.debug("yield magic byte %s" % hex(self.cfg.MAGIC_BYTE))
-            yield self.cfg.MAGIC_BYTE # 0x55
+#             log.debug("yield magic byte %s" % hex(self.cfg.MAGIC_BYTE))
+#             yield self.cfg.MAGIC_BYTE # 0x55
 
     def codepoint_stream(self):
         if self.wav:

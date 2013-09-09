@@ -150,17 +150,14 @@ class TestDragon32Conversion(unittest.TestCase):
             ("<", "Sync byte 0x3C"),
 
             ("\x00", "block type: filename block (0x00)"),
-            ("\x0f", "block length (15Bytes)"),
+            ("\x0b", "block length (11Bytes)"),
 
             ("HELLOWOR", "filename"),
             ("\x00", "File type: BASIC programm (0x00)"),
             ("\xff", "format: ASCII BASIC (0xff)"),
-            ("\x00", "gap flag (00=no gaps, FF=gaps)"),
-            ("HE", "machine code starting address"),
-            ("LL", "machine code loading address"),
+            ("\xff", "gap flag (00=no gaps, FF=gaps)"),
 
-            ("\x9f", "block checksum"),
-            ("U", "magic byte block terminator 0x3C"),
+            ("u", "block checksum"),
 
             ("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU", "35x Leadin bytes 0x55"),
             ("<", "Sync byte 0x3C"),
@@ -173,7 +170,6 @@ class TestDragon32Conversion(unittest.TestCase):
             ),
             ("\x00\x00", "code end terminator"),
             ("\x91", "block checksum"),
-            ("U", "magic byte block terminator 0x3C"),
 
             ("UUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUUU", "35x Leadin bytes 0x55"),
             ("<", "Sync byte 0x3C"),
@@ -181,7 +177,6 @@ class TestDragon32Conversion(unittest.TestCase):
             ("\xff", "block type: end-of-file block (0xff)"),
             ("\x00", "block length (0Bytes)"),
             ("\xff", "block checksum"),
-            ("U", "magic byte block terminator 0x3C"),
         )
 
         dest_content = iter(dest_content)

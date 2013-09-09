@@ -189,11 +189,11 @@ class BitstreamHandlerBase(object):
 
         # Check if the magic byte exists
 
-        magic_byte = next(codepoint_stream)
-        if magic_byte != self.cfg.MAGIC_BYTE:
-            log.error("Magic Byte %s is not %s" % (hex(magic_byte), hex(self.cfg.MAGIC_BYTE)))
-        else:
-            log.info("Magic Byte %s, ok." % hex(magic_byte))
+#         magic_byte = next(codepoint_stream)
+#         if magic_byte != self.cfg.MAGIC_BYTE:
+#             log.error("Magic Byte %s is not %s" % (hex(magic_byte), hex(self.cfg.MAGIC_BYTE)))
+#         else:
+#             log.info("Magic Byte %s, ok." % hex(magic_byte))
 
         return block_type, block_length, codepoints
 

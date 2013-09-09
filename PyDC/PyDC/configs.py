@@ -89,8 +89,6 @@ class Dragon32Config(BaseConfig):
     SYNC_BYTE_CODEPOINT = 0x3C # 00111100
     MAX_SYNC_BYTE_SEARCH = 600 # search size in **Bytes**
 
-    MAGIC_BYTE = 0x55 # 10101010
-
     # Block types:
     FILENAME_BLOCK = 0x00
     DATA_BLOCK = 0x01
@@ -118,6 +116,10 @@ class Dragon32Config(BaseConfig):
         BASIC_TOKENIZED:"tokenized BASIC (0x00)",
         BASIC_ASCII:"ASCII BASIC (0xff)",
     }
+
+    # The gap flag
+    NO_GAPS = 0x00
+    GAPS = 0xff
 
     BASIC_CODE_END = [0x00, 0x00] # Mark the end of the code
 
