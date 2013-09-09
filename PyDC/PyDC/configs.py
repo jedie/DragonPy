@@ -121,10 +121,6 @@ class Dragon32Config(BaseConfig):
     NO_GAPS = 0x00
     GAPS = 0xff
 
-    BASIC_CODE_END = [0x00, 0x00] # Mark the end of the code
-
-
-
 
 if __name__ == "__main__":
     import doctest

@@ -262,8 +262,6 @@ class FileContent(object):
             result += list(code_line.get_as_codepoints())
         result.append(delim)
 
-        result += self.cfg.BASIC_CODE_END
-        log.debug("code: %s" % repr(result))
         return result
 
     def get_ascii_codeline(self):
@@ -403,7 +401,16 @@ class CassetteFile(object):
         return codepoints
 
     def get_code_block_as_codepoints(self):
-        return self.file_content.get_as_codepoints()
+        result = self.file_content.get_as_codepoints()
+
+        # XXX: Is a code block end terminator needed?
+        # e.g.:
+#         if self.is_tokenized:
+#             result += [0x00, 0x00]
+#         else:
+#             result.append(0x0d) # 0x0d == \r
+
+        return result
 
     def print_debug_info(self):
         print "\tFilename: '%s'" % self.filename
