@@ -53,8 +53,8 @@ class DragonPyCLI(Base_CLI):
     def run(self):
         cfg = self.get_cfg()
 
-#         display = Display()
-        display = None
+        display = Display()
+#         display = None
         speaker = None
         cassette = None
 
