@@ -38,12 +38,12 @@ class Dragon32Cfg(BaseConfig):
     $FF00-$FFFF 6883-SAM / PIA
     """
     RAM_START = 0x0000
-    RAM_SIZE = 0x7FFF
-    RAM_END = RAM_START + RAM_SIZE
+    RAM_END = 0x7FFF
+    RAM_SIZE = 0x7FFF # 32767 Bytes
 
     ROM_START = 0x8000
-    ROM_SIZE = 0x4000
-    ROM_END = ROM_START + ROM_SIZE
+    ROM_END = 0xBFFF
+    ROM_SIZE = 0x3FFF # 16383 Bytes
 
     STACK_PAGE = 0x100
 
@@ -58,6 +58,10 @@ class Dragon32Cfg(BaseConfig):
         self.ram = None
         self.bus = None
         self.pc = None
+
+        assert self.RAM_SIZE == (self.RAM_END - self.RAM_START)
+        assert self.ROM_SIZE == (self.ROM_END - self.ROM_START)
+
 
 
 if __name__ == "__main__":

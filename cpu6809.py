@@ -28,15 +28,17 @@
 
 
 import BaseHTTPServer
+import inspect
 import json
+import logging
 import re
 import select
 import socket
 import struct
 import sys
-import logging
+
 from DragonPy_CLI import DragonPyCLI
-import inspect
+import os
 
 
 log = logging.getLogger("DragonPy")
@@ -63,10 +65,10 @@ class ROM:
 
     def __init__(self, start, size):
         self.start = start
-        self.end = start + size - 1
+        self.end = start + size
         self._mem = [0x00] * size
-        print "init %s Bytes %s (start: %s end: %s size: %s)" % (
-            size, self.__class__.__name__, hex(start), hex(self.end), hex(size)
+        print "init %s Bytes %s (start: %s end: %s size: %s (%sBytes))" % (
+            size, self.__class__.__name__, hex(start), hex(self.end), hex(size), size
         )
 
     def load(self, address, data):
@@ -80,12 +82,18 @@ class ROM:
                 try:
                     self._mem[index] = ord(datum)
                 except IndexError:
-                    raise IndexError("ROM file %s bigger than: %s" % (filename, hex(index)))
+                    size = os.stat(filename).st_size
+                    log.error("ROM file %s (%sBytes in hex: %s) is bigger than: %s" % (
+                        filename, size, hex(size), hex(index)
+                    ))
+        log.debug("Read %sBytes from %s into ROM %s-%s" % (
+            offset, filename, hex(address), hex(address + offset)
+        ))
 
     def read_byte(self, address):
         assert self.start <= address <= self.end, "Read %s from %s is not in range %s-%s" % (hex(address), self.__class__.__name__, hex(self.start), hex(self.end))
         byte = self._mem[address - self.start]
-        log.debug("Read byte %s: %s" % (hex(address), hex(byte)))
+#         log.debug("Read byte %s: %s" % (hex(address), hex(byte)))
         return byte
 
 
@@ -112,7 +120,7 @@ class Memory:
         self.ram = RAM(start=self.cfg.RAM_START, size=self.cfg.RAM_SIZE)
 
         if cfg and cfg.ram:
-            self.ram.load_file(0x0000, cfg.ram)
+            self.ram.load_file(self.cfg.RAM_START, cfg.ram)
 
     def load(self, address, data):
         if address < self.cfg.RAM_END:
