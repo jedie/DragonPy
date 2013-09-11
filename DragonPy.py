@@ -388,6 +388,7 @@ class Dragon(object):
             "cpu6809.py",
             "--bus", str(listener.getsockname()[1]),
             "--rom", cfg.rom,
+            "--verbosity=%s" % cfg.verbosity,
         ]
         if cfg.ram:
             args.extend([

@@ -36,6 +36,7 @@ class DragonPyCLI(Base_CLI):
 
     def get_cfg(self):
         args = self.parse_args()
+        self.setup_logging(args)
 
         self._cfg.bus = args.bus
         if args.ram:
@@ -44,6 +45,8 @@ class DragonPyCLI(Base_CLI):
             self._cfg.rom = args.rom
         if args.pc:
             self._cfg.pc = args.pc
+
+        self._cfg.verbosity = args.verbosity
 
         return self._cfg
 

@@ -61,7 +61,7 @@ class Base_CLI(object):
             )
         )
         self.parser.add_argument(
-            "--log_format", default=self.DEFAULT_LOG_FORMATTER,
+            "--log_formatter", default=self.DEFAULT_LOG_FORMATTER,
             help=(
                 "see: http://docs.python.org/2/library/logging.html#logrecord-attributes"
             )
@@ -84,6 +84,9 @@ class Base_CLI(object):
     def setup_logging(self, args):
         self.verbosity = args.verbosity
         self.logfile = args.logfile
+        self.log_formatter = logging.Formatter(
+            args.log_formatter or self.DEFAULT_LOG_FORMATTER
+        )
 
         verbosity_level_name = logging.getLevelName(self.verbosity)
 
@@ -97,14 +100,14 @@ class Base_CLI(object):
             handler = logging.FileHandler(self.logfilename, mode='w', encoding="utf8")
 #             handler.set_level(self.logfile)
             handler.level = self.logfile
-            handler.setFormatter(self.LOG_FORMATTER)
+            handler.setFormatter(self.log_formatter)
             self.log.addHandler(handler)
 
         if self.verbosity > 0:
             handler = logging.StreamHandler()
 #             handler.set_level(self.verbosity)
             handler.level = self.verbosity
-            handler.setFormatter(self.LOG_FORMATTER)
+            handler.setFormatter(self.log_formatter)
             self.log.addHandler(handler)
 
         self.log.debug(" ".join(sys.argv))

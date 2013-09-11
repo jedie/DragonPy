@@ -551,13 +551,16 @@ if __name__ == "__main__":
 
     if cfg.bus is None:
         import subprocess
-        subprocess.Popen([sys.executable, "DragonPy_CLI.py"]).wait()
+        subprocess.Popen([sys.executable,
+            "DragonPy_CLI.py",
+            "--verbosity=5",
+        ]).wait()
         sys.exit(0)
         print "DragonPy cpu core"
         print "Run DragonPy_CLI.py instead"
         sys.exit(0)
 
-    print "Use bus port:", repr(cfg.bus)
+    log.debug("Use bus port: %s" % repr(cfg.bus))
 
     mem = Memory(cfg)
     cpu = CPU(cfg, mem)
