@@ -67,9 +67,9 @@ class ROM:
         self.start = start
         self.end = start + size
         self._mem = [0x00] * size
-        print "init %s Bytes %s (start: %s end: %s size: %s (%sBytes))" % (
-            size, self.__class__.__name__, hex(start), hex(self.end), hex(size), size
-        )
+        log.info("init %s Bytes %s (%s - %s)" % (
+            size, self.__class__.__name__, hex(start), hex(self.end)
+        ))
 
     def load(self, address, data):
         for offset, datum in enumerate(data):
@@ -83,7 +83,7 @@ class ROM:
                     self._mem[index] = ord(datum)
                 except IndexError:
                     size = os.stat(filename).st_size
-                    log.error("ROM file %s (%sBytes in hex: %s) is bigger than: %s" % (
+                    log.error("Error: File %s (%sBytes in hex: %s) is bigger than: %s" % (
                         filename, size, hex(size), hex(index)
                     ))
         log.debug("Read %sBytes from %s into ROM %s-%s" % (

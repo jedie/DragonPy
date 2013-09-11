@@ -29,21 +29,13 @@ class BaseConfig(object):
 
 
 class Dragon32Cfg(BaseConfig):
-    """
-    max Memory is 64KB ($FFFF Bytes)
-
-    32 kB RAM ($0000-$7FFF)
-    16 kB ROM ($8000-$BFFF)
-    ~16 kB free/reseved ($C000-$FEFF)
-    $FF00-$FFFF 6883-SAM / PIA
-    """
     RAM_START = 0x0000
     RAM_END = 0x7FFF
-    RAM_SIZE = 0x7FFF # 32767 Bytes
+    RAM_SIZE = 0x8000 # 32768 Bytes
 
     ROM_START = 0x8000
     ROM_END = 0xBFFF
-    ROM_SIZE = 0x3FFF # 16383 Bytes
+    ROM_SIZE = 0x4000 # 16384 Bytes
 
     STACK_PAGE = 0x100
 
@@ -59,8 +51,8 @@ class Dragon32Cfg(BaseConfig):
         self.bus = None
         self.pc = None
 
-        assert self.RAM_SIZE == (self.RAM_END - self.RAM_START)
-        assert self.ROM_SIZE == (self.ROM_END - self.ROM_START)
+        assert self.RAM_SIZE == (self.RAM_END - self.RAM_START) + 1
+        assert self.ROM_SIZE == (self.ROM_END - self.ROM_START) + 1
 
 
 
