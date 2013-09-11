@@ -61,9 +61,10 @@ def opcode(code):
     return decorator
 
 
-class ROM:
+class ROM(object):
 
-    def __init__(self, start, size):
+    def __init__(self, cfg, start, size):
+        self.cfg = cfg
         self.start = start
         self.end = start + size
         self._mem = [0x00] * size
@@ -94,11 +95,11 @@ class ROM:
         assert self.start <= address <= self.end, "Read %s from %s is not in range %s-%s" % (hex(address), self.__class__.__name__, hex(self.start), hex(self.end))
         byte = self._mem[address - self.start]
 #         log.debug("Read byte %s: %s" % (hex(address), hex(byte)))
+#         self.cfg.mem_info(address, "read byte")
         return byte
 
 
 class RAM(ROM):
-
     def write_byte(self, address, value):
         self._mem[address] = value
 
@@ -107,17 +108,16 @@ class RAM(ROM):
 
 
 class Memory:
-
     def __init__(self, cfg=None, use_bus=True):
         self.cfg = cfg
         self.use_bus = use_bus
 
-        self.rom = ROM(start=self.cfg.ROM_START, size=self.cfg.ROM_SIZE)
+        self.rom = ROM(cfg, start=self.cfg.ROM_START, size=self.cfg.ROM_SIZE)
 
         if cfg:
             self.rom.load_file(self.cfg.ROM_START, cfg.rom)
 
-        self.ram = RAM(start=self.cfg.RAM_START, size=self.cfg.RAM_SIZE)
+        self.ram = RAM(cfg, start=self.cfg.RAM_START, size=self.cfg.RAM_SIZE)
 
         if cfg and cfg.ram:
             self.ram.load_file(self.cfg.RAM_START, cfg.ram)
@@ -140,6 +140,8 @@ class Memory:
     def write_byte(self, cycle, address, value):
         if address < self.cfg.RAM_END:
             self.ram.write_byte(address, value)
+#         log.debug("write byte > RAM value %s to %s" % (hex(value), hex(address)))
+        self.cfg.mem_info(address, "write byte %s to" % hex(value))
         if 0x400 <= address < 0x800 or 0x2000 <= address < 0x5FFF:
             self.bus_write(cycle, address, value)
 
@@ -432,6 +434,7 @@ class CPU(object):
     ####
 
     def reset(self):
+        log.debug("CPU reset read word from %s" % hex(self.cfg.RESET_VECTOR))
         self.program_counter = self.read_word(self.cfg.RESET_VECTOR)
 
     def run(self, bus_port):
@@ -441,7 +444,11 @@ class CPU(object):
 
         assert self.cfg.bus != None
 
-        while not self.quit:
+        last_op_code = None
+        same_op_count = 0
+
+#         while not self.quit:
+        for x in xrange(100):
             timeout = 0
             if not self.running:
                 timeout = 1
@@ -457,8 +464,10 @@ class CPU(object):
                 else:
                     pass
 
-            count = 10
-            while count > 0 and self.running:
+            for count in xrange(1000): # 1000
+                if not self.running:
+                    break
+
                 op = self.read_pc_byte()
                 try:
                     func = self.opcodes[op]
@@ -468,9 +477,21 @@ class CPU(object):
                     )
                     sys.exit()
                     break
+
+                if op == last_op_code:
+                    same_op_count += 1
+                elif same_op_count == 0:
+                    log.debug(" *** new op code: %s (%s)" % (hex(op), func.__name__))
+                    last_op_code = op
                 else:
-                    func()
-                count -= 1
+                    log.debug(" *** last op code %s count: %s - new op code: %s (%s)" % (
+                        last_op_code, same_op_count, hex(op), func.__name__
+                    ))
+                    last_op_code = op
+                    same_op_count = 0
+
+                # call op code method:
+                func()
 
     def test_run(self, start, end):
         self.program_counter = start
@@ -513,12 +534,12 @@ class CPU(object):
     ####
 
     def push_byte(self, byte):
-        self.write_byte(self.STACK_PAGE + self.stack_pointer, byte)
+        self.write_byte(self.cfg.STACK_PAGE + self.stack_pointer, byte)
         self.stack_pointer = (self.stack_pointer - 1) % 0x100
 
     def pull_byte(self):
         self.stack_pointer = (self.stack_pointer + 1) % 0x100
-        return self.read_byte(self.STACK_PAGE + self.stack_pointer)
+        return self.read_byte(self.cfg.STACK_PAGE + self.stack_pointer)
 
     def push_word(self, word):
         hi, lo = divmod(word, 0x100)
@@ -526,7 +547,7 @@ class CPU(object):
         self.push_byte(lo)
 
     def pull_word(self):
-        s = self.STACK_PAGE + self.stack_pointer + 1
+        s = self.cfg.STACK_PAGE + self.stack_pointer + 1
         self.stack_pointer += 2
         return self.read_word(s)
 
@@ -540,6 +561,8 @@ class CPU(object):
         """
         self.cycles += 6
         value = self.read_pc_byte()
+#         log.debug("%s - 0x00 NEG direct %s" % (hex(self.program_counter), hex(value)))
+
         value = -value
 
         self.flag_N = 1 if (value < 0) else 0
@@ -561,7 +584,9 @@ class CPU(object):
         self.cycles += 7
         post_byte = self.read_pc_byte()
         high, low = divmod(post_byte, 16)
-        log.debug("0x1f TFR: post byte: %s high: %s low: %s" % (hex(post_byte), hex(high), hex(low)))
+        log.debug("%s - 0x1f TFR: post byte: %s high: %s low: %s" % (
+            hex(self.program_counter), hex(post_byte), hex(high), hex(low)
+        ))
         # TODO: check if source and dest has the same size
         source = self.get_register(high)
         self.set_register(low, source)
@@ -616,7 +641,7 @@ class CPU(object):
         self.cycles += 3
         addr = self.read_pc_word()
         self.program_counter = addr
-        log.debug("0x7e JMP extended to: %s" % hex(addr))
+        log.debug("%s - 0x7e JMP extended to: %s" % (hex(self.program_counter), hex(addr)))
 
 
 

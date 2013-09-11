@@ -11,6 +11,12 @@ import sys
 from DragonPy import Display, Dragon
 from base_cli import Base_CLI
 from configs import Dragon32Cfg
+from Dragon32_mem_info import DragonMemInfo
+import logging
+
+
+def dummy_func(*args):
+    pass
 
 
 class DragonPyCLI(Base_CLI):
@@ -47,6 +53,11 @@ class DragonPyCLI(Base_CLI):
             self._cfg.pc = args.pc
 
         self._cfg.verbosity = args.verbosity
+
+        if self.verbosity <= logging.DEBUG:
+            self._cfg.mem_info = DragonMemInfo(self.log.debug)
+        else:
+            self._cfg.mem_info = dummy_func
 
         return self._cfg
 

@@ -22,8 +22,11 @@ import subprocess
 import sys
 import time
 import wave
+import logging
 
 from configs import Dragon32Cfg
+
+log = logging.getLogger("DragonPy")
 
 
 class Display(object):
@@ -105,7 +108,7 @@ class Display(object):
         (0, 0, 255), # medium blue / blue
         (96, 160, 255), # light blue
         (128, 80, 0), # brown / dark orange
-        (255, 128 ,0), # orange
+        (255, 128 , 0), # orange
         (192, 192, 192), # gray 2
         (255, 144, 128), # pink / light red
         (0, 255, 0), # light green / green
@@ -185,7 +188,7 @@ class Display(object):
             base = address - start_text
             self.flash_chars[self.page - 1][base] = value
             hi, lo = divmod(base, 0x80)
-            row_group, column  = divmod(lo, 0x28)
+            row_group, column = divmod(lo, 0x28)
             row = hi + 8 * row_group
 
             if row_group == 3:
@@ -223,7 +226,7 @@ class Display(object):
                 base = address - start_hires
                 row8, b = divmod(base, 0x400)
                 hi, lo = divmod(b, 0x80)
-                row_group, column  = divmod(lo, 0x28)
+                row_group, column = divmod(lo, 0x28)
                 row = 8 * (hi + 8 * row_group) + row8
 
                 if self.mix and row >= 160:
@@ -244,24 +247,24 @@ class Display(object):
                             if xx % 2:
                                 pixels[x][y] = (0, 0, 0)
                                 # orange
-                                pixels[x][y] = (255, 192, 0) if c else (0, 0, 0)  # @@@
+                                pixels[x][y] = (255, 192, 0) if c else (0, 0, 0) # @@@
                                 pixels[x + 1][y] = (255, 192, 0) if c else (0, 0, 0)
                             else:
                                 # blue
                                 pixels[x][y] = (0, 192, 255) if c else (0, 0, 0)
                                 pixels[x + 1][y] = (0, 0, 0)
-                                pixels[x + 1][y] = (0, 192, 255) if c else (0, 0, 0)  # @@@
+                                pixels[x + 1][y] = (0, 192, 255) if c else (0, 0, 0) # @@@
                         else:
                             if xx % 2:
                                 pixels[x][y] = (0, 0, 0)
                                 # green
-                                pixels[x][y] = (0, 255, 0) if c else (0, 0, 0)  # @@@
+                                pixels[x][y] = (0, 255, 0) if c else (0, 0, 0) # @@@
                                 pixels[x + 1][y] = (0, 255, 0) if c else (0, 0, 0)
                             else:
                                 # violet
                                 pixels[x][y] = (255, 0, 255) if c else (0, 0, 0)
                                 pixels[x + 1][y] = (0, 0, 0)
-                                pixels[x + 1][y] = (255, 0, 255) if c else (0, 0, 0)  # @@@
+                                pixels[x + 1][y] = (255, 0, 255) if c else (0, 0, 0) # @@@
 
                         pixels[x][y + 1] = (0, 0, 0)
                         pixels[x + 1][y + 1] = (0, 0, 0)
@@ -331,16 +334,19 @@ class Cassette:
         return ord(self.raw[offset]) if offset < len(self.raw) else 0x80
 
 
-class SoftSwitches:
+class SoftSwitches(object):
 
-    def __init__(self, display, speaker, cassette):
+    def __init__(self, cfg, display, speaker, cassette):
+        self.cfg = cfg
         self.kbd = 0x00
         self.display = display
         self.speaker = speaker
         self.cassette = cassette
 
     def read_byte(self, cycle, address):
-        assert 0xC000 <= address <= 0xCFFF, \
+        self.cfg.mem_info(address, "SoftSwitches.read_byte (cycle: %s) from" % hex(cycle))
+
+        assert self.cfg.RAM_END <= address <= 0xFFFF, \
             "cycles: %s - address: %s" % (cycle, hex(address))
 
         if address == 0xC000:
@@ -371,6 +377,7 @@ class SoftSwitches:
                 return self.cassette.read_byte(cycle)
         else:
             pass # print "%04X" % address
+        log.debug("no soft switch at %s (cycle: %s)" % (hex(address), hex(cycle)))
         return 0x00
 
 
@@ -379,7 +386,7 @@ class Dragon(object):
     def __init__(self, cfg, display, speaker, cassette):
         self.display = display
         self.speaker = speaker
-        self.softswitches = SoftSwitches(display, speaker, cassette)
+        self.softswitches = SoftSwitches(cfg, display, speaker, cassette)
 
         listener = socket.socket()
         listener.bind(("127.0.0.1", 0))
@@ -404,7 +411,7 @@ class Dragon(object):
 
         rs, _, _ = select.select([listener], [], [], 2)
         if not rs:
-            print >>sys.stderr, "CPU module did not start"
+            print >> sys.stderr, "CPU module did not start"
             sys.exit(1)
         self.cpu, _ = listener.accept()
 

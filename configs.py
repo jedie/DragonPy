@@ -29,6 +29,11 @@ class BaseConfig(object):
 
 
 class Dragon32Cfg(BaseConfig):
+    """
+    see:
+     * http://dragon32.info/info/memmap.html
+     * http://dragon32.info/info/romref.html
+    """
     RAM_START = 0x0000
     RAM_END = 0x7FFF
     RAM_SIZE = 0x8000 # 32768 Bytes
@@ -39,11 +44,10 @@ class Dragon32Cfg(BaseConfig):
 
     STACK_PAGE = 0x100
 
-    # see http://dragon32.info/info/romref.html
-
 #     RESET_VECTOR = 0xB3B4 # RESET interrupt service routine (CoCo $a027)
     RESET_VECTOR = 0xB3BA # Cold start routine - clears lo mem, inits BASIC
 #     RESET_VECTOR = 0xB39B # Called after Hardware init routine, following a RESET Inits stack, checks for Cold/warm start
+#     RESET_VECTOR = 0xFFFE # RESET     ($b3b4; D64 64K mode $c000 - never accessed)
 
     def __init__(self):
         self.rom = "d32.rom"
