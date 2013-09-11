@@ -566,6 +566,46 @@ class CPU(object):
         source = self.get_register(high)
         self.set_register(low, source)
 
+    @opcode(0xbb)
+    def ADDA_extended(self):
+        """
+        A = A + M
+        """
+        self.cycles += 5
+        value = self.read_pc_word()
+        log.debug("%s - 0xbb ADDA extended: Add %s to accu A: %s" % (
+            hex(self.program_counter), hex(value), hex(self.accumulator_a)
+        ))
+        self.accumulator_a += value
+
+    @opcode(0xbc)
+    def CMPX_extended(self):
+        """
+        Compare M:M+1 from X
+        Addressing Mode: extended
+        """
+        self.cycles += 7
+        value = self.read_pc_word()
+        result = self.index_x - value
+        self.flag_C = 1 if (result >= 0) else 0
+        log.debug("%s - 0xbc CMPX extended: %s - %s = %s (Set C to %s)" % (
+            hex(self.program_counter), hex(self.index_x), hex(value), hex(result), self.flag_C
+        ))
+
+    @opcode(0xbd)
+    def JSR_extended(self):
+        """
+        Jump to SubRoutine
+        Addressing Mode: extended
+        """
+        self.cycles += 8
+        addr = self.read_pc_word()
+        self.push_word(self.program_counter - 1)
+        self.program_counter = addr
+        log.debug("%s - 0xbd JSR extended: push %s to stack and jump to %s" % (
+            hex(self.program_counter), hex(self.program_counter - 1), hex(addr)
+        ))
+
     @opcode(0x7e)
     def JMP_extended(self):
         """
