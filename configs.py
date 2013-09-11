@@ -7,8 +7,28 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+import inspect
 
-class Dragon32Cfg(object):
+
+class BaseConfig(object):
+    def print_debug_info(self):
+        print "Config: '%s'" % self.__class__.__name__
+
+        for name, value in inspect.getmembers(self): # , inspect.isdatadescriptor):
+            if name.startswith("_"):
+                continue
+#             print name, type(value)
+            if not isinstance(value, (int, basestring, list, tuple, dict)):
+                continue
+            if isinstance(value, (int,)):
+                print "%20s = %-6s in hex: %7s" % (
+                    name, value, hex(value)
+                )
+            else:
+                print "%20s = %s" % (name, value)
+
+
+class Dragon32Cfg(BaseConfig):
     """
     max Memory is 64KB ($FFFF Bytes)
 
@@ -39,3 +59,7 @@ class Dragon32Cfg(object):
         self.bus = None
         self.pc = None
 
+
+if __name__ == "__main__":
+    cfg = Dragon32Cfg()
+    cfg.print_debug_info()
