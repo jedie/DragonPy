@@ -451,7 +451,6 @@ class CPU(object):
 
             count = 10
             while count > 0 and self.running:
-                self.cycles += 2 # all instructions take this as a minimum
                 op = self.read_pc_byte()
                 try:
                     func = self.opcodes[op]
@@ -468,7 +467,6 @@ class CPU(object):
     def test_run(self, start, end):
         self.program_counter = start
         while True:
-            self.cycles += 2 # all instructions take this as a minimum
             if self.program_counter == end:
                 break
             op = self.read_pc_byte()
@@ -530,11 +528,13 @@ class CPU(object):
     def TFR(self):
         """
         Transfer Register to Register
-        Addressing Mode: Immediate
+        Copies data in register r1 to another register r2 of the same size.
+        Addressing Mode: immediate register numbers
         """
+        self.cycles += 7
         post_byte = self.read_pc_byte()
         high, low = divmod(post_byte, 16)
-        log.debug("TFR: post byte: %s high: %s low: %s" % (hex(post_byte), hex(high), hex(low)))
+        log.debug("0x1f TFR: post byte: %s high: %s low: %s" % (hex(post_byte), hex(high), hex(low)))
         # TODO: check if source and dest has the same size
         source = self.get_register(high)
         self.set_register(low, source)
