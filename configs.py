@@ -25,6 +25,14 @@ class Dragon32Cfg(object):
     ROM_SIZE = 0x4000
     ROM_END = ROM_START + ROM_SIZE
 
+    STACK_PAGE = 0x100
+
+    # see http://dragon32.info/info/romref.html
+
+#     RESET_VECTOR = 0xB3B4 # RESET interrupt service routine (CoCo $a027)
+    RESET_VECTOR = 0xB3BA # Cold start routine - clears lo mem, inits BASIC
+#     RESET_VECTOR = 0xB39B # Called after Hardware init routine, following a RESET Inits stack, checks for Cold/warm start
+
     def __init__(self):
         self.rom = "d32.rom"
         self.ram = None

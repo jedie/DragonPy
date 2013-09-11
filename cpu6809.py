@@ -294,11 +294,6 @@ class ControlHandlerFactory:
 
 class CPU(object):
 
-    STACK_PAGE = 0x100
-#     RESET_VECTOR = 0xb44f
-    RESET_VECTOR = 0xB3B4
-#     RESET_VECTOR = 0xfffe
-
     def __init__(self, cfg, memory):
         self.cfg = cfg
         self.memory = memory
@@ -429,7 +424,7 @@ class CPU(object):
     ####
 
     def reset(self):
-        self.program_counter = self.read_word(self.RESET_VECTOR)
+        self.program_counter = self.read_word(self.cfg.RESET_VECTOR)
 
     def run(self, bus_port):
         global bus
@@ -439,7 +434,6 @@ class CPU(object):
         assert self.cfg.bus != None
 
         while not self.quit:
-
             timeout = 0
             if not self.running:
                 timeout = 1
