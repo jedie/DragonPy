@@ -524,6 +524,25 @@ class CPU(object):
 
     ####
 
+    @opcode(0x00)
+    def NEG_direct(self):
+        """
+        Negate (Twos Complement) a Byte in Memory
+        Addressing Mode: direct
+        """
+        self.cycles += 6
+        value = self.read_pc_byte()
+        value = -value
+
+        self.flag_N = 1 if (value < 0) else 0
+        self.flag_Z = 1 if (value == 0) else 0
+
+        if value == 0x989680: # == 10000000
+            self.flag_V = 1
+
+        # C - 1 if borrow, else 0
+        self.flag_C = 1 if (value > 0xFF) else 0 # ???
+
     @opcode(0x1f)
     def TFR(self):
         """
