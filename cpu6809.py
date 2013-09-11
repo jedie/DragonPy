@@ -241,12 +241,12 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             "stack_pointer",
             "program_counter",
             "sign_flag",
-            "overflow_flag",
+            "flag_V",
             "break_flag",
             "decimal_mode_flag",
             "interrupt_disable_flag",
-            "zero_flag",
-            "carry_flag",
+            "flag_Z",
+            "flag_C",
         ))))
 
     def post_memory(self, m):
@@ -322,15 +322,15 @@ class CPU(object):
         # W - 16 bit concatenated reg. (E + F)
         # Q - 32 bit concatenated reg. (D + W)
 
-        # CC - 8 bit condition code register as flags:
-        self.entire_flag = 0 # E - bit 7
-        self.firq_mask_flag = 0 # F - bit 6
-        self.half_carry_flag = 0 # H - bit 5
-        self.irq_mask_flag = 0 # I - bit 4
-        self.negative_flag = 0 # N - bit 3
-        self.zero_flag = 0 # Z - bit 2
-        self.overflow_flag = 0 # V - bit 1
-        self.carry_flag = 0 # C - bit 0
+        # CC - 8 bit condition code register bits
+        self.flag_E = 0 # E - bit 7 - Entire register state stacked
+        self.flag_F = 0 # F - bit 6 - FIRQ interrupt masked
+        self.flag_H = 0 # H - bit 5 - Half-Carry
+        self.flag_I = 0 # I - bit 4  - IRQ interrupt masked
+        self.flag_N = 0 # N - bit 3 - Negative result (twos complement)
+        self.flag_Z = 0 # Z - bit 2 - Zero result
+        self.flag_V = 0 # V - bit 1 - Overflow
+        self.flag_C = 0 # C - bit 0 - Carry (or borrow)
 
         self.mode_error = 0 # MD - 8 bit mode/error register
         self.condition_code = 0
@@ -352,24 +352,24 @@ class CPU(object):
     ####
 
     def status_from_byte(self, status):
-        self.carry_flag = [0, 1][0 != status & 1]
-        self.overflow_flag = [0, 1][0 != status & 2]
-        self.zero_flag = [0, 1][0 != status & 4]
-        self.negative_flag = [0, 1][0 != status & 8]
-        self.irq_mask_flag = [0, 1][0 != status & 16]
-        self.half_carry_flag = [0, 1][0 != status & 32]
-        self.firq_mask_flag = [0, 1][0 != status & 64]
-        self.entire_flag = [0, 1][0 != status & 128]
+        self.flag_C = [0, 1][0 != status & 1]
+        self.flag_V = [0, 1][0 != status & 2]
+        self.flag_Z = [0, 1][0 != status & 4]
+        self.flag_N = [0, 1][0 != status & 8]
+        self.flag_I = [0, 1][0 != status & 16]
+        self.flag_H = [0, 1][0 != status & 32]
+        self.flag_F = [0, 1][0 != status & 64]
+        self.flag_E = [0, 1][0 != status & 128]
 
     def status_as_byte(self):
-        return self.carry_flag | \
-            self.overflow_flag << 1 | \
-            self.zero_flag << 2 | \
-            self.negative_flag << 3 | \
-            self.irq_mask_flag << 4 | \
-            self.half_carry_flag << 5 | \
-            self.firq_mask_flag << 6 | \
-            self.entire_flag << 7
+        return self.flag_C | \
+            self.flag_V << 1 | \
+            self.flag_Z << 2 | \
+            self.flag_N << 3 | \
+            self.flag_I << 4 | \
+            self.flag_H << 5 | \
+            self.flag_F << 6 | \
+            self.flag_E << 7
 
     def get_register(self, addr):
         log.debug("get register value from %s" % hex(addr))
