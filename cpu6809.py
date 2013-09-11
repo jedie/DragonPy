@@ -539,9 +539,17 @@ class CPU(object):
         source = self.get_register(high)
         self.set_register(low, source)
 
-
-
-
+    @opcode(0x7e)
+    def JMP_extended(self):
+        """
+        Unconditional Jump
+        Calculates an effective address (ea), and stores it in the program counter.
+        Addressing Mode: extended
+        """
+        self.cycles += 3
+        addr = self.read_pc_word()
+        self.program_counter = addr
+        log.debug("0x7e JMP extended to: %s" % hex(addr))
 
 
 
