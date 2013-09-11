@@ -340,7 +340,9 @@ class SoftSwitches:
         self.cassette = cassette
 
     def read_byte(self, cycle, address):
-        assert 0xC000 <= address <= 0xCFFF
+        assert 0xC000 <= address <= 0xCFFF, \
+            "cycles: %s - address: %s" % (cycle, hex(address))
+
         if address == 0xC000:
             return self.kbd
         elif address == 0xC010:
