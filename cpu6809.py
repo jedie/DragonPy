@@ -129,12 +129,6 @@ class Memory:
     def read_word(self, cycle, address):
         return self.read_byte(cycle, address) + (self.read_byte(cycle + 1, address + 1) << 8)
 
-    def read_word_bug(self, cycle, address):
-        if address % 0x100 == 0xFF:
-            return self.read_byte(cycle, address) + (self.read_byte(cycle + 1, address & 0xFF00) << 8)
-        else:
-            return self.read_word(cycle, address)
-
     def write_byte(self, cycle, address, value):
         if address < self.cfg.RAM_END:
             self.ram.write_byte(address, value)
@@ -506,9 +500,6 @@ class CPU(object):
 
     def read_word(self, address):
         return self.memory.read_word(self.cycles, address)
-
-    def read_word_bug(self, address):
-        return self.memory.read_word_bug(self.cycles, address)
 
     def read_pc_byte(self):
         return self.read_byte(self.get_pc())
