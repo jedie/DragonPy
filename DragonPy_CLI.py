@@ -50,10 +50,6 @@ class DragonPyCLI(Base_CLI):
     def run(self):
         cfg = self.get_cfg()
 
-        cfg.start_control_server = True # start CPU control server
-
-        print "JOJO", cfg.start_control_server
-
 #         display = Display()
         display = None
         speaker = None
