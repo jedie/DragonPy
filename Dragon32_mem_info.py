@@ -4,9 +4,18 @@
     =======================================
 
     information from:
-     * http://dragon32.info/info/memmap.html - Dragon 32/64 Memory Map (with CoCo refs)
-     * http://dragon32.info/info/romref.html - Dragon 32/64 ROM Reference guide
+        http://dragon32.info/info/memmap.html - Dragon 32/64 Memory Map (with CoCo refs)
+        http://dragon32.info/info/romref.html - Dragon 32/64 ROM Reference guide
     AUTHOR: Graham E. Kinns
+
+    other useful information:
+        http://www.onastick.clara.co.uk/dragonhw.htm
+        http://www.onastick.clara.co.uk/sys1.htm
+        http://www.onastick.clara.co.uk/sys2.htm
+        http://www.onastick.clara.co.uk/sys3.htm
+        http://www.onastick.clara.co.uk/sys4.htm
+        http://www.onastick.clara.co.uk/sys5.htm
+        http://www.onastick.clara.co.uk/sys6.htm
 
     :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
