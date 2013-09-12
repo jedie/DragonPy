@@ -13,17 +13,30 @@ import unittest
 from configs import Dragon32Cfg
 from cpu6809 import CPU, Memory
 
+class TextTestResult2(unittest.TextTestResult):
+    def startTest(self, test):
+        if not self.showAll:
+            super(TextTestResult2, self).startTest(test)
+            return
+
+        print
+        print "_"*70
+        self.showAll = False
+        print self.getDescription(test), "..."
+        super(TextTestResult2, self).startTest(test)
+        self.showAll = True
+
+
+class TextTestRunner2(unittest.TextTestRunner):
+    resultclass = TextTestResult2
+
+
 class BaseTestCase(unittest.TestCase):
     def setUp(self):
-        print
-        print " <<<<<< unittest setUp() <<<<<< "
         cfg = Dragon32Cfg()
         self.memory = Memory(cfg)
         self.cpu = CPU(cfg, self.memory)
 
-    def tearDown(self):
-        print " >>>unittest tearDown() >>>",
-        print "\n"*2
 
 class Test6809_CC(BaseTestCase):
     """
@@ -85,11 +98,14 @@ if __name__ == '__main__':
     )
     log.addHandler(logging.StreamHandler())
 
+
+
     unittest.main(
         argv=(
             sys.argv[0],
 #             "Test6809_Ops.test_TFR02",
         ),
+        testRunner=TextTestRunner2,
 #         verbosity=1,
         verbosity=2,
         failfast=True,
