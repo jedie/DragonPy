@@ -39,6 +39,7 @@ import sys
 
 from DragonPy_CLI import DragonPyCLI
 import os
+from Dragon32_mem_info import DragonMemInfo, print_out
 
 
 log = logging.getLogger("DragonPy")
@@ -98,9 +99,13 @@ class ROM(object):
 #         self.cfg.mem_info(address, "read byte")
         return byte
 
-
+# print_mem_info = DragonMemInfo(print_out)
 class RAM(ROM):
     def write_byte(self, address, value):
+#         print_mem_info(
+        self.cfg.mem_info(
+            address, "write %s to %s address" % (hex(value), hex(address))
+        )
         self._mem[address] = value
 
 
@@ -447,8 +452,8 @@ class CPU(object):
         last_op_code = None
         same_op_count = 0
 
-#         while not self.quit:
-        for x in xrange(100):
+        while not self.quit:
+#         for x in xrange(100):
             timeout = 0
             if not self.running:
                 timeout = 1
@@ -481,11 +486,11 @@ class CPU(object):
                 if op == last_op_code:
                     same_op_count += 1
                 elif same_op_count == 0:
-                    log.debug(" *** new op code: %s (%s)" % (hex(op), func.__name__))
+                    log.debug("%s *** new op code: %s (%s)" % (hex(self.program_counter), hex(op), func.__name__))
                     last_op_code = op
                 else:
-                    log.debug(" *** last op code %s count: %s - new op code: %s (%s)" % (
-                        last_op_code, same_op_count, hex(op), func.__name__
+                    log.debug("%s *** last op code %s count: %s - new op code: %s (%s)" % (
+                        hex(self.program_counter), last_op_code, same_op_count, hex(op), func.__name__
                     ))
                     last_op_code = op
                     same_op_count = 0
@@ -553,6 +558,23 @@ class CPU(object):
 
     ####
 
+    def update_nzvc(self, value):
+        value = value % 0x100
+        self.flag_N = 1 if (value < 0) else 0
+        self.flag_Z = 1 if (value == 0) else 0
+
+        # V - bit 1 - Overflow
+#         if value == 0x989680: # == 10000000
+#             self.flag_V = 1
+        self.flag_V = 1 if (value > 127) | (value < -128) else 0 # ???
+
+        # C - 1 if borrow, else 0
+        self.flag_C = 1 if (value > 0xFF) else 0 # ???
+
+        return value
+
+    ####
+
     @opcode(0x00)
     def NEG_direct(self):
         """
@@ -564,20 +586,13 @@ class CPU(object):
 #         log.debug("%s - 0x00 NEG direct %s" % (hex(self.program_counter), hex(value)))
 
         value = -value
+        self.update_nzvc(value)
 
-        self.flag_N = 1 if (value < 0) else 0
-        self.flag_Z = 1 if (value == 0) else 0
-
-        if value == 0x989680: # == 10000000
-            self.flag_V = 1
-
-        # C - 1 if borrow, else 0
-        self.flag_C = 1 if (value > 0xFF) else 0 # ???
 
     @opcode(0x1f)
     def TFR(self):
         """
-        Transfer Register to Register
+        TransFeR Register to Register
         Copies data in register r1 to another register r2 of the same size.
         Addressing Mode: immediate register numbers
         """
@@ -594,6 +609,7 @@ class CPU(object):
     @opcode(0xbb)
     def ADDA_extended(self):
         """
+        ADD to accumulator A
         A = A + M
         """
         self.cycles += 5
@@ -601,21 +617,25 @@ class CPU(object):
         log.debug("%s - 0xbb ADDA extended: Add %s to accu A: %s" % (
             hex(self.program_counter), hex(value), hex(self.accumulator_a)
         ))
+        value = self.update_nzvc(value)
         self.accumulator_a += value
 
     @opcode(0xbc)
     def CMPX_extended(self):
         """
-        Compare M:M+1 from X
+        CoMPare with X index
         Addressing Mode: extended
         """
         self.cycles += 7
         value = self.read_pc_word()
+        log.debug("%s - 0xbc CMPX extended %s" % (hex(self.program_counter), hex(value)))
+
         result = self.index_x - value
-        self.flag_C = 1 if (result >= 0) else 0
-        log.debug("%s - 0xbc CMPX extended: %s - %s = %s (Set C to %s)" % (
-            hex(self.program_counter), hex(self.index_x), hex(value), hex(result), self.flag_C
-        ))
+#         self.flag_C = 1 if (result >= 0) else 0
+        self.update_nzvc(result)
+#         log.debug("%s - 0xbc CMPX extended: %s - %s = %s (Set C to %s)" % (
+#             hex(self.program_counter), hex(self.index_x), hex(value), hex(result), self.flag_C
+#         ))
 
     @opcode(0xbd)
     def JSR_extended(self):
@@ -641,7 +661,8 @@ class CPU(object):
         self.cycles += 3
         addr = self.read_pc_word()
         self.program_counter = addr
-        log.debug("%s - 0x7e JMP extended to: %s" % (hex(self.program_counter), hex(addr)))
+#         log.debug()
+        self.cfg.mem_info(addr, "%s - 0x7e JMP extended to:" % hex(self.program_counter))
 
 
 
@@ -654,6 +675,7 @@ if __name__ == "__main__":
         subprocess.Popen([sys.executable,
             "DragonPy_CLI.py",
             "--verbosity=5",
+#             "--verbosity=50",
         ]).wait()
         sys.exit(0)
         print "DragonPy cpu core"

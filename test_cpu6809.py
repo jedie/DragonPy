@@ -86,6 +86,41 @@ class Test6809_Ops(BaseTestCase):
         ])
         self.assertEqual(self.cpu.status_as_byte(), 0x55) # destination
 
+    def test_ADDA_extended01(self):
+        self.cpu_test_run(start=0x1000, end=0x1003, mem=[
+            0xbb, # ADDA extended
+            0x12, 0x34 # word to add on accu A
+        ])
+        self.assertEqual(self.cpu.flag_Z, 1)
+        self.assertEqual(self.cpu.status_as_byte(), 0x04)
+        self.assertEqual(self.cpu.accumulator_a, 0x00)
+
+    def test_CMPX_extended(self):
+        """
+        Compare M:M+1 from X
+        Addressing Mode: extended
+        """
+        self.cpu.accumulator_a = 0x0 # source
+
+        self.cpu_test_run(start=0x1000, end=0x1003, mem=[
+            0xbc, # CMPX extended
+            0x10, 0x20 # word to add on accu A
+        ])
+        self.assertEqual(self.cpu.status_as_byte(), 0x04)
+        self.assertEqual(self.cpu.flag_C, 1)
+
+
+#     @opcode(0xbb)
+#     def ADDA_extended(self):
+#         """
+#         A = A + M
+#         """
+#         self.cycles += 5
+#         value = self.read_pc_word()
+#         log.debug("%s - 0xbb ADDA extended: Add %s to accu A: %s" % (
+#             hex(self.program_counter), hex(value), hex(self.accumulator_a)
+#         ))
+#         self.accumulator_a += value
 
 
 
@@ -106,6 +141,7 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #             "Test6809_Ops.test_TFR02",
+#             "Test6809_Ops.test_CMPX_extended",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
