@@ -13,6 +13,7 @@ import unittest
 from configs import Dragon32Cfg
 from cpu6809 import CPU, Memory
 
+
 class TextTestResult2(unittest.TextTestResult):
     def startTest(self, test):
         if not self.showAll:
@@ -36,6 +37,10 @@ class BaseTestCase(unittest.TestCase):
         cfg = Dragon32Cfg()
         self.memory = Memory(cfg)
         self.cpu = CPU(cfg, self.memory)
+
+    def cpu_test_run(self, start, end, mem):
+        self.memory.load(start, mem)
+        self.cpu.test_run(start, end)
 
 
 class Test6809_CC(BaseTestCase):
@@ -63,25 +68,22 @@ class Test6809_Ops(BaseTestCase):
         self.cpu.index_x = 512 # source
         self.assertEqual(self.cpu.index_y, 0) # destination
 
-        self.memory.load(0x1000, [
+        self.cpu_test_run(start=0x1000, end=0x1002, mem=[
             0x1f, # TFR
             0x12, # from index register X (0x01) to Y (0x02)
             0x1f, # TFR
             0x9a, # from accumulator B (0x09) to condition code register CC (0x9a)
         ])
-        self.cpu.test_run(start=0x1000, end=0x1002)
-
         self.assertEqual(self.cpu.index_y, 512)
 
     def test_TFR02(self):
         self.cpu.accumulator_b = 0x55 # source
         self.assertEqual(self.cpu.status_as_byte(), 0) # destination
 
-        self.memory.load(0x1000, [
+        self.cpu_test_run(start=0x1000, end=0x1002, mem=[
             0x1f, # TFR
             0x9a, # from accumulator B (0x09) to condition code register CC (0x9a)
         ])
-        self.cpu.test_run(start=0x1000, end=0x1002)
         self.assertEqual(self.cpu.status_as_byte(), 0x55) # destination
 
 
