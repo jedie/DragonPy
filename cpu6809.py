@@ -11,6 +11,8 @@
         http://www.burgins.com/m6809.html
         http://koti.mbnet.fi/~atjs/mc6809/
 
+    https://github.com/kjetilhoem/hatchling-32/blob/master/hatchling-32/src/no/k/m6809/InstructionSet.scala
+
         MAME
         http://mamedev.org/source/src/mess/drivers/dragon.c.html
         http://mamedev.org/source/src/mess/machine/dragon.c.html
@@ -140,7 +142,9 @@ class Memory:
             return self.bus_read(cycle, address)
 
     def read_word(self, cycle, address):
-        return self.read_byte(cycle, address) + (self.read_byte(cycle + 1, address + 1) << 8)
+        #  little-endian or big-endian ?!?!
+        return self.read_byte(cycle + 1, address + 1) + (self.read_byte(cycle, address) << 8)
+#         return self.read_byte(cycle, address) + (self.read_byte(cycle + 1, address + 1) << 8)
 
     def write_byte(self, cycle, address, value):
         if address < self.cfg.RAM_END:
@@ -326,7 +330,7 @@ class CPU(object):
 
         self.value_register = 0 # V - 16 bit variable inter-register
 
-        self.program_counter = None # PC - 16 bit program counter register
+        self.program_counter = -1 # PC - 16 bit program counter register
 
         self.accumulator_a = 0 # A - 8 bit accumulator
         self.accumulator_b = 0 # B - 8 bit accumulator
@@ -358,9 +362,11 @@ class CPU(object):
             if inspect.ismethod(value) and getattr(value, "_is_opcode", False):
                 self.opcodes[getattr(value, "_opcode")] = value
 
+#         self.program_counter = 0x8000
         self.reset()
-        if cfg.pc is not None:
-            self.program_counter = cfg.pc
+#         if cfg.pc is not None:
+#             self.program_counter = cfg.pc
+
         self.running = True
         self.quit = False
 
@@ -439,8 +445,11 @@ class CPU(object):
     ####
 
     def reset(self):
-        log.debug("CPU reset read word from %s" % hex(self.cfg.RESET_VECTOR))
-        self.program_counter = self.read_word(self.cfg.RESET_VECTOR)
+        pc = self.read_word(self.cfg.RESET_VECTOR)
+        log.debug("$%x CPU reset: read word from $%x set pc to $%x" % (
+            self.program_counter, self.cfg.RESET_VECTOR, pc
+        ))
+        self.program_counter = pc
 
     def run(self, bus_port):
         global bus
@@ -452,8 +461,10 @@ class CPU(object):
         last_op_code = None
         same_op_count = 0
 
-        while not self.quit:
-#         for x in xrange(100):
+        max_ops = 10
+
+#         while not self.quit:
+        for x in xrange(100):
             timeout = 0
             if not self.running:
                 timeout = 1
@@ -469,7 +480,9 @@ class CPU(object):
                 else:
                     pass
 
-            for count in xrange(1000): # 1000
+#             for count in xrange(10):
+#             for count in xrange(100):
+            for count in xrange(1000):
                 if not self.running:
                     break
 
@@ -477,20 +490,19 @@ class CPU(object):
                 try:
                     func = self.opcodes[op]
                 except KeyError:
-                    print "UNKNOWN OP %s (program counter: %s)" % (
-                        hex(op), hex(self.program_counter - 1)
-                    )
-                    sys.exit()
+                    msg = "$%x *** UNKNOWN OP $%x" % (self.program_counter - 1, op)
+                    log.error(msg)
+                    sys.exit(msg)
                     break
 
                 if op == last_op_code:
                     same_op_count += 1
                 elif same_op_count == 0:
-                    log.debug("%s *** new op code: %s (%s)" % (hex(self.program_counter), hex(op), func.__name__))
+                    log.debug("$%x *** new op code: $%x (%s)" % (self.program_counter - 1, op, func.__name__))
                     last_op_code = op
                 else:
-                    log.debug("%s *** last op code %s count: %s - new op code: %s (%s)" % (
-                        hex(self.program_counter), last_op_code, same_op_count, hex(op), func.__name__
+                    log.debug("$%x *** last op code %s count: %s - new op code: $%x (%s)" % (
+                        self.program_counter - 1, last_op_code, same_op_count, op, func.__name__
                     ))
                     last_op_code = op
                     same_op_count = 0
@@ -583,7 +595,7 @@ class CPU(object):
         """
         self.cycles += 6
         value = self.read_pc_byte()
-#         log.debug("%s - 0x00 NEG direct %s" % (hex(self.program_counter), hex(value)))
+#         log.debug("%s - 0x00 NEG direct %s" % (self.program_counter, hex(value)))
 
         value = -value
         self.update_nzvc(value)
@@ -599,8 +611,8 @@ class CPU(object):
         self.cycles += 7
         post_byte = self.read_pc_byte()
         high, low = divmod(post_byte, 16)
-        log.debug("%s - 0x1f TFR: post byte: %s high: %s low: %s" % (
-            hex(self.program_counter), hex(post_byte), hex(high), hex(low)
+        log.debug("$%x - 0x1f TFR: post byte: %s high: %s low: %s" % (
+            self.program_counter, hex(post_byte), hex(high), hex(low)
         ))
         # TODO: check if source and dest has the same size
         source = self.get_register(high)
@@ -614,8 +626,8 @@ class CPU(object):
         """
         self.cycles += 5
         value = self.read_pc_word()
-        log.debug("%s - 0xbb ADDA extended: Add %s to accu A: %s" % (
-            hex(self.program_counter), hex(value), hex(self.accumulator_a)
+        log.debug("$%x - 0xbb ADDA extended: Add %s to accu A: %s" % (
+            self.program_counter, hex(value), hex(self.accumulator_a)
         ))
         value = self.update_nzvc(value)
         self.accumulator_a += value
@@ -628,13 +640,13 @@ class CPU(object):
         """
         self.cycles += 7
         value = self.read_pc_word()
-        log.debug("%s - 0xbc CMPX extended %s" % (hex(self.program_counter), hex(value)))
+        log.debug("$%x - 0xbc CMPX extended %s" % (self.program_counter, hex(value)))
 
         result = self.index_x - value
 #         self.flag_C = 1 if (result >= 0) else 0
         self.update_nzvc(result)
 #         log.debug("%s - 0xbc CMPX extended: %s - %s = %s (Set C to %s)" % (
-#             hex(self.program_counter), hex(self.index_x), hex(value), hex(result), self.flag_C
+#             self.program_counter, hex(self.index_x), hex(value), hex(result), self.flag_C
 #         ))
 
     @opcode(0xbd)
@@ -647,8 +659,8 @@ class CPU(object):
         addr = self.read_pc_word()
         self.push_word(self.program_counter - 1)
         self.program_counter = addr
-        log.debug("%s - 0xbd JSR extended: push %s to stack and jump to %s" % (
-            hex(self.program_counter), hex(self.program_counter - 1), hex(addr)
+        log.debug("$%x - 0xbd JSR extended: push %s to stack and jump to %s" % (
+            self.program_counter, hex(self.program_counter - 1), hex(addr)
         ))
 
     @opcode(0x7e)
@@ -662,7 +674,11 @@ class CPU(object):
         addr = self.read_pc_word()
         self.program_counter = addr
 #         log.debug()
-        self.cfg.mem_info(addr, "%s - 0x7e JMP extended to:" % hex(self.program_counter))
+        self.cfg.mem_info(addr, "$%x - 0x7e JMP extended to:" % self.program_counter)
+
+    @opcode(0xCC)
+    def LDD_immediate(self):
+        raise NotImplementedError("TODO")
 
 
 

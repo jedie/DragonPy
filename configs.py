@@ -45,8 +45,8 @@ class Dragon32Cfg(BaseConfig):
     STACK_PAGE = 0x100
 
 #     RESET_VECTOR = 0xB3B4 # RESET interrupt service routine (CoCo $a027)
-    RESET_VECTOR = 0xB3BA # Cold start routine - clears lo mem, inits BASIC
-#     RESET_VECTOR = 0xB39B # Called after Hardware init routine, following a RESET Inits stack, checks for Cold/warm start
+#     RESET_VECTOR = 0xB3BA # Cold start routine - clears lo mem, inits BASIC
+    RESET_VECTOR = 0xB39B # Called after Hardware init routine, following a RESET Inits stack, checks for Cold/warm start
 #     RESET_VECTOR = 0xFFFE # RESET     ($b3b4; D64 64K mode $c000 - never accessed)
 
     def __init__(self):
