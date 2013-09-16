@@ -774,7 +774,7 @@ class CPU(object):
                 ea = signed8(offset) + self.program_counter
             elif addr_mode == 0xd: # 1101 0xd
                 offset = self.read_pc_word()
-                ea = signed8(offset) + self.program_counter
+                ea = signed8(offset) + self.program_counter # FIXME: word and signed8 ???
             elif addr_mode == 0xe: # 1110 0xe
                 # W - 16 bit concatenated reg. (E + F)
                 ea = register_value + signed8(self.accumulator_e + self.accumulator_f)
