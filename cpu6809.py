@@ -117,7 +117,9 @@ class RAM(ROM):
     def write_byte(self, address, value):
 #         print_mem_info(
         self.cfg.mem_info(
-            address, "write %s to %s address" % (hex(value), hex(address))
+            address, "write $%x to" % value,
+#             shortest=False
+            shortest=True
         )
         self._mem[address] = value
 
@@ -160,8 +162,6 @@ class Memory:
     def write_byte(self, cycle, address, value):
         if address < self.cfg.RAM_END:
             self.ram.write_byte(address, value)
-#         log.debug("write byte > RAM value %s to %s" % (hex(value), hex(address)))
-        self.cfg.mem_info(address, "write byte %s to" % hex(value))
         if 0x400 <= address < 0x800 or 0x2000 <= address < 0x5FFF:
             self.bus_write(cycle, address, value)
 
@@ -460,8 +460,9 @@ class CPU(object):
 
     def reset(self):
         pc = self.read_word(self.cfg.RESET_VECTOR)
-        log.debug("$%x CPU reset: read word from $%x set pc to $%x" % (
-            self.program_counter, self.cfg.RESET_VECTOR, pc
+        log.debug("$%x CPU reset: read word from $%x set pc to %s" % (
+            self.program_counter, self.cfg.RESET_VECTOR,
+            self.cfg.mem_info.get_shortest(pc)
         ))
         self.program_counter = pc
 

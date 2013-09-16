@@ -20,6 +20,7 @@
     :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
+import sys
 
 
 class DragonMemInfo(object):
@@ -647,7 +648,36 @@ class DragonMemInfo(object):
     def __init__(self, out_func):
         self.out_func = out_func
 
-    def __call__(self, addr, info=""):
+    def get_shortest(self, addr):
+        shortest = None
+        size = sys.maxint
+        for start, end, txt in self.MEM_INFO:
+            if not start <= addr <= end:
+                continue
+
+            current_size = abs(end - start)
+            if current_size < size:
+                size = current_size
+                shortest = start, end, txt
+
+        if shortest is None:
+            return "$%x: UNKNOWN" % addr
+
+        start, end, txt = shortest
+        if start == end:
+            return "$%x: $%x - %s" % (addr, start, txt)
+        else:
+            return "$%x: $%x-$%x - %s" % (addr, start, end, txt)
+
+    def __call__(self, addr, info="", shortest=True):
+        if shortest:
+            mem_info = self.get_shortest(addr)
+            if info:
+                self.out_func("%s: %s" % (info, mem_info))
+            else:
+                self.out_func(mem_info)
+            return
+
         mem_info = []
         for start, end, txt in self.MEM_INFO:
             if start <= addr <= end:
@@ -656,11 +686,14 @@ class DragonMemInfo(object):
                 )
 
         if not mem_info:
-            self.out_func("%s %s: UNKNOWN" % (info, hex(addr)))
+            self.out_func("%s $%x: UNKNOWN" % (info, addr))
         else:
-            self.out_func("%s %s:" % (info, hex(addr)))
+            self.out_func("%s $%x:" % (info, addr))
             for start, end, txt in mem_info:
-                self.out_func(" * %s-%s - %s" % (hex(start), hex(end), txt))
+                if start == end:
+                    self.out_func(" * $%x - %s" % (start, txt))
+                else:
+                    self.out_func(" * $%x-$%x - %s" % (start, end, txt))
 
 
 def print_out(txt):
@@ -672,13 +705,23 @@ if __name__ == "__main__":
 
     # 0xaf-0xaf - TRON/TROFF trace flag - non zero for TRON
     mem_info(0xaf)
+    mem_info(0xaf, shortest=False)
+    print
 
     # 5x entries
     mem_info(0xbff0)
+    mem_info(0xbff0, shortest=False)
+    print
 
     # 0xf-0x18 - Temporary results
     mem_info(0xf)
+    mem_info(0xf, shortest=False)
+    print
     mem_info(0x10)
+    mem_info(0x10, shortest=False)
+    print
     mem_info(0x18)
+    mem_info(0x18, shortest=False)
+    print
 
     print "\n --- END --- \n"
