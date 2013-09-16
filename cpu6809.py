@@ -959,8 +959,22 @@ class CPU(object):
         self.index_x = value
 
         self.cfg.mem_info(self.program_counter,
-            "$%x LDX immediate $%x to index X |" % (
+            "$%x LDX immediate: set $%x to index X |" % (
                 self.program_counter, value
+        ))
+
+    @opcode(0x30)
+    def LEAX_indexed(self):
+        """
+        Load Effective Address from index X
+        Number of Program Bytes: 4+
+        """
+        self.cycles += 2 # Number of MPU Cycles
+        ea = self.indexed()
+        self.index_x = ea
+        self.cfg.mem_info(self.program_counter,
+            "$%x LEAX indexed: set $%x to index X |" % (
+                self.program_counter, ea
         ))
 
     @opcode(0x00)
