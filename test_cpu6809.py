@@ -12,6 +12,7 @@ import unittest
 
 from configs import Dragon32Cfg
 from cpu6809 import CPU, Memory
+from Dragon32_mem_info import DragonMemInfo
 
 
 class TextTestResult2(unittest.TextTestResult):
@@ -35,12 +36,30 @@ class TextTestRunner2(unittest.TextTestRunner):
 class BaseTestCase(unittest.TestCase):
     def setUp(self):
         cfg = Dragon32Cfg()
+        cfg.mem_info = DragonMemInfo(log.debug)
         self.memory = Memory(cfg)
         self.cpu = CPU(cfg, self.memory)
 
     def cpu_test_run(self, start, end, mem):
         self.memory.load(start, mem)
         self.cpu.test_run(start, end)
+
+
+class Test6809_AddressModes(BaseTestCase):
+    def test_base_page_direct01(self):
+        self.memory.load(0x1000, [0x12, 0x34, 0xf])
+        self.cpu.program_counter = 0x1000
+        self.cpu.direct_page = 0xab
+
+        value = self.cpu.base_page_direct()
+        self.assertEqual(hex(value), hex(0xab12))
+
+        value = self.cpu.base_page_direct()
+        self.assertEqual(hex(value), hex(0xab34))
+
+        self.cpu.direct_page = 0x0
+        value = self.cpu.base_page_direct()
+        self.assertEqual(hex(value), hex(0xf))
 
 
 class Test6809_CC(BaseTestCase):
@@ -142,9 +161,10 @@ if __name__ == '__main__':
             sys.argv[0],
 #             "Test6809_Ops.test_TFR02",
 #             "Test6809_Ops.test_CMPX_extended",
+#             "Test6809_AddressModes",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
         verbosity=2,
-        failfast=True,
+#         failfast=True,
     )

@@ -60,10 +60,30 @@ ILLEGAL_OPS = (
 )
 
 
-def signed(x):
-    if x > 0x7F:
-        x = x - 0x100
+def signed5(x):
+    """ convert to signed 5-bit """
+    if x > 0xf: # 0xf == 2**4-1 == 15
+        assert x <= 0x1f # 0x1f == 2**5-1 == 31
+        x = x - 0x20 # 0x20 == 2**5 == 32
     return x
+
+def signed8(x):
+    """ convert to signed 8-bit """
+    if x > 0x7f: # 0x7f ==  2**7-1 == 127
+        assert x <= 0xff # 0xff == 2**8-1 == 255
+        x = x - 0x100 # 0x100 == 2**8 == 256
+    return x
+
+def signed16(x):
+    """ convert to signed 16-bit """
+    if x > 0x7fff: # 0x7fff ==  2**15-1 == 32767
+        assert x <= 0xffff # 0xffff == 2**16-1 == 65535
+        x = x - 0x10000 # 0x100 == 2**16 == 65536
+    return x
+
+
+def byte2bit_string(data):
+    return '{0:08b}'.format(data)
 
 
 def opcode(code):
@@ -377,7 +397,9 @@ class CPU(object):
             self.opcodes[illegal_ops] = self.illegal_op
 
 #         self.program_counter = 0x8000
-        self.reset()
+#         self.program_counter = 0xb3b4
+        self.program_counter = 0xb3ba
+#         self.reset()
 #         if cfg.pc is not None:
 #             self.program_counter = cfg.pc
 
@@ -387,14 +409,16 @@ class CPU(object):
     ####
 
     def status_from_byte(self, status):
-        self.flag_C = [0, 1][0 != status & 1]
-        self.flag_V = [0, 1][0 != status & 2]
-        self.flag_Z = [0, 1][0 != status & 4]
-        self.flag_N = [0, 1][0 != status & 8]
-        self.flag_I = [0, 1][0 != status & 16]
-        self.flag_H = [0, 1][0 != status & 32]
-        self.flag_F = [0, 1][0 != status & 64]
-        self.flag_E = [0, 1][0 != status & 128]
+        status_bits = [0 if status & x == 0 else 1 for x in (128, 64, 32, 16, 8, 4, 2, 1)]
+        self.flag_E, \
+        self.flag_F, \
+        self.flag_H, \
+        self.flag_I, \
+        self.flag_N, \
+        self.flag_Z, \
+        self.flag_V, \
+        self.flag_C = status_bits
+        assert self.status_as_byte() == status
 
     def status_as_byte(self):
         return self.flag_C | \
@@ -464,7 +488,7 @@ class CPU(object):
             self.program_counter, self.cfg.RESET_VECTOR,
             self.cfg.mem_info.get_shortest(pc)
         ))
-        self.program_counter = pc
+        self.program_counter = pc - 1
 
     def run(self, bus_port):
         global bus
@@ -476,10 +500,10 @@ class CPU(object):
         last_op_code = None
         same_op_count = 0
 
-        max_ops = 10
-
 #         while not self.quit:
+#         for x in xrange(10):
         for x in xrange(100):
+#         for x in xrange(1000):
             timeout = 0
             if not self.running:
                 timeout = 1
@@ -609,36 +633,191 @@ class CPU(object):
 
     ####
 
-    @opcode(0x00)
-    def NEG_direct(self):
-        """
-        Negate (Twos Complement) a Byte in Memory
-        Addressing Mode: direct
-        """
-        self.cycles += 6
+    def AND(self, r, m):
+        value = r & m
+        self.flag_N = 1 if (value < 0) else 0
+        self.flag_Z = 1 if (value == 0) else 0
+        self.flag_V = 0
+        return value
+
+    ####
+
+    def immediate_byte(self):
         value = self.read_pc_byte()
-#         log.debug("%s - 0x00 NEG direct %s" % (self.program_counter, hex(value)))
-
-        value = -value
-        self.update_nzvc(value)
-
-
-    @opcode(0x1f)
-    def TFR(self):
-        """
-        TransFeR Register to Register
-        Copies data in register r1 to another register r2 of the same size.
-        Addressing Mode: immediate register numbers
-        """
-        self.cycles += 7
-        post_byte = self.read_pc_byte()
-        high, low = divmod(post_byte, 16)
-        log.debug("$%x - 0x1f TFR: post byte: %s high: %s low: %s" % (
-            self.program_counter, hex(post_byte), hex(high), hex(low)
+        log.debug("$%x addressing 'immediate byte' value: $%x \t| %s" % (
+            self.program_counter, value, self.cfg.mem_info.get_shortest(self.program_counter)
         ))
-        # TODO: check if source and dest has the same size
-        source = self.get_register(high)
-        self.set_register(low, source)
+        return value
+
+    def immediate_word(self):
+        value = self.read_pc_word()
+        log.debug("$%x addressing 'immediate word' value: $%x \t| %s" % (
+            self.program_counter, value, self.cfg.mem_info.get_shortest(self.program_counter)
+        ))
+        return value
+
+    def direct(self):
+        pass
+    def base_page_direct(self, debug=False):
+        post_byte = self.read_pc_byte()
+        ea = self.direct_page << 8 | post_byte
+        if debug:
+            log.debug("$%x addressing 'base page direct' value: $%x (DP: $%x post byte: $%x) \t| %s" % (
+                self.program_counter,
+                ea, self.direct_page, post_byte,
+                self.cfg.mem_info.get_shortest(self.program_counter)
+            ))
+        return ea
+
+    def indexed(self):
+        """
+        +-------------------------------+--------------------------------------
+        | Post-byte register bits       | Indexed addressing modes
+        | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
+        +-------------------------------+--------------------------------------
+        | 0 | R | R | d | d | d | d | d | EA = ,R + 5-bit offset
+        | 1 | R | R | 0 | 0 | 0 | 0 | 0 | $0 - ,R++
+        | 1 | R | R | i | 0 | 0 | 0 | 1 | $1 - ,-R
+        | 1 | R | R | 0 | 0 | 0 | 1 | 1 | $3 - ,--R
+        | 1 | R | R | i | 0 | 1 | 0 | 0 | $4 - EA = ,R + 0 offset
+        | 1 | R | R | i | 0 | 1 | 0 | 1 | $5 - EA = ,R + ACCB offset
+        | 1 | R | R | i | 0 | 1 | 1 | 0 | $6 - EA = ,R + ACCA offset
+        | 1 | R | R | i | 1 | 0 | 0 | 0 | $8 - EA = ,R + 8-bit offset
+        | 1 | R | R | i | 1 | 0 | 0 | 1 | $9 - EA = ,R + 16-bit offset
+        | 1 | R | R | i | 1 | 0 | 1 | 1 | $b - EA = ,R + D offset
+        | 1 | x | x | i | 1 | 1 | 0 | 0 | $c - EA = ,PC + 8-bit offset
+        | 1 | x | x | i | 1 | 1 | 0 | 1 | $d - EA = ,PC + 16-bit offset
+        | 1 | R | R | i | 1 | 1 | 1 | 1 | $f - EA = (, Address)
+        +-------------------------------+--------------------------------------
+        |   : |   | : | :
+        |   : |   | : V :
+        |   : |   | : i | Indirect fields (or sign bit when bit 7 = 0)
+        |   : |   | : 0 | Direct
+        |   : |   | : 1 | Indirect
+        |   : V   V :
+        |   | R | R | Register fields:
+        |   | 0 | 0 | $0 = X
+        |   | 0 | 1 | $1 = Y
+        |   | 1 | 0 | $2 = U
+        |   | 1 | 1 | $3 = S
+        +-------------------------------+--------------------------------------
+        """
+        postbyte = self.read_pc_byte()
+        log.debug("$%x indexed addressing mode: postbyte: $%x == %s" % (
+            self.program_counter, postbyte, byte2bit_string(postbyte)
+        ))
+
+        rr = (postbyte >> 5) & 3
+        if rr == 0x00:
+            # X - 16 bit index register
+            register_value = self.index_x
+            reg_attr_name = "index_x"
+        elif rr == 0x01:
+            # Y - 16 bit index register
+            register_value = self.index_y
+            reg_attr_name = "index_y"
+        elif rr == 0x02:
+            # U - 16 bit user-stack pointer
+            register_value = self.user_stack_pointer
+            reg_attr_name = "user_stack_pointer"
+        elif rr == 0x03:
+            # S - 16 bit system-stack pointer
+            register_value = self.stack_pointer
+            reg_attr_name = "stack_pointer"
+        else:
+            raise RuntimeError("Register $%x doesn't exists! (postbyte: $%x)" % (rr, postbyte))
+
+        if (postbyte & 0x80) == 0: # bit 7 == 0
+            # EA = ,R + 5-bit offset
+            return register_value + signed5(postbyte) # FIXME: cutout only the 5bits from post byte?
+
+        if postbyte == 0x8f or postbyte == 0x90: # 0x8f == 10001111 | 0x90 == 10010000
+            ea = register_value
+            self.cycles += 1
+        elif postbyte == 0xaf or postbyte == 0xb0: # 0xaf=10101111 | 0xb0=10110000
+            ea = self.read_pc_word()
+            ea = ea + register_value
+            self.cycles += 1
+        elif postbyte == 0xcf or postbyte == 0xd0: # 0xcf=11001111 | 0xd0=11010000
+            ea = register_value
+            setattr(self, reg_attr_name, register_value + 2) # FIXME
+            self.cycles += 2
+        elif postbyte == 0xef or postbyte == 0xf0: # 0xef=11101111 | 0xf0=11110000
+            setattr(self, reg_attr_name, register_value - 2) # FIXME
+            ea = register_value
+            self.cycles += 2
+        else:
+            addr_mode = postbyte & 0x0f
+            self.cycles += 1
+            if addr_mode == 0x0: # 0000 0x0
+                ea = register_value + 1
+            elif addr_mode == 0x1: # 0001 0x1
+                ea = register_value + 2
+            elif addr_mode == 0x2: # 0010 0x2
+                ea = register_value - 1
+            elif addr_mode == 0x3: # 0011 0x3
+                ea = register_value - 2
+                self.cycles += 1
+            elif addr_mode == 0x4: # 0100 0x4
+                ea = register_value
+            elif addr_mode == 0x5: # 0101 0x5
+                ea = register_value + signed8(self.accumulator_b)
+            elif addr_mode == 0x6: # 0110 0x6
+                ea = register_value + signed8(self.accumulator_a)
+            elif addr_mode == 0x7: # 0111 0x7
+                ea = register_value + signed8(self.accumulator_e)
+            elif addr_mode == 0x8: # 1000 0x8
+                offset = self.read_pc_byte()
+                ea = signed8(offset) + register_value
+            elif addr_mode == 0x9: # 1001 0x9
+                offset = self.read_pc_word()
+                ea = register_value + offset
+                self.cycles += 1
+            elif addr_mode == 0xa: # 1010 0xa
+                ea = register_value + signed8(self.accumulator_f)
+            elif addr_mode == 0xb: # 1011 0xb
+                ea = register_value + signed8(self.accumulator_d)
+            elif addr_mode == 0xc: # 1100 0xc
+                offset = self.read_pc_byte()
+                ea = signed8(offset) + self.program_counter
+            elif addr_mode == 0xd: # 1101 0xd
+                offset = self.read_pc_word()
+                ea = signed8(offset) + self.program_counter
+            elif addr_mode == 0xe: # 1110 0xe
+                # W - 16 bit concatenated reg. (E + F)
+                ea = register_value + signed8(self.accumulator_e + self.accumulator_f)
+                self.cycles += 1
+            elif addr_mode == 0xf: # 1111 0xf
+                ea = self.read_pc_word()
+            else:
+                raise RuntimeError("unknown addressing mode: $%x" % addr_mode)
+
+        if postbyte & 0x10:
+            # bit 4 is 1 -> Indirect
+            tmp_ea = self.read_pc_byte()
+            tmp_ea = tmp_ea << 8
+            ea = tmp_ea | self.read_byte(ea + 1)
+
+        log.debug("$%x indexed addressing mode ea=$%x" % (
+            self.program_counter, ea
+        ))
+        return ea
+
+
+    def extended(self):
+        """
+        extended indirect addressing mode takes a 2-byte value from post-bytes
+        """
+        value = self.read_pc_word()
+        log.debug("$%x addressing 'extended indirect' value: $%x \t| %s" % (
+            self.program_counter, value, self.cfg.mem_info.get_shortest(self.program_counter)
+        ))
+        return value
+
+    def inherent(self):
+        pass
+
+    #### Op methods in alphabetical order:
 
     @opcode(0xbb)
     def ADDA_extended(self):
@@ -647,29 +826,93 @@ class CPU(object):
         A = A + M
         """
         self.cycles += 5
-        value = self.read_pc_word()
-        log.debug("$%x - 0xbb ADDA extended: Add %s to accu A: %s" % (
+        value = self.extended()
+        log.debug("$%x ADDA extended: Add %s to accu A: %s" % (
             self.program_counter, hex(value), hex(self.accumulator_a)
         ))
         value = self.update_nzvc(value)
         self.accumulator_a += value
 
+    @opcode(0x84)
+    def ANDA_immediate(self):
+        """
+        AND with accumulator A
+        Number of Program Bytes: 2
+        """
+        self.cycles += 2 # Number of MPU Cycles
+        value = self.immediate_byte()
+        result = self.AND(self.accumulator_a, value)
+        self.cfg.mem_info(self.program_counter,
+            "$%x ANDA immediate set accu A to $%x ($%x & $%x) |" % (
+                self.program_counter, result, self.accumulator_a, value
+        ))
+        self.accumulator_a = result
+
+    @opcode(0x6f)
+    def CLR_indexed(self):
+        """
+        CLeaR
+        Number of Program Bytes: 2+
+        """
+        self.cycles += 6
+        addr = self.indexed()
+        self.write_byte(addr, 0x0)
+        self.flag_N = 0
+        self.flag_Z = 1
+        self.flag_V = 0
+        self.flag_C = 0
+
     @opcode(0xbc)
     def CMPX_extended(self):
         """
         CoMPare with X index
-        Addressing Mode: extended
         """
         self.cycles += 7
-        value = self.read_pc_word()
-        log.debug("$%x - 0xbc CMPX extended %s" % (self.program_counter, hex(value)))
+        value = self.extended()
+        log.debug("$%x CMPX extended - set index X to $%x ($%x - $%s) |" % (
+            self.program_counter,
+        ))
 
         result = self.index_x - value
+
+        self.cfg.mem_info(self.program_counter,
+            "$%x CMPX extended - $%x (index X) - $%x (post word) = $%x | update NZVC with $%x |" % (
+                self.program_counter, self.index_x, value, result, result
+        ))
+
 #         self.flag_C = 1 if (result >= 0) else 0
         self.update_nzvc(result)
 #         log.debug("%s - 0xbc CMPX extended: %s - %s = %s (Set C to %s)" % (
 #             self.program_counter, hex(self.index_x), hex(value), hex(result), self.flag_C
 #         ))
+
+    @opcode(0x03)
+    def COM_direct(self):
+        """
+        COMplement memory
+        Number of Program Bytes: 2
+        """
+        self.cycles += 6
+        value = self.base_page_direct(debug=True)
+        value = value ^ -1
+        self.flag_N = 1 if (value < 0) else 0
+        self.flag_Z = 1 if (value == 0) else 0
+        self.flag_V = 0
+        self.flag_C = 1
+
+    @opcode(0x7e)
+    def JMP_extended(self):
+        """
+        Unconditional JuMP
+        Number of Program Bytes: 3
+        Calculates an effective address (ea), and stores it in the program counter.
+        Addressing Mode: extended
+        """
+        self.cycles += 3
+        addr = self.extended()
+        self.program_counter = addr
+#         log.debug()
+        self.cfg.mem_info(addr, "$%x JMP extended to" % self.program_counter)
 
     @opcode(0xbd)
     def JSR_extended(self):
@@ -678,30 +921,97 @@ class CPU(object):
         Addressing Mode: extended
         """
         self.cycles += 8
-        addr = self.read_pc_word()
+        addr = self.extended()
         self.push_word(self.program_counter - 1)
         self.program_counter = addr
-        log.debug("$%x - 0xbd JSR extended: push %s to stack and jump to %s" % (
+        log.debug("$%x JSR extended: push %s to stack and jump to %s" % (
             self.program_counter, hex(self.program_counter - 1), hex(addr)
         ))
 
-    @opcode(0x7e)
-    def JMP_extended(self):
+    @opcode(0xcc)
+    def LDD_immediate(self):
         """
-        Unconditional Jump
-        Calculates an effective address (ea), and stores it in the program counter.
-        Addressing Mode: extended
+        LoaD register D
+        Number of Program Bytes: 3
         """
         self.cycles += 3
-        addr = self.read_pc_word()
-        self.program_counter = addr
-#         log.debug()
-        self.cfg.mem_info(addr, "$%x - 0x7e JMP extended to:" % self.program_counter)
 
-    @opcode(0xCC)
-    def LDD_immediate(self):
-        raise NotImplementedError("TODO")
+        # XXX
+        value1 = self.read_pc_byte()
+        value2 = self.read_pc_byte()
+        self.accumulator_a = value1
+        self.accumulator_b = value2
 
+        self.cfg.mem_info(self.program_counter,
+            "$%x LDD immediate $%x and $%x to accu A & B" % (
+                self.program_counter, value1, value2
+        ))
+
+    @opcode(0x8e)
+    def LDX_immediate(self):
+        """
+        LoaD index X
+        Number of Program Bytes: 3
+        """
+        self.cycles += 3 # Number of MPU Cycles
+
+        value = self.immediate_word()
+        self.index_x = value
+
+        self.cfg.mem_info(self.program_counter,
+            "$%x LDX immediate $%x to index X |" % (
+                self.program_counter, value
+        ))
+
+    @opcode(0x00)
+    def NEG_direct(self):
+        """
+        Negate (Twos Complement) a Byte in Memory
+        Number of Program Bytes: 2
+        Addressing Mode: direct
+        """
+        self.cycles += 6
+        value = self.base_page_direct()
+#         log.debug("%s 0x00 NEG direct %s" % (self.program_counter, hex(value)))
+
+        value = -value
+        self.update_nzvc(value)
+
+    @opcode(0xa7)
+    def STA_indexed(self):
+        """
+        STore register A
+        Number of Program Bytes: 2+
+        """
+        self.cycles += 4
+        offset = self.immediate_word()
+        addr = self.accumulator_a + offset
+        value = self.accumulator_a
+
+        self.cfg.mem_info(self.program_counter,
+            "$%x STA indexed - store $%x with offset:$%x to $%x |" % (
+                self.program_counter, value, offset, addr
+        ))
+
+        self.write_byte(addr, value)
+
+    @opcode(0x1f)
+    def TFR(self):
+        """
+        TransFeR Register to Register
+        Number of Program Bytes: 2
+        Copies data in register r1 to another register r2 of the same size.
+        Addressing Mode: immediate register numbers
+        """
+        self.cycles += 7
+        post_byte = self.immediate_byte()
+        high, low = divmod(post_byte, 16)
+        log.debug("$%x TFR: post byte: %s high: %s low: %s" % (
+            self.program_counter, hex(post_byte), hex(high), hex(low)
+        ))
+        # TODO: check if source and dest has the same size
+        source = self.get_register(high)
+        self.set_register(low, source)
 
 
 if __name__ == "__main__":
