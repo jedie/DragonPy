@@ -375,7 +375,7 @@ class CPU(object):
         self.flag_E = 0 # E - bit 7 - Entire register state stacked
         self.flag_F = 0 # F - bit 6 - FIRQ interrupt masked
         self.flag_H = 0 # H - bit 5 - Half-Carry
-        self.flag_I = 0 # I - bit 4  - IRQ interrupt masked
+        self.flag_I = 0 # I - bit 4 - IRQ interrupt masked
         self.flag_N = 0 # N - bit 3 - Negative result (twos complement)
         self.flag_Z = 0 # Z - bit 2 - Zero result
         self.flag_V = 0 # V - bit 1 - Overflow
@@ -846,6 +846,69 @@ class CPU(object):
                 self.program_counter, result, self.accumulator_a, value
         ))
         self.accumulator_a = result
+
+#     def branch_cond(self, code):
+#         code = code & 0xf
+#         print code
+#
+#         if code==0x0:# BRA, LBRA
+#             return 1
+#         elif code==0x1:# BRN, LBRN
+#             return 0
+#         elif code==0x2:# BHI, LBHI
+#             return !(REG_CC & (CC_Z|CC_C))
+#         elif code==0x3:# BLS, LBLS
+#             return REG_CC & (CC_Z|CC_C)
+#         elif code==0x4:# BCC, BHS, LBCC, LBHS
+#             return !(REG_CC & CC_C)
+#         elif code==0x5:# BCS, BLO, LBCS, LBLO
+#             return REG_CC & CC_C
+#         elif code==0x6:# BNE, LBNE
+#             return !(REG_CC & CC_Z)
+#         elif code==0x7:# BEQ, LBEQ
+#             return REG_CC & CC_Z
+#         elif code==0x8:# BVC, LBVC
+#             return !(REG_CC & CC_V)
+#         elif code==0x9: # BVS, LBVS
+#             return REG_CC & CC_V,
+#         elif code==0xa:# BPL, LBPL
+#             return !(REG_CC & CC_N)
+#         elif code==0xb:# BMI, LBMI
+#             return REG_CC & CC_N
+#         elif code==0xc:# BGE, LBGE
+#             return !N_EOR_V
+#         elif code==0xd:# BLT, LBLT
+#             return N_EOR_V
+#         elif code==0xe:# BGT, LBGT
+#             return !(N_EOR_V || REG_CC & CC_Z)
+#         elif code==0xf: # BLE, LBLE
+#             return N_EOR_V || REG_CC & CC_Z
+
+#     @opcode([0x20, 0x21, 0x22, 0x23, 0x24, 0x25, 0x26, 0x27, 0x28, 0x29, 0x2a, 0x2b, 0x2c, 0x2d, 0x2e, 0x2f])
+#     def branch(self):
+#         """
+#         0x20: "BRA", 0x21: "BRN", 0x22: "BHI", 0x23: "BLS", 0x24: "BHS", 0x25: "BLO",
+#         0x26: "BNE", 0x27: "BEQ", 0x28: "BVC", 0x29: "BVS", 0x2a: "BPL", 0x2b: "BMI",
+#         0x2c: "BGE", 0x2d: "BLT", 0x2e: "BGT", 0x2f: "BLE",
+#         """
+#         self.branch_cond(self.opcode)
+#         """
+#         BYTE_IMMEDIATE(0, tmp);
+#         tmp = sex8(tmp);
+#         NVMA_CYCLE();
+#         if (branch_cond(cpu, op))
+#         REG_PC += tmp;
+#         """
+
+    @opcode(0x26)
+    def BNE(self):
+        new_pc = self.program_counter + 2
+
+        if self.flag_Z == 0:
+            new_pc += self.read_pc_byte()
+
+        self.cfg.mem_info(new_pc, "$%x BNE: set pc to $%x" % (self.program_counter, new_pc))
+        self.program_counter = new_pc
 
     @opcode(0x6f)
     def CLR_indexed(self):
