@@ -707,25 +707,18 @@ class CPU(object):
             self.program_counter, postbyte, byte2bit_string(postbyte)
         ))
 
+        indexed_register_fields = {
+            0x00:(self.index_x, "index_x"), # X - 16 bit index register
+            0x01:(self.index_y, "index_y"), # Y - 16 bit index register
+            0x02:(self.user_stack_pointer, "user_stack_pointer"), # U - 16 bit user-stack pointer
+            0x03:(self.stack_pointer, "stack_pointer"), # S - 16 bit system-stack pointer
+        }
         rr = (postbyte >> 5) & 3
-        if rr == 0x00:
-            # X - 16 bit index register
-            register_value = self.index_x
-            reg_attr_name = "index_x"
-        elif rr == 0x01:
-            # Y - 16 bit index register
-            register_value = self.index_y
-            reg_attr_name = "index_y"
-        elif rr == 0x02:
-            # U - 16 bit user-stack pointer
-            register_value = self.user_stack_pointer
-            reg_attr_name = "user_stack_pointer"
-        elif rr == 0x03:
-            # S - 16 bit system-stack pointer
-            register_value = self.stack_pointer
-            reg_attr_name = "stack_pointer"
-        else:
+        try:
+            register_value, reg_attr_name = indexed_register_fields[rr]
+        except KeyError:
             raise RuntimeError("Register $%x doesn't exists! (postbyte: $%x)" % (rr, postbyte))
+
 
         if (postbyte & 0x80) == 0: # bit 7 == 0
             # EA = ,R + 5-bit offset
