@@ -47,6 +47,17 @@ from Dragon32_mem_info import DragonMemInfo, print_out
 log = logging.getLogger("DragonPy")
 
 bus = None # socket for bus I/O
+ILLEGAL_OPS = (
+    0x1, 0x2, 0x5, 0xb,
+    0x14, 0x15, 0x18, 0x1b,
+    0x38,
+    0x41, 0x42, 0x45, 0x4b, 0x4e,
+    0x51, 0x52, 0x55, 0x5b, 0x5e,
+    0x61, 0x62, 0x65, 0x6b,
+    0x71, 0x72, 0x75, 0x7b,
+    0x87, 0x8f,
+    0xc7, 0xcd, 0xcf
+)
 
 
 def signed(x):
@@ -362,6 +373,9 @@ class CPU(object):
             if inspect.ismethod(value) and getattr(value, "_is_opcode", False):
                 self.opcodes[getattr(value, "_opcode")] = value
 
+        for illegal_ops in ILLEGAL_OPS:
+            self.opcodes[illegal_ops] = self.illegal_op
+
 #         self.program_counter = 0x8000
         self.reset()
 #         if cfg.pc is not None:
@@ -525,6 +539,13 @@ class CPU(object):
                 break
             else:
                 func()
+
+    def illegal_op(self):
+        self.program_counter -= 1
+        op = self.read_pc_byte()
+        raise RuntimeError("$%x Op code $%x is illegal!" % (
+            self.program_counter - 1, op
+        ))
 
     ####
 
