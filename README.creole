@@ -25,7 +25,14 @@ ApplePy - an Apple ][ emulator in Python by James Tauber:
 
  * https://github.com/jtauber/applepy
 
-origin source code licensed under MIT License
+ApplyPy is free software, licensed under MIT License.
+
+
+Some code based on "Xroar" by Ciaran Anscomb:
+
+ * http://www.6809.org.uk/dragon/xroar.shtml
+
+XRoar is free software, licensed under GNU GPL v2 or above
 
 
 == Status

@@ -22,10 +22,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 
     Based on:
-        ApplePy - an Apple ][ emulator in Python:
-        James Tauber / http://jtauber.com/ / https://github.com/jtauber/applepy
-        originally written 2001, updated 2011
-        origin source code licensed under MIT License
+        * ApplyPy by James Tauber (MIT license)
+        * XRoar emulator by Ciaran Anscomb (GPL license)
+    more info, see README
 """
 
 
