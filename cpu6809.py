@@ -387,13 +387,20 @@ class CPU(object):
 
         self.cycles = 0
 
-        self.opcodes = {}
+
+        self.opcode_dict = {}
         for name, value in inspect.getmembers(self):
             if inspect.ismethod(value) and getattr(value, "_is_opcode", False):
-                self.opcodes[getattr(value, "_opcode")] = value
+                opcode = getattr(value, "_opcode")
+                if isinstance(opcode, (list, tuple)):
+                    for op in opcode:
+                        self.opcode_dict[op] = value
+                else:
+                    self.opcode_dict[opcode] = value
 
         for illegal_ops in ILLEGAL_OPS:
-            self.opcodes[illegal_ops] = self.illegal_op
+            self.opcode_dict[illegal_ops] = self.illegal_op
+
 
 #         self.program_counter = 0x8000
 #         self.program_counter = 0xb3b4
@@ -524,25 +531,25 @@ class CPU(object):
                 if not self.running:
                     break
 
-                op = self.read_pc_byte()
+                self.opcode = self.read_pc_byte()
                 try:
-                    func = self.opcodes[op]
+                    func = self.opcode_dict[self.opcode]
                 except KeyError:
-                    msg = "$%x *** UNKNOWN OP $%x" % (self.program_counter - 1, op)
+                    msg = "$%x *** UNKNOWN OP $%x" % (self.program_counter - 1, self.opcode)
                     log.error(msg)
                     sys.exit(msg)
                     break
 
-                if op == last_op_code:
+                if self.opcode == last_op_code:
                     same_op_count += 1
                 elif same_op_count == 0:
-                    log.debug("$%x *** new op code: $%x (%s)" % (self.program_counter - 1, op, func.__name__))
-                    last_op_code = op
+                    log.debug("$%x *** new op code: $%x (%s)" % (self.program_counter - 1, self.opcode, func.__name__))
+                    last_op_code = self.opcode
                 else:
                     log.debug("$%x *** last op code %s count: %s - new op code: $%x (%s)" % (
-                        self.program_counter - 1, last_op_code, same_op_count, op, func.__name__
+                        self.program_counter - 1, last_op_code, same_op_count, self.opcode, func.__name__
                     ))
-                    last_op_code = op
+                    last_op_code = self.opcode
                     same_op_count = 0
 
                 # call op code method:
@@ -553,12 +560,12 @@ class CPU(object):
         while True:
             if self.program_counter == end:
                 break
-            op = self.read_pc_byte()
+            self.opcode = self.read_pc_byte()
             try:
-                func = self.opcodes[op]
+                func = self.opcode_dict[self.opcode]
             except KeyError:
-                print "UNKNOWN OP %s (program counter: %s)" % (
-                    hex(op), hex(self.program_counter - 1)
+                print "UNKNOWN OP $%x (program counter: %s)" % (
+                    self.opcode, hex(self.program_counter - 1)
                 )
                 break
             else:
