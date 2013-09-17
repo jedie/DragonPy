@@ -131,19 +131,13 @@ class ROM(object):
 #         self.cfg.mem_info(address, "read byte")
         return byte
 
-# print_mem_info = DragonMemInfo(print_out)
+
 class RAM(ROM):
     def write_byte(self, address, value):
-#         print_mem_info(
-        self.cfg.mem_info(
-            address, "write $%x to" % value,
-#             shortest=False
-            shortest=True
-        )
+        log.debug(" **** write $%x to $%x - mem info:" % (value, address))
+        log.debug("      %s" % self.cfg.mem_info.get_shortest(value))
+        log.debug("      %s" % self.cfg.mem_info.get_shortest(address))
         self._mem[address] = value
-
-
-
 
 
 class Memory:
@@ -748,8 +742,8 @@ class CPU(object):
             tmp_ea = tmp_ea << 8
             ea = tmp_ea | self.read_byte(ea + 1)
 
-        log.debug("$%x indexed addressing mode ea=$%x" % (
-            self.program_counter, ea
+        log.debug("$%x indexed addressing mode ea=$%x \t| %s" % (
+            self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
         ))
         return ea
 
@@ -760,7 +754,7 @@ class CPU(object):
         """
         value = self.read_pc_word()
         log.debug("$%x addressing 'extended indirect' value: $%x \t| %s" % (
-            self.program_counter, value, self.cfg.mem_info.get_shortest(self.program_counter)
+            self.program_counter, value, self.cfg.mem_info.get_shortest(value)
         ))
         return value
 
