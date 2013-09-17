@@ -383,16 +383,20 @@ class CPU(object):
 
         self.cycles = 0
 
-
         self.opcode_dict = {}
-        for name, value in inspect.getmembers(self):
-            if inspect.ismethod(value) and getattr(value, "_is_opcode", False):
-                opcode = getattr(value, "_opcode")
+        def _add_ops(ops, func):
+            for op in ops:
+                assert op not in self.opcode_dict, \
+                    "Opcode $%x (%s) defined more then one time!" % (op, func.__name__)
+                self.opcode_dict[op] = func
+
+        for name, func in inspect.getmembers(self):
+            if inspect.ismethod(func) and getattr(func, "_is_opcode", False):
+                opcode = getattr(func, "_opcode")
                 if isinstance(opcode, (list, tuple)):
-                    for op in opcode:
-                        self.opcode_dict[op] = value
+                    _add_ops(opcode, func)
                 else:
-                    self.opcode_dict[opcode] = value
+                    _add_ops([opcode], func)
 
         for illegal_ops in ILLEGAL_OPS:
             self.opcode_dict[illegal_ops] = self.illegal_op
