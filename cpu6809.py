@@ -32,6 +32,7 @@ import BaseHTTPServer
 import inspect
 import json
 import logging
+import os
 import re
 import select
 import socket
@@ -39,8 +40,8 @@ import struct
 import sys
 
 from DragonPy_CLI import DragonPyCLI
-import os
 from Dragon32_mem_info import DragonMemInfo, print_out
+from cpu_utils.condition_code_register import ConditionCodeRegister
 
 
 log = logging.getLogger("DragonPy")
@@ -337,6 +338,8 @@ class ControlHandlerFactory:
         return ControlHandler(request, client_address, server, self.cpu)
 
 
+
+
 class CPU(object):
 
     def __init__(self, cfg, memory):
@@ -367,15 +370,8 @@ class CPU(object):
         # W - 16 bit concatenated reg. (E + F)
         # Q - 32 bit concatenated reg. (D + W)
 
-        # CC - 8 bit condition code register bits
-        self.flag_E = 0 # E - bit 7 - Entire register state stacked
-        self.flag_F = 0 # F - bit 6 - FIRQ interrupt masked
-        self.flag_H = 0 # H - bit 5 - Half-Carry
-        self.flag_I = 0 # I - bit 4 - IRQ interrupt masked
-        self.flag_N = 0 # N - bit 3 - Negative result (twos complement)
-        self.flag_Z = 0 # Z - bit 2 - Zero result
-        self.flag_V = 0 # V - bit 1 - Overflow
-        self.flag_C = 0 # C - bit 0 - Carry (or borrow)
+        # 8 bit condition code register bits: E F H I N Z V C
+        self.cc = ConditionCodeRegister()
 
         self.mode_error = 0 # MD - 8 bit mode/error register
         self.condition_code = 0
@@ -413,28 +409,6 @@ class CPU(object):
         self.quit = False
 
     ####
-
-    def status_from_byte(self, status):
-        status_bits = [0 if status & x == 0 else 1 for x in (128, 64, 32, 16, 8, 4, 2, 1)]
-        self.flag_E, \
-        self.flag_F, \
-        self.flag_H, \
-        self.flag_I, \
-        self.flag_N, \
-        self.flag_Z, \
-        self.flag_V, \
-        self.flag_C = status_bits
-        assert self.status_as_byte() == status
-
-    def status_as_byte(self):
-        return self.flag_C | \
-            self.flag_V << 1 | \
-            self.flag_Z << 2 | \
-            self.flag_N << 3 | \
-            self.flag_I << 4 | \
-            self.flag_H << 5 | \
-            self.flag_F << 6 | \
-            self.flag_E << 7
 
     @property
     def accumulator_d(self):
@@ -636,37 +610,6 @@ class CPU(object):
         s = self.cfg.STACK_PAGE + self.stack_pointer + 1
         self.stack_pointer += 2
         return self.read_word(s)
-
-    ####
-
-    def update_nz(self, value):
-        self.flag_N = 1 if (value < 0) else 0
-        self.flag_Z = 1 if (value == 0) else 0
-
-    def update_nzv8(self, value):
-        value = signed8(value)
-        self.update_nz(value)
-        self.flag_V = 1 if (value > 127) | (value < -128) else 0
-
-    def update_nzv16(self, value):
-        value = signed16(value)
-        self.update_nz(value)
-        self.flag_V = 1 if (value > 32767) | (value < -32768) else 0
-
-    def update_nzvc(self, value):
-        value = value % 0x100
-        self.flag_N = 1 if (value < 0) else 0
-        self.flag_Z = 1 if (value == 0) else 0
-
-        # V - bit 1 - Overflow
-#         if value == 0x989680: # == 10000000
-#             self.flag_V = 1
-        self.flag_V = 1 if (value > 127) | (value < -128) else 0 # ???
-
-        # C - 1 if borrow, else 0
-        self.flag_C = 1 if (value > 0xFF) else 0 # ???
-
-        return value
 
     ####
 
@@ -889,7 +832,7 @@ class CPU(object):
         ))
 
 #         self.flag_C = 1 if (result >= 0) else 0
-        self.update_nzvc(result)
+        self.cc.update_nzvc(result)
 #         log.debug("%s - 0xbc CMPX extended: %s - %s = %s (Set C to %s)" % (
 #             self.program_counter, hex(self.index_x), hex(value), hex(result), self.flag_C
 #         ))
@@ -937,53 +880,6 @@ class CPU(object):
             self.program_counter, hex(self.program_counter - 1), hex(addr)
         ))
 
-    @opcode(0xa6)
-    def LDA_indexed(self):
-        """
-        A = M
-        """
-        value = self.extended()
-        self.accumulator_a = value
-        log.debug("$%x LDA indexed: Set A to $%x \t| %s" % (
-            self.program_counter, value, self.cfg.mem_info.get_shortest(value)
-        ))
-
-
-    @opcode(0xcc)
-    def LDD_immediate(self):
-        """
-        LoaD register D
-        Number of Program Bytes: 3
-        """
-        self.cycles += 3
-
-        # XXX
-        value1 = self.read_pc_byte()
-        value2 = self.read_pc_byte()
-        self.accumulator_a = value1
-        self.accumulator_b = value2
-
-        self.cfg.mem_info(self.program_counter,
-            "$%x LDD immediate $%x and $%x to accu A & B" % (
-                self.program_counter, value1, value2
-        ))
-
-    @opcode(0x8e)
-    def LDX_immediate(self):
-        """
-        LoaD index X
-        Number of Program Bytes: 3
-        """
-        self.cycles += 3 # Number of MPU Cycles
-
-        value = self.immediate_word()
-        self.index_x = value
-
-        self.cfg.mem_info(self.program_counter,
-            "$%x LDX immediate: set $%x to index X |" % (
-                self.program_counter, value
-        ))
-
     @opcode(0x30)
     def LEAX_indexed(self):
         """
@@ -1029,7 +925,8 @@ class CPU(object):
 #         log.debug("%s 0x00 NEG direct %s" % (self.program_counter, hex(value)))
 
         value = -value
-        self.update_nzvc(value)
+        self.cc.set_NZC8(value)
+        raise "TODO: write in memory!"
 
     @opcode(0xa7)
     def STA_indexed(self):
@@ -1071,22 +968,22 @@ class CPU(object):
 
     def ADD8(self, a, b):
         value = a + b
-        self.update_nzv8(value)
+        self.cc.set_NZVC8(a, b, value)
         return value
 
     def SUB8(self, a, b):
         value = a - b
-        self.update_nzv8(value)
+        self.cc.set_NZVC8(a, b, value)
         return value
 
     def AND8(self, a, b):
         value = a & b
-        self.update_nzv8(value)
+        self.cc.set_NZVC8(a, b, value)
         return value
 
     def OR8(self, a, b):
         value = a | b
-        self.update_nzv8(value)
+        self.cc.set_NZVC8(a, b, value)
         return value
 
     @opcode(0xbb)
@@ -1193,7 +1090,26 @@ class CPU(object):
             self.cfg.mem_info.get_shortest(ea)
         ))
         self.write_byte(ea, r)
-        self.update_nzv16(r)
+        self.cc.set_NZV16(r)
+
+    @opcode([
+        0x86, 0x96, 0xa6, 0xb6, # LDA
+        0xc6, 0xd6, 0xe6, 0xf6, # LDB
+    ])
+    def LD8(self):
+        """ LD 8-bit load register from memory
+        case 0x6: tmp1 = op_ld(cpu, 0, tmp2); break; // LDA, LDB
+        """
+        self.cycles += 5
+        op = self.opcode
+        ea = self.get_ea16(op)
+
+        ea = self.cc.set_NZC8(ea)
+
+        if not op & 0x40:
+            self.accumulator_a = ea
+        else:
+            self.accumulator_b = ea
 
     @opcode([
         0x8e, 0x9e, 0xae, 0xbe, # LDX
@@ -1220,7 +1136,7 @@ class CPU(object):
             self.cfg.mem_info.get_shortest(ea)
         ))
         setattr(self, reg_name, ea)
-        self.update_nzv16(ea)
+        self.cc.set_NZC16(ea)
 
 
 if __name__ == "__main__":
