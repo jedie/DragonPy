@@ -907,6 +907,15 @@ class CPU(object):
         self.flag_V = 0
         self.flag_C = 1
 
+    @opcode(0xba)
+    def ORA_extended(self):
+        self.cycles += 3
+        value = self.accumulator_a | self.extended()
+        self.accumulator_a = value
+        self.flag_N = 1 if (value < 0) else 0
+        self.flag_Z = 1 if (value == 0) else 0
+        self.flag_V = 0
+
     @opcode(0x7e)
     def JMP_extended(self):
         """
