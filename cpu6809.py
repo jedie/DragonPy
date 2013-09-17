@@ -173,6 +173,11 @@ class Memory:
 #         return self.read_byte(cycle, address) + (self.read_byte(cycle + 1, address + 1) << 8)
 
     def write_byte(self, cycle, address, value):
+        if 0x400 <= address < 0x600:
+            # FIXME: to default text screen
+            log.debug(" **** write $%x to text screen address $%x" % (value, address))
+            return
+
         if address < self.cfg.RAM_END:
             self.ram.write_byte(address, value)
         if 0x400 <= address < 0x800 or 0x2000 <= address < 0x5FFF:
