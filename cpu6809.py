@@ -62,21 +62,18 @@ ILLEGAL_OPS = (
 def signed5(x):
     """ convert to signed 5-bit """
     if x > 0xf: # 0xf == 2**4-1 == 15
-        assert x <= 0x1f # 0x1f == 2**5-1 == 31
         x = x - 0x20 # 0x20 == 2**5 == 32
     return x
 
 def signed8(x):
     """ convert to signed 8-bit """
     if x > 0x7f: # 0x7f ==  2**7-1 == 127
-        assert x <= 0xff # 0xff == 2**8-1 == 255
         x = x - 0x100 # 0x100 == 2**8 == 256
     return x
 
 def signed16(x):
     """ convert to signed 16-bit """
     if x > 0x7fff: # 0x7fff ==  2**15-1 == 32767
-        assert x <= 0xffff # 0xffff == 2**16-1 == 65535
         x = x - 0x10000 # 0x100 == 2**16 == 65536
     return x
 
@@ -573,7 +570,7 @@ class CPU(object):
     def illegal_op(self):
         self.program_counter -= 1
         op = self.read_pc_byte()
-        raise RuntimeError("$%x Op code $%x is illegal!" % (
+        log.error("$%x +++ Illegal op code: $%x" % (
             self.program_counter - 1, op
         ))
 
@@ -621,6 +618,15 @@ class CPU(object):
 
     ####
 
+    def update_nz(self, value):
+        self.flag_N = 1 if (value < 0) else 0
+        self.flag_Z = 1 if (value == 0) else 0
+
+    def update_nzv8(self, value):
+        value = signed8(value)
+        self.update_nz(value)
+        self.flag_V = 1 if (value > 127) | (value < -128) else 0
+
     def update_nzvc(self, value):
         value = value % 0x100
         self.flag_N = 1 if (value < 0) else 0
@@ -634,15 +640,6 @@ class CPU(object):
         # C - 1 if borrow, else 0
         self.flag_C = 1 if (value > 0xFF) else 0 # ???
 
-        return value
-
-    ####
-
-    def AND(self, r, m):
-        value = r & m
-        self.flag_N = 1 if (value < 0) else 0
-        self.flag_Z = 1 if (value == 0) else 0
-        self.flag_V = 0
         return value
 
     ####
@@ -766,36 +763,9 @@ class CPU(object):
     def inherent(self):
         pass
 
-    #### Op methods in alphabetical order:
+    #### Op methods:
 
-    @opcode(0xbb)
-    def ADDA_extended(self):
-        """
-        ADD to accumulator A
-        A = A + M
-        """
-        self.cycles += 5
-        value = self.extended()
-        log.debug("$%x ADDA extended: Add %s to accu A: %s" % (
-            self.program_counter, hex(value), hex(self.accumulator_a)
-        ))
-        value = self.update_nzvc(value)
-        self.accumulator_a += value
 
-    @opcode(0x84)
-    def ANDA_immediate(self):
-        """
-        AND with accumulator A
-        Number of Program Bytes: 2
-        """
-        self.cycles += 2 # Number of MPU Cycles
-        value = self.immediate_byte()
-        result = self.AND(self.accumulator_a, value)
-        self.cfg.mem_info(self.program_counter,
-            "$%x ANDA immediate set accu A to $%x ($%x & $%x) |" % (
-                self.program_counter, result, self.accumulator_a, value
-        ))
-        self.accumulator_a = result
 
 #     def branch_cond(self, code):
 #         code = code & 0xf
@@ -912,14 +882,6 @@ class CPU(object):
         self.flag_V = 0
         self.flag_C = 1
 
-    @opcode(0xba)
-    def ORA_extended(self):
-        self.cycles += 3
-        value = self.accumulator_a | self.extended()
-        self.accumulator_a = value
-        self.flag_N = 1 if (value < 0) else 0
-        self.flag_Z = 1 if (value == 0) else 0
-        self.flag_V = 0
 
     @opcode(0x7e)
     def JMP_extended(self):
@@ -948,6 +910,18 @@ class CPU(object):
         log.debug("$%x JSR extended: push %s to stack and jump to %s" % (
             self.program_counter, hex(self.program_counter - 1), hex(addr)
         ))
+
+    @opcode(0xa6)
+    def LDA_indexed(self):
+        """
+        A = M
+        """
+        value = self.extended()
+        self.accumulator_a = value
+        log.debug("$%x LDA indexed: Set A to $%x \t| %s" % (
+            self.program_counter, value, self.cfg.mem_info.get_shortest(value)
+        ))
+
 
     @opcode(0xcc)
     def LDD_immediate(self):
@@ -1049,6 +1023,7 @@ class CPU(object):
 
         self.write_byte(addr, value)
 
+
     @opcode(0x1f)
     def TFR(self):
         """
@@ -1066,6 +1041,86 @@ class CPU(object):
         # TODO: check if source and dest has the same size
         source = self.get_register(high)
         self.set_register(low, source)
+
+    #### 8-bit arithmetic operations
+
+    def ADD8(self, a, b):
+        value = a + b
+        self.update_nzv8(value)
+        return value
+
+    def SUB8(self, a, b):
+        value = a - b
+        self.update_nzv8(value)
+        return value
+
+    def AND8(self, a, b):
+        value = a & b
+        self.update_nzv8(value)
+        return value
+
+    def OR8(self, a, b):
+        value = a | b
+        self.update_nzv8(value)
+        return value
+
+    @opcode(0xbb)
+    def ADDA_extended(self):
+        """
+        A = A + M
+        """
+        self.cycles += 5
+        m = self.extended()
+        value = self.ADD8(self.accumulator_a, m)
+        log.debug("$%x ADDA extended: set A to $%x ($%x + $%x) \t| %s" % (
+            self.program_counter, value, self.accumulator_a, m,
+            self.cfg.mem_info.get_shortest(m)
+        ))
+        self.accumulator_a = value
+
+    @opcode(0x84)
+    def ANDA_immediate(self):
+        """
+        A = A & M
+        """
+        self.cycles += 2 # Number of MPU Cycles
+        m = self.immediate_byte()
+        value = self.ADD8(self.accumulator_a, m)
+        log.debug("$%x ADDA extended: set A to $%x ($%x & $%x) \t| %s" % (
+            self.program_counter, value, self.accumulator_a, m,
+            self.cfg.mem_info.get_shortest(m)
+        ))
+        self.accumulator_a = value
+
+    @opcode(0xba)
+    def ORA_extended(self):
+        """
+        A = A || M
+        Number of Program Bytes: 2
+        """
+        self.cycles += 2
+        m = self.extended()
+        value = self.OR8(self.accumulator_a, m)
+        log.debug("$%x ORA extended: set A to $%x ($%x | $%x) \t| %s" % (
+            self.program_counter, value, self.accumulator_a, m,
+            self.cfg.mem_info.get_shortest(m)
+        ))
+        self.accumulator_a = value
+
+    @opcode(0x80)
+    def SUBA_immediate(self):
+        """
+        A = A - M
+        Number of Program Bytes: 2
+        """
+        self.cycles += 2 # Number of MPU Cycles
+        m = self.immediate_word()
+        value = self.SUB8(self.accumulator_a, m)
+        log.debug("$%x ORA extended: set A to $%x ($%x - $%x) \t| %s" % (
+            self.program_counter, value, self.accumulator_a, m,
+            self.cfg.mem_info.get_shortest(m)
+        ))
+        self.accumulator_a = value
 
 
 if __name__ == "__main__":
