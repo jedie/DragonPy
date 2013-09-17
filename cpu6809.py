@@ -677,36 +677,7 @@ class CPU(object):
 
     def indexed(self):
         """
-        +-------------------------------+--------------------------------------
-        | Post-byte register bits       | Indexed addressing modes
-        | 7 | 6 | 5 | 4 | 3 | 2 | 1 | 0 |
-        +-------------------------------+--------------------------------------
-        | 0 | R | R | d | d | d | d | d | EA = ,R + 5-bit offset
-        | 1 | R | R | 0 | 0 | 0 | 0 | 0 | $0 - ,R++
-        | 1 | R | R | i | 0 | 0 | 0 | 1 | $1 - ,-R
-        | 1 | R | R | 0 | 0 | 0 | 1 | 1 | $3 - ,--R
-        | 1 | R | R | i | 0 | 1 | 0 | 0 | $4 - EA = ,R + 0 offset
-        | 1 | R | R | i | 0 | 1 | 0 | 1 | $5 - EA = ,R + ACCB offset
-        | 1 | R | R | i | 0 | 1 | 1 | 0 | $6 - EA = ,R + ACCA offset
-        | 1 | R | R | i | 1 | 0 | 0 | 0 | $8 - EA = ,R + 8-bit offset
-        | 1 | R | R | i | 1 | 0 | 0 | 1 | $9 - EA = ,R + 16-bit offset
-        | 1 | R | R | i | 1 | 0 | 1 | 1 | $b - EA = ,R + D offset
-        | 1 | x | x | i | 1 | 1 | 0 | 0 | $c - EA = ,PC + 8-bit offset
-        | 1 | x | x | i | 1 | 1 | 0 | 1 | $d - EA = ,PC + 16-bit offset
-        | 1 | R | R | i | 1 | 1 | 1 | 1 | $f - EA = (, Address)
-        +-------------------------------+--------------------------------------
-        |   : |   | : | :
-        |   : |   | : V :
-        |   : |   | : i | Indirect fields (or sign bit when bit 7 = 0)
-        |   : |   | : 0 | Direct
-        |   : |   | : 1 | Indirect
-        |   : V   V :
-        |   | R | R | Register fields:
-        |   | 0 | 0 | $0 = X
-        |   | 0 | 1 | $1 = Y
-        |   | 1 | 0 | $2 = U
-        |   | 1 | 1 | $3 = S
-        +-------------------------------+--------------------------------------
+        Calculate the address for all indexed addressing modes
         """
         postbyte = self.read_pc_byte()
         log.debug("$%x indexed addressing mode: postbyte: $%x == %s" % (
@@ -725,74 +696,54 @@ class CPU(object):
         except KeyError:
             raise RuntimeError("Register $%x doesn't exists! (postbyte: $%x)" % (rr, postbyte))
 
-
         if (postbyte & 0x80) == 0: # bit 7 == 0
-            # EA = ,R + 5-bit offset
+            # EA = n, R - use 5-bit offset from post-byte
             return register_value + signed5(postbyte) # FIXME: cutout only the 5bits from post byte?
 
-        if postbyte == 0x8f or postbyte == 0x90: # 0x8f == 10001111 | 0x90 == 10010000
-            ea = register_value
-            self.cycles += 1
-        elif postbyte == 0xaf or postbyte == 0xb0: # 0xaf=10101111 | 0xb0=10110000
-            ea = self.read_pc_word()
-            ea = ea + register_value
-            self.cycles += 1
-        elif postbyte == 0xcf or postbyte == 0xd0: # 0xcf=11001111 | 0xd0=11010000
-            ea = register_value
-            setattr(self, reg_attr_name, register_value + 2) # FIXME
-            self.cycles += 2
-        elif postbyte == 0xef or postbyte == 0xf0: # 0xef=11101111 | 0xf0=11110000
-            setattr(self, reg_attr_name, register_value - 2) # FIXME
-            ea = register_value
-            self.cycles += 2
-        else:
-            addr_mode = postbyte & 0x0f
-            self.cycles += 1
-            if addr_mode == 0x0: # 0000 0x0
-                ea = register_value + 1
-            elif addr_mode == 0x1: # 0001 0x1
-                ea = register_value + 2
-            elif addr_mode == 0x2: # 0010 0x2
-                ea = register_value - 1
-            elif addr_mode == 0x3: # 0011 0x3
-                ea = register_value - 2
-                self.cycles += 1
-            elif addr_mode == 0x4: # 0100 0x4
-                ea = register_value
-            elif addr_mode == 0x5: # 0101 0x5
-                ea = register_value + signed8(self.accumulator_b)
-            elif addr_mode == 0x6: # 0110 0x6
-                ea = register_value + signed8(self.accumulator_a)
-            elif addr_mode == 0x7: # 0111 0x7
-                ea = register_value + signed8(self.accumulator_e)
-            elif addr_mode == 0x8: # 1000 0x8
-                offset = self.read_pc_byte()
-                ea = signed8(offset) + register_value
-            elif addr_mode == 0x9: # 1001 0x9
-                offset = self.read_pc_word()
-                ea = register_value + offset
-                self.cycles += 1
-            elif addr_mode == 0xa: # 1010 0xa
-                ea = register_value + signed8(self.accumulator_f)
-            elif addr_mode == 0xb: # 1011 0xb
-                ea = register_value + signed8(self.accumulator_d)
-            elif addr_mode == 0xc: # 1100 0xc
-                offset = self.read_pc_byte()
-                ea = signed8(offset) + self.program_counter
-            elif addr_mode == 0xd: # 1101 0xd
-                offset = self.read_pc_word()
-                ea = signed8(offset) + self.program_counter # FIXME: word and signed8 ???
-            elif addr_mode == 0xe: # 1110 0xe
-                # W - 16 bit concatenated reg. (E + F)
-                ea = register_value + signed8(self.accumulator_e + self.accumulator_f)
-                self.cycles += 1
-            elif addr_mode == 0xf: # 1111 0xf
-                ea = self.read_pc_word()
-            else:
-                raise RuntimeError("unknown addressing mode: $%x" % addr_mode)
+        indirect = postbyte & 0x10 == 1 # bit 4 is 1 -> Indirect
 
-        if postbyte & 0x10:
-            # bit 4 is 1 -> Indirect
+        addr_mode = postbyte & 0x0f
+        self.cycles += 1
+        if addr_mode == 0x0: # 0000 0x0 | ,R+ | increment by 1
+            ea = register_value + 1
+        elif addr_mode == 0x1: # 0001 0x1 | ,R++ | increment by 2
+            ea = register_value + 2
+            self.cycles += 1
+        elif addr_mode == 0x2: # 0010 0x2 | ,R- | decrement by 1
+            ea = register_value - 1
+        elif addr_mode == 0x3: # 0011 0x3 | ,R-- | decrement by 2
+            ea = register_value - 2
+            self.cycles += 1
+        elif addr_mode == 0x4: # 0100 0x4 | ,R | No offset
+            ea = register_value
+        elif addr_mode == 0x5: # 0101 0x5 | B, R | B register offset
+            ea = register_value + signed8(self.accumulator_b)
+        elif addr_mode == 0x6: # 0110 0x6 | A, R | A register offset
+            ea = register_value + signed8(self.accumulator_a)
+        elif addr_mode == 0x8: # 1000 0x8 | n, R | 8 bit offset
+            ea = register_value + signed8(self.read_pc_byte())
+        elif addr_mode == 0x9: # 1001 0x9 | n, R | 16 bit offset
+            ea = register_value + signed16(self.read_pc_word()) # FIXME: signed16() ok?
+            self.cycles += 1
+
+#         elif addr_mode == 0xa: # 1010 0xa | FIXME: illegal???
+#             ea = self.program_counter | 0xff
+
+        elif addr_mode == 0xb: # 1011 0xb | D, R | D register offset
+            # D - 16 bit concatenated reg. (A + B)
+            ea = register_value + signed16(self.accumulator_a + self.accumulator_b) # FIXME: signed16() ok?
+            self.cycles += 1
+        elif addr_mode == 0xc: # 1100 0xc | n, PCR | 8 bit offset from program counter
+            ea = signed8(self.read_pc_byte()) + self.program_counter
+        elif addr_mode == 0xd: # 1101 0xd | n, PCR | 16 bit offset from program counter
+            ea = self.read_pc_word() + self.program_counter # FIXME: use signed16() here?
+            self.cycles += 1
+        elif addr_mode == 0xf and indirect: # 1111 0xf | [n] | 16 bit address - extended indirect
+            ea = self.read_pc_word()
+        else:
+            raise RuntimeError("Illegal indexed addressing mode: $%x" % addr_mode)
+
+        if indirect: # bit 4 is 1 -> Indirect
             tmp_ea = self.read_pc_byte()
             tmp_ea = tmp_ea << 8
             ea = tmp_ea | self.read_byte(ea + 1)
