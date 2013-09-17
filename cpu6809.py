@@ -1023,7 +1023,6 @@ class CPU(object):
 
         self.write_byte(addr, value)
 
-
     @opcode(0x1f)
     def TFR(self):
         """
@@ -1121,6 +1120,44 @@ class CPU(object):
             self.cfg.mem_info.get_shortest(m)
         ))
         self.accumulator_a = value
+
+    #### ST 16-bit store register into memory
+
+    @opcode([
+        0x9f, 0xaf, 0xbf, # STX
+        0xdd, 0xed, 0xfd, # STD
+        0xdf, 0xef, 0xff, # STU
+    ])
+    def ST16(self):
+        """
+        M:M+1 = X
+        """
+        self.cycles += 5
+        op = self.opcode
+
+        access_type = (op >> 4) & 3
+        access_dict = {
+            0x01: self.base_page_direct,
+            0x02: self.indexed,
+            0x03: self.extended,
+        }
+        access_func = access_dict[access_type]
+        ea = access_func()
+
+        reg_type = op & 0x42
+        reg_dict = {
+            0x02: (self.index_x, "X"), # X - 16 bit index register
+            0x40: (self.accumulator_a + self.accumulator_b, "D"), # D - 16 bit concatenated reg. (A + B)
+            0x42: (self.user_stack_pointer, "U") # U - 16 bit user-stack pointer
+        }
+        r, r_txt = reg_dict[reg_type]
+
+        log.debug("$%x ST16 store $%x (reg. %s) to $%x (%s) \t| %s" % (
+            self.program_counter,
+            r, r_txt, ea, access_func.__name__,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.write_byte(ea, r)
 
 
 if __name__ == "__main__":
