@@ -648,6 +648,11 @@ class CPU(object):
         self.update_nz(value)
         self.flag_V = 1 if (value > 127) | (value < -128) else 0
 
+    def update_nzv16(self, value):
+        value = signed16(value)
+        self.update_nz(value)
+        self.flag_V = 1 if (value > 32767) | (value < -32768) else 0
+
     def update_nzvc(self, value):
         value = value % 0x100
         self.flag_N = 1 if (value < 0) else 0
@@ -1142,7 +1147,26 @@ class CPU(object):
         ))
         self.accumulator_a = value
 
-    #### ST 16-bit store register into memory
+    ####
+
+    def get_ea16(self, op):
+        access_type = (op >> 4) & 3
+        access_dict = {
+            0x00: self.immediate_word,
+            0x01: self.base_page_direct,
+            0x02: self.indexed,
+            0x03: self.extended,
+        }
+        access_func = access_dict[access_type]
+        ea = access_func()
+        log.debug("$%x get_ea16(): ea: $%x accessed by %s (op:$%x) \t| %s" % (
+            self.program_counter,
+            ea, access_func.__name__, op,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        return ea
+
+    ####
 
     @opcode([
         0x9f, 0xaf, 0xbf, # STX
@@ -1150,20 +1174,10 @@ class CPU(object):
         0xdf, 0xef, 0xff, # STU
     ])
     def ST16(self):
-        """
-        M:M+1 = X
-        """
+        """ ST 16-bit store register into memory """
         self.cycles += 5
         op = self.opcode
-
-        access_type = (op >> 4) & 3
-        access_dict = {
-            0x01: self.base_page_direct,
-            0x02: self.indexed,
-            0x03: self.extended,
-        }
-        access_func = access_dict[access_type]
-        ea = access_func()
+        ea = self.get_ea16(op)
 
         reg_type = op & 0x42
         reg_dict = {
@@ -1173,12 +1187,40 @@ class CPU(object):
         }
         r, r_txt = reg_dict[reg_type]
 
-        log.debug("$%x ST16 store $%x (reg. %s) to $%x (%s) \t| %s" % (
+        log.debug("$%x ST16 store $%x (reg. %s) to $%x \t| %s" % (
             self.program_counter,
-            r, r_txt, ea, access_func.__name__,
+            r, r_txt, ea,
             self.cfg.mem_info.get_shortest(ea)
         ))
         self.write_byte(ea, r)
+        self.update_nzv16(r)
+
+    @opcode([
+        0x8e, 0x9e, 0xae, 0xbe, # LDX
+        0xcc, 0xdc, 0xec, 0xfc, # LDD
+        0xce, 0xde, 0xee, 0xfe, # LDU
+    ])
+    def LD16(self):
+        """ LD 16-bit load register from memory """
+        self.cycles += 5
+        op = self.opcode
+        ea = self.get_ea16(op)
+
+        reg_type = op & 0x42
+        reg_dict = {
+            0x02: "index_x", # X - 16 bit index register
+            0x40: "accumulator_d", # D - 16 bit concatenated reg. (A + B)
+            0x42: "user_stack_pointer", # U - 16 bit user-stack pointer
+        }
+        reg_name = reg_dict[reg_type]
+
+        log.debug("$%x LD16 load register %s from $%x \t| %s" % (
+            self.program_counter,
+            reg_name, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        setattr(self, reg_name, ea)
+        self.update_nzv16(ea)
 
 
 if __name__ == "__main__":
