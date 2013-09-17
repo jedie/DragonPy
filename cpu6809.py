@@ -993,6 +993,25 @@ class CPU(object):
                 self.program_counter, ea
         ))
 
+    @opcode(0x74)
+    def LSR_extended(self):
+        """
+        Logical Shift Right
+        """
+        self.cycles += 7
+        m = self.extended()
+        result = m >> 1
+        self.flag_N = 0
+        self.flag_Z = 0
+        self.flag_C = m & 1
+        address = self.program_counter - 2
+        log.debug("$%x LSR extended source $%x %s shifted to $%x %s (carry %i) write to $%x \t| %s" % (
+            self.program_counter,
+            m, byte2bit_string(m), result, byte2bit_string(result), self.flag_C, address,
+            self.cfg.mem_info.get_shortest(address)
+        ))
+        self.write_byte(address, result)
+
     @opcode(0x00)
     def NEG_direct(self):
         """
