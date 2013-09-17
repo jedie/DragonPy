@@ -432,10 +432,25 @@ class CPU(object):
             self.flag_F << 6 | \
             self.flag_E << 7
 
+    @property
+    def accumulator_d(self):
+        """ D - 16 bit concatenated reg. (A + B) """
+        return self.accumulator_a + self.accumulator_b
+
+    @property
+    def accumulator_w(self):
+        """ W - 16 bit concatenated reg. (E + F) """
+        return self.accumulator_e + self.accumulator_f
+
+    @property
+    def accumulator_q(self):
+        """ Q - 32 bit concatenated reg. (D + W) """
+        return self.accumulator_d + self.accumulator_w
+
     def get_register(self, addr):
         log.debug("get register value from %s" % hex(addr))
         if addr == 0x00: # 0000 - D - 16 bit concatenated reg.(A B)
-            return self.accumulator_a + self.accumulator_b
+            return self.accumulator_d
         elif addr == 0x01: # 0001 - X - 16 bit index register
             return self.index_x
         elif addr == 0x02: # 0010 - Y - 16 bit index register
@@ -481,6 +496,8 @@ class CPU(object):
             self.direct_page = value
         else:
             raise RuntimeError("Register %s doesn't exists!" % hex(addr))
+
+
 
     ####
 
@@ -727,7 +744,7 @@ class CPU(object):
 
         elif addr_mode == 0xb: # 1011 0xb | D, R | D register offset
             # D - 16 bit concatenated reg. (A + B)
-            ea = register_value + signed16(self.accumulator_a + self.accumulator_b) # FIXME: signed16() ok?
+            ea = register_value + signed16(self.accumulator_d) # FIXME: signed16() ok?
             self.cycles += 1
         elif addr_mode == 0xc: # 1100 0xc | n, PCR | 8 bit offset from program counter
             ea = signed8(self.read_pc_byte()) + self.program_counter
@@ -1147,7 +1164,7 @@ class CPU(object):
         reg_type = op & 0x42
         reg_dict = {
             0x02: (self.index_x, "X"), # X - 16 bit index register
-            0x40: (self.accumulator_a + self.accumulator_b, "D"), # D - 16 bit concatenated reg. (A + B)
+            0x40: (self.accumulator_d, "D"), # D - 16 bit concatenated reg. (A + B)
             0x42: (self.user_stack_pointer, "U") # U - 16 bit user-stack pointer
         }
         r, r_txt = reg_dict[reg_type]
