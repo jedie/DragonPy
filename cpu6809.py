@@ -11,13 +11,6 @@
         http://www.burgins.com/m6809.html
         http://koti.mbnet.fi/~atjs/mc6809/
 
-    https://github.com/kjetilhoem/hatchling-32/blob/master/hatchling-32/src/no/k/m6809/InstructionSet.scala
-
-        MAME
-        http://mamedev.org/source/src/mess/drivers/dragon.c.html
-        http://mamedev.org/source/src/mess/machine/dragon.c.html
-        http://mamedev.org/source/src/emu/cpu/m6809/m6809.c.html
-
     :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 
@@ -363,12 +356,7 @@ class CPU(object):
 
         self.accumulator_a = 0 # A - 8 bit accumulator
         self.accumulator_b = 0 # B - 8 bit accumulator
-        self.accumulator_e = 0 # E - 8 bit accumulator
-        self.accumulator_f = 0 # F - 8 bit accumulator
-
         # D - 16 bit concatenated reg. (A + B)
-        # W - 16 bit concatenated reg. (E + F)
-        # Q - 32 bit concatenated reg. (D + W)
 
         # 8 bit condition code register bits: E F H I N Z V C
         self.cc = ConditionCodeRegister()
