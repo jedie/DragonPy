@@ -796,7 +796,11 @@ class CPU(object):
         if self.flag_Z == 0:
             new_pc += self.read_pc_byte()
 
-        self.cfg.mem_info(new_pc, "$%x BNE: set pc to $%x" % (self.program_counter, new_pc))
+        log.debug("$%x BNE: set pc to $%x \t| %s" % (
+                self.program_counter,
+                new_pc,
+                self.cfg.mem_info.get_shortest(new_pc)
+        ))
         self.program_counter = new_pc
 
     @opcode(0x6f)
@@ -1130,7 +1134,7 @@ class CPU(object):
         }
         reg_name = reg_dict[reg_type]
 
-        log.debug("$%x LD16 load register %s from $%x \t| %s" % (
+        log.debug("$%x LD16 set %s to $%x \t| %s" % (
             self.program_counter,
             reg_name, ea,
             self.cfg.mem_info.get_shortest(ea)
