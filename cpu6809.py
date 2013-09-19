@@ -566,10 +566,14 @@ class CPU(object):
     def get_pc(self, inc=1):
         pc = self.program_counter
         self.program_counter += inc
+#         log.debug(" ++++ inc pc: $%x + %i = $%x" % (pc, inc, self.program_counter))
         return pc
 
     def read_pc_byte(self):
-        return self.memory.read_byte(self.get_pc())
+        pc = self.get_pc()
+        value = self.memory.read_byte(pc)
+        log.debug("$%x read pc byte: $%x" % (pc, value))
+        return value
 
     def read_pc_word(self):
         return self.memory.read_word(self.get_pc(2))
@@ -869,12 +873,11 @@ class CPU(object):
         pc = EA
         """
         self.cycles += 3
-        op = self.opcode
-        access_type = (op >> 4) & 0xf
+        access_type = divmod(self.opcode, 16)[0]
         access_dict = {
-            0x00: (self.direct, "direct"),
-            0x06: (self.indexed, "indexed"),
-            0x07: (self.extended, "extended"),
+            0x0: (self.direct, "direct"),
+            0x6: (self.indexed, "indexed"),
+            0x7: (self.extended, "extended"),
         }
         ea, txt = access_dict[access_type]
         log.debug("$%x JMP %s to $%x \t| %s" % (
@@ -943,8 +946,7 @@ class CPU(object):
         Addressing Mode: direct
         """
         self.cycles += 6
-        op = self.opcode
-        reg_type = (op >> 4) & 0xf
+        reg_type = divmod(self.opcode, 16)[0]
         reg_dict = {
             0x0: (self.direct, "direct"),
             0x4: (self.accu.A, "accu A"),
@@ -953,8 +955,12 @@ class CPU(object):
             0x7: (self.extended, "extended"),
         }
         ea, txt = reg_dict[reg_type]
-#         log.debug("%s 0x00 NEG direct %s" % (self.program_counter, hex(value)))
 
+        log.debug("$%x NEG %s $%x \t| %s" % (
+            self.program_counter,
+            txt, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
         value = -ea
         self.cc.set_NZVC8(0, ea, value)
 

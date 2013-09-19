@@ -378,6 +378,7 @@ class SoftSwitches(object):
         else:
             pass # print "%04X" % address
         log.debug("no soft switch at %s (cycle: %s)" % (hex(address), hex(cycle)))
+        raise
         return 0x00
 
 
