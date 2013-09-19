@@ -842,20 +842,69 @@ class CPU(object):
 #             self.program_counter, hex(self.index_x), hex(value), hex(result), self.flag_C
 #         ))
 
-    @opcode(0x03)
-    def COM_direct(self):
+
+    @opcode(0x43)
+    def COMA(self):
+        """
+        COMplement accumulator A
+        """
+        self.cycles += 2
+        value = self.accumulator_a # A - 8 bit accumulator
+        print "****", value, self.accumulator_a
+        value = value ^ -1
+        log.debug("$%x COMA $%x set A to $%x \t| %s" % (
+            self.program_counter,
+            self.accumulator_a, value,
+            self.cfg.mem_info.get_shortest(value)
+        ))
+        self.get_accumulator_a = value
+        self.cc.set_NZ8(value)
+        self.cc.flag_V = 0
+        self.cc.flag_C = 1
+
+    @opcode(0x53)
+    def COMB(self):
+        """
+        COMplement accumulator B
+        """
+        self.cycles += 2
+        value = self.accumulator_b # B - 8 bit accumulator
+        value = value ^ -1
+        log.debug("$%x COMB $%x set B to $%x \t| %s" % (
+            self.program_counter,
+            self.accumulator_b, value,
+            self.cfg.mem_info.get_shortest(value)
+        ))
+        self.get_accumulator_b = value
+        self.cc.set_NZ8(value)
+        self.cc.flag_V = 0
+        self.cc.flag_C = 1
+
+    @opcode([0x03, 0x63, 0x73])
+    def COM(self):
         """
         COMplement memory
-        Number of Program Bytes: 2
         """
         self.cycles += 6
-        value = self.base_page_direct(debug=True)
-        value = value ^ -1
-        self.flag_N = 1 if (value < 0) else 0
-        self.flag_Z = 1 if (value == 0) else 0
-        self.flag_V = 0
-        self.flag_C = 1
-
+        op = self.opcode
+        reg_type = (op >> 4) & 0xf
+        reg_dict = {
+            0x0: (self.direct, "direct"),
+            0x6: (self.indexed, "indexed"),
+            0x7: (self.extended, "extended"),
+        }
+        func, txt = reg_dict[reg_type]
+        ea = func()
+        value = ea ^ -1
+        log.debug("$%x COM %s $%x to $%x \t| %s" % (
+            self.program_counter,
+            txt, ea, value,
+            self.cfg.mem_info.get_shortest(value)
+        ))
+        self.write_byte(ea, value)
+        self.cc.set_NZ8(value)
+        self.cc.flag_V = 0
+        self.cc.flag_C = 1
 
     @opcode(0x7e)
     def JMP_extended(self):
@@ -1109,7 +1158,7 @@ class CPU(object):
         op = self.opcode
         ea = self.get_ea16(op)
 
-        ea = self.cc.set_NZC8(ea)
+        self.cc.set_NZC8(ea)
 
         if not op & 0x40:
             self.accumulator_a = ea
