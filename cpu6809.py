@@ -628,7 +628,8 @@ class CPU(object):
         return value
 
     def direct(self):
-        pass
+        raise NotImplementedError
+
     def base_page_direct(self, debug=False):
         post_byte = self.read_pc_byte()
         ea = self.direct_page << 8 | post_byte
