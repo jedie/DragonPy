@@ -132,8 +132,9 @@ class RAM(ROM):
         self._mem[address] = value
 
 
-class Memory:
-    def __init__(self, cfg=None, use_bus=True):
+class Memory(object):
+    def __init__(self, cpu, cfg=None, use_bus=True):
+        self.cpu = cpu
         self.cfg = cfg
         self.use_bus = use_bus
 
@@ -151,20 +152,21 @@ class Memory:
         if address < self.cfg.RAM_END:
             self.ram.load(address, data)
 
-    def read_byte(self, cycle, address):
+    def read_byte(self, address):
+        self.cpu.cycles += 1
         if address < self.cfg.RAM_END:
             return self.ram.read_byte(address)
         elif self.cfg.ROM_START <= address <= self.cfg.ROM_END:
             return self.rom.read_byte(address)
         else:
-            return self.bus_read(cycle, address)
+            return self.bus_read(address)
 
-    def read_word(self, cycle, address):
-        #  little-endian or big-endian ?!?!
-        return self.read_byte(cycle + 1, address + 1) + (self.read_byte(cycle, address) << 8)
-#         return self.read_byte(cycle, address) + (self.read_byte(cycle + 1, address + 1) << 8)
+    def read_word(self, address):
+        # 6809 is Big-Endian
+        return self.read_byte(address + 1) + (self.read_byte(address) << 8)
 
-    def write_byte(self, cycle, address, value):
+    def write_byte(self, address, value):
+        self.cpu.cycles += 1
         if 0x400 <= address < 0x600:
             # FIXME: to default text screen
             log.debug(" **** write $%x to text screen address $%x" % (value, address))
@@ -173,12 +175,13 @@ class Memory:
         if address < self.cfg.RAM_END:
             self.ram.write_byte(address, value)
         if 0x400 <= address < 0x800 or 0x2000 <= address < 0x5FFF:
-            self.bus_write(cycle, address, value)
+            self.bus_write(address, value)
 
-    def bus_read(self, cycle, address):
+    def bus_read(self, address):
+#         self.cpu.cycles += 1 # ???
         if not self.use_bus:
             return 0
-        op = struct.pack("<IBHB", cycle, 0, address, 0)
+        op = struct.pack("<IBHB", self.cpu.cycles, 0, address, 0)
         try:
             bus.send(op)
             b = bus.recv(1)
@@ -188,10 +191,11 @@ class Memory:
         except socket.error:
             sys.exit(0)
 
-    def bus_write(self, cycle, address, value):
+    def bus_write(self, address, value):
+#         self.cpu.cycles += 1 # ???
         if not self.use_bus:
             return
-        op = struct.pack("<IBHB", cycle, 1, address, value)
+        op = struct.pack("<IBHB", self.cpu.cycles, 1, address, value)
         try:
             bus.send(op)
         except IOError:
@@ -336,9 +340,9 @@ class ControlHandlerFactory:
 
 class CPU(object):
 
-    def __init__(self, cfg, memory):
+    def __init__(self, cfg):
         self.cfg = cfg
-        self.memory = memory
+        self.memory = Memory(self, cfg)
 
         if self.cfg.bus:
             self.control_server = BaseHTTPServer.HTTPServer(("127.0.0.1", 6809), ControlHandlerFactory(self))
@@ -355,9 +359,9 @@ class CPU(object):
 
         # PC - 16 bit program counter register
 #         self.program_counter = -1
-#         self.program_counter = 0x8000
+        self.program_counter = 0x8000
 #         self.program_counter = 0xb3b4
-        self.program_counter = 0xb3ba
+#         self.program_counter = 0xb3ba
 
         # A - 8 bit accumulator
         # B - 8 bit accumulator
@@ -465,8 +469,6 @@ class CPU(object):
         else:
             raise RuntimeError("Register %s doesn't exists!" % hex(addr))
 
-
-
     ####
 
     def reset(self):
@@ -566,25 +568,16 @@ class CPU(object):
         self.program_counter += inc
         return pc
 
-    def read_byte(self, address):
-        return self.memory.read_byte(self.cycles, address)
-
-    def read_word(self, address):
-        return self.memory.read_word(self.cycles, address)
-
     def read_pc_byte(self):
-        return self.read_byte(self.get_pc())
+        return self.memory.read_byte(self.get_pc())
 
     def read_pc_word(self):
-        return self.read_word(self.get_pc(2))
-
-    def write_byte(self, address, value):
-        self.memory.write_byte(self.cycles, address, value)
+        return self.memory.read_word(self.get_pc(2))
 
     ####
 
     def push_byte(self, byte):
-        self.write_byte(self.cfg.STACK_PAGE + self.stack_pointer, byte)
+        self.memory.write_byte(self.cfg.STACK_PAGE + self.stack_pointer, byte)
         self.stack_pointer = (self.stack_pointer - 1) % 0x100
 
     def pull_byte(self):
@@ -621,18 +614,13 @@ class CPU(object):
 
     @property
     def direct(self):
-        raise NotImplementedError
-
-    @property
-    def base_page_direct(self, debug=False):
-        post_byte = self.read_pc_byte()
-        ea = self.direct_page << 8 | post_byte
-        if debug:
-            log.debug("$%x addressing 'base page direct' value: $%x (DP: $%x post byte: $%x) \t| %s" % (
-                self.program_counter,
-                ea, self.direct_page, post_byte,
-                self.cfg.mem_info.get_shortest(self.program_counter)
-            ))
+        value = self.read_pc_byte()
+        ea = self.direct_page << 8 | value
+        log.debug("$%x addressing 'direct' value: $%x << 8 | $%x = $%x \t| %s" % (
+            self.program_counter,
+            self.direct_page, value, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
         return ea
 
     @property
@@ -808,7 +796,7 @@ class CPU(object):
         """
         self.cycles += 6
         addr = self.indexed()
-        self.write_byte(addr, 0x0)
+        self.memory.write_byte(addr, 0x0)
         self.cc.N = 0
         self.cc.Z = 1
         self.cc.V = 0
@@ -865,24 +853,36 @@ class CPU(object):
             txt, ea, value,
             self.cfg.mem_info.get_shortest(value)
         ))
-        self.write_byte(ea, value)
+        self.memory.write_byte(ea, value)
         self.cc.set_NZ8(value)
         self.cc.V = 0
         self.cc.C = 1
 
-    @opcode(0x7e)
-    def JMP_extended(self):
+    @opcode([
+        0x0e, # JMP direct
+        0x6e, # JMP indexed
+        0x7e, # JMP extended
+    ])
+    def JMP(self):
         """
-        Unconditional JuMP
-        Number of Program Bytes: 3
-        Calculates an effective address (ea), and stores it in the program counter.
-        Addressing Mode: extended
+        JuMP
+        pc = EA
         """
         self.cycles += 3
-        addr = self.extended
-        self.program_counter = addr
-#         log.debug()
-        self.cfg.mem_info(addr, "$%x JMP extended to" % self.program_counter)
+        op = self.opcode
+        access_type = (op >> 4) & 0xf
+        access_dict = {
+            0x00: (self.direct, "direct"),
+            0x06: (self.indexed, "indexed"),
+            0x07: (self.extended, "extended"),
+        }
+        ea, txt = access_dict[access_type]
+        log.debug("$%x JMP %s to $%x \t| %s" % (
+            self.program_counter,
+            txt, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.program_counter = ea
 
     @opcode(0xbd)
     def JSR_extended(self):
@@ -929,22 +929,41 @@ class CPU(object):
             m, byte2bit_string(m), result, byte2bit_string(result), self.cc.C, address,
             self.cfg.mem_info.get_shortest(address)
         ))
-        self.write_byte(address, result)
+        self.memory.write_byte(address, result)
 
-    @opcode(0x00)
-    def NEG_direct(self):
+    @opcode([
+        0x40, # NEGA
+        0x50, # NEGB
+        0x00, 0x60, 0x70 # NEG
+    ])
+    def NEG(self):
         """
         Negate (Twos Complement) a Byte in Memory
         Number of Program Bytes: 2
         Addressing Mode: direct
         """
         self.cycles += 6
-        value = self.base_page_direct
+        op = self.opcode
+        reg_type = (op >> 4) & 0xf
+        reg_dict = {
+            0x0: (self.direct, "direct"),
+            0x4: (self.accu.A, "accu A"),
+            0x5: (self.accu.B, "accu B"),
+            0x6: (self.indexed, "indexed"),
+            0x7: (self.extended, "extended"),
+        }
+        ea, txt = reg_dict[reg_type]
 #         log.debug("%s 0x00 NEG direct %s" % (self.program_counter, hex(value)))
 
-        value = -value
-        self.cc.set_NZC8(value)
-        raise "TODO: write in memory!"
+        value = -ea
+        self.cc.set_NZVC8(0, ea, value)
+
+        if reg_type == 0x4:
+            self.accu.A = value
+        elif reg_type == 0x5:
+            self.accu.B = value
+        else:
+            self.memory.write_byte(ea, value)
 
     @opcode(0xa7)
     def STA_indexed(self):
@@ -962,7 +981,7 @@ class CPU(object):
                 self.program_counter, value, offset, addr
         ))
 
-        self.write_byte(addr, value)
+        self.memory.write_byte(addr, value)
 
     @opcode(0x1f)
     def TFR(self):
@@ -1068,7 +1087,7 @@ class CPU(object):
         access_type = (op >> 4) & 3
         access_dict = {
             0x00: (self.immediate_word, "immediate word"),
-            0x01: (self.base_page_direct, "pase page direct"),
+            0x01: (self.direct, "direct"),
             0x02: (self.indexed, "indexed"),
             0x03: (self.extended, "extended"),
         }
@@ -1106,7 +1125,7 @@ class CPU(object):
             r, r_txt, ea,
             self.cfg.mem_info.get_shortest(ea)
         ))
-        self.write_byte(ea, r)
+        self.memory.write_byte(ea, r)
         self.cc.set_NZV16(r)
 
     @opcode([
@@ -1174,6 +1193,5 @@ if __name__ == "__main__":
 
     log.debug("Use bus port: %s" % repr(cfg.bus))
 
-    mem = Memory(cfg)
-    cpu = CPU(cfg, mem)
+    cpu = CPU(cfg)
     cpu.run(cfg.bus)
