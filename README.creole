@@ -6,10 +6,16 @@ A Open source (GPL v3 or later) emulator for the 30years old homecomputer {{{Dra
 Some links:
 
  * http://www.burgins.com/m6809.html
+ * http://www.maddes.net/m6809pm/ - Programming Manual for the 6809 microprocessor from Motorola Inc. (now Freescale)
+ * http://www.6809.org.uk/dragon/hardware.shtml
  * http://dragondata.worldofdragon.org/Publications/inside-dragon.htm
+ * http://koti.mbnet.fi/~atjs/mc6809/ - 6809 Emulation Page
+ 
+Source codes:
  * http://mamedev.org/source/src/mess/drivers/dragon.c.html
  * http://mamedev.org/source/src/mess/machine/dragon.c.html
- * http://koti.mbnet.fi/~atjs/mc6809/
+ * http://mamedev.org/source/src/emu/cpu/m6809/m6809.c.html
+ * https://github.com/kjetilhoem/hatchling-32/blob/master/hatchling-32/src/no/k/m6809/InstructionSet.scala       
 
 Dragon 32 resources:
 

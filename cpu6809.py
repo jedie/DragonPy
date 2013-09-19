@@ -11,13 +11,6 @@
         http://www.burgins.com/m6809.html
         http://koti.mbnet.fi/~atjs/mc6809/
 
-    https://github.com/kjetilhoem/hatchling-32/blob/master/hatchling-32/src/no/k/m6809/InstructionSet.scala
-
-        MAME
-        http://mamedev.org/source/src/mess/drivers/dragon.c.html
-        http://mamedev.org/source/src/mess/machine/dragon.c.html
-        http://mamedev.org/source/src/emu/cpu/m6809/m6809.c.html
-
     :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 
@@ -42,6 +35,7 @@ import sys
 from DragonPy_CLI import DragonPyCLI
 from Dragon32_mem_info import DragonMemInfo, print_out
 from cpu_utils.condition_code_register import ConditionCodeRegister
+from cpu_utils.accumulators import Accumulators
 
 
 log = logging.getLogger("DragonPy")
@@ -361,14 +355,10 @@ class CPU(object):
 
         self.program_counter = -1 # PC - 16 bit program counter register
 
-        self.accumulator_a = 0 # A - 8 bit accumulator
-        self.accumulator_b = 0 # B - 8 bit accumulator
-        self.accumulator_e = 0 # E - 8 bit accumulator
-        self.accumulator_f = 0 # F - 8 bit accumulator
-
+        # A - 8 bit accumulator
+        # B - 8 bit accumulator
         # D - 16 bit concatenated reg. (A + B)
-        # W - 16 bit concatenated reg. (E + F)
-        # Q - 32 bit concatenated reg. (D + W)
+        self.accu = Accumulators(self)
 
         # 8 bit condition code register bits: E F H I N Z V C
         self.cc = ConditionCodeRegister()
@@ -410,25 +400,10 @@ class CPU(object):
 
     ####
 
-    @property
-    def accumulator_d(self):
-        """ D - 16 bit concatenated reg. (A + B) """
-        return self.accumulator_a + self.accumulator_b
-
-    @property
-    def accumulator_w(self):
-        """ W - 16 bit concatenated reg. (E + F) """
-        return self.accumulator_e + self.accumulator_f
-
-    @property
-    def accumulator_q(self):
-        """ Q - 32 bit concatenated reg. (D + W) """
-        return self.accumulator_d + self.accumulator_w
-
     def get_register(self, addr):
         log.debug("get register value from %s" % hex(addr))
         if addr == 0x00: # 0000 - D - 16 bit concatenated reg.(A B)
-            return self.accumulator_d
+            return self.accu.D
         elif addr == 0x01: # 0001 - X - 16 bit index register
             return self.index_x
         elif addr == 0x02: # 0010 - Y - 16 bit index register
@@ -440,11 +415,11 @@ class CPU(object):
         elif addr == 0x05: # 0101 - PC - 16 bit program counter register
             return self.program_counter
         elif addr == 0x08: # 1000 - A - 8 bit accumulator
-            return self.accumulator_a
+            return self.accu.A
         elif addr == 0x09: # 1001 - B - 8 bit accumulator
-            return self.accumulator_b
+            return self.accu.B
         elif addr == 0x0a: # 1010 - CC - 8 bit condition code register as flags
-            return self.status_as_byte()
+            return self.cc.status_as_byte()
         elif addr == 0x0b: # 1011 - DP - 8 bit direct page register
             return self.direct_page
         else:
@@ -453,7 +428,7 @@ class CPU(object):
     def set_register(self, addr, value):
         log.debug("set register %s to %s" % (hex(addr), hex(value)))
         if addr == 0x00: # 0000 - D - 16 bit concatenated reg.(A B)
-            self.accumulator_a, self.accumulator_b = divmod(value, 256)
+            self.accu.A, self.accu.B = divmod(value, 256)
         elif addr == 0x01: # 0001 - X - 16 bit index register
             self.index_x = value
         elif addr == 0x02: # 0010 - Y - 16 bit index register
@@ -465,11 +440,11 @@ class CPU(object):
         elif addr == 0x05: # 0101 - PC - 16 bit program counter register
             self.program_counter = value
         elif addr == 0x08: # 1000 - A - 8 bit accumulator
-            self.accumulator_a = value
+            self.accu.A = value
         elif addr == 0x09: # 1001 - B - 8 bit accumulator
-            self.accumulator_b = value
+            self.accu.B = value
         elif addr == 0x0a: # 1010 - CC - 8 bit condition code register as flags
-            self.status_from_byte(value)
+            self.cc.status_from_byte(value)
         elif addr == 0x0b: # 1011 - DP - 8 bit direct page register
             self.direct_page = value
         else:
@@ -683,9 +658,9 @@ class CPU(object):
         elif addr_mode == 0x4: # 0100 0x4 | ,R | No offset
             ea = register_value
         elif addr_mode == 0x5: # 0101 0x5 | B, R | B register offset
-            ea = register_value + signed8(self.accumulator_b)
+            ea = register_value + signed8(self.accu.B)
         elif addr_mode == 0x6: # 0110 0x6 | A, R | A register offset
-            ea = register_value + signed8(self.accumulator_a)
+            ea = register_value + signed8(self.accu.A)
         elif addr_mode == 0x8: # 1000 0x8 | n, R | 8 bit offset
             ea = register_value + signed8(self.read_pc_byte())
         elif addr_mode == 0x9: # 1001 0x9 | n, R | 16 bit offset
@@ -697,7 +672,7 @@ class CPU(object):
 
         elif addr_mode == 0xb: # 1011 0xb | D, R | D register offset
             # D - 16 bit concatenated reg. (A + B)
-            ea = register_value + signed16(self.accumulator_d) # FIXME: signed16() ok?
+            ea = register_value + signed16(self.accu.D) # FIXME: signed16() ok?
             self.cycles += 1
         elif addr_mode == 0xc: # 1100 0xc | n, PCR | 8 bit offset from program counter
             ea = signed8(self.read_pc_byte()) + self.program_counter
@@ -990,8 +965,8 @@ class CPU(object):
         """
         self.cycles += 4
         offset = self.immediate_word()
-        addr = self.accumulator_a + offset
-        value = self.accumulator_a
+        addr = self.accu.A + offset
+        value = self.accu.A
 
         self.cfg.mem_info(self.program_counter,
             "$%x STA indexed - store $%x with offset:$%x to $%x |" % (
@@ -1047,12 +1022,12 @@ class CPU(object):
         """
         self.cycles += 5
         m = self.extended()
-        value = self.ADD8(self.accumulator_a, m)
+        value = self.ADD8(self.accu.A, m)
         log.debug("$%x ADDA extended: set A to $%x ($%x + $%x) \t| %s" % (
-            self.program_counter, value, self.accumulator_a, m,
+            self.program_counter, value, self.accu.A, m,
             self.cfg.mem_info.get_shortest(m)
         ))
-        self.accumulator_a = value
+        self.accu.A = value
 
     @opcode(0x84)
     def ANDA_immediate(self):
@@ -1061,12 +1036,12 @@ class CPU(object):
         """
         self.cycles += 2 # Number of MPU Cycles
         m = self.immediate_byte()
-        value = self.ADD8(self.accumulator_a, m)
+        value = self.ADD8(self.accu.A, m)
         log.debug("$%x ADDA extended: set A to $%x ($%x & $%x) \t| %s" % (
-            self.program_counter, value, self.accumulator_a, m,
+            self.program_counter, value, self.accu.A, m,
             self.cfg.mem_info.get_shortest(m)
         ))
-        self.accumulator_a = value
+        self.accu.A = value
 
     @opcode(0xba)
     def ORA_extended(self):
@@ -1076,12 +1051,12 @@ class CPU(object):
         """
         self.cycles += 2
         m = self.extended()
-        value = self.OR8(self.accumulator_a, m)
+        value = self.OR8(self.accu.A, m)
         log.debug("$%x ORA extended: set A to $%x ($%x | $%x) \t| %s" % (
-            self.program_counter, value, self.accumulator_a, m,
+            self.program_counter, value, self.accu.A, m,
             self.cfg.mem_info.get_shortest(m)
         ))
-        self.accumulator_a = value
+        self.accu.A = value
 
     @opcode(0x80)
     def SUBA_immediate(self):
@@ -1091,12 +1066,12 @@ class CPU(object):
         """
         self.cycles += 2 # Number of MPU Cycles
         m = self.immediate_word()
-        value = self.SUB8(self.accumulator_a, m)
+        value = self.SUB8(self.accu.A, m)
         log.debug("$%x ORA extended: set A to $%x ($%x - $%x) \t| %s" % (
-            self.program_counter, value, self.accumulator_a, m,
+            self.program_counter, value, self.accu.A, m,
             self.cfg.mem_info.get_shortest(m)
         ))
-        self.accumulator_a = value
+        self.accu.A = value
 
     ####
 
@@ -1133,7 +1108,7 @@ class CPU(object):
         reg_type = op & 0x42
         reg_dict = {
             0x02: (self.index_x, "X"), # X - 16 bit index register
-            0x40: (self.accumulator_d, "D"), # D - 16 bit concatenated reg. (A + B)
+            0x40: (self.accu.D, "D"), # D - 16 bit concatenated reg. (A + B)
             0x42: (self.user_stack_pointer, "U") # U - 16 bit user-stack pointer
         }
         r, r_txt = reg_dict[reg_type]
@@ -1161,9 +1136,9 @@ class CPU(object):
         self.cc.set_NZC8(ea)
 
         if not op & 0x40:
-            self.accumulator_a = ea
+            self.accu.A = ea
         else:
-            self.accumulator_b = ea
+            self.accu.B = ea
 
     @opcode([
         0x8e, 0x9e, 0xae, 0xbe, # LDX
@@ -1179,7 +1154,7 @@ class CPU(object):
         reg_type = op & 0x42
         reg_dict = {
             0x02: "index_x", # X - 16 bit index register
-            0x40: "accumulator_d", # D - 16 bit concatenated reg. (A + B)
+            0x40: "accu_D", # D - 16 bit concatenated reg. (A + B)
             0x42: "user_stack_pointer", # U - 16 bit user-stack pointer
         }
         reg_name = reg_dict[reg_type]
