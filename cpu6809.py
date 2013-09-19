@@ -600,7 +600,6 @@ class CPU(object):
 
     ####
 
-    @property
     def immediate_byte(self):
         value = self.read_pc_byte()
         log.debug("$%x addressing 'immediate byte' value: $%x \t| %s" % (
@@ -608,7 +607,6 @@ class CPU(object):
         ))
         return value
 
-    @property
     def immediate_word(self):
         value = self.read_pc_word()
         log.debug("$%x addressing 'immediate word' value: $%x \t| %s" % (
@@ -616,7 +614,6 @@ class CPU(object):
         ))
         return value
 
-    @property
     def direct(self):
         value = self.read_pc_byte()
         ea = self.direct_page << 8 | value
@@ -627,13 +624,12 @@ class CPU(object):
         ))
         return ea
 
-    @property
     def indexed(self):
         """
         Calculate the address for all indexed addressing modes
         """
         postbyte = self.read_pc_byte()
-        log.debug("$%x indexed addressing mode: postbyte: $%x == %s" % (
+        log.debug("$%x addressing 'indexed' with postbyte: $%x == %s" % (
             self.program_counter, postbyte, byte2bit_string(postbyte)
         ))
 
@@ -706,7 +702,6 @@ class CPU(object):
         ))
         return ea
 
-    @property
     def extended(self):
         """
         extended indirect addressing mode takes a 2-byte value from post-bytes
@@ -717,7 +712,6 @@ class CPU(object):
         ))
         return value
 
-    @property
     def inherent(self):
         raise NotImplementedError
 
@@ -843,18 +837,19 @@ class CPU(object):
         self.cycles += 6
         op = self.opcode
         reg_type = (op >> 4) & 0xf
-        reg_dict = {
-            0x0: (self.direct, "direct"),
-            0x4: (self.accu.A, "accu A"),
-            0x5: (self.accu.B, "accu B"),
-            0x6: (self.indexed, "indexed"),
-            0x7: (self.extended, "extended"),
-        }
-        ea, txt = reg_dict[reg_type]
+        func = {
+            0x0: self.direct,
+            0x4: self.accu.get_A,
+            0x5: self.accu.get_B,
+            0x6: self.indexed,
+            0x7: self.extended,
+        }[reg_type]
+        ea = func()
+
         value = ea ^ -1
         log.debug("$%x COM %s $%x to $%x \t| %s" % (
             self.program_counter,
-            txt, ea, value,
+            func.__name__, ea, value,
             self.cfg.mem_info.get_shortest(value)
         ))
         self.memory.write_byte(ea, value)
@@ -875,14 +870,15 @@ class CPU(object):
         self.cycles += 3
         access_type = divmod(self.opcode, 16)[0]
         access_dict = {
-            0x0: (self.direct, "direct"),
-            0x6: (self.indexed, "indexed"),
-            0x7: (self.extended, "extended"),
+            0x0: self.direct,
+            0x6: self.indexed,
+            0x7: self.extended,
         }
-        ea, txt = access_dict[access_type]
+        func = access_dict[access_type]
+        ea = func()
         log.debug("$%x JMP %s to $%x \t| %s" % (
             self.program_counter,
-            txt, ea,
+            func.__name__, ea,
             self.cfg.mem_info.get_shortest(ea)
         ))
         self.program_counter = ea
@@ -948,11 +944,11 @@ class CPU(object):
         self.cycles += 6
         reg_type = divmod(self.opcode, 16)[0]
         reg_dict = {
-            0x0: (self.direct, "direct"),
-            0x4: (self.accu.A, "accu A"),
-            0x5: (self.accu.B, "accu B"),
-            0x6: (self.indexed, "indexed"),
-            0x7: (self.extended, "extended"),
+            0x0: self.direct,
+            0x4: "accu.A",
+            0x5: "accu.B",
+            0x6: self.indexed,
+            0x7: self.extended,
         }
         ea, txt = reg_dict[reg_type]
 
@@ -970,24 +966,6 @@ class CPU(object):
             self.accu.B = value
         else:
             self.memory.write_byte(ea, value)
-
-    @opcode(0xa7)
-    def STA_indexed(self):
-        """
-        STore register A
-        Number of Program Bytes: 2+
-        """
-        self.cycles += 4
-        offset = self.immediate_word
-        addr = self.accu.A + offset
-        value = self.accu.A
-
-        self.cfg.mem_info(self.program_counter,
-            "$%x STA indexed - store $%x with offset:$%x to $%x |" % (
-                self.program_counter, value, offset, addr
-        ))
-
-        self.memory.write_byte(addr, value)
 
     @opcode(0x1f)
     def TFR(self):
@@ -1035,7 +1013,7 @@ class CPU(object):
         A = A + M
         """
         self.cycles += 5
-        m = self.extended
+        m = self.extended()
         value = self.ADD8(self.accu.A, m)
         log.debug("$%x ADDA extended: set A to $%x ($%x + $%x) \t| %s" % (
             self.program_counter, value, self.accu.A, m,
@@ -1049,7 +1027,7 @@ class CPU(object):
         A = A & M
         """
         self.cycles += 2 # Number of MPU Cycles
-        m = self.immediate_byte
+        m = self.immediate_byte()
         value = self.ADD8(self.accu.A, m)
         log.debug("$%x ADDA extended: set A to $%x ($%x & $%x) \t| %s" % (
             self.program_counter, value, self.accu.A, m,
@@ -1064,7 +1042,7 @@ class CPU(object):
         Number of Program Bytes: 2
         """
         self.cycles += 2
-        m = self.extended
+        m = self.extended()
         value = self.OR8(self.accu.A, m)
         log.debug("$%x ORA extended: set A to $%x ($%x | $%x) \t| %s" % (
             self.program_counter, value, self.accu.A, m,
@@ -1079,7 +1057,7 @@ class CPU(object):
         Number of Program Bytes: 2
         """
         self.cycles += 2 # Number of MPU Cycles
-        m = self.immediate_word
+        m = self.immediate_word()
         value = self.SUB8(self.accu.A, m)
         log.debug("$%x ORA extended: set A to $%x ($%x - $%x) \t| %s" % (
             self.program_counter, value, self.accu.A, m,
@@ -1091,21 +1069,43 @@ class CPU(object):
 
     def get_ea16(self, op):
         access_type = (op >> 4) & 3
-        access_dict = {
-            0x00: (self.immediate_word, "immediate word"),
-            0x01: (self.direct, "direct"),
-            0x02: (self.indexed, "indexed"),
-            0x03: (self.extended, "extended"),
-        }
-        ea, txt = access_dict[access_type]
+        func = {
+            0x00: self.immediate_word,
+            0x01: self.direct,
+            0x02: self.indexed,
+            0x03: self.extended,
+        }[access_type]
+        ea = func()
         log.debug("$%x get_ea16(): ea: $%x accessed by %s (op:$%x) \t| %s" % (
             self.program_counter,
-            ea, txt, op,
+            ea, func.__name__, op,
             self.cfg.mem_info.get_shortest(ea)
         ))
         return ea
 
     ####
+
+    @opcode([
+        0x97, 0xa7, 0xb7,# STA
+        0xd7, 0xe7, 0xf7,# STB
+    ])
+    def ST(self):
+        op = self.opcode
+        reg_type = op & 0x40
+        func = {
+            0x0: self.accu.get_A,
+            0x40: self.accu.get_B,
+        }[reg_type]
+        value = func()
+        
+        ea = self.get_ea16(op)
+        log.debug("$%x STA/B (%s) store $%x at $%x \t| %s" % (
+            self.program_counter,
+            func.__name__, value, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.cc.set_NZ8(ea)
+        self.memory.write_byte(ea, value)
 
     @opcode([
         0x9f, 0xaf, 0xbf, # STX
@@ -1119,16 +1119,16 @@ class CPU(object):
         ea = self.get_ea16(op)
 
         reg_type = op & 0x42
-        reg_dict = {
-            0x02: (self.index_x, "X"), # X - 16 bit index register
-            0x40: (self.accu.D, "D"), # D - 16 bit concatenated reg. (A + B)
-            0x42: (self.user_stack_pointer, "U") # U - 16 bit user-stack pointer
-        }
-        r, r_txt = reg_dict[reg_type]
+        func = {
+            0x02: self.get_X, # X - 16 bit index register
+            0x40: self.accu.get_D, # D - 16 bit concatenated reg. (A + B)
+            0x42: self.get_U # U - 16 bit user-stack pointer
+        }[reg_type]
+        r = func()
 
         log.debug("$%x ST16 store $%x (reg. %s) to $%x \t| %s" % (
             self.program_counter,
-            r, r_txt, ea,
+            r, r.__name__, ea,
             self.cfg.mem_info.get_shortest(ea)
         ))
         self.memory.write_byte(ea, r)
@@ -1171,7 +1171,6 @@ class CPU(object):
             0x42: "user_stack_pointer", # U - 16 bit user-stack pointer
         }
         reg_name = reg_dict[reg_type]
-
         log.debug("$%x LD16 set %s to $%x \t| %s" % (
             self.program_counter,
             reg_name, ea,
