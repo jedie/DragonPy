@@ -353,7 +353,11 @@ class CPU(object):
 
         self.value_register = 0 # V - 16 bit variable inter-register
 
-        self.program_counter = -1 # PC - 16 bit program counter register
+        # PC - 16 bit program counter register
+#         self.program_counter = -1
+#         self.program_counter = 0x8000
+#         self.program_counter = 0xb3b4
+        self.program_counter = 0xb3ba
 
         # A - 8 bit accumulator
         # B - 8 bit accumulator
@@ -369,28 +373,39 @@ class CPU(object):
 
         self.cycles = 0
 
+        log.debug("Add opcode functions:")
         self.opcode_dict = {}
         def _add_ops(ops, func):
+            log.debug("%20s: %s" % (
+                func.__name__, ",".join(["$%x" % c for c in ops])
+            ))
             for op in ops:
                 assert op not in self.opcode_dict, \
                     "Opcode $%x (%s) defined more then one time!" % (op, func.__name__)
                 self.opcode_dict[op] = func
 
-        for name, func in inspect.getmembers(self):
-            if inspect.ismethod(func) and getattr(func, "_is_opcode", False):
-                opcode = getattr(func, "_opcode")
-                if isinstance(opcode, (list, tuple)):
-                    _add_ops(opcode, func)
-                else:
-                    _add_ops([opcode], func)
+        # Get the members not from class instance, so that's possible to
+        # exclude properties without "activate" them.
+        cls = type(self)
+        for name, unbound_method in inspect.getmembers(cls):
+            if name.startswith("_") or isinstance(unbound_method, property):
+                continue
 
+            try:
+                opcodes = getattr(unbound_method, "_opcode")
+            except AttributeError:
+                continue
+
+            if isinstance(opcodes, int):
+                opcodes = [opcodes]
+            bound_method = getattr(self, name)
+            _add_ops(opcodes, bound_method)
+
+        log.debug("illegal ops: %s" % ",".join(["$%x" % c for c in ILLEGAL_OPS]))
+        # add illegal ops
         for illegal_ops in ILLEGAL_OPS:
             self.opcode_dict[illegal_ops] = self.illegal_op
 
-
-#         self.program_counter = 0x8000
-#         self.program_counter = 0xb3b4
-        self.program_counter = 0xb3ba
 #         self.reset()
 #         if cfg.pc is not None:
 #             self.program_counter = cfg.pc
@@ -588,6 +603,7 @@ class CPU(object):
 
     ####
 
+    @property
     def immediate_byte(self):
         value = self.read_pc_byte()
         log.debug("$%x addressing 'immediate byte' value: $%x \t| %s" % (
@@ -595,6 +611,7 @@ class CPU(object):
         ))
         return value
 
+    @property
     def immediate_word(self):
         value = self.read_pc_word()
         log.debug("$%x addressing 'immediate word' value: $%x \t| %s" % (
@@ -602,9 +619,11 @@ class CPU(object):
         ))
         return value
 
+    @property
     def direct(self):
         raise NotImplementedError
 
+    @property
     def base_page_direct(self, debug=False):
         post_byte = self.read_pc_byte()
         ea = self.direct_page << 8 | post_byte
@@ -616,6 +635,7 @@ class CPU(object):
             ))
         return ea
 
+    @property
     def indexed(self):
         """
         Calculate the address for all indexed addressing modes
@@ -694,7 +714,7 @@ class CPU(object):
         ))
         return ea
 
-
+    @property
     def extended(self):
         """
         extended indirect addressing mode takes a 2-byte value from post-bytes
@@ -705,8 +725,9 @@ class CPU(object):
         ))
         return value
 
+    @property
     def inherent(self):
-        pass
+        raise NotImplementedError
 
     #### Op methods:
 
@@ -769,7 +790,7 @@ class CPU(object):
     def BNE(self):
         new_pc = self.program_counter + 2
 
-        if self.flag_Z == 0:
+        if self.cc.Z == 0:
             new_pc += self.read_pc_byte()
 
         log.debug("$%x BNE: set pc to $%x \t| %s" % (
@@ -788,10 +809,10 @@ class CPU(object):
         self.cycles += 6
         addr = self.indexed()
         self.write_byte(addr, 0x0)
-        self.flag_N = 0
-        self.flag_Z = 1
-        self.flag_V = 0
-        self.flag_C = 0
+        self.cc.N = 0
+        self.cc.Z = 1
+        self.cc.V = 0
+        self.cc.C = 0
 
     @opcode(0xbc)
     def CMPX_extended(self):
@@ -799,7 +820,7 @@ class CPU(object):
         CoMPare with X index
         """
         self.cycles += 7
-        value = self.extended()
+        value = self.extended
         log.debug("$%x CMPX extended - set index X to $%x ($%x - $%s) |" % (
             self.program_counter,
         ))
@@ -811,65 +832,33 @@ class CPU(object):
                 self.program_counter, self.index_x, value, result, result
         ))
 
-#         self.flag_C = 1 if (result >= 0) else 0
+#         self.cc.C = 1 if (result >= 0) else 0
         self.cc.update_nzvc(result)
 #         log.debug("%s - 0xbc CMPX extended: %s - %s = %s (Set C to %s)" % (
-#             self.program_counter, hex(self.index_x), hex(value), hex(result), self.flag_C
+#             self.program_counter, hex(self.index_x), hex(value), hex(result), self.cc.C
 #         ))
 
-
-    @opcode(0x43)
-    def COMA(self):
-        """
-        COMplement accumulator A
-        """
-        self.cycles += 2
-        value = self.accumulator_a # A - 8 bit accumulator
-        print "****", value, self.accumulator_a
-        value = value ^ -1
-        log.debug("$%x COMA $%x set A to $%x \t| %s" % (
-            self.program_counter,
-            self.accumulator_a, value,
-            self.cfg.mem_info.get_shortest(value)
-        ))
-        self.get_accumulator_a = value
-        self.cc.set_NZ8(value)
-        self.cc.flag_V = 0
-        self.cc.flag_C = 1
-
-    @opcode(0x53)
-    def COMB(self):
-        """
-        COMplement accumulator B
-        """
-        self.cycles += 2
-        value = self.accumulator_b # B - 8 bit accumulator
-        value = value ^ -1
-        log.debug("$%x COMB $%x set B to $%x \t| %s" % (
-            self.program_counter,
-            self.accumulator_b, value,
-            self.cfg.mem_info.get_shortest(value)
-        ))
-        self.get_accumulator_b = value
-        self.cc.set_NZ8(value)
-        self.cc.flag_V = 0
-        self.cc.flag_C = 1
-
-    @opcode([0x03, 0x63, 0x73])
+    @opcode([
+        0x43, # COMA
+        0x53, # COMB
+        0x03, 0x63, 0x73 # COM
+    ])
     def COM(self):
         """
-        COMplement memory
+        COMplement
+        COM Q; COMA; COMB
         """
         self.cycles += 6
         op = self.opcode
         reg_type = (op >> 4) & 0xf
         reg_dict = {
             0x0: (self.direct, "direct"),
+            0x4: (self.accu.A, "accu A"),
+            0x5: (self.accu.B, "accu B"),
             0x6: (self.indexed, "indexed"),
             0x7: (self.extended, "extended"),
         }
-        func, txt = reg_dict[reg_type]
-        ea = func()
+        ea, txt = reg_dict[reg_type]
         value = ea ^ -1
         log.debug("$%x COM %s $%x to $%x \t| %s" % (
             self.program_counter,
@@ -878,8 +867,8 @@ class CPU(object):
         ))
         self.write_byte(ea, value)
         self.cc.set_NZ8(value)
-        self.cc.flag_V = 0
-        self.cc.flag_C = 1
+        self.cc.V = 0
+        self.cc.C = 1
 
     @opcode(0x7e)
     def JMP_extended(self):
@@ -890,7 +879,7 @@ class CPU(object):
         Addressing Mode: extended
         """
         self.cycles += 3
-        addr = self.extended()
+        addr = self.extended
         self.program_counter = addr
 #         log.debug()
         self.cfg.mem_info(addr, "$%x JMP extended to" % self.program_counter)
@@ -902,7 +891,7 @@ class CPU(object):
         Addressing Mode: extended
         """
         self.cycles += 8
-        addr = self.extended()
+        addr = self.extended
         self.push_word(self.program_counter - 1)
         self.program_counter = addr
         log.debug("$%x JSR extended: push %s to stack and jump to %s" % (
@@ -929,15 +918,15 @@ class CPU(object):
         Logical Shift Right
         """
         self.cycles += 7
-        m = self.extended()
+        m = self.extended
         result = m >> 1
-        self.flag_N = 0
-        self.flag_Z = 0
-        self.flag_C = m & 1
+        self.cc.N = 0
+        self.cc.Z = 0
+        self.cc.C = m & 1
         address = self.program_counter - 2
         log.debug("$%x LSR extended source $%x %s shifted to $%x %s (carry %i) write to $%x \t| %s" % (
             self.program_counter,
-            m, byte2bit_string(m), result, byte2bit_string(result), self.flag_C, address,
+            m, byte2bit_string(m), result, byte2bit_string(result), self.cc.C, address,
             self.cfg.mem_info.get_shortest(address)
         ))
         self.write_byte(address, result)
@@ -950,7 +939,7 @@ class CPU(object):
         Addressing Mode: direct
         """
         self.cycles += 6
-        value = self.base_page_direct()
+        value = self.base_page_direct
 #         log.debug("%s 0x00 NEG direct %s" % (self.program_counter, hex(value)))
 
         value = -value
@@ -964,7 +953,7 @@ class CPU(object):
         Number of Program Bytes: 2+
         """
         self.cycles += 4
-        offset = self.immediate_word()
+        offset = self.immediate_word
         addr = self.accu.A + offset
         value = self.accu.A
 
@@ -984,7 +973,7 @@ class CPU(object):
         Addressing Mode: immediate register numbers
         """
         self.cycles += 7
-        post_byte = self.immediate_byte()
+        post_byte = self.immediate_byte
         high, low = divmod(post_byte, 16)
         log.debug("$%x TFR: post byte: %s high: %s low: %s" % (
             self.program_counter, hex(post_byte), hex(high), hex(low)
@@ -1021,7 +1010,7 @@ class CPU(object):
         A = A + M
         """
         self.cycles += 5
-        m = self.extended()
+        m = self.extended
         value = self.ADD8(self.accu.A, m)
         log.debug("$%x ADDA extended: set A to $%x ($%x + $%x) \t| %s" % (
             self.program_counter, value, self.accu.A, m,
@@ -1035,7 +1024,7 @@ class CPU(object):
         A = A & M
         """
         self.cycles += 2 # Number of MPU Cycles
-        m = self.immediate_byte()
+        m = self.immediate_byte
         value = self.ADD8(self.accu.A, m)
         log.debug("$%x ADDA extended: set A to $%x ($%x & $%x) \t| %s" % (
             self.program_counter, value, self.accu.A, m,
@@ -1050,7 +1039,7 @@ class CPU(object):
         Number of Program Bytes: 2
         """
         self.cycles += 2
-        m = self.extended()
+        m = self.extended
         value = self.OR8(self.accu.A, m)
         log.debug("$%x ORA extended: set A to $%x ($%x | $%x) \t| %s" % (
             self.program_counter, value, self.accu.A, m,
@@ -1065,7 +1054,7 @@ class CPU(object):
         Number of Program Bytes: 2
         """
         self.cycles += 2 # Number of MPU Cycles
-        m = self.immediate_word()
+        m = self.immediate_word
         value = self.SUB8(self.accu.A, m)
         log.debug("$%x ORA extended: set A to $%x ($%x - $%x) \t| %s" % (
             self.program_counter, value, self.accu.A, m,
@@ -1078,16 +1067,15 @@ class CPU(object):
     def get_ea16(self, op):
         access_type = (op >> 4) & 3
         access_dict = {
-            0x00: self.immediate_word,
-            0x01: self.base_page_direct,
-            0x02: self.indexed,
-            0x03: self.extended,
+            0x00: (self.immediate_word, "immediate word"),
+            0x01: (self.base_page_direct, "pase page direct"),
+            0x02: (self.indexed, "indexed"),
+            0x03: (self.extended, "extended"),
         }
-        access_func = access_dict[access_type]
-        ea = access_func()
+        ea, txt = access_dict[access_type]
         log.debug("$%x get_ea16(): ea: $%x accessed by %s (op:$%x) \t| %s" % (
             self.program_counter,
-            ea, access_func.__name__, op,
+            ea, txt, op,
             self.cfg.mem_info.get_shortest(ea)
         ))
         return ea
