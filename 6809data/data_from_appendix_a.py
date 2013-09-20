@@ -11,13 +11,32 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from pprint import pprint
+import pprint
+import os
+import sys
+import urllib2
 
 # http://www.crummy.com/software/BeautifulSoup/bs4/doc/
 from bs4 import BeautifulSoup
-import sys
 
-soup = BeautifulSoup(open("appendix_a.htm"), "lxml")
+
+filename = "appendix_a.htm"
+
+if os.path.isfile(filename):
+    print "use cached file %s" % filename
+else:
+    print "get and save cache file %s" % filename
+    response = urllib2.urlopen("http://www.maddes.net/m6809pm/%s" % filename)
+    html = response.read()
+    with open(filename, "wb") as f:
+        f.write(html)
+
+
+soup = BeautifulSoup(open(filename),
+    # ~ "lxml",
+    "html.parser",
+    # ~ from_encoding="utf-8"
+)
 
 soup = soup.find("div")
 
@@ -38,13 +57,41 @@ char_convert = (
 # ~ for src,dst in char_convert:
     # ~ print src.encode("utf-8"), dst
 
+instr_convert = (
+    (" (8-Bit)", "8"),
+    (" (16-Bit)", "16"),
+)
+
+USE_SOURCE_FORM = {
+    "AND": "ANDCC",
+    "OR": "ORCC",
+}
+
+class Tee(object):
+    def __init__(self, filepath, origin_out):
+        self.filepath = filepath
+        self.origin_out = origin_out
+        self.f = file(filepath, "w")
+
+    def write(self, *args):
+        txt = " ".join(args)
+        self.origin_out.write(txt)
+        self.f.write(txt)
+
+    def close(self):
+        self.f.close()
+
+sys.stdout = Tee("appendix_a.py", sys.stdout)
+
+
+print '"""%s"""' % __doc__
+print
 for table in soup.find_all("table", attrs={"class":"appAa"}):
-    # ~ print "-"*79
-    # ~ print repr(table.prettify())
 
     instruction = table.findNext("th").get_text(" ", strip=True)
-
-    # ~ desc = table.find_all("th")[1].contents[0]
+    instruction = instruction.encode("ascii")
+    for src, dst in instr_convert:
+        instruction = instruction.replace(src, dst)
 
     data = {}
     key = None
@@ -53,7 +100,7 @@ for table in soup.find_all("table", attrs={"class":"appAa"}):
         for td in tr.findChildren("td"):
             # ~ print "++", td
             if "class" in td.attrs and "bold" in td["class"]:
-                key = td.contents[0].lower().strip().strip(":")
+                key = td.contents[0].lower().strip().rstrip("s:")
                 # ~ print "key:", key
                 continue
 
@@ -68,6 +115,7 @@ for table in soup.find_all("table", attrs={"class":"appAa"}):
                 txt = td.get_text(" ", strip=True)
 
             if key:
+                key = key.encode("ascii")
                 for src, dst in char_convert:
                     txt = txt.replace(src, dst)
 
@@ -82,9 +130,19 @@ for table in soup.find_all("table", attrs={"class":"appAa"}):
                 data[key] = txt
                 key = None
 
+    for key, other in USE_SOURCE_FORM.items():
+        if instruction == key:
+            if other in data["source form"]:
+                instruction = other
+                break
+
+    if instruction in cpu6809data:
+        print "%s exists more then one time!"
+        print "new:"
+        pprint.pprint(data)
+        print "old:"
+        pprint.pprint(cpu6809data[instruction])
+        raise AssertionError
     cpu6809data[instruction] = data
 
-pprint(cpu6809data)
-
-
-print " -- END -- "
+print "INSTRUCTION_INFO = ", pprint.pformat(cpu6809data)

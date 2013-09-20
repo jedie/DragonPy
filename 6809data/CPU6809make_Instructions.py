@@ -6,12 +6,15 @@
     data from:
         * http://www.maddes.net/m6809pm/sections.htm#sec4_4
         * http://www.burgins.com/m6809.html
+        * http://www.maddes.net/m6809pm/appendix_a.htm#appA
 
     :copyleft: 2013 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 import pprint
 import sys
+
+from appendix_a import INSTRUCTION_INFO
 
 OpDescriptions = {}
 categories = {
@@ -25,6 +28,8 @@ categories = {
     7: "Miscellaneous Instructions",
     8: "other",
 }
+
+OTHER_INSTRUCTIONS = "OTHER_INSTRUCTIONS"
 
 ADDR_MODES = {
     "IMMEDIATE": 0,
@@ -211,8 +216,8 @@ txt = """ +-----------------------------------------------------------------+
  | 1B    0027 | ILLEGAL     | ILLEGAL      |   1   |   1   | uuuuu |
  | 1C    0028 | ANDCC       | IMMEDIATE    |   3   |   2   | ddddd |
  | 1D    0029 | SEX         | INHERENT     |   2   |   1   | -aa0- |
- | 1E    0030 | EXG         | INHERENT     |   8   |   2   | ccccc |
- | 1F    0031 | TFR         | INHERENT     |   7   |   2   | ccccc |
+ | 1E    0030 | EXG         | Immediate    |   8   |   2   | ccccc |
+ | 1F    0031 | TFR         | Immediate    |   7   |   2   | ccccc |
  | 20    0032 | BRA         | RELATIVE     |   3   |   2   | ----- |
  | 21    0033 | BRN         | RELATIVE     |   3   |   2   | ----- |
  | 22    0034 | BHI         | RELATIVE     |   3   |   2   | ----- |
@@ -233,15 +238,15 @@ txt = """ +-----------------------------------------------------------------+
  | 31    0049 | LEAY        | INDEXED      |   4   |   2   | --a-- |
  | 32    0050 | LEAS        | INDEXED      |   4   |   2   | ----- |
  | 33    0051 | LEAU        | INDEXED      |   4   |   2   | ----- |
- | 34    0052 | PSHS        | INHERENT     |   5   |   2   | ----- |
- | 35    0053 | PULS        | INHERENT     |   5   |   2   | ccccc |
- | 36    0054 | PSHU        | INHERENT     |   5   |   2   | ----- |
- | 37    0055 | PULU        | INHERENT     |   5   |   2   | ccccc |
+ | 34    0052 | PSHS        | Immediate    |   5   |   2   | ----- |
+ | 35    0053 | PULS        | Immediate    |   5   |   2   | ccccc |
+ | 36    0054 | PSHU        | Immediate    |   5   |   2   | ----- |
+ | 37    0055 | PULU        | Immediate    |   5   |   2   | ccccc |
  | 38    0056 | ILLEGAL     | ILLEGAL      |   1   |   1   | uuuuu |
  | 39    0057 | RTS         | INHERENT     |   5   |   1   | ----- |
  | 3A    0058 | ABX         | INHERENT     |   3   |   1   | ----- |
  | 3B    0059 | RTI         | INHERENT     | 6/15  |   1   | ----- |
- | 3C    0060 | CWAI        | INHERENT     |  21   |   2   | ddddd |
+ | 3C    0060 | CWAI        | Immediate    |  21   |   2   | ddddd |
  | 3D    0061 | MUL         | INHERENT     |  11   |   1   | --a-a |
  | 3E    0062 | RESET*      | INHERENT     |   *   |   1   | ***** |
  | 3F    0063 | SWI         | INHERENT     |  19   |   1   | ----- |
@@ -503,8 +508,33 @@ txt = """ +-----------------------------------------------------------------+
  +------------+-------------+--------------+-------+-------+-------+"""
 
 
+DONT_USE_ORIGIN_ACCESS_MODE = ("NEG")
 
-data = {}
+instr_info_keys = INSTRUCTION_INFO.keys()
+
+
+def get_instr_info(mnemonic, instruction):
+    for instr_info_key, instr_info in INSTRUCTION_INFO.items():
+        if mnemonic == instr_info_key:
+            return instr_info_key, instr_info
+
+    for instr_info_key, instr_info in INSTRUCTION_INFO.items():
+        if not instr_info_key.startswith(instruction):
+            continue
+
+        try:
+            source_forms = instr_info['source form']
+        except KeyError:
+            continue
+
+        if mnemonic in source_forms:
+            return instr_info_key, instr_info
+
+    return None, None
+
+
+opcodes = []
+categoriesed_opcodes = {}
 for line in txt.splitlines():
     sections = line.split("|")
     if len(sections) != 8:
@@ -523,6 +553,9 @@ for line in txt.splitlines():
     if mnemonic == "ILLEGAL":
         illegal.append(opcode)
         continue
+
+#     if not mnemonic.startswith("LD"):continue
+#     if not mnemonic.startswith("AND"):continue
 
     try:
         category_id, desc = OpDescriptions[mnemonic]
@@ -543,6 +576,7 @@ for line in txt.splitlines():
                 category_id = desc_info1[0]
                 desc = "%s / %s" % (desc_info1[1], desc_info2[1])
 
+
     operant = None
     instruction = mnemonic
     for instr in INSTRUCTIONS:
@@ -556,24 +590,87 @@ for line in txt.splitlines():
 
             if operant_test in OPERANTS:
                 operant = operant_test
-
             break
 
-    data.setdefault(category_id, []).append({
+    instr_info_key, instr_info = get_instr_info(mnemonic, instruction)
+    if instr_info is None:
+        instr_info_key = OTHER_INSTRUCTIONS
+        print "no INSTRUCTION_INFO found for %s" % repr(instruction)
+        instr_info = INSTRUCTION_INFO.setdefault(OTHER_INSTRUCTIONS, {})
+    elif not (instr_info_key.startswith(instruction) or instr_info_key.endswith(instruction)):
+        print "ERROR:", instr_info_key
+        pprint.pprint(instr_info)
+        print "$%x - %s - %s" % (opcode, instruction, mnemonic)
+        raise AssertionError
+
+    instr_info["short_desc"] = desc
+
+    opcode_data = {
         "opcode": opcode,
+        "category": category_id,
         "instruction": instruction,
         "mnemonic": mnemonic,
         "operant": operant,
-        "desc":  desc,
-        "addr_mode": ADDR_MODES[sections[2]],
+        "addr_mode": ADDR_MODES[sections[2].upper()],
         "cycles": sections[3],
         "bytes": sections[4],
         "HNZVC": sections[5],
-    })
+        "instr_info_key": instr_info_key,
+    }
+#     print "-"*79
+#     pprint.pprint(opcode_data)
+#     pprint.pprint(instr_info)
+#     print "-"*7
+    opcodes.append(opcode_data)
+    categoriesed_opcodes.setdefault(category_id, []).append(opcode_data)
 
-# sys.exit()
+
 
 ADDR_MODES2 = dict(zip(ADDR_MODES.values(), ADDR_MODES.keys()))
+
+
+for key, data in sorted(INSTRUCTION_INFO.items()):
+    if key == OTHER_INSTRUCTIONS:
+        continue
+
+    try:
+        addr_modes = data["addressing mode"]
+    except KeyError, err:
+        print "WARNING: no %s for %s" % (err, key)
+        pprint.pprint(data)
+
+    addr_mode_ids = []
+    for addr_mode in addr_modes.split(" "):
+        addr_mode = addr_mode.upper()
+        try:
+            addr_mode_ids.append(ADDR_MODES[addr_mode])
+        except KeyError, err:
+            print "ERROR: unknown addr. mode: %s from: %s" % (err, repr(addr_modes))
+            print "data:",
+            pprint.pprint(data)
+            continue
+
+    for opcode in opcodes:
+#         print "***"
+#         pprint.pprint(opcode)
+        if opcode["instr_info_key"] != key:
+            continue
+        if not opcode["addr_mode"] in addr_mode_ids:
+            print "ERROR: addr mode missmatch: $%x - IDs: %s" % (
+                opcode["opcode"], repr(addr_mode_ids)
+            ),
+            if opcode["mnemonic"] in DONT_USE_ORIGIN_ACCESS_MODE:
+                print " - Skip, ok."
+            else:
+                print
+                print "data:",
+                pprint.pprint(data)
+                print "opcode:",
+                pprint.pprint(opcode)
+                raise AssertionError
+
+    del(data["addressing mode"])
+
 
 def pformat(item):
     txt = pprint.pformat(item, indent=4, width=80)
@@ -595,7 +692,7 @@ class Tee(object):
         self.f.close()
 
 
-sys.stdout = Tee("CPU6809Instructions.py", sys.stdout)
+sys.stdout = Tee("MC6809_data_raw.py", sys.stdout)
 
 
 print '"""%s"""' % __doc__
@@ -631,27 +728,53 @@ print '    D: "D (16 bit concatenated register A + B)",'
 print '    CC: "CC (8 bit condition code register bits)",'
 print '}'
 print
-print '# illegal opcodes:'
+print '# illegal opcode:'
 print 'ILLEGAL_OPS = (%s)' % ",".join([hex(i) for i in illegal])
+print
+print '# other instructions'
+print 'OTHER_INSTRUCTIONS = "OTHER_INSTRUCTIONS"'
+print
+
+print
+print "# instruction info keys:"
+for key in sorted(INSTRUCTION_INFO.keys()):
+    print '%s="%s"' % (key, key)
+print
+
+
+print "INSTRUCTION_INFO = {"
+for key, data in sorted(INSTRUCTION_INFO.items()):
+    print '    %s: {' % key
+    print " %s" % pprint.pformat(data, indent=8).strip("{}")
+    print '    },'
+print "}"
+print
+
+
+# sys.exit()
+
+
 print
 print "OP_DATA = ("
 for category_id, category in categories.items():
     print
     print "    #### %s" % category
     print
-    for op_data in data[category_id]:
+    for opcode in categoriesed_opcodes[category_id]:
+#         print pprint.pformat(opcode, indent=8)
+
         print '    {'
-        print '        "opcode": 0x%x, "instruction": "%s", "mnemonic": "%s", ' % (
-            op_data["opcode"], op_data["instruction"], op_data["mnemonic"]
-        )
-        print '        "desc": "%s",' % (
-            op_data["desc"]
+        print '        "opcode": 0x%x, "instruction": "%s", "mnemonic": "%s",' % (
+            opcode["opcode"], opcode["instruction"], opcode["mnemonic"]
         )
         print '        "addr_mode": %s, "operant": %s,' % (
-            op_data["addr_mode"], op_data["operant"]
+            opcode["addr_mode"], opcode["operant"]
         )
-        print '        "cycles": "%s", "bytes": "%s", "HNZVC": "%s", "category": %i' % (
-            op_data["cycles"], op_data["bytes"], op_data["HNZVC"], category_id
+        print '        "cycles": "%s", "bytes": "%s", "HNZVC": "%s",' % (
+            opcode["cycles"], opcode["bytes"], opcode["HNZVC"]
+        )
+        print '        "category": %i, "instr_info_key": %s,' % (
+            category_id, opcode["instr_info_key"]
         )
         print '    },'
 print ")"
