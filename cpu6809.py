@@ -1413,7 +1413,12 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x JMP" % opcode)
+        log.debug("$%x JMP to $%x \t| %s" % (
+            self.program_counter,
+            ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.program_counter = ea
 
     @opcode(# Jump to subroutine
         0x9d, 0xad, 0xbd, # JSR (direct, indexed, extended)
@@ -2169,31 +2174,6 @@ class OLD:
         self.cc.V = 0
         self.cc.C = 1
 
-    @opcode([
-        0x0e, # JMP direct
-        0x6e, # JMP indexed
-        0x7e, # JMP extended
-    ])
-    def JMP(self):
-        """
-        JuMP
-        pc = EA
-        """
-        self.cycles += 3
-        access_type = divmod(self.opcode, 16)[0]
-        access_dict = {
-            0x0: self.direct,
-            0x6: self.indexed,
-            0x7: self.extended,
-        }
-        func = access_dict[access_type]
-        ea = func()
-        log.debug("$%x JMP %s to $%x \t| %s" % (
-            self.program_counter,
-            func.__name__, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
-        self.program_counter = ea
 
     @opcode(0xbd)
     def JSR_extended(self):
