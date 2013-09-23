@@ -16,6 +16,13 @@ import sys
 
 from appendix_a import INSTRUCTION_INFO
 
+INSTRUCTION_INFO.update({
+    'PAGE': {'addressing mode': 'VARIANT', 'description': 'Page 1/2 instructions'},
+    'RESET': {'addressing mode': 'INHERENT',
+        'description': ' Build the ASSIST09 vector table and setup monitor defaults, then invoke the monitor startup routine.'
+    },
+})
+
 OpDescriptions = {}
 categories = {
     0: "8-Bit Accumulator and Memory Instructions",
@@ -30,6 +37,14 @@ categories = {
 }
 
 OTHER_INSTRUCTIONS = "OTHER_INSTRUCTIONS"
+CHANGE_INSTRUCTIONS = {
+    "PAGE1+": "PAGE",
+    "PAGE2+": "PAGE",
+    "SWI2": "SWI",
+    "SWI3": "SWI",
+    "RESET*": "RESET",
+}
+CHANGED_INSTRUCTIONS = tuple(CHANGE_INSTRUCTIONS.values())
 
 ADDR_MODES = {
     "IMMEDIATE": 0,
@@ -45,7 +60,8 @@ INSTRUCTIONS = (
     "ABX", "ADC", "ADD", "AND", "ASL", "ASR", "BIT", "CLR", "CMP", "COM", "CWAI",
     "DAA", "DEC", "EOR", "EXG", "INC", "JMP", "JSR", "LD", "LEA", "LSL", "LSR",
     "MUL", "NEG", "NOP", "OR", "PSH", "PUL", "ROL", "ROR", "RTI", "RTS",
-    "SBC", "SEX", "ST", "SUB", "SWI", "SYNC", "TFR", "TST"
+    "SBC", "SEX", "ST", "SUB", "SWI", "SYNC", "TFR", "TST",
+    "PAGE"
 )
 OPERANTS = (
     "X", "Y", # 16 bit index register X,Y
@@ -579,6 +595,8 @@ for line in txt.splitlines():
 
     operant = None
     instruction = mnemonic
+    if instruction in CHANGE_INSTRUCTIONS:
+        instruction = CHANGE_INSTRUCTIONS[instruction]
     for instr in INSTRUCTIONS:
         if mnemonic == instr:
             break
@@ -594,9 +612,13 @@ for line in txt.splitlines():
 
     instr_info_key, instr_info = get_instr_info(mnemonic, instruction)
     if instr_info is None:
-        instr_info_key = OTHER_INSTRUCTIONS
-        print "no INSTRUCTION_INFO found for %s" % repr(instruction)
-        instr_info = INSTRUCTION_INFO.setdefault(OTHER_INSTRUCTIONS, {})
+        if instruction in CHANGED_INSTRUCTIONS:
+            instr_info_key = instruction
+            instr_info = INSTRUCTION_INFO[instruction]
+        else:
+            instr_info_key = OTHER_INSTRUCTIONS
+            print "no INSTRUCTION_INFO found for %s" % repr(instruction)
+            instr_info = INSTRUCTION_INFO.setdefault(OTHER_INSTRUCTIONS, {})
     elif not (instr_info_key.startswith(instruction) or instr_info_key.endswith(instruction)):
         print "ERROR:", instr_info_key
         pprint.pprint(instr_info)
@@ -604,6 +626,20 @@ for line in txt.splitlines():
         raise AssertionError
 
     instr_info["short_desc"] = desc
+    raw_cycles = sections[3]
+    try:
+        cycles = int(raw_cycles)
+    except ValueError, err:
+        try:
+            cycles = int(raw_cycles[0])
+        except ValueError, err:
+            print "Error: %s" % err
+            print line
+            cycles = -1
+        else:
+            print "Use sycles %i from %r" % (cycles, raw_cycles)
+
+    bytes = int(sections[4])
 
     opcode_data = {
         "opcode": opcode,
@@ -612,8 +648,8 @@ for line in txt.splitlines():
         "mnemonic": mnemonic,
         "operant": operant,
         "addr_mode": ADDR_MODES[sections[2].upper()],
-        "cycles": sections[3],
-        "bytes": sections[4],
+        "cycles": cycles,
+        "bytes": bytes,
         "HNZVC": sections[5],
         "instr_info_key": instr_info_key,
     }
@@ -625,6 +661,7 @@ for line in txt.splitlines():
     categoriesed_opcodes.setdefault(category_id, []).append(opcode_data)
 
 
+# sys.exit()
 
 ADDR_MODES2 = dict(zip(ADDR_MODES.values(), ADDR_MODES.keys()))
 
@@ -690,6 +727,7 @@ class Tee(object):
 
     def close(self):
         self.f.close()
+        sys.stdout = self.origin_out
 
 
 sys.stdout = Tee("MC6809_data_raw.py", sys.stdout)
@@ -751,9 +789,7 @@ print "}"
 print
 
 
-# sys.exit()
-
-
+processed_opcodes = []
 print
 print "OP_DATA = ("
 for category_id, category in categories.items():
@@ -762,6 +798,9 @@ for category_id, category in categories.items():
     print
     for opcode in categoriesed_opcodes[category_id]:
 #         print pprint.pformat(opcode, indent=8)
+        code = opcode["opcode"]
+        assert code not in processed_opcodes, repr(opcode)
+        processed_opcodes.append(code)
 
         print '    {'
         print '        "opcode": 0x%x, "instruction": "%s", "mnemonic": "%s",' % (
@@ -770,7 +809,7 @@ for category_id, category in categories.items():
         print '        "addr_mode": %s, "operant": %s,' % (
             opcode["addr_mode"], opcode["operant"]
         )
-        print '        "cycles": "%s", "bytes": "%s", "HNZVC": "%s",' % (
+        print '        "cycles": %i, "bytes": %i, "HNZVC": "%s",' % (
             opcode["cycles"], opcode["bytes"], opcode["HNZVC"]
         )
         print '        "category": %i, "instr_info_key": %s,' % (
@@ -780,3 +819,5 @@ for category_id, category in categories.items():
 print ")"
 
 sys.stdout.close()
+
+print "%i opcodes saved." % len(processed_opcodes)
