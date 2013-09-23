@@ -18,6 +18,7 @@ from MC6809_data_raw import OP_CATEGORIES, INSTRUCTION_INFO, OP_DATA, ADDRES_MOD
 
 
 keys = OP_DATA[0].keys()
+keys.insert(3, "opcode_hex")
 
 import csv
 with open('CPU6809_opcodes.csv', 'wb') as csvfile:
@@ -28,12 +29,12 @@ with open('CPU6809_opcodes.csv', 'wb') as csvfile:
 
     for op_data in OP_DATA:
         row = []
+
+        op_data["bytes"] = "%i bytes" % op_data["bytes"]
+        op_data["opcode_hex"] = hex(op_data["opcode"])
+
         for k in keys:
             data = op_data[k]
-            if k == "opcode":
-                data = hex(data)
-            elif k == "addr_mode":
-                data = ADDRES_MODE_DICT[data]
             row.append(data)
             
         instr_info_key = op_data["instr_info_key"]
