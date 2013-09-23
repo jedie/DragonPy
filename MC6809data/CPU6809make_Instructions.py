@@ -708,8 +708,6 @@ for key in keys:
         print "remove it!"
         del(INSTRUCTION_INFO[key])
 
-ADDR_MODES2 = dict(zip(ADDR_MODES.values(), ADDR_MODES.keys()))
-
 
 for key, data in sorted(INSTRUCTION_INFO.items()):
     if key == OTHER_INSTRUCTIONS:
@@ -784,17 +782,18 @@ sys.stdout = Tee("MC6809_data_raw.py", sys.stdout,
 )
 
 
+ADDRES_MODE_DICT = dict(zip(ADDR_MODES.values(), ADDR_MODES.keys()))
+ADDRES_MODES = sorted(ADDR_MODES.values())
+
 print '"""%s"""' % __doc__
 print
 print "OP_CATEGORIES = ", pformat(categories)
 print
-for id, txt in sorted(ADDR_MODES2.items()):
-    print "%s=%s" % (txt, id)
+for txt in ADDR_MODES:
+    print '%s="%s"' % (txt, txt)
 print
-print "ADDRES_MODE_DICT = {"
-for id, txt in sorted(ADDR_MODES2.items()):
-    print '    %s: "%s",' % (txt, txt)
-print "}"
+print "ADDRES_MODES = (%s)" % ", ".join([x for x in ADDR_MODES])
+print "ADDRES_MODE_DICT = dict([(i,i) for i in ADDRES_MODES])"
 print
 print '# operands:'
 print 'X = "X"'
@@ -858,7 +857,7 @@ for category_id, category in categories.items():
             opcode["opcode"], opcode["instruction"], opcode["mnemonic"]
         )
         print '        "addr_mode": %s, "operand": %s,' % (
-            opcode["addr_mode"], opcode["operand"]
+            ADDRES_MODE_DICT[opcode["addr_mode"]], opcode["operand"]
         )
         print '        "cycles": %i, "bytes": %i,' % (
             opcode["cycles"], opcode["bytes"]
