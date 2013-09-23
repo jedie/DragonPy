@@ -13,9 +13,36 @@
 
 import pprint
 import sys
+import textwrap
 
 from MC6809_data_raw import OP_CATEGORIES, INSTRUCTION_INFO, OP_DATA, ADDRES_MODE_DICT
 
+HNZVC_FUNC_MAP = {
+    "-aa0-": "CC_NZ0",
+
+    "uaaaa": "CC_NZVC",
+    "-aaaa": "CC_NZVC",
+    "naaas": "CC_NZVC",
+    "-aaas": "CC_NZVC",
+
+    "aaaaa": "CC_HNZVC",
+
+    "uaa-s": "CC_NZC",
+    "-aa-s": "CC_NZC",
+
+    "-aaa-": "CC_NZV",
+
+    "-aa01": "CC_NZ01",
+    "-0a-s": "CC_0ZC",
+    "-0100": "CC_0100",
+}
+
+SPLIT_MNEMONIC = {
+    "LEAS": "LEA_pointer",
+    "LEAU": "LEA_pointer",
+    "LEAX": "LEA_register",
+    "LEAY": "LEA_register",
+}
 
 class Tee(object):
     def __init__(self, filepath, origin_out):
@@ -43,19 +70,33 @@ print
 print "class CPU6809Skeleton(object):"
 
 
-added_ops = []
-# very ineffective, but hey, must only run one time ;)
-for instr_key, instr_data in sorted(INSTRUCTION_INFO.items()):
+def get_ops_by_instr_key(instr_key):
     ops = []
     for op_data in OP_DATA:
         if op_data["instr_info_key"] == instr_key:
             ops.append(op_data)
+    return ops
 
-    if not ops:
-        continue
+def print_doc(instr_data, key, prefix=""):
+    raw_txt = prefix + instr_data.get(key, "")
+    w = textwrap.TextWrapper(width=80,
+        initial_indent="        ",
+        subsequent_indent="        ",
+    )
+    txt = w.fill(raw_txt)
+    if txt:
+        print txt
+        print
 
+def print_func(func_name, ops):
     op_info = {}
+    has_operant = False
+    has_ea = False
     for op in ops:
+        if op["operand"] is not None:
+            has_operant = True
+        if op["bytes"] > 1:
+            has_ea = True
         mnemonic = op["mnemonic"]
         if mnemonic not in op_info:
             op_info[mnemonic] = {"opcodes": [op["opcode"]], "addr_modes": [op["addr_mode"]]}
@@ -64,10 +105,11 @@ for instr_key, instr_data in sorted(INSTRUCTION_INFO.items()):
             op_info[mnemonic]["addr_modes"].append(op["addr_mode"])
 
     if "short_desc" in instr_data:
-        print '    @opcode(( # %s' % instr_data["short_desc"]
+        print '    @opcode( # %s' % instr_data["short_desc"]
     else:
-        print '    @opcode(('
+        print '    @opcode('
 
+    
     for mnemonic, ops in sorted(op_info.items()):
         line = "        "
         opcodes = []
@@ -82,19 +124,73 @@ for instr_key, instr_data in sorted(INSTRUCTION_INFO.items()):
         line += ")"
         print line
 
-    print '    ))'
-    print "    def op_%s(self, op, ea=None, operant=None):" % instr_key
-    print '        """'
-    for line in instr_data.get("description", "").split("\n"):
-        print '        %s' % line
-    for line in instr_data.get("comment", "").split("\n"):
-        print '        %s' % line
-    for line in instr_data.get("source form", "").split("\n"):
-        print '        %s' % line
-    print '        """'
-    print '        raise NotImplementedError("TODO: $%%x %s") %% op' % instr_key
-    print
+    print '    )'
 
+    func_line = "    def instruction_%s(self, opcode" % func_name
+    if has_ea:
+        func_line += ", ea=None"
+    if has_operant:
+        func_line += ", operand=None"
+    func_line += "):"
+    print func_line
+
+    print '        """'
+    print_doc(instr_data, "description")
+    print_doc(instr_data, "comment")
+    print_doc(instr_data, "source form", "source code forms: ")
+    for line in instr_data.get("HNZVC", "").split("\n"):
+        print '        CC bits "HNZVC": %s' % line
+    print '        """'
+
+
+added_ops = []
+no_ops = []
+# very ineffective, but hey, must only run one time ;)
+for instr_key, instr_data in sorted(INSTRUCTION_INFO.items()):
+    ops = get_ops_by_instr_key(instr_key)
+    if not ops:
+        no_ops.append((instr_key, instr_data))
+        continue
+
+#     SPLIT_MNEMONIC
+    splitted_ops = {}
+    for op in ops:
+        mnemonic = op["mnemonic"]
+        if mnemonic in SPLIT_MNEMONIC:
+            d = splitted_ops.setdefault(SPLIT_MNEMONIC[mnemonic], [])
+            op
+        else:
+            d = splitted_ops.setdefault(instr_key, [])
+        d.append(op)
+
+    for func_name, ops in sorted(splitted_ops.items()):
+        print_func(func_name, ops)
+
+        cc_bits = instr_data["HNZVC"]
+        try:
+            cc_func = HNZVC_FUNC_MAP[cc_bits]
+        except KeyError:
+            if cc_bits != "-----":
+                print "        # Update CC bits: %s" % cc_bits
+        else:
+            cc_call_line = '        self.%s' % cc_func
+            if instr_key.endswith("16"):
+                cc_call_line += "_16"
+
+            if cc_bits[3] in ("a", "d") or cc_bits[0] in ("a", "d"):
+                cc_call_line += "(a, b, r)"
+            else:
+                cc_call_line += "()"
+            print cc_call_line
+        print '        raise NotImplementedError("TODO: $%%x %s") %% opcode' % func_name
+        print
+
+print '"""'
+print "No ops for:"
+for instr_key, instr_data in no_ops:
+    print instr_key
+    pprint.pprint(instr_data)
+print '"""'
 
 sys.stdout.close()
 print "%i opcodes" % len(added_ops)
