@@ -546,6 +546,17 @@ def get_instr_info(mnemonic, instruction):
         if mnemonic in source_forms:
             return instr_info_key, instr_info
 
+    for instr_info_key, instr_info in INSTRUCTION_INFO.items():
+        if instr_info_key.startswith(instruction):
+            print "Use %s for %s (%s)" % (instr_info_key, mnemonic, instruction)
+            return instr_info_key, instr_info
+
+    test_mnemonic = mnemonic[1:]
+    for instr_info_key, instr_info in INSTRUCTION_INFO.items():
+        if instr_info_key == test_mnemonic:
+            print "Use %s for %s (%s)" % (instr_info_key, mnemonic, instruction)
+            return instr_info_key, instr_info
+
     return None, None
 
 
@@ -572,6 +583,7 @@ for line in txt.splitlines():
 
 #     if not mnemonic.startswith("LD"):continue
 #     if not mnemonic.startswith("AND"):continue
+#     if not mnemonic.startswith("BIT"):continue
 
     try:
         category_id, desc = OpDescriptions[mnemonic]
@@ -619,10 +631,10 @@ for line in txt.splitlines():
             instr_info_key = OTHER_INSTRUCTIONS
             print "no INSTRUCTION_INFO found for %s" % repr(instruction)
             instr_info = INSTRUCTION_INFO.setdefault(OTHER_INSTRUCTIONS, {})
-    elif not (instr_info_key.startswith(instruction) or instr_info_key.endswith(instruction)):
+    elif not (instr_info_key.startswith(instruction) or instruction.endswith(instr_info_key)):
         print "ERROR:", instr_info_key
         pprint.pprint(instr_info)
-        print "$%x - %s - %s" % (opcode, instruction, mnemonic)
+        print "%r - $%x - %r - %s" % (instr_info_key, opcode, instruction, mnemonic)
         raise AssertionError
 
     instr_info["short_desc"] = desc
@@ -662,6 +674,7 @@ for line in txt.splitlines():
 
 
 # sys.exit()
+
 
 ADDR_MODES2 = dict(zip(ADDR_MODES.values(), ADDR_MODES.keys()))
 

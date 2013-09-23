@@ -257,7 +257,8 @@ INSTRUCTION_INFO = {
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Always cleared.\nC - Not affected.',
         'description': 'Performs the logical AND of the contents of accumulator A or B and the contents of memory location M and modifies the condition codes accordingly.\nThe contents of accumulator A or B and memory location M are not affected.',
         'operation': 'TEMP = R AND M',
-        'source form': 'Bit P'
+        'short_desc': 'Bit test memory with accumulator',
+        'source form': 'BITA P; BITB P'
     },
     BLE: {
         'condition code': 'Not affected.',
@@ -469,6 +470,7 @@ INSTRUCTION_INFO = {
         'condition code': 'H - Undefined.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Loaded with the result of the exclusive OR of bits six and seven of the original operand.\nC - Loaded with bit seven of the original operand.',
         'description': 'Shifts all bits of accumulator A or B or memory location M one place to the left.\nBit zero is loaded with a zero.\nBit seven of accumulator A or B or memory location M is shifted into the C (carry) bit.',
         'operation': 'C = = 0\nb7 = b0',
+        'short_desc': 'Logical shift left accumulator or memory location / Arithmetic shift of accumulator or memory left',
         'source form': 'LSL Q; LSLA; LSLB'
     },
     LSR: {
@@ -519,7 +521,7 @@ INSTRUCTION_INFO = {
         'source form': 'ORCC #XX'
     },
     OTHER_INSTRUCTIONS: {
-        'short_desc': 'Branch if less than or equal (signed)'
+        'short_desc': 'Branch if lower (unsigned)'
     },
     PAGE: {
         'description': 'Page 1/2 instructions', 'short_desc': ''
@@ -719,7 +721,7 @@ OP_DATA = (
         "opcode": 0x8, "instruction": "LSL", "mnemonic": "LSL/ASL",
         "addr_mode": 1, "operant": None,
         "cycles": 6, "bytes": 2, "HNZVC": "naaas",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": LSL,
     },
     {
         "opcode": 0x9, "instruction": "ROL", "mnemonic": "ROL",
@@ -809,7 +811,7 @@ OP_DATA = (
         "opcode": 0x48, "instruction": "LSL", "mnemonic": "LSLA/ASLA",
         "addr_mode": 4, "operant": None,
         "cycles": 2, "bytes": 1, "HNZVC": "naaas",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": LSL,
     },
     {
         "opcode": 0x49, "instruction": "ROL", "mnemonic": "ROLA",
@@ -839,13 +841,13 @@ OP_DATA = (
         "opcode": 0x4f, "instruction": "CLR", "mnemonic": "CLRA",
         "addr_mode": 4, "operant": A,
         "cycles": 2, "bytes": 1, "HNZVC": "-0100",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": CLR,
     },
     {
         "opcode": 0x50, "instruction": "NEG", "mnemonic": "NEGB",
         "addr_mode": 4, "operant": B,
         "cycles": 2, "bytes": 1, "HNZVC": "uaaaa",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": NEG,
     },
     {
         "opcode": 0x53, "instruction": "COM", "mnemonic": "COMB",
@@ -875,7 +877,7 @@ OP_DATA = (
         "opcode": 0x58, "instruction": "LSL", "mnemonic": "LSLB/ASLB",
         "addr_mode": 4, "operant": None,
         "cycles": 2, "bytes": 1, "HNZVC": "naaas",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": LSL,
     },
     {
         "opcode": 0x59, "instruction": "ROL", "mnemonic": "ROLB",
@@ -905,7 +907,7 @@ OP_DATA = (
         "opcode": 0x5f, "instruction": "CLR", "mnemonic": "CLRB",
         "addr_mode": 4, "operant": B,
         "cycles": 2, "bytes": 1, "HNZVC": "-0100",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": CLR,
     },
     {
         "opcode": 0x60, "instruction": "NEG", "mnemonic": "NEG",
@@ -941,7 +943,7 @@ OP_DATA = (
         "opcode": 0x68, "instruction": "LSL", "mnemonic": "LSL/ASL",
         "addr_mode": 2, "operant": None,
         "cycles": 6, "bytes": 2, "HNZVC": "naaas",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": LSL,
     },
     {
         "opcode": 0x69, "instruction": "ROL", "mnemonic": "ROL",
@@ -1007,7 +1009,7 @@ OP_DATA = (
         "opcode": 0x78, "instruction": "LSL", "mnemonic": "LSL/ASL",
         "addr_mode": 3, "operant": None,
         "cycles": 7, "bytes": 3, "HNZVC": "naaas",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": LSL,
     },
     {
         "opcode": 0x79, "instruction": "ROL", "mnemonic": "ROL",
@@ -1067,7 +1069,7 @@ OP_DATA = (
         "opcode": 0x85, "instruction": "BIT", "mnemonic": "BITA",
         "addr_mode": 0, "operant": A,
         "cycles": 2, "bytes": 2, "HNZVC": "-aa0-",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": BIT,
     },
     {
         "opcode": 0x86, "instruction": "LD", "mnemonic": "LDA",
@@ -1127,7 +1129,7 @@ OP_DATA = (
         "opcode": 0x95, "instruction": "BIT", "mnemonic": "BITA",
         "addr_mode": 1, "operant": A,
         "cycles": 4, "bytes": 2, "HNZVC": "-aa0-",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": BIT,
     },
     {
         "opcode": 0x96, "instruction": "LD", "mnemonic": "LDA",
@@ -1193,7 +1195,7 @@ OP_DATA = (
         "opcode": 0xa5, "instruction": "BIT", "mnemonic": "BITA",
         "addr_mode": 2, "operant": A,
         "cycles": 4, "bytes": 2, "HNZVC": "-aa0-",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": BIT,
     },
     {
         "opcode": 0xa6, "instruction": "LD", "mnemonic": "LDA",
@@ -1259,7 +1261,7 @@ OP_DATA = (
         "opcode": 0xb5, "instruction": "BIT", "mnemonic": "BITA",
         "addr_mode": 3, "operant": A,
         "cycles": 5, "bytes": 3, "HNZVC": "-aa0-",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": BIT,
     },
     {
         "opcode": 0xb6, "instruction": "LD", "mnemonic": "LDA",
@@ -1325,7 +1327,7 @@ OP_DATA = (
         "opcode": 0xc5, "instruction": "BIT", "mnemonic": "BITB",
         "addr_mode": 0, "operant": B,
         "cycles": 2, "bytes": 2, "HNZVC": "-aa0-",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": BIT,
     },
     {
         "opcode": 0xc6, "instruction": "LD", "mnemonic": "LDB",
@@ -1385,7 +1387,7 @@ OP_DATA = (
         "opcode": 0xd5, "instruction": "BIT", "mnemonic": "BITB",
         "addr_mode": 1, "operant": B,
         "cycles": 4, "bytes": 2, "HNZVC": "-aa0-",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": BIT,
     },
     {
         "opcode": 0xd6, "instruction": "LD", "mnemonic": "LDB",
@@ -1451,7 +1453,7 @@ OP_DATA = (
         "opcode": 0xe5, "instruction": "BIT", "mnemonic": "BITB",
         "addr_mode": 2, "operant": B,
         "cycles": 4, "bytes": 2, "HNZVC": "-aa0-",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": BIT,
     },
     {
         "opcode": 0xe6, "instruction": "LD", "mnemonic": "LDB",
@@ -1517,7 +1519,7 @@ OP_DATA = (
         "opcode": 0xf5, "instruction": "BIT", "mnemonic": "BITB",
         "addr_mode": 3, "operant": B,
         "cycles": 5, "bytes": 3, "HNZVC": "-aa0-",
-        "category": 0, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 0, "instr_info_key": BIT,
     },
     {
         "opcode": 0xf6, "instruction": "LD", "mnemonic": "LDB",
@@ -2018,13 +2020,13 @@ OP_DATA = (
         "opcode": 0x102a, "instruction": "LBPL", "mnemonic": "LBPL",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 4, "HNZVC": "-----",
-        "category": 3, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 3, "instr_info_key": BPL,
     },
     {
         "opcode": 0x102b, "instruction": "LBMI", "mnemonic": "LBMI",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 4, "HNZVC": "-----",
-        "category": 3, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 3, "instr_info_key": BMI,
     },
 
     #### Signed Branch Instructions
@@ -2069,37 +2071,37 @@ OP_DATA = (
         "opcode": 0x1028, "instruction": "LBVC", "mnemonic": "LBVC",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 4, "HNZVC": "-----",
-        "category": 4, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 4, "instr_info_key": BVC,
     },
     {
         "opcode": 0x1029, "instruction": "LBVS", "mnemonic": "LBVS",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 4, "HNZVC": "-----",
-        "category": 4, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 4, "instr_info_key": BVS,
     },
     {
         "opcode": 0x102c, "instruction": "LBGE", "mnemonic": "LBGE",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 4, "HNZVC": "-----",
-        "category": 4, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 4, "instr_info_key": BGE,
     },
     {
         "opcode": 0x102d, "instruction": "LBLT", "mnemonic": "LBLT",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 4, "HNZVC": "-----",
-        "category": 4, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 4, "instr_info_key": BLT,
     },
     {
         "opcode": 0x102e, "instruction": "LBGT", "mnemonic": "LBGT",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 4, "HNZVC": "-----",
-        "category": 4, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 4, "instr_info_key": BGT,
     },
     {
         "opcode": 0x102f, "instruction": "LBLE", "mnemonic": "LBLE",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 4, "HNZVC": "-----",
-        "category": 4, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 4, "instr_info_key": BLE,
     },
 
     #### Unsigned Branch Instructions
@@ -2144,13 +2146,13 @@ OP_DATA = (
         "opcode": 0x1022, "instruction": "LBHI", "mnemonic": "LBHI",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 4, "HNZVC": "-----",
-        "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 5, "instr_info_key": BHI,
     },
     {
         "opcode": 0x1023, "instruction": "LBLS", "mnemonic": "LBLS",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 4, "HNZVC": "-----",
-        "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 5, "instr_info_key": BLS,
     },
     {
         "opcode": 0x1024, "instruction": "LBHS/LBCC", "mnemonic": "LBHS/LBCC",
@@ -2168,13 +2170,13 @@ OP_DATA = (
         "opcode": 0x1026, "instruction": "LBNE", "mnemonic": "LBNE",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 4, "HNZVC": "-----",
-        "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 5, "instr_info_key": BNE,
     },
     {
         "opcode": 0x1027, "instruction": "LBEQ", "mnemonic": "LBEQ",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 4, "HNZVC": "-----",
-        "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 5, "instr_info_key": BEQ,
     },
 
     #### other Branch Instructions
@@ -2183,13 +2185,13 @@ OP_DATA = (
         "opcode": 0x16, "instruction": "LBRA", "mnemonic": "LBRA",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 3, "HNZVC": "-----",
-        "category": 6, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 6, "instr_info_key": BRA,
     },
     {
         "opcode": 0x17, "instruction": "LBSR", "mnemonic": "LBSR",
         "addr_mode": 5, "operant": None,
         "cycles": 9, "bytes": 3, "HNZVC": "-----",
-        "category": 6, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 6, "instr_info_key": BSR,
     },
     {
         "opcode": 0x20, "instruction": "BRA", "mnemonic": "BRA",
@@ -2213,7 +2215,7 @@ OP_DATA = (
         "opcode": 0x1021, "instruction": "LBRN", "mnemonic": "LBRN",
         "addr_mode": 5, "operant": None,
         "cycles": 5, "bytes": 4, "HNZVC": "-----",
-        "category": 6, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 6, "instr_info_key": BRN,
     },
 
     #### Miscellaneous Instructions
