@@ -1,0 +1,271 @@
+NEG;0;uaaaa;6;0x0;;DIRECT;NEG;2;NEG;M' = 0 - M
+COM;0;-aa01;6;0x3;;DIRECT;COM;2;COM;M' = 0 + M
+LSR;0;-0a-s;6;0x4;;DIRECT;LSR;2;LSR;0 -> -> C b7 -> b0
+ROR;0;-aa-s;6;0x6;;DIRECT;ROR;2;ROR;C -> -> C b7 -> b0
+ASR;0;uaa-s;6;0x7;;DIRECT;ASR;2;ASR;b7 -> -> C b7 -> b0
+LSL/ASL;0;naaas;6;0x8;;DIRECT;LSL;2;LSL;C = = 0 b7 = b0
+ROL;0;-aaas;6;0x9;;DIRECT;ROL;2;ROL;C = = C b7 = b0
+DEC;0;-aaa-;6;0xa;;DIRECT;DEC;2;DEC;M' = M - 1
+INC;0;-aaa-;6;0xc;;DIRECT;INC;2;INC;M' = M + 1
+TST;0;-aa0-;6;0xd;;DIRECT;TST;2;TST;TEMP = M - 0
+CLR;0;-0100;6;0xf;;DIRECT;CLR;2;CLR;TEMP = M M = 00 16
+DAA;0;-aa0a;2;0x19;;INHERENT;DAA;1;DAA;Least Significant Nibble Least Significant Nibble CF(LSN) = 6 IFF 1) C = 1 or 2) LSN > 9 Most Significant Nibble Most Significant Nibble CF(MSN) = 6 IFF 1) C = 1 or 2) MSN > 9 or 3) MSN > 8 and LSN > 9
+EXG;0;ccccc;8;0x1e;;IMMEDIATE;EXG;2;EXG;R1 <-> R2
+TFR;0;ccccc;7;0x1f;;IMMEDIATE;TFR;2;TFR;R1 -> R2
+MUL;0;--a-a;11;0x3d;;INHERENT;MUL;1;MUL;ACCA':ACCB' = ACCA * ACCB
+NEGA;0;uaaaa;2;0x40;A;INHERENT;NEG;1;NEG;M' = 0 - M
+COMA;0;-aa01;2;0x43;A;INHERENT;COM;1;COM;M' = 0 + M
+LSRA;0;-0a-s;2;0x44;A;INHERENT;LSR;1;LSR;0 -> -> C b7 -> b0
+RORA;0;-aa-s;2;0x46;A;INHERENT;ROR;1;ROR;C -> -> C b7 -> b0
+ASRA;0;uaa-s;2;0x47;A;INHERENT;ASR;1;ASR;b7 -> -> C b7 -> b0
+LSLA/ASLA;0;naaas;2;0x48;;INHERENT;LSL;1;LSL;C = = 0 b7 = b0
+ROLA;0;-aaas;2;0x49;A;INHERENT;ROL;1;ROL;C = = C b7 = b0
+DECA;0;-aaa-;2;0x4a;A;INHERENT;DEC;1;DEC;M' = M - 1
+INCA;0;-aaa-;2;0x4c;A;INHERENT;INC;1;INC;M' = M + 1
+TSTA;0;-aa0-;2;0x4d;A;INHERENT;TST;1;TST;TEMP = M - 0
+CLRA;0;-0100;2;0x4f;A;INHERENT;CLR;1;CLR;TEMP = M M = 00 16
+NEGB;0;uaaaa;2;0x50;B;INHERENT;NEG;1;NEG;M' = 0 - M
+COMB;0;-aa01;2;0x53;B;INHERENT;COM;1;COM;M' = 0 + M
+LSRB;0;-0a-s;2;0x54;B;INHERENT;LSR;1;LSR;0 -> -> C b7 -> b0
+RORB;0;-aa-s;2;0x56;B;INHERENT;ROR;1;ROR;C -> -> C b7 -> b0
+ASRB;0;uaa-s;2;0x57;B;INHERENT;ASR;1;ASR;b7 -> -> C b7 -> b0
+LSLB/ASLB;0;naaas;2;0x58;;INHERENT;LSL;1;LSL;C = = 0 b7 = b0
+ROLB;0;-aaas;2;0x59;B;INHERENT;ROL;1;ROL;C = = C b7 = b0
+DECB;0;-aaa-;2;0x5a;B;INHERENT;DEC;1;DEC;M' = M - 1
+INCB;0;-aaa-;2;0x5c;B;INHERENT;INC;1;INC;M' = M + 1
+TSTB;0;-aa0-;2;0x5d;B;INHERENT;TST;1;TST;TEMP = M - 0
+CLRB;0;-0100;2;0x5f;B;INHERENT;CLR;1;CLR;TEMP = M M = 00 16
+NEG;0;uaaaa;6;0x60;;INDEXED;NEG;2;NEG;M' = 0 - M
+COM;0;-aa01;6;0x63;;INDEXED;COM;2;COM;M' = 0 + M
+LSR;0;-0a-s;6;0x64;;INDEXED;LSR;2;LSR;0 -> -> C b7 -> b0
+ROR;0;-aa-s;6;0x66;;INDEXED;ROR;2;ROR;C -> -> C b7 -> b0
+ASR;0;uaa-s;6;0x67;;INDEXED;ASR;2;ASR;b7 -> -> C b7 -> b0
+LSL/ASL;0;naaas;6;0x68;;INDEXED;LSL;2;LSL;C = = 0 b7 = b0
+ROL;0;-aaas;6;0x69;;INDEXED;ROL;2;ROL;C = = C b7 = b0
+DEC;0;-aaa-;6;0x6a;;INDEXED;DEC;2;DEC;M' = M - 1
+INC;0;-aaa-;6;0x6c;;INDEXED;INC;2;INC;M' = M + 1
+TST;0;-aa0-;6;0x6d;;INDEXED;TST;2;TST;TEMP = M - 0
+CLR;0;-0100;6;0x6f;;INDEXED;CLR;2;CLR;TEMP = M M = 00 16
+NEG;0;uaaaa;7;0x70;;EXTENDED;NEG;3;NEG;M' = 0 - M
+COM;0;-aa01;7;0x73;;EXTENDED;COM;3;COM;M' = 0 + M
+LSR;0;-0a-s;7;0x74;;EXTENDED;LSR;3;LSR;0 -> -> C b7 -> b0
+ROR;0;-aa-s;7;0x76;;EXTENDED;ROR;3;ROR;C -> -> C b7 -> b0
+ASR;0;uaa-s;7;0x77;;EXTENDED;ASR;3;ASR;b7 -> -> C b7 -> b0
+LSL/ASL;0;naaas;7;0x78;;EXTENDED;LSL;3;LSL;C = = 0 b7 = b0
+ROL;0;-aaas;7;0x79;;EXTENDED;ROL;3;ROL;C = = C b7 = b0
+DEC;0;-aaa-;7;0x7a;;EXTENDED;DEC;3;DEC;M' = M - 1
+INC;0;-aaa-;7;0x7c;;EXTENDED;INC;3;INC;M' = M + 1
+TST;0;-aa0-;7;0x7d;;EXTENDED;TST;3;TST;TEMP = M - 0
+CLR;0;-0100;7;0x7f;;EXTENDED;CLR;3;CLR;TEMP = M M = 00 16
+SUBA;0;uaaaa;2;0x80;A;IMMEDIATE;SUB;2;SUB8;R' = R - M
+CMPA;0;uaaaa;2;0x81;A;IMMEDIATE;CMP;2;CMP8;TEMP = R - M
+SBCA;0;uaaaa;2;0x82;A;IMMEDIATE;SBC;2;SBC;R' = R - M - C
+ANDA;0;-aa0-;2;0x84;A;IMMEDIATE;AND;2;AND;R' = R AND M
+BITA;0;-aa0-;2;0x85;A;IMMEDIATE;BIT;2;BIT;TEMP = R AND M
+LDA;0;-aa0-;2;0x86;A;IMMEDIATE;LD;2;LD8;R' = M
+EORA;0;-aa0-;2;0x88;A;IMMEDIATE;EOR;2;EOR;R' = R XOR M
+ADCA;0;aaaaa;2;0x89;A;IMMEDIATE;ADC;2;ADC;R' = R + M + C
+ORA;0;-aa0-;2;0x8a;A;IMMEDIATE;OR;2;OR;R' = R OR M
+ADDA;0;aaaaa;2;0x8b;A;IMMEDIATE;ADD;2;ADD8;R' = R + M
+SUBA;0;uaaaa;4;0x90;A;DIRECT;SUB;2;SUB8;R' = R - M
+CMPA;0;uaaaa;4;0x91;A;DIRECT;CMP;2;CMP8;TEMP = R - M
+SBCA;0;uaaaa;4;0x92;A;DIRECT;SBC;2;SBC;R' = R - M - C
+ANDA;0;-aa0-;4;0x94;A;DIRECT;AND;2;AND;R' = R AND M
+BITA;0;-aa0-;4;0x95;A;DIRECT;BIT;2;BIT;TEMP = R AND M
+LDA;0;-aa0-;4;0x96;A;DIRECT;LD;2;LD8;R' = M
+STA;0;-aa0-;4;0x97;A;DIRECT;ST;2;ST8;M' = R
+EORA;0;-aa0-;4;0x98;A;DIRECT;EOR;2;EOR;R' = R XOR M
+ADCA;0;aaaaa;4;0x99;A;DIRECT;ADC;2;ADC;R' = R + M + C
+ORA;0;-aa0-;4;0x9a;A;DIRECT;OR;2;OR;R' = R OR M
+ADDA;0;aaaaa;4;0x9b;A;DIRECT;ADD;2;ADD8;R' = R + M
+SUBA;0;uaaaa;4;0xa0;A;INDEXED;SUB;2;SUB8;R' = R - M
+CMPA;0;uaaaa;4;0xa1;A;INDEXED;CMP;2;CMP8;TEMP = R - M
+SBCA;0;uaaaa;4;0xa2;A;INDEXED;SBC;2;SBC;R' = R - M - C
+ANDA;0;-aa0-;4;0xa4;A;INDEXED;AND;2;AND;R' = R AND M
+BITA;0;-aa0-;4;0xa5;A;INDEXED;BIT;2;BIT;TEMP = R AND M
+LDA;0;-aa0-;4;0xa6;A;INDEXED;LD;2;LD8;R' = M
+STA;0;-aa0-;4;0xa7;A;INDEXED;ST;2;ST8;M' = R
+EORA;0;-aa0-;4;0xa8;A;INDEXED;EOR;2;EOR;R' = R XOR M
+ADCA;0;aaaaa;4;0xa9;A;INDEXED;ADC;2;ADC;R' = R + M + C
+ORA;0;-aa0-;4;0xaa;A;INDEXED;OR;2;OR;R' = R OR M
+ADDA;0;aaaaa;4;0xab;A;INDEXED;ADD;2;ADD8;R' = R + M
+SUBA;0;uaaaa;5;0xb0;A;EXTENDED;SUB;3;SUB8;R' = R - M
+CMPA;0;uaaaa;5;0xb1;A;EXTENDED;CMP;3;CMP8;TEMP = R - M
+SBCA;0;uaaaa;5;0xb2;A;EXTENDED;SBC;3;SBC;R' = R - M - C
+ANDA;0;-aa0-;5;0xb4;A;EXTENDED;AND;3;AND;R' = R AND M
+BITA;0;-aa0-;5;0xb5;A;EXTENDED;BIT;3;BIT;TEMP = R AND M
+LDA;0;-aa0-;5;0xb6;A;EXTENDED;LD;3;LD8;R' = M
+STA;0;-aa0-;5;0xb7;A;EXTENDED;ST;3;ST8;M' = R
+EORA;0;-aa0-;5;0xb8;A;EXTENDED;EOR;3;EOR;R' = R XOR M
+ADCA;0;aaaaa;5;0xb9;A;EXTENDED;ADC;3;ADC;R' = R + M + C
+ORA;0;-aa0-;5;0xba;A;EXTENDED;OR;3;OR;R' = R OR M
+ADDA;0;aaaaa;5;0xbb;A;EXTENDED;ADD;3;ADD8;R' = R + M
+SUBB;0;uaaaa;2;0xc0;B;IMMEDIATE;SUB;2;SUB8;R' = R - M
+CMPB;0;uaaaa;2;0xc1;B;IMMEDIATE;CMP;2;CMP8;TEMP = R - M
+SBCB;0;uaaaa;2;0xc2;B;IMMEDIATE;SBC;2;SBC;R' = R - M - C
+ANDB;0;-aa0-;2;0xc4;B;IMMEDIATE;AND;2;AND;R' = R AND M
+BITB;0;-aa0-;2;0xc5;B;IMMEDIATE;BIT;2;BIT;TEMP = R AND M
+LDB;0;-aa0-;2;0xc6;B;IMMEDIATE;LD;2;LD8;R' = M
+EORB;0;-aa0-;2;0xc8;B;IMMEDIATE;EOR;2;EOR;R' = R XOR M
+ADCB;0;aaaaa;2;0xc9;B;IMMEDIATE;ADC;2;ADC;R' = R + M + C
+ORB;0;-aa0-;2;0xca;B;IMMEDIATE;OR;2;OR;R' = R OR M
+ADDB;0;aaaaa;2;0xcb;B;IMMEDIATE;ADD;2;ADD8;R' = R + M
+SUBB;0;uaaaa;4;0xd0;B;DIRECT;SUB;2;SUB8;R' = R - M
+CMPB;0;uaaaa;4;0xd1;B;DIRECT;CMP;2;CMP8;TEMP = R - M
+SBCB;0;uaaaa;4;0xd2;B;DIRECT;SBC;2;SBC;R' = R - M - C
+ANDB;0;-aa0-;4;0xd4;B;DIRECT;AND;2;AND;R' = R AND M
+BITB;0;-aa0-;4;0xd5;B;DIRECT;BIT;2;BIT;TEMP = R AND M
+LDB;0;-aa0-;4;0xd6;B;DIRECT;LD;2;LD8;R' = M
+STB;0;-aa0-;4;0xd7;B;DIRECT;ST;2;ST8;M' = R
+EORB;0;-aa0-;4;0xd8;B;DIRECT;EOR;2;EOR;R' = R XOR M
+ADCB;0;aaaaa;4;0xd9;B;DIRECT;ADC;2;ADC;R' = R + M + C
+ORB;0;-aa0-;4;0xda;B;DIRECT;OR;2;OR;R' = R OR M
+ADDB;0;aaaaa;4;0xdb;B;DIRECT;ADD;2;ADD8;R' = R + M
+SUBB;0;uaaaa;4;0xe0;B;INDEXED;SUB;2;SUB8;R' = R - M
+CMPB;0;uaaaa;4;0xe1;B;INDEXED;CMP;2;CMP8;TEMP = R - M
+SBCB;0;uaaaa;4;0xe2;B;INDEXED;SBC;2;SBC;R' = R - M - C
+ANDB;0;-aa0-;4;0xe4;B;INDEXED;AND;2;AND;R' = R AND M
+BITB;0;-aa0-;4;0xe5;B;INDEXED;BIT;2;BIT;TEMP = R AND M
+LDB;0;-aa0-;4;0xe6;B;INDEXED;LD;2;LD8;R' = M
+STB;0;-aa0-;4;0xe7;B;INDEXED;ST;2;ST8;M' = R
+EORB;0;-aa0-;4;0xe8;B;INDEXED;EOR;2;EOR;R' = R XOR M
+ADCB;0;aaaaa;4;0xe9;B;INDEXED;ADC;2;ADC;R' = R + M + C
+ORB;0;-aa0-;4;0xea;B;INDEXED;OR;2;OR;R' = R OR M
+ADDB;0;aaaaa;4;0xeb;B;INDEXED;ADD;2;ADD8;R' = R + M
+SUBB;0;uaaaa;5;0xf0;B;EXTENDED;SUB;3;SUB8;R' = R - M
+CMPB;0;uaaaa;5;0xf1;B;EXTENDED;CMP;3;CMP8;TEMP = R - M
+SBCB;0;uaaaa;5;0xf2;B;EXTENDED;SBC;3;SBC;R' = R - M - C
+ANDB;0;-aa0-;5;0xf4;B;EXTENDED;AND;3;AND;R' = R AND M
+BITB;0;-aa0-;5;0xf5;B;EXTENDED;BIT;3;BIT;TEMP = R AND M
+LDB;0;-aa0-;5;0xf6;B;EXTENDED;LD;3;LD8;R' = M
+STB;0;-aa0-;5;0xf7;B;EXTENDED;ST;3;ST8;M' = R
+EORB;0;-aa0-;5;0xf8;B;EXTENDED;EOR;3;EOR;R' = R XOR M
+ADCB;0;aaaaa;5;0xf9;B;EXTENDED;ADC;3;ADC;R' = R + M + C
+ORB;0;-aa0-;5;0xfa;B;EXTENDED;OR;3;OR;R' = R OR M
+ADDB;0;aaaaa;5;0xfb;B;EXTENDED;ADD;3;ADD8;R' = R + M
+SEX;1;-aa0-;2;0x1d;;INHERENT;SEX;1;SEX;If bit seven of ACCB is set then ACCA' = FF 16 else ACCA' = 00 16
+SUBD;1;-aaaa;4;0x83;D;IMMEDIATE;SUB;3;SUB16;R' = R - M:M+1
+SUBD;1;-aaaa;6;0x93;D;DIRECT;SUB;2;SUB16;R' = R - M:M+1
+SUBD;1;-aaaa;6;0xa3;D;INDEXED;SUB;2;SUB16;R' = R - M:M+1
+SUBD;1;-aaaa;7;0xb3;D;EXTENDED;SUB;3;SUB16;R' = R - M:M+1
+ADDD;1;-aaaa;4;0xc3;D;IMMEDIATE;ADD;3;ADD16;R' = R + M:M+1
+LDD;1;-aa0-;3;0xcc;D;IMMEDIATE;LD;3;LD16;R' = M:M+1
+ADDD;1;-aaaa;6;0xd3;D;DIRECT;ADD;2;ADD16;R' = R + M:M+1
+LDD;1;-aa0-;5;0xdc;D;DIRECT;LD;2;LD16;R' = M:M+1
+STD;1;-aa0-;5;0xdd;D;DIRECT;ST;2;ST16;M':M+1' = R
+ADDD;1;-aaaa;6;0xe3;D;INDEXED;ADD;2;ADD16;R' = R + M:M+1
+LDD;1;-aa0-;5;0xec;D;INDEXED;LD;2;LD16;R' = M:M+1
+STD;1;-aa0-;5;0xed;D;INDEXED;ST;2;ST16;M':M+1' = R
+ADDD;1;-aaaa;7;0xf3;D;EXTENDED;ADD;3;ADD16;R' = R + M:M+1
+LDD;1;-aa0-;6;0xfc;D;EXTENDED;LD;3;LD16;R' = M:M+1
+STD;1;-aa0-;6;0xfd;D;EXTENDED;ST;3;ST16;M':M+1' = R
+CMPD;1;-aaaa;5;0x1083;D;IMMEDIATE;CMP;4;CMP16;TEMP = R - M:M+1
+CMPD;1;-aaaa;7;0x1093;D;DIRECT;CMP;3;CMP16;TEMP = R - M:M+1
+CMPD;1;-aaaa;7;0x10a3;D;INDEXED;CMP;3;CMP16;TEMP = R - M:M+1
+CMPD;1;-aaaa;8;0x10b3;D;EXTENDED;CMP;4;CMP16;TEMP = R - M:M+1
+LEAX;2;--a--;4;0x30;X;INDEXED;LEA;2;LEA;R' = EA
+LEAY;2;--a--;4;0x31;Y;INDEXED;LEA;2;LEA;R' = EA
+LEAS;2;-----;4;0x32;S;INDEXED;LEA;2;LEA;R' = EA
+LEAU;2;-----;4;0x33;U;INDEXED;LEA;2;LEA;R' = EA
+PSHS;2;-----;5;0x34;S;IMMEDIATE;PSH;2;PSHS;IFF b7 of postbyte set, then: SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH IFF b6 of postbyte set, then: SP' = SP-1, (SP) = USL SP' = SP-1, (SP) = USH IFF b5 of postbyte set, then: SP' = SP-1, (SP) = IYL SP' = SP-1, (SP) = IYH IFF b4 of postbyte set, then: SP' = SP-1, (SP) = IXL SP' = SP-1, (SP) = IXH IFF b3 of postbyte set, then: SP' = SP-1, (SP) = DPR IFF b2 of postbyte set, then: SP' = SP-1, (SP) = ACCB IFF b1 of postbyte set, then: SP' = SP-1, (SP) = ACCA IFF b0 of postbyte set, then: SP' = SP-1, (SP) = CCR
+PULS;2;ccccc;5;0x35;S;IMMEDIATE;PUL;2;PULS;IFF b0 of postbyte set, then: CCR' = (SP), SP' = SP+1 IFF b1 of postbyte set, then: ACCA' = (SP), SP' = SP+1 IFF b2 of postbyte set, then: ACCB' = (SP), SP' = SP+1 IFF b3 of postbyte set, then: DPR' = (SP), SP'  = SP+1 IFF b4 of postbyte set, then: IXH' IXL' = (SP), SP' = SP+1 = (SP), SP' = SP+1 IFF b5 of postbyte set, then: IYH' IYL' = (SP), SP' = SP+1 = (SP), SP' = SP+1 IFF b6 of postbyte set, then: USH' USL' = (SP), SP' = SP+1 = (SP), SP' = SP+1 IFF b7 of postbyte set, then: PCH' PCL' = (SP), SP' = SP+1 = (SP), SP' = SP+1
+PSHU;2;-----;5;0x36;U;IMMEDIATE;PSH;2;PSHU;IFF b7 of postbyte set, then: US' = US-1, (US) = PCL US' = US-1, (US) = PCH IFF b6 of postbyte set, then: US' = US-1, (US) = SPL US' = US-1, (US) = SPH IFF b5 of postbyte set, then: US' = US-1, (US) = IYL US' = US-1, (US) = IYH IFF b4 of postbyte set, then: US' = US-1, (US) = IXL US' = US-1, (US) = IXH IFF b3 of postbyte set, then: US' = US-1, (US) = DPR IFF b2 of postbyte set, then: US' = US-1, (US) = ACCB IFF b1 of postbyte set, then: US' = US-1, (US) = ACCA IFF b0 of postbyte set, then: US' = US-1, (US) = CCR
+PULU;2;ccccc;5;0x37;U;IMMEDIATE;PUL;2;PULU;IFF b0 of postbyte set, then: CCR' = (US), US' = US+1 IFF b1 of postbyte set, then: ACCA' = (US), US' = US+1 IFF b2 of postbyte set, then: ACCB' = (US), US' = US+1 IFF b3 of postbyte set, then: DPR' = (US), US' = US+1 IFF b4 of postbyte set, then: IXH' IXL' = (US), US' = US+1 = (US), US' = US+1 IFF b5 of postbyte set, then: IYH' IYL' = (US), US' = US+1 = (US), US' = US+1 IFF b6 of postbyte set, then: SPH' SPL' = (US), US' = US+1 = (US), US' = US+1 IFF b7 of postbyte set, then: PCH' PCL' = (US), US' = US+1 = (US), US' = US+1
+ABX;2;-----;3;0x3a;;INHERENT;ABX;1;ABX;IX' = IX + ACCB
+CMPX;2;-aaaa;4;0x8c;X;IMMEDIATE;CMP;3;CMP16;TEMP = R - M:M+1
+LDX;2;-aa0-;3;0x8e;X;IMMEDIATE;LD;3;LD16;R' = M:M+1
+CMPX;2;-aaaa;6;0x9c;X;DIRECT;CMP;2;CMP16;TEMP = R - M:M+1
+LDX;2;-aa0-;5;0x9e;X;DIRECT;LD;2;LD16;R' = M:M+1
+STX;2;-aa0-;5;0x9f;X;DIRECT;ST;2;ST16;M':M+1' = R
+CMPX;2;-aaaa;6;0xac;X;INDEXED;CMP;2;CMP16;TEMP = R - M:M+1
+LDX;2;-aa0-;5;0xae;X;INDEXED;LD;2;LD16;R' = M:M+1
+STX;2;-aa0-;5;0xaf;X;INDEXED;ST;2;ST16;M':M+1' = R
+CMPX;2;-aaaa;7;0xbc;X;EXTENDED;CMP;3;CMP16;TEMP = R - M:M+1
+LDX;2;-aa0-;6;0xbe;X;EXTENDED;LD;3;LD16;R' = M:M+1
+STX;2;-aa0-;6;0xbf;X;EXTENDED;ST;3;ST16;M':M+1' = R
+LDU;2;-aa0-;3;0xce;U;IMMEDIATE;LD;3;LD16;R' = M:M+1
+LDU;2;-aa0-;5;0xde;U;DIRECT;LD;2;LD16;R' = M:M+1
+STU;2;-aa0-;5;0xdf;U;DIRECT;ST;2;ST16;M':M+1' = R
+LDU;2;-aa0-;5;0xee;U;INDEXED;LD;2;LD16;R' = M:M+1
+STU;2;-aa0-;5;0xef;U;INDEXED;ST;2;ST16;M':M+1' = R
+LDU;2;-aa0-;6;0xfe;U;EXTENDED;LD;3;LD16;R' = M:M+1
+STU;2;-aa0-;6;0xff;U;EXTENDED;ST;3;ST16;M':M+1' = R
+CMPY;2;-aaaa;5;0x108c;Y;IMMEDIATE;CMP;4;CMP16;TEMP = R - M:M+1
+LDY;2;-aa0-;4;0x108e;Y;IMMEDIATE;LD;4;LD16;R' = M:M+1
+CMPY;2;-aaaa;7;0x109c;Y;DIRECT;CMP;3;CMP16;TEMP = R - M:M+1
+LDY;2;-aa0-;6;0x109e;Y;DIRECT;LD;3;LD16;R' = M:M+1
+STY;2;-aa0-;6;0x109f;Y;DIRECT;ST;3;ST16;M':M+1' = R
+CMPY;2;-aaaa;7;0x10ac;Y;INDEXED;CMP;3;CMP16;TEMP = R - M:M+1
+LDY;2;-aa0-;6;0x10ae;Y;INDEXED;LD;3;LD16;R' = M:M+1
+STY;2;-aa0-;6;0x10af;Y;INDEXED;ST;3;ST16;M':M+1' = R
+CMPY;2;-aaaa;8;0x10bc;Y;EXTENDED;CMP;4;CMP16;TEMP = R - M:M+1
+LDY;2;-aa0-;7;0x10be;Y;EXTENDED;LD;4;LD16;R' = M:M+1
+STY;2;-aa0-;7;0x10bf;Y;EXTENDED;ST;4;ST16;M':M+1' = R
+LDS;2;-aa0-;4;0x10ce;S;IMMEDIATE;LD;4;LD16;R' = M:M+1
+LDS;2;-aa0-;6;0x10de;S;DIRECT;LD;3;LD16;R' = M:M+1
+STS;2;-aa0-;6;0x10df;S;DIRECT;ST;3;ST16;M':M+1' = R
+LDS;2;-aa0-;6;0x10ee;S;INDEXED;LD;3;LD16;R' = M:M+1
+STS;2;-aa0-;6;0x10ef;S;INDEXED;ST;3;ST16;M':M+1' = R
+LDS;2;-aa0-;7;0x10fe;S;EXTENDED;LD;4;LD16;R' = M:M+1
+STS;2;-aa0-;7;0x10ff;S;EXTENDED;ST;4;ST16;M':M+1' = R
+CMPU;2;-aaaa;5;0x1183;U;IMMEDIATE;CMP;4;CMP16;TEMP = R - M:M+1
+CMPS;2;-aaaa;5;0x118c;S;IMMEDIATE;CMP;4;CMP16;TEMP = R - M:M+1
+CMPU;2;-aaaa;7;0x1193;U;DIRECT;CMP;3;CMP16;TEMP = R - M:M+1
+CMPS;2;-aaaa;7;0x119c;S;DIRECT;CMP;3;CMP16;TEMP = R - M:M+1
+CMPU;2;-aaaa;7;0x11a3;U;INDEXED;CMP;3;CMP16;TEMP = R - M:M+1
+CMPS;2;-aaaa;7;0x11ac;S;INDEXED;CMP;3;CMP16;TEMP = R - M:M+1
+CMPU;2;-aaaa;8;0x11b3;U;EXTENDED;CMP;4;CMP16;TEMP = R - M:M+1
+CMPS;2;-aaaa;8;0x11bc;S;EXTENDED;CMP;4;CMP16;TEMP = R - M:M+1
+BPL;3;-----;3;0x2a;;RELATIVE;BPL;2;BPL;TEMP = MI IFF N = 0 then PC' = PC + TEMP
+BMI;3;-----;3;0x2b;;RELATIVE;BMI;2;BMI;TEMP = MI IFF N = 1 then PC' = PC + TEMP
+LBPL;3;-----;5;0x102a;;RELATIVE;LBPL;4;BPL;TEMP = MI IFF N = 0 then PC' = PC + TEMP
+LBMI;3;-----;5;0x102b;;RELATIVE;LBMI;4;BMI;TEMP = MI IFF N = 1 then PC' = PC + TEMP
+BVC;4;-----;3;0x28;;RELATIVE;BVC;2;BVC;TEMP = MI IFF V = 0 then PC' = PC + TEMP
+BVS;4;-----;3;0x29;;RELATIVE;BVS;2;BVS;TEMP' = MI IFF V = 1 then PC' = PC + TEMP
+BGE;4;-----;3;0x2c;;RELATIVE;BGE;2;BGE;TEMP = MI IFF [N XOR V] = 0 then PC' = PC + TEMP
+BLT;4;-----;3;0x2d;;RELATIVE;BLT;2;BLT;TEMP = MI IFF [ N XOR V ] = 1 then PC' = PC + TEMP
+BGT;4;-----;3;0x2e;;RELATIVE;BGT;2;BGT;TEMP = MI IFF Z AND [N XOR V] = 0 then PC' = PC + TEMP
+BLE;4;-----;3;0x2f;;RELATIVE;BLE;2;BLE;TEMP = MI IFF Z OR [ N XOR V ] = 1 then PC' = PC + TEMP
+LBVC;4;-----;5;0x1028;;RELATIVE;LBVC;4;BVC;TEMP = MI IFF V = 0 then PC' = PC + TEMP
+LBVS;4;-----;5;0x1029;;RELATIVE;LBVS;4;BVS;TEMP' = MI IFF V = 1 then PC' = PC + TEMP
+LBGE;4;-----;5;0x102c;;RELATIVE;LBGE;4;BGE;TEMP = MI IFF [N XOR V] = 0 then PC' = PC + TEMP
+LBLT;4;-----;5;0x102d;;RELATIVE;LBLT;4;BLT;TEMP = MI IFF [ N XOR V ] = 1 then PC' = PC + TEMP
+LBGT;4;-----;5;0x102e;;RELATIVE;LBGT;4;BGT;TEMP = MI IFF Z AND [N XOR V] = 0 then PC' = PC + TEMP
+LBLE;4;-----;5;0x102f;;RELATIVE;LBLE;4;BLE;TEMP = MI IFF Z OR [ N XOR V ] = 1 then PC' = PC + TEMP
+BHI;5;-----;3;0x22;;RELATIVE;BHI;2;BHI;TEMP = MI IFF [ C OR Z ] = 0 then PC' = PC + TEMP
+BLS;5;-----;3;0x23;;RELATIVE;BLS;2;BLS;TEMP = MI IFF (C OR Z) = 1 then PC' = PC + TEMP
+BHS/BCC;5;-----;3;0x24;;RELATIVE;BCC;2;BCC;TEMP = MI IFF C = 0 then PC' = PC + TEMP
+BLO/BCS;5;-----;3;0x25;;RELATIVE;BLO/BCS;2;OTHER_INSTRUCTIONS;
+BNE;5;-----;3;0x26;;RELATIVE;BNE;2;BNE;TEMP = MI IFF Z = 0 then PC' = PC + TEMP
+BEQ;5;-----;3;0x27;;RELATIVE;BEQ;2;BEQ;TEMP = MI IFF Z = 1 then PC' = PC + TEMP
+LBHI;5;-----;5;0x1022;;RELATIVE;LBHI;4;BHI;TEMP = MI IFF [ C OR Z ] = 0 then PC' = PC + TEMP
+LBLS;5;-----;5;0x1023;;RELATIVE;LBLS;4;BLS;TEMP = MI IFF (C OR Z) = 1 then PC' = PC + TEMP
+LBHS/LBCC;5;-----;5;0x1024;;RELATIVE;LBHS/LBCC;4;OTHER_INSTRUCTIONS;
+LBLO/LBCS;5;-----;5;0x1025;;RELATIVE;LBLO/LBCS;4;OTHER_INSTRUCTIONS;
+LBNE;5;-----;5;0x1026;;RELATIVE;LBNE;4;BNE;TEMP = MI IFF Z = 0 then PC' = PC + TEMP
+LBEQ;5;-----;5;0x1027;;RELATIVE;LBEQ;4;BEQ;TEMP = MI IFF Z = 1 then PC' = PC + TEMP
+LBRA;6;-----;5;0x16;;RELATIVE;LBRA;3;BRA;TEMP = MI PC' = PC + TEMP
+LBSR;6;-----;9;0x17;;RELATIVE;LBSR;3;BSR;TEMP = MI SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' = PC + TEMP
+BRA;6;-----;3;0x20;;RELATIVE;BRA;2;BRA;TEMP = MI PC' = PC + TEMP
+BRN;6;-----;3;0x21;;RELATIVE;BRN;2;BRN;TEMP = MI
+BSR;6;-----;7;0x8d;;RELATIVE;BSR;2;BSR;TEMP = MI SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' = PC + TEMP
+LBRN;6;-----;5;0x1021;;RELATIVE;LBRN;4;BRN;TEMP = MI
+JMP;7;-----;3;0xe;;DIRECT;JMP;2;JMP;PC' = EA
+NOP;7;-----;2;0x12;;INHERENT;NOP;1;NOP;Not affected.
+SYNC;7;-----;2;0x13;;INHERENT;SYNC;1;SYNC;Stop processing instructions
+ORCC;7;ddddd;3;0x1a;CC;IMMEDIATE;OR;2;ORCC;R' = R OR MI
+ANDCC;7;ddddd;3;0x1c;CC;IMMEDIATE;AND;2;ANDCC;R' = R AND MI
+RTS;7;-----;5;0x39;;INHERENT;RTS;1;RTS;PCH' = (SP), SP' = SP+1 PCL' = (SP), SP' = SP+1
+RTI;7;-----;6;0x3b;;INHERENT;RTI;1;RTI;IFF CCR bit E is set, then: ACCA' ACCB' DPR' IXH' IXL' IYH' IYL' USH' USL' PCH' PCL' = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 IFF CCR bit E is clear, then: PCH' PCL' = (SP), SP' = SP+1 = (SP), SP' = SP+1
+CWAI;7;ddddd;21;0x3c;;IMMEDIATE;CWAI;2;CWAI;CCR = CCR AND MI (Possibly clear masks) Set E (entire state saved) SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH SP' = SP-1, (SP) = USL SP' = SP-1, (SP) = USH SP' = SP-1, (SP) = IYL SP' = SP-1, (SP) = IYH SP' = SP-1, (SP) = IXL SP' = SP-1, (SP) = IXH SP' = SP-1, (SP) = DPR SP' = SP-1, (SP) = ACCB SP' = SP-1, (SP) = ACCA SP' = SP-1, (SP) = CCR
+SWI;7;-----;19;0x3f;;INHERENT;SWI;1;SWI;Set E (entire state will be saved) SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH SP' = SP-1, (SP) = USL SP' = SP-1, (SP) = USH SP' = SP-1, (SP) = IYL SP' = SP-1, (SP) = IYH SP' = SP-1, (SP) = IXL SP' = SP-1, (SP) = IXH SP' = SP-1, (SP) = DPR SP' = SP-1, (SP) = ACCB SP' = SP-1, (SP) = ACCA SP' = SP-1, (SP) = CCR Set I, F (mask interrupts) PC' = (FFFA):(FFFB)
+JMP;7;-----;3;0x6e;;INDEXED;JMP;2;JMP;PC' = EA
+JMP;7;-----;3;0x7e;;EXTENDED;JMP;3;JMP;PC' = EA
+JSR;7;-----;7;0x9d;;DIRECT;JSR;2;JSR;SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' =EA
+JSR;7;-----;7;0xad;;INDEXED;JSR;2;JSR;SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' =EA
+JSR;7;-----;8;0xbd;;EXTENDED;JSR;3;JSR;SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' =EA
+SWI2;7;-----;20;0x103f;;INHERENT;SWI;2;SWI2;Set E (entire state saved) SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH SP' = SP-1, (SP) = USL SP' = SP-1, (SP) = USH SP' = SP-1, (SP) = IYL SP' = SP-1, (SP) = IYH SP' = SP-1, (SP) = IXL SP' = SP-1, (SP) = IXH SP' = SP-1, (SP) = DPR SP' = SP-1, (SP) = ACCB SP' = SP-1, (SP) = ACCA SP' = SP-1, (SP) = CCR PC' = (FFF4):(FFF5)
+SWI3;7;-----;20;0x113f;;INHERENT;SWI;2;SWI3;Set E (entire state will be saved) SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH SP' = SP-1, (SP) = USL SP' = SP-1, (SP) = USH SP' = SP-1, (SP) = IYL SP' = SP-1, (SP) = IYH SP' = SP-1, (SP) = IXL SP' = SP-1, (SP) = IXH SP' = SP-1, (SP) = DPR SP' = SP-1, (SP) = ACCB SP' = SP-1, (SP) = ACCA SP' = SP-1, (SP) = CCR PC' = (FFF2):(FFF3)
+PAGE1+;8;+++++;1;0x10;;VARIANT;PAGE;1;PAGE;
+PAGE2+;8;+++++;1;0x11;;VARIANT;PAGE;1;PAGE;
+RESET*;8;*****;-1;0x3e;;INHERENT;RESET;1;RESET;
