@@ -43,8 +43,17 @@ CHANGE_INSTRUCTIONS = {
     "SWI2": "SWI",
     "SWI3": "SWI",
     "RESET*": "RESET",
+
+#     "BHS/BCC": "BCC",
 }
 CHANGED_INSTRUCTIONS = tuple(CHANGE_INSTRUCTIONS.values())
+
+SPLIT_MNEMONIC = {
+    "LEAS": "LEA_pointer",
+    "LEAU": "LEA_pointer",
+    "LEAX": "LEA_register",
+    "LEAY": "LEA_register",
+}
 
 ADDR_MODES = {
     "IMMEDIATE": 0,
@@ -63,7 +72,7 @@ INSTRUCTIONS = (
     "SBC", "SEX", "ST", "SUB", "SWI", "SYNC", "TFR", "TST",
     "PAGE"
 )
-OPERANTS = (
+OPERANDS = (
     "X", "Y", # 16 bit index register X,Y
     "U", "S", # 16 bit stack pointer registers U,S
     "A", "B", # 8 bit accumulator A,B
@@ -560,6 +569,8 @@ def get_instr_info(mnemonic, instruction):
     return None, None
 
 
+HNZVC_dict = {}
+
 opcodes = []
 categoriesed_opcodes = {}
 for line in txt.splitlines():
@@ -605,7 +616,7 @@ for line in txt.splitlines():
                 desc = "%s / %s" % (desc_info1[1], desc_info2[1])
 
 
-    operant = None
+    operand = None
     instruction = mnemonic
     if instruction in CHANGE_INSTRUCTIONS:
         instruction = CHANGE_INSTRUCTIONS[instruction]
@@ -615,11 +626,14 @@ for line in txt.splitlines():
 
         if mnemonic.startswith(instr):
             instruction = instr
-            operant_test = mnemonic[len(instruction):]
-#             print " **** ", mnemonic, instruction, operant_test
-
-            if operant_test in OPERANTS:
-                operant = operant_test
+            if "/" in mnemonic:
+                test_mnemonic = mnemonic.split("/")[0]
+            else:
+                test_mnemonic = mnemonic
+            operand_test = test_mnemonic[len(instruction):]
+            if operand_test in OPERANDS:
+                operand = operand_test
+            print " **** ", mnemonic, instruction, operand_test, operand
             break
 
     instr_info_key, instr_info = get_instr_info(mnemonic, instruction)
@@ -636,6 +650,17 @@ for line in txt.splitlines():
         pprint.pprint(instr_info)
         print "%r - $%x - %r - %s" % (instr_info_key, opcode, instruction, mnemonic)
         raise AssertionError
+
+    if mnemonic in SPLIT_MNEMONIC:
+        instr_info_key = SPLIT_MNEMONIC[mnemonic]
+        INSTRUCTION_INFO.setdefault(instr_info_key, instr_info)
+        print "Change instr_info_key for %s to %s" % (mnemonic, instr_info_key)
+
+    cc_HNZVC = sections[5]
+    if instr_info_key not in HNZVC_dict:
+        instr_info["HNZVC"] = cc_HNZVC
+    elif instr_info["HNZVC"] != cc_HNZVC:
+        raise AssertionError("Diffrerent cc bits?")
 
     instr_info["short_desc"] = desc
     raw_cycles = sections[3]
@@ -658,11 +683,10 @@ for line in txt.splitlines():
         "category": category_id,
         "instruction": instruction,
         "mnemonic": mnemonic,
-        "operant": operant,
+        "operand": operand,
         "addr_mode": ADDR_MODES[sections[2].upper()],
         "cycles": cycles,
         "bytes": bytes,
-        "HNZVC": sections[5],
         "instr_info_key": instr_info_key,
     }
 #     print "-"*79
@@ -675,6 +699,14 @@ for line in txt.splitlines():
 
 # sys.exit()
 
+existing_instr = set([o["instr_info_key"] for o in opcodes])
+keys = INSTRUCTION_INFO.keys()
+for key in keys:
+    if key not in existing_instr:
+        print "Instr.Data %r doesn't habe a op code:" % key
+        pprint.pprint(INSTRUCTION_INFO[key])
+        print "remove it!"
+        del(INSTRUCTION_INFO[key])
 
 ADDR_MODES2 = dict(zip(ADDR_MODES.values(), ADDR_MODES.keys()))
 
@@ -719,7 +751,8 @@ for key, data in sorted(INSTRUCTION_INFO.items()):
                 pprint.pprint(opcode)
                 raise AssertionError
 
-    del(data["addressing mode"])
+    if "addressing mode" in data:
+        del(data["addressing mode"])
 
 
 def pformat(item):
@@ -728,14 +761,16 @@ def pformat(item):
     return txt
 
 class Tee(object):
-    def __init__(self, filepath, origin_out):
+    def __init__(self, filepath, origin_out, to_stdout):
         self.filepath = filepath
         self.origin_out = origin_out
+        self.to_stdout = to_stdout
         self.f = file(filepath, "w")
 
     def write(self, *args):
         txt = " ".join(args)
-        self.origin_out.write(txt)
+        if self.to_stdout:
+            self.origin_out.write(txt)
         self.f.write(txt)
 
     def close(self):
@@ -743,7 +778,10 @@ class Tee(object):
         sys.stdout = self.origin_out
 
 
-sys.stdout = Tee("MC6809_data_raw.py", sys.stdout)
+sys.stdout = Tee("MC6809_data_raw.py", sys.stdout,
+#     to_stdout = True
+    to_stdout=False
+)
 
 
 print '"""%s"""' % __doc__
@@ -758,7 +796,7 @@ for id, txt in sorted(ADDR_MODES2.items()):
     print '    %s: "%s",' % (txt, txt)
 print "}"
 print
-print '# operants:'
+print '# operands:'
 print 'X = "X"'
 print 'Y = "Y"'
 print 'U = "U"'
@@ -819,11 +857,11 @@ for category_id, category in categories.items():
         print '        "opcode": 0x%x, "instruction": "%s", "mnemonic": "%s",' % (
             opcode["opcode"], opcode["instruction"], opcode["mnemonic"]
         )
-        print '        "addr_mode": %s, "operant": %s,' % (
-            opcode["addr_mode"], opcode["operant"]
+        print '        "addr_mode": %s, "operand": %s,' % (
+            opcode["addr_mode"], opcode["operand"]
         )
-        print '        "cycles": %i, "bytes": %i, "HNZVC": "%s",' % (
-            opcode["cycles"], opcode["bytes"], opcode["HNZVC"]
+        print '        "cycles": %i, "bytes": %i,' % (
+            opcode["cycles"], opcode["bytes"]
         )
         print '        "category": %i, "instr_info_key": %s,' % (
             category_id, opcode["instr_info_key"]
