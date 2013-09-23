@@ -25,7 +25,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x ABX") % opcode
+        raise NotImplementedError("TODO: $%x ABX" % opcode)
 
     @opcode( # Add memory to accumulator with carry
         0x89, 0x99, 0xa9, 0xb9, # ADCA (immediate, direct, indexed, extended)
@@ -41,7 +41,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": aaaaa
         """
         self.CC_HNZVC(a, b, r)
-        raise NotImplementedError("TODO: $%x ADC") % opcode
+        raise NotImplementedError("TODO: $%x ADC" % opcode)
 
     @opcode( # Add memory to D accumulator
         0xc3, 0xd3, 0xe3, 0xf3, # ADDD (immediate, direct, indexed, extended)
@@ -55,7 +55,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aaaa
         """
         self.CC_NZVC_16(a, b, r)
-        raise NotImplementedError("TODO: $%x ADD16") % opcode
+        raise NotImplementedError("TODO: $%x ADD16" % opcode)
 
     @opcode( # Add memory to accumulator
         0x8b, 0x9b, 0xab, 0xbb, # ADDA (immediate, direct, indexed, extended)
@@ -70,7 +70,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": aaaaa
         """
         self.CC_HNZVC(a, b, r)
-        raise NotImplementedError("TODO: $%x ADD8") % opcode
+        raise NotImplementedError("TODO: $%x ADD8" % opcode)
 
     @opcode( # AND memory with accumulator
         0x84, 0x94, 0xa4, 0xb4, # ANDA (immediate, direct, indexed, extended)
@@ -87,7 +87,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa0-
         """
         self.CC_NZ0()
-        raise NotImplementedError("TODO: $%x AND") % opcode
+        raise NotImplementedError("TODO: $%x AND" % opcode)
 
     @opcode( # AND condition code register
         0x1c, # ANDCC (immediate)
@@ -103,7 +103,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": ddddd
         """
         # Update CC bits: ddddd
-        raise NotImplementedError("TODO: $%x ANDCC") % opcode
+        raise NotImplementedError("TODO: $%x ANDCC" % opcode)
 
     @opcode( # Arithmetic shift of accumulator or memory right
         0x7, 0x67, 0x77, # ASR (direct, indexed, extended)
@@ -120,7 +120,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": uaa-s
         """
         self.CC_NZC()
-        raise NotImplementedError("TODO: $%x ASR") % opcode
+        raise NotImplementedError("TODO: $%x ASR" % opcode)
 
     @opcode( # Branch if equal
         0x27, # BEQ (relative)
@@ -137,7 +137,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BEQ") % opcode
+        raise NotImplementedError("TODO: $%x BEQ" % opcode)
 
     @opcode( # Branch if greater than or equal (signed)
         0x2c, # BGE (relative)
@@ -156,7 +156,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BGE") % opcode
+        raise NotImplementedError("TODO: $%x BGE" % opcode)
 
     @opcode( # Branch if greater (signed)
         0x2e, # BGT (relative)
@@ -175,7 +175,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BGT") % opcode
+        raise NotImplementedError("TODO: $%x BGT" % opcode)
 
     @opcode( # Branch if higher (unsigned)
         0x22, # BHI (relative)
@@ -195,7 +195,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BHI") % opcode
+        raise NotImplementedError("TODO: $%x BHI" % opcode)
 
     @opcode( # Bit test memory with accumulator
         0x85, 0x95, 0xa5, 0xb5, # BITA (immediate, direct, indexed, extended)
@@ -213,7 +213,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa0-
         """
         self.CC_NZ0()
-        raise NotImplementedError("TODO: $%x BIT") % opcode
+        raise NotImplementedError("TODO: $%x BIT" % opcode)
 
     @opcode( # Branch if less than or equal (signed)
         0x2f, # BLE (relative)
@@ -232,7 +232,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BLE") % opcode
+        raise NotImplementedError("TODO: $%x BLE" % opcode)
 
     @opcode( # Branch if lower or same (unsigned)
         0x23, # BLS (relative)
@@ -251,7 +251,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BLS") % opcode
+        raise NotImplementedError("TODO: $%x BLS" % opcode)
 
     @opcode( # Branch if less than (signed)
         0x2d, # BLT (relative)
@@ -269,7 +269,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BLT") % opcode
+        raise NotImplementedError("TODO: $%x BLT" % opcode)
 
     @opcode( # Branch if minus
         0x2b, # BMI (relative)
@@ -288,7 +288,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BMI") % opcode
+        raise NotImplementedError("TODO: $%x BMI" % opcode)
 
     @opcode( # Branch if not equal
         0x26, # BNE (relative)
@@ -305,7 +305,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BNE") % opcode
+        raise NotImplementedError("TODO: $%x BNE" % opcode)
 
     @opcode( # Branch if plus
         0x2a, # BPL (relative)
@@ -325,7 +325,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BPL") % opcode
+        raise NotImplementedError("TODO: $%x BPL" % opcode)
 
     @opcode( # Branch always
         0x20, # BRA (relative)
@@ -339,7 +339,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BRA") % opcode
+        raise NotImplementedError("TODO: $%x BRA" % opcode)
 
     @opcode( # Branch never
         0x21, # BRN (relative)
@@ -354,7 +354,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BRN") % opcode
+        raise NotImplementedError("TODO: $%x BRN" % opcode)
 
     @opcode( # Branch to subroutine
         0x8d, # BSR (relative)
@@ -372,7 +372,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BSR") % opcode
+        raise NotImplementedError("TODO: $%x BSR" % opcode)
 
     @opcode( # Branch if valid twos complement result
         0x28, # BVC (relative)
@@ -389,7 +389,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BVC") % opcode
+        raise NotImplementedError("TODO: $%x BVC" % opcode)
 
     @opcode( # Branch if invalid twos complement result
         0x29, # BVS (relative)
@@ -406,7 +406,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x BVS") % opcode
+        raise NotImplementedError("TODO: $%x BVS" % opcode)
 
     @opcode( # Clear accumulator or memory location
         0xf, 0x6f, 0x7f, # CLR (direct, indexed, extended)
@@ -423,7 +423,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -0100
         """
         self.CC_0100()
-        raise NotImplementedError("TODO: $%x CLR") % opcode
+        raise NotImplementedError("TODO: $%x CLR" % opcode)
 
     @opcode( # Compare memory from stack pointer
         0x1083, 0x1093, 0x10a3, 0x10b3, # CMPD (immediate, direct, indexed, extended)
@@ -446,7 +446,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aaaa
         """
         self.CC_NZVC_16(a, b, r)
-        raise NotImplementedError("TODO: $%x CMP16") % opcode
+        raise NotImplementedError("TODO: $%x CMP16" % opcode)
 
     @opcode( # Compare memory from accumulator
         0x81, 0x91, 0xa1, 0xb1, # CMPA (immediate, direct, indexed, extended)
@@ -465,7 +465,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": uaaaa
         """
         self.CC_NZVC(a, b, r)
-        raise NotImplementedError("TODO: $%x CMP8") % opcode
+        raise NotImplementedError("TODO: $%x CMP8" % opcode)
 
     @opcode( # Complement accumulator or memory location
         0x3, 0x63, 0x73, # COM (direct, indexed, extended)
@@ -485,7 +485,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa01
         """
         self.CC_NZ01()
-        raise NotImplementedError("TODO: $%x COM") % opcode
+        raise NotImplementedError("TODO: $%x COM" % opcode)
 
     @opcode( # AND condition code register, then wait for interrupt
         0x3c, # CWAI (immediate)
@@ -512,7 +512,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": ddddd
         """
         # Update CC bits: ddddd
-        raise NotImplementedError("TODO: $%x CWAI") % opcode
+        raise NotImplementedError("TODO: $%x CWAI" % opcode)
 
     @opcode( # Decimal adjust A accumulator
         0x19, # DAA (inherent)
@@ -532,7 +532,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa0a
         """
         # Update CC bits: -aa0a
-        raise NotImplementedError("TODO: $%x DAA") % opcode
+        raise NotImplementedError("TODO: $%x DAA" % opcode)
 
     @opcode( # Decrement accumulator or memory location
         0xa, 0x6a, 0x7a, # DEC (direct, indexed, extended)
@@ -552,7 +552,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aaa-
         """
         self.CC_NZV(a, b, r)
-        raise NotImplementedError("TODO: $%x DEC") % opcode
+        raise NotImplementedError("TODO: $%x DEC" % opcode)
 
     @opcode( # Exclusive OR memory with accumulator
         0x88, 0x98, 0xa8, 0xb8, # EORA (immediate, direct, indexed, extended)
@@ -568,7 +568,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa0-
         """
         self.CC_NZ0()
-        raise NotImplementedError("TODO: $%x EOR") % opcode
+        raise NotImplementedError("TODO: $%x EOR" % opcode)
 
     @opcode( # Exchange Rl with R2
         0x1e, # EXG (immediate)
@@ -584,7 +584,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": ccccc
         """
         # Update CC bits: ccccc
-        raise NotImplementedError("TODO: $%x EXG") % opcode
+        raise NotImplementedError("TODO: $%x EXG" % opcode)
 
     @opcode( # Increment accumulator or memory location
         0xc, 0x6c, 0x7c, # INC (direct, indexed, extended)
@@ -604,7 +604,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aaa-
         """
         self.CC_NZV(a, b, r)
-        raise NotImplementedError("TODO: $%x INC") % opcode
+        raise NotImplementedError("TODO: $%x INC" % opcode)
 
     @opcode( # Jump
         0xe, 0x6e, 0x7e, # JMP (direct, indexed, extended)
@@ -617,7 +617,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x JMP") % opcode
+        raise NotImplementedError("TODO: $%x JMP" % opcode)
 
     @opcode( # Jump to subroutine
         0x9d, 0xad, 0xbd, # JSR (direct, indexed, extended)
@@ -632,7 +632,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x JSR") % opcode
+        raise NotImplementedError("TODO: $%x JSR" % opcode)
 
     @opcode( # Load stack pointer from memory
         0xcc, 0xdc, 0xec, 0xfc, # LDD (immediate, direct, indexed, extended)
@@ -651,7 +651,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa0-
         """
         self.CC_NZ0_16()
-        raise NotImplementedError("TODO: $%x LD16") % opcode
+        raise NotImplementedError("TODO: $%x LD16" % opcode)
 
     @opcode( # Load accumulator from memory
         0x86, 0x96, 0xa6, 0xb6, # LDA (immediate, direct, indexed, extended)
@@ -666,7 +666,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa0-
         """
         self.CC_NZ0()
-        raise NotImplementedError("TODO: $%x LD8") % opcode
+        raise NotImplementedError("TODO: $%x LD8" % opcode)
 
     @opcode( # Load effective address into stack pointer
         0x32, # LEAS (indexed)
@@ -693,7 +693,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x LEA_pointer") % opcode
+        raise NotImplementedError("TODO: $%x LEA_pointer" % opcode)
 
     @opcode( # Load effective address into stack pointer
         0x30, # LEAX (indexed)
@@ -720,7 +720,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x LEA_register") % opcode
+        raise NotImplementedError("TODO: $%x LEA_register" % opcode)
 
     @opcode( # Logical shift left accumulator or memory location / Arithmetic shift of accumulator or memory left
         0x8, 0x68, 0x78, # LSL/ASL (direct, indexed, extended)
@@ -741,7 +741,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": naaas
         """
         self.CC_NZVC(a, b, r)
-        raise NotImplementedError("TODO: $%x LSL") % opcode
+        raise NotImplementedError("TODO: $%x LSL" % opcode)
 
     @opcode( # Logical shift right accumulator or memory location
         0x4, 0x64, 0x74, # LSR (direct, indexed, extended)
@@ -758,7 +758,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -0a-s
         """
         self.CC_0ZC()
-        raise NotImplementedError("TODO: $%x LSR") % opcode
+        raise NotImplementedError("TODO: $%x LSR" % opcode)
 
     @opcode( # Unsigned multiply (A * B ? D)
         0x3d, # MUL (inherent)
@@ -777,7 +777,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": --a-a
         """
         # Update CC bits: --a-a
-        raise NotImplementedError("TODO: $%x MUL") % opcode
+        raise NotImplementedError("TODO: $%x MUL" % opcode)
 
     @opcode( # Negate accumulator or memory
         0x0, 0x60, 0x70, # NEG (direct, indexed, extended)
@@ -797,7 +797,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": uaaaa
         """
         self.CC_NZVC(a, b, r)
-        raise NotImplementedError("TODO: $%x NEG") % opcode
+        raise NotImplementedError("TODO: $%x NEG" % opcode)
 
     @opcode( # No operation
         0x12, # NOP (inherent)
@@ -808,7 +808,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x NOP") % opcode
+        raise NotImplementedError("TODO: $%x NOP" % opcode)
 
     @opcode( # OR memory with accumulator
         0x8a, 0x9a, 0xaa, 0xba, # ORA (immediate, direct, indexed, extended)
@@ -825,7 +825,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa0-
         """
         self.CC_NZ0()
-        raise NotImplementedError("TODO: $%x OR") % opcode
+        raise NotImplementedError("TODO: $%x OR" % opcode)
 
     @opcode( # OR condition code register
         0x1a, # ORCC (immediate)
@@ -842,7 +842,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": ddddd
         """
         # Update CC bits: ddddd
-        raise NotImplementedError("TODO: $%x ORCC") % opcode
+        raise NotImplementedError("TODO: $%x ORCC" % opcode)
 
     @opcode( # Branch if lower (unsigned)
         0x24, # BHS/BCC (relative)
@@ -856,7 +856,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x OTHER_INSTRUCTIONS") % opcode
+        raise NotImplementedError("TODO: $%x OTHER_INSTRUCTIONS" % opcode)
 
     @opcode( # 
         0x10, # PAGE1+ (variant)
@@ -871,7 +871,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": +++++
         """
         # Update CC bits: +++++
-        raise NotImplementedError("TODO: $%x PAGE") % opcode
+        raise NotImplementedError("TODO: $%x PAGE" % opcode)
 
     @opcode( # Push A, B, CC, DP, D, X, Y, U, or PC onto hardware stack
         0x34, # PSHS (immediate)
@@ -890,7 +890,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x PSHS") % opcode
+        raise NotImplementedError("TODO: $%x PSHS" % opcode)
 
     @opcode( # Push A, B, CC, DP, D, X, Y, S, or PC onto user stack
         0x36, # PSHU (immediate)
@@ -908,7 +908,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x PSHU") % opcode
+        raise NotImplementedError("TODO: $%x PSHU" % opcode)
 
     @opcode( # Pull A, B, CC, DP, D, X, Y, U, or PC from hardware stack
         0x35, # PULS (immediate)
@@ -928,7 +928,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": ccccc
         """
         # Update CC bits: ccccc
-        raise NotImplementedError("TODO: $%x PULS") % opcode
+        raise NotImplementedError("TODO: $%x PULS" % opcode)
 
     @opcode( # Pull A, B, CC, DP, D, X, Y, S, or PC from hardware stack
         0x37, # PULU (immediate)
@@ -947,7 +947,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": ccccc
         """
         # Update CC bits: ccccc
-        raise NotImplementedError("TODO: $%x PULU") % opcode
+        raise NotImplementedError("TODO: $%x PULU" % opcode)
 
     @opcode( # 
         0x3e, # RESET* (inherent)
@@ -962,7 +962,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": *****
         """
         # Update CC bits: *****
-        raise NotImplementedError("TODO: $%x RESET") % opcode
+        raise NotImplementedError("TODO: $%x RESET" % opcode)
 
     @opcode( # Rotate accumulator or memory left
         0x9, 0x69, 0x79, # ROL (direct, indexed, extended)
@@ -979,7 +979,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aaas
         """
         self.CC_NZVC(a, b, r)
-        raise NotImplementedError("TODO: $%x ROL") % opcode
+        raise NotImplementedError("TODO: $%x ROL" % opcode)
 
     @opcode( # Rotate accumulator or memory right
         0x6, 0x66, 0x76, # ROR (direct, indexed, extended)
@@ -996,7 +996,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa-s
         """
         self.CC_NZC()
-        raise NotImplementedError("TODO: $%x ROR") % opcode
+        raise NotImplementedError("TODO: $%x ROR" % opcode)
 
     @opcode( # Return from interrupt
         0x3b, # RTI (inherent)
@@ -1012,7 +1012,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x RTI") % opcode
+        raise NotImplementedError("TODO: $%x RTI" % opcode)
 
     @opcode( # Return from subroutine
         0x39, # RTS (inherent)
@@ -1026,7 +1026,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x RTS") % opcode
+        raise NotImplementedError("TODO: $%x RTS" % opcode)
 
     @opcode( # Subtract memory from accumulator with borrow
         0x82, 0x92, 0xa2, 0xb2, # SBCA (immediate, direct, indexed, extended)
@@ -1044,7 +1044,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": uaaaa
         """
         self.CC_NZVC(a, b, r)
-        raise NotImplementedError("TODO: $%x SBC") % opcode
+        raise NotImplementedError("TODO: $%x SBC" % opcode)
 
     @opcode( # Sign Extend B accumulator into A accumulator
         0x1d, # SEX (inherent)
@@ -1059,7 +1059,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa0-
         """
         self.CC_NZ0()
-        raise NotImplementedError("TODO: $%x SEX") % opcode
+        raise NotImplementedError("TODO: $%x SEX" % opcode)
 
     @opcode( # Store stack pointer to memory
         0xdd, 0xed, 0xfd, # STD (direct, indexed, extended)
@@ -1078,7 +1078,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa0-
         """
         self.CC_NZ0_16()
-        raise NotImplementedError("TODO: $%x ST16") % opcode
+        raise NotImplementedError("TODO: $%x ST16" % opcode)
 
     @opcode( # Store accumulator to memroy
         0x97, 0xa7, 0xb7, # STA (direct, indexed, extended)
@@ -1093,7 +1093,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa0-
         """
         self.CC_NZ0()
-        raise NotImplementedError("TODO: $%x ST8") % opcode
+        raise NotImplementedError("TODO: $%x ST8" % opcode)
 
     @opcode( # Subtract memory from D accumulator
         0x83, 0x93, 0xa3, 0xb3, # SUBD (immediate, direct, indexed, extended)
@@ -1109,7 +1109,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aaaa
         """
         self.CC_NZVC_16(a, b, r)
-        raise NotImplementedError("TODO: $%x SUB16") % opcode
+        raise NotImplementedError("TODO: $%x SUB16" % opcode)
 
     @opcode( # Subtract memory from accumulator
         0x80, 0x90, 0xa0, 0xb0, # SUBA (immediate, direct, indexed, extended)
@@ -1126,7 +1126,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": uaaaa
         """
         self.CC_NZVC(a, b, r)
-        raise NotImplementedError("TODO: $%x SUB8") % opcode
+        raise NotImplementedError("TODO: $%x SUB8" % opcode)
 
     @opcode( # Software interrupt (absolute indirect)
         0x3f, # SWI (inherent)
@@ -1142,7 +1142,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x SWI") % opcode
+        raise NotImplementedError("TODO: $%x SWI" % opcode)
 
     @opcode( # Software interrupt (absolute indirect)
         0x103f, # SWI2 (inherent)
@@ -1159,7 +1159,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x SWI2") % opcode
+        raise NotImplementedError("TODO: $%x SWI2" % opcode)
 
     @opcode( # Software interrupt (absolute indirect)
         0x113f, # SWI3 (inherent)
@@ -1175,7 +1175,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x SWI3") % opcode
+        raise NotImplementedError("TODO: $%x SWI3" % opcode)
 
     @opcode( # Synchronize with interrupt line
         0x13, # SYNC (inherent)
@@ -1190,7 +1190,7 @@ class CPU6809Skeleton(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("TODO: $%x SYNC") % opcode
+        raise NotImplementedError("TODO: $%x SYNC" % opcode)
 
     @opcode( # Transfer R1 to R2
         0x1f, # TFR (immediate)
@@ -1206,7 +1206,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": ccccc
         """
         # Update CC bits: ccccc
-        raise NotImplementedError("TODO: $%x TFR") % opcode
+        raise NotImplementedError("TODO: $%x TFR" % opcode)
 
     @opcode( # Test accumulator or memory location
         0xd, 0x6d, 0x7d, # TST (direct, indexed, extended)
@@ -1229,7 +1229,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa0-
         """
         self.CC_NZ0()
-        raise NotImplementedError("TODO: $%x TST") % opcode
+        raise NotImplementedError("TODO: $%x TST" % opcode)
 
 """
 No ops for:

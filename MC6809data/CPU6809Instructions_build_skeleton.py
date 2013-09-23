@@ -182,7 +182,7 @@ for instr_key, instr_data in sorted(INSTRUCTION_INFO.items()):
             else:
                 cc_call_line += "()"
             print cc_call_line
-        print '        raise NotImplementedError("TODO: $%%x %s") %% opcode' % func_name
+        print '        raise NotImplementedError("TODO: $%%x %s" %% opcode)' % func_name
         print
 
 print '"""'
