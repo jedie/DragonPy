@@ -1451,8 +1451,28 @@ class CPU(object):
 
         CC bits "HNZVC": -aa0-
         """
+
+        raise NotImplementedError(
+            "TODO: operand should be a object with get/set methods!"
+        )
+
+        reg_type = op & 0x42
+        reg_dict = {
+            0x02: "index_x", # X - 16 bit index register
+            0x40: "accu_D", # D - 16 bit concatenated reg. (A + B)
+            0x42: "user_stack_pointer", # U - 16 bit user-stack pointer
+        }
+        reg_name = reg_dict[reg_type]
+        log.debug("$%x LD16 set %s to $%x \t| %s" % (
+            self.program_counter,
+            reg_name, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        setattr(self, reg_name, ea)
+        self.cc.set_NZC16(ea)
+
         self.CC_NZ0_16()
-        raise NotImplementedError("TODO: $%x LD16" % opcode)
+
 
     @opcode(# Load accumulator from memory
         0x86, 0x96, 0xa6, 0xb6, # LDA (immediate, direct, indexed, extended)
@@ -2445,31 +2465,9 @@ class OLD:
         else:
             self.accu.B = ea
 
-    @opcode([
-        0x8e, 0x9e, 0xae, 0xbe, # LDX
-        0xcc, 0xdc, 0xec, 0xfc, # LDD
-        0xce, 0xde, 0xee, 0xfe, # LDU
-    ])
-    def LD16(self):
-        """ LD 16-bit load register from memory """
-        self.cycles += 5
-        op = self.opcode
-        ea = self.get_ea16(op)
 
-        reg_type = op & 0x42
-        reg_dict = {
-            0x02: "index_x", # X - 16 bit index register
-            0x40: "accu_D", # D - 16 bit concatenated reg. (A + B)
-            0x42: "user_stack_pointer", # U - 16 bit user-stack pointer
-        }
-        reg_name = reg_dict[reg_type]
-        log.debug("$%x LD16 set %s to $%x \t| %s" % (
-            self.program_counter,
-            reg_name, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
-        setattr(self, reg_name, ea)
-        self.cc.set_NZC16(ea)
+
+
 
 
 if __name__ == "__main__":
