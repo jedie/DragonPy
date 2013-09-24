@@ -11,8 +11,7 @@
 
 import unittest
 
-from cpu_utils.accumulators import Accumulators
-from cpu_utils.condition_code_register import ConditionCodeRegister
+from cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
 
 
 class BaseTestCase(unittest.TestCase):
@@ -40,5 +39,7 @@ class TextTestRunner2(unittest.TextTestRunner):
 
 class TestCPU(object):
     def __init__(self):
-        self.accu = Accumulators(self)
+        self.accu_a = ValueStorage8Bit("A", 0) # A - 8 bit accumulator
+        self.accu_b = ValueStorage8Bit("B", 0) # B - 8 bit accumulator
+        # 8 bit condition code register bits: E F H I N Z V C
         self.cc = ConditionCodeRegister()
