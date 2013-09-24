@@ -475,10 +475,8 @@ class CPU6809Skeleton(object):
 
     @opcode( # Complement accumulator or memory location
         0x3, 0x63, 0x73, # COM (direct, indexed, extended)
-        0x43, # COMA (inherent)
-        0x53, # COMB (inherent)
     )
-    def instruction_COM(self, opcode, ea=None, operand=None):
+    def instruction_COM(self, opcode, ea=None):
         """
         Replaces the contents of memory location M or accumulator A or B with
         its logical complement. When operating on unsigned values, only BEQ and
@@ -491,6 +489,25 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa01
         """
         raise NotImplementedError("TODO: $%x COM" % opcode)
+        self.cc.update_NZ01()
+
+    @opcode( # Complement accumulator or memory location
+        0x43, # COMA (inherent)
+        0x53, # COMB (inherent)
+    )
+    def instruction_COM_register(self, opcode, operand=None):
+        """
+        Replaces the contents of memory location M or accumulator A or B with
+        its logical complement. When operating on unsigned values, only BEQ and
+        BNE branches can be expected to behave properly following a COM
+        instruction. When operating on twos complement values, all signed
+        branches are available.
+
+        source code forms: COM Q; COMA; COMB
+
+        CC bits "HNZVC": -aa01
+        """
+        raise NotImplementedError("TODO: $%x COM_register" % opcode)
         self.cc.update_NZ01()
 
     @opcode( # AND condition code register, then wait for interrupt

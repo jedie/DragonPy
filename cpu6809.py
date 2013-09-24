@@ -468,8 +468,11 @@ class CPU(CPU6809Skeleton):
                 else:
                     addr_func = self.immediate_word
             else:
-                addr_func_name = MC6809data.ADDRES_MODE_DICT[addr_mode_id].lower()
-                addr_func = getattr(self, addr_func_name)
+                addr_func_name = MC6809data.ADDRES_MODE_DICT[addr_mode_id]
+                if addr_func_name == MC6809data.INHERENT:
+                    addr_func = None
+                else:
+                    addr_func = getattr(self, addr_func_name.lower())
 
 #             log.debug("op code $%x data:" % opcode)
 #             log.debug(pprint.pformat(opcode_data))
@@ -530,15 +533,13 @@ class CPU(CPU6809Skeleton):
             log.error(msg)
             sys.exit(msg)
 
-        unbound_addr_method = instruction.addr_func
-#         log.debug("unbound_addr_method: %s" % repr(unbound_addr_method))
-        ea = unbound_addr_method()
-#         log.debug("ea: %s" % repr(ea))
+        func_kwargs = {"opcode": opcode}
 
-        func_kwargs = {
-            "opcode": opcode,
-            "ea": ea,
-        }
+        unbound_addr_method = instruction.addr_func
+        if unbound_addr_method is not None:
+#             log.debug("unbound_addr_method: %s" % repr(unbound_addr_method))
+            func_kwargs["ea"] = unbound_addr_method()
+#             log.debug("ea: %s" % repr(ea))
 
         if instruction.operand is not None:
             func_kwargs["operand"] = instruction.operand
@@ -552,13 +553,16 @@ class CPU(CPU6809Skeleton):
             ))
             log.debug(pprint.pformat(instruction))
         else:
-            log.debug("$%x *** last op code %s count: %s - new op code: $%x (%s)" % (
+            opcode_data = MC6809OP_DATA_DICT[opcode]
+            log.debug("$%x *** last op code %s count: %s - new op code: $%x (%s -> %s)" % (
                 self.program_counter - 1, self.last_op_code, self.same_op_count,
-                opcode, instruction.instr_func.__name__
+                opcode, opcode_data["mnemonic"], instruction.instr_func.__name__
             ))
             self.same_op_count = 0
 
         self.last_op_code = opcode
+
+        log.debug("kwargs: %s" % repr(func_kwargs))
 
         instruction.instr_func(**func_kwargs)
         self.cycles += instruction.cycles
@@ -798,9 +802,6 @@ class CPU(CPU6809Skeleton):
         ))
         return value
 
-    def inherent(self):
-        raise NotImplementedError
-
     def relative(self):
         raise NotImplementedError
 
@@ -808,6 +809,56 @@ class CPU(CPU6809Skeleton):
         raise NotImplementedError
 
     #### Op methods:
+
+    @opcode(# Complement accumulator or memory location
+        0x3, 0x63, 0x73, # COM (direct, indexed, extended)
+    )
+    def instruction_COM(self, opcode, ea):
+        """
+        Replaces the contents of memory location M with
+        its logical complement. When operating on unsigned values, only BEQ and
+        BNE branches can be expected to behave properly following a COM
+        instruction. When operating on twos complement values, all signed
+        branches are available.
+
+        source code forms: COM Q; COMA; COMB
+
+        CC bits "HNZVC": -aa01
+        """
+        value = ea ^ -1
+        log.debug("$%x COM $%x to $%x \t| %s" % (
+            self.program_counter,
+            ea, value,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.cc.update_NZ01_8(value)
+        self.memory.write_byte(ea, value)
+
+    @opcode(# Complement accumulator or memory location
+        0x43, # COMA (inherent)
+        0x53, # COMB (inherent)
+    )
+    def instruction_COM_register(self, opcode, operand):
+        """
+        Replaces the contents of accumulator A or B with
+        its logical complement. When operating on unsigned values, only BEQ and
+        BNE branches can be expected to behave properly following a COM
+        instruction. When operating on twos complement values, all signed
+        branches are available.
+
+        source code forms: COM Q; COMA; COMB
+
+        CC bits "HNZVC": -aa01
+        """
+        old_value = operand.get()
+        value = old_value ^ -1
+        operand.set(value)
+        log.debug("$%x COM %s from $%x to $%x \t| %s" % (
+            self.program_counter,
+            operand.name, old_value, value,
+            self.cfg.mem_info.get_shortest(value)
+        ))
+        self.cc.update_NZ01_8(value)
 
     @opcode(# Jump
         0xe, 0x6e, 0x7e, # JMP (direct, indexed, extended)

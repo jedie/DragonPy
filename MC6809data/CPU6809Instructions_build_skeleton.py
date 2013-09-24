@@ -42,6 +42,9 @@ SPLIT_MNEMONIC = {
     "LEAU": "LEA_pointer",
     "LEAX": "LEA_register",
     "LEAY": "LEA_register",
+
+    "COMA": "COM_register",
+    "COMB": "COM_register",
 }
 
 class Tee(object):
