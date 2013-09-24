@@ -11,7 +11,13 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-def opcode(): raise NotImplementedError
+def opcode(*opcodes):
+    """A decorator for opcodes"""
+    def decorator(func):
+        setattr(func, "_is_opcode", True)
+        setattr(func, "_opcodes", opcodes)
+        return func
+    return decorator
 
 class CPU6809Skeleton(object):
     @opcode( # Add B accumulator to X (unsigned)
@@ -70,7 +76,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": aaaaa
         """
         raise NotImplementedError("TODO: $%x ADD8" % opcode)
-        self.cc.update_HNZVC(a, b, r)
+        self.cc.update_HNZVC_8(a, b, r)
 
     @opcode( # AND memory with accumulator
         0x84, 0x94, 0xa4, 0xb4, # ANDA (immediate, direct, indexed, extended)
@@ -465,7 +471,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": uaaaa
         """
         raise NotImplementedError("TODO: $%x CMP8" % opcode)
-        self.cc.update_NZVC(a, b, r)
+        self.cc.update_NZVC_8(a, b, r)
 
     @opcode( # Complement accumulator or memory location
         0x3, 0x63, 0x73, # COM (direct, indexed, extended)
@@ -666,7 +672,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa0-
         """
         raise NotImplementedError("TODO: $%x LD8" % opcode)
-        self.cc.update_NZ0()
+        self.cc.update_NZ0_8()
 
     @opcode( # Load effective address into stack pointer
         0x32, # LEAS (indexed)
@@ -1093,7 +1099,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": -aa0-
         """
         raise NotImplementedError("TODO: $%x ST8" % opcode)
-        self.cc.update_NZ0()
+        self.cc.update_NZ0_8()
 
     @opcode( # Subtract memory from D accumulator
         0x83, 0x93, 0xa3, 0xb3, # SUBD (immediate, direct, indexed, extended)
@@ -1126,7 +1132,7 @@ class CPU6809Skeleton(object):
         CC bits "HNZVC": uaaaa
         """
         raise NotImplementedError("TODO: $%x SUB8" % opcode)
-        self.cc.update_NZVC(a, b, r)
+        self.cc.update_NZVC_8(a, b, r)
 
     @opcode( # Software interrupt (absolute indirect)
         0x3f, # SWI (inherent)

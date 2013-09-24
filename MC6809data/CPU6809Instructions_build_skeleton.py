@@ -64,9 +64,15 @@ sys.stdout = Tee("MC6809_skeleton.py", sys.stdout)
 
 
 print '"""%s"""' % __doc__
-print
-print "def opcode(): raise NotImplementedError"
-print
+print '''
+def opcode(*opcodes):
+    """A decorator for opcodes"""
+    def decorator(func):
+        setattr(func, "_is_opcode", True)
+        setattr(func, "_opcodes", opcodes)
+        return func
+    return decorator
+'''
 print "class CPU6809Skeleton(object):"
 
 
@@ -179,6 +185,8 @@ for instr_key, instr_data in sorted(INSTRUCTION_INFO.items()):
             cc_call_line = '        self.cc.update_%s' % cc_func
             if instr_key.endswith("16"):
                 cc_call_line += "_16"
+            elif instr_key.endswith("8"):
+                cc_call_line += "_8"
 
             if cc_bits[3] in ("a", "d") or cc_bits[0] in ("a", "d"):
                 cc_call_line += "(a, b, r)"
