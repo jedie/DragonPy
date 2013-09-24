@@ -170,6 +170,17 @@ class ConditionCodeRegister(object):
 #         self.set_V16(a, b, r)
 #         self.set_C16(r)
 
+    def update_NZ8(self, r):
+        self.set_N8(r)
+        self.set_Z8(r)
+
+    def update_0100(self):
+        """ CC bits "HNZVC": -0100 """
+        self.N = 0
+        self.Z = 1
+        self.V = 0
+        self.C = 0
+
     def update_NZ01_8(self, r):
         self.set_N8(r)
         self.set_Z8(r)

@@ -551,7 +551,7 @@ class CPU(object):
                 self.program_counter - 1, opcode, instruction.instr_func.__name__,
                 repr(func_kwargs),
             ))
-            log.debug(pprint.pformat(instruction))
+#             log.debug(pprint.pformat(instruction))
         else:
             opcode_data = MC6809OP_DATA_DICT[opcode]
             log.debug("$%x *** last op code %s count: %s - new op code: $%x (%s -> %s)" % (
@@ -562,7 +562,7 @@ class CPU(object):
 
         self.last_op_code = opcode
 
-        log.debug("kwargs: %s" % repr(func_kwargs))
+#         log.debug("kwargs: %s" % repr(func_kwargs))
 
         instruction.instr_func(**func_kwargs)
         self.cycles += instruction.cycles
@@ -1355,12 +1355,34 @@ class CPU(object):
         raise NotImplementedError("$%x DAA" % opcode)
         # Update CC bits: -aa0a
 
-    @opcode(# Decrement accumulator or memory location
+    def DEC(self, a):
+        """
+        #define SET_Z(r)          ( REG_CC |= ((r) ? 0 : CC_Z) )
+        #define SET_N8(r)         ( REG_CC |= (r&0x80)>>4 )
+        #define SET_NZ8(r)        ( SET_N8(r), SET_Z(r&0xff) )
+
+        #define CLR_NZV   ( REG_CC &= ~(CC_N|CC_Z|CC_V) )
+
+        static uint8_t op_dec(struct MC6809 *cpu, uint8_t in) {
+            unsigned out = in - 1;
+            CLR_NZV;
+            SET_NZ8(out);
+            if (out == 0x7f) REG_CC |= CC_V;
+            return out;
+        }
+
+        tmp1 = op_dec(cpu, tmp1); break; // DEC, DECA, DECB
+        """
+        r = a - 1
+        self.cc.update_NZ8(r)
+        if r == 0x7f:
+            self.cc.V = 1
+        return r
+
+    @opcode(# Decrement memory location
         0xa, 0x6a, 0x7a, # DEC (direct, indexed, extended)
-        0x4a, # DECA (inherent)
-        0x5a, # DECB (inherent)
     )
-    def instruction_DEC(self, opcode, ea=None, operand=None):
+    def instruction_DEC(self, opcode, ea):
         """
         Subtract one from the operand. The carry bit is not affected, thus
         allowing this instruction to be used as a loop counter in multiple-
@@ -1368,12 +1390,32 @@ class CPU(object):
         BNE branches can be expected to behave consistently. When operating on
         twos complement values, all signed branches are available.
 
-        source code forms: DEC Q; DECA; DECB
+        source code forms: DEC Q
 
         CC bits "HNZVC": -aaa-
         """
-        raise NotImplementedError("$%x DEC" % opcode)
-        # self.cc.update_NZV(a, b, r)
+        r = self.DEC(ea)
+        self.memory.write_byte(ea, r)
+
+    @opcode(# Decrement accumulator
+        0x4a, # DECA (inherent)
+        0x5a, # DECB (inherent)
+    )
+    def instruction_DEC_register(self, opcode, operand):
+        """
+        Subtract one from the operand. The carry bit is not affected, thus
+        allowing this instruction to be used as a loop counter in multiple-
+        precision computations. When operating on unsigned values, only BEQ and
+        BNE branches can be expected to behave consistently. When operating on
+        twos complement values, all signed branches are available.
+
+        source code forms: DECA; DECB
+
+        CC bits "HNZVC": -aaa-
+        """
+        a = operand.get()
+        r = self.DEC(a)
+        operand.set(r)
 
     @opcode(# Exclusive OR memory with accumulator
         0x88, 0x98, 0xa8, 0xb8, # EORA (immediate, direct, indexed, extended)
