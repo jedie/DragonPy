@@ -18,23 +18,23 @@ import textwrap
 from MC6809_data_raw import OP_CATEGORIES, INSTRUCTION_INFO, OP_DATA, ADDRES_MODE_DICT
 
 HNZVC_FUNC_MAP = {
-    "-aa0-": "CC_NZ0",
+    "-aa0-": "NZ0",
 
-    "uaaaa": "CC_NZVC",
-    "-aaaa": "CC_NZVC",
-    "naaas": "CC_NZVC",
-    "-aaas": "CC_NZVC",
+    "uaaaa": "NZVC",
+    "-aaaa": "NZVC",
+    "naaas": "NZVC",
+    "-aaas": "NZVC",
 
-    "aaaaa": "CC_HNZVC",
+    "aaaaa": "HNZVC",
 
-    "uaa-s": "CC_NZC",
-    "-aa-s": "CC_NZC",
+    "uaa-s": "NZC",
+    "-aa-s": "NZC",
 
-    "-aaa-": "CC_NZV",
+    "-aaa-": "NZV",
 
-    "-aa01": "CC_NZ01",
-    "-0a-s": "CC_0ZC",
-    "-0100": "CC_0100",
+    "-aa01": "NZ01",
+    "-0a-s": "0ZC",
+    "-0100": "0100",
 }
 
 SPLIT_MNEMONIC = {
@@ -109,7 +109,7 @@ def print_func(func_name, ops):
     else:
         print '    @opcode('
 
-    
+
     for mnemonic, ops in sorted(op_info.items()):
         line = "        "
         opcodes = []
@@ -166,6 +166,8 @@ for instr_key, instr_data in sorted(INSTRUCTION_INFO.items()):
     for func_name, ops in sorted(splitted_ops.items()):
         print_func(func_name, ops)
 
+        print '        raise NotImplementedError("TODO: $%%x %s" %% opcode)' % func_name
+
         cc_bits = instr_data["HNZVC"]
         try:
             cc_func = HNZVC_FUNC_MAP[cc_bits]
@@ -173,7 +175,8 @@ for instr_key, instr_data in sorted(INSTRUCTION_INFO.items()):
             if cc_bits != "-----":
                 print "        # Update CC bits: %s" % cc_bits
         else:
-            cc_call_line = '        self.%s' % cc_func
+
+            cc_call_line = '        self.cc.update_%s' % cc_func
             if instr_key.endswith("16"):
                 cc_call_line += "_16"
 
@@ -182,7 +185,6 @@ for instr_key, instr_data in sorted(INSTRUCTION_INFO.items()):
             else:
                 cc_call_line += "()"
             print cc_call_line
-        print '        raise NotImplementedError("TODO: $%%x %s" %% opcode)' % func_name
         print
 
 print '"""'
