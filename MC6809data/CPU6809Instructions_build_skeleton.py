@@ -38,13 +38,13 @@ HNZVC_FUNC_MAP = {
 }
 
 SPLIT_MNEMONIC = {
-    "LEAS": "LEA_pointer",
-    "LEAU": "LEA_pointer",
-    "LEAX": "LEA_register",
-    "LEAY": "LEA_register",
-
-    "COMA": "COM_register",
-    "COMB": "COM_register",
+#     "LEAS": "LEA_pointer",
+#     "LEAU": "LEA_pointer",
+#     "LEAX": "LEA_register",
+#     "LEAY": "LEA_register",
+#
+#     "COMA": "COM_register",
+#     "COMB": "COM_register",
 }
 
 class Tee(object):
@@ -175,7 +175,7 @@ for instr_key, instr_data in sorted(INSTRUCTION_INFO.items()):
     for func_name, ops in sorted(splitted_ops.items()):
         print_func(func_name, ops)
 
-        print '        raise NotImplementedError("TODO: $%%x %s" %% opcode)' % func_name
+        print '        raise NotImplementedError("$%%x %s" %% opcode)' % func_name
 
         cc_bits = instr_data["HNZVC"]
         try:
@@ -185,7 +185,7 @@ for instr_key, instr_data in sorted(INSTRUCTION_INFO.items()):
                 print "        # Update CC bits: %s" % cc_bits
         else:
 
-            cc_call_line = '        self.cc.update_%s' % cc_func
+            cc_call_line = '        #self.cc.update_%s' % cc_func
             if instr_key.endswith("16"):
                 cc_call_line += "_16"
             elif instr_key.endswith("8"):
