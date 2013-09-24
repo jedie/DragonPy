@@ -1538,8 +1538,8 @@ class CPU(object):
 
         CC bits "HNZVC": -aa0-
         """
-        raise NotImplementedError("$%x LD8" % opcode)
-        # self.cc.update_NZ0_8()
+        operand.set(ea)
+        self.cc.update_NZ0_8(ea)
 
     @opcode(# Load effective address into stack pointer
         0x32, # LEAS (indexed)
@@ -2431,24 +2431,7 @@ class OLD:
         self.memory.write_byte(ea, r)
         self.cc.set_NZV16(r)
 
-    @opcode([
-        0x86, 0x96, 0xa6, 0xb6, # LDA
-        0xc6, 0xd6, 0xe6, 0xf6, # LDB
-    ])
-    def LD8(self):
-        """ LD 8-bit load register from memory
-        case 0x6: tmp1 = op_ld(cpu, 0, tmp2); break; // LDA, LDB
-        """
-        self.cycles += 5
-        op = self.opcode
-        ea = self.get_ea16(op)
 
-        self.cc.set_NZC8(ea)
-
-        if not op & 0x40:
-            self.accu.A = ea
-        else:
-            self.accu.B = ea
 
 
 
