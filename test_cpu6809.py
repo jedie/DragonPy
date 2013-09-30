@@ -23,7 +23,12 @@ class BaseTestCase(unittest.TestCase):
         self.cpu = CPU(cfg)
 
     def cpu_test_run(self, start, end, mem):
+        for cell in mem:
+            self.assertLess(-1, cell, "$%x < 0" % cell)
+            self.assertGreater(0x100, cell, "$%x > 0xff" % cell)
         self.cpu.memory.load(start, mem)
+        if end is None:
+            end = start + len(mem)
         self.cpu.test_run(start, end)
 
 
