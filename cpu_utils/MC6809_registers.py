@@ -132,11 +132,13 @@ class ConditionCodeRegister(object):
     def set_C16(self, r):
         self.C = 1 if r & 0x10000 else 0
 
-    def set_V8(self, a, b, r): # FIXME
-        self.V = 1 if (a ^ b ^ r ^ (r >> 1)) & 0x80 else 0
+    def set_V8(self, a, b, r):
+        if self.V == 0 and (a ^ b ^ r ^ (r >> 1)) & 0x80:
+            self.V = 1
 
-    def set_V16(self, a, b, r): # FIXME
-        self.V = 1 if (a ^ b ^ r ^ (r >> 1)) & 0x8000 else 0
+    def set_V16(self, a, b, r):
+        if self.V == 0 and (a ^ b ^ r ^ (r >> 1)) & 0x8000:
+            self.V = 1
 
     ####
 
