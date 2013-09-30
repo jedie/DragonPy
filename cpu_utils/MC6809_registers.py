@@ -37,6 +37,7 @@ class ValueStorage(object):
 
     def set(self, v):
         self.value = v
+        return self.value # e.g.: r = operand.set(a + 1)
     def get(self):
         return self.value
 
@@ -52,6 +53,7 @@ class ValueStorage8Bit(ValueStorage):
             v = v & 0xff
             log.warning(" ^^^^ Value for %s (8-bit) truncated to $%x" % (self.name, v))
         self.value = v
+        return self.value # e.g.: r = operand.set(a + 1)
     def __str__(self):
         return "<%s (8-Bit):%s>" % (self.name, repr(self.value))
 
@@ -63,6 +65,7 @@ class ValueStorage16Bit(ValueStorage):
             v = v & 0xffff
             log.warning(" ^^^^ Value for %s (16-bit) truncated to $%x" % (self.name, v))
         self.value = v
+        return self.value # e.g.: r = operand.set(a + 1)
     def __str__(self):
         return "<%s (8-Bit):%s>" % (self.name, repr(self.value))
 
@@ -198,6 +201,11 @@ class ConditionCodeRegister(object):
         self.set_N16(r)
         self.set_Z16(r)
         self.V = 0
+        
+    def update_NZV_8(self, a, b, r):
+        self.set_N8(r)
+        self.set_Z8(r)
+        self.set_V8(a, b, r)
 
     def update_HNZVC(self, a, b, r):
         self.set_H(a, b, r)

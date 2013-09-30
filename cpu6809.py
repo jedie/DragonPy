@@ -1449,12 +1449,31 @@ class CPU(object):
         raise NotImplementedError("$%x EXG" % opcode)
         # Update CC bits: ccccc
 
-    @opcode(# Increment accumulator or memory location
-        0xc, 0x6c, 0x7c, # INC (direct, indexed, extended)
+    @opcode(# Increment accumulator
         0x4c, # INCA (inherent)
         0x5c, # INCB (inherent)
     )
-    def instruction_INC(self, opcode, ea=None, operand=None):
+    def instruction_INC_register(self, opcode, operand):
+        """
+        Adds to the operand. The carry bit is not affected, thus allowing this
+        instruction to be used as a loop counter in multiple-precision
+        computations. When operating on unsigned values, only the BEQ and BNE
+        branches can be expected to behave consistently. When operating on twos
+        complement values, all signed branches are correctly available.
+
+        source code forms: INC Q; INCA; INCB
+
+        CC bits "HNZVC": -aaa-
+        """
+        a = operand.get()
+        r = operand.set(a + 1)
+        self.cc.update_NZV_8(a=a, b=1, r=r)
+
+
+    @opcode(# Increment memory location
+        0xc, 0x6c, 0x7c, # INC (direct, indexed, extended)
+    )
+    def instruction_INC_memory(self, opcode, ea=None, operand=None):
         """
         Adds to the operand. The carry bit is not affected, thus allowing this
         instruction to be used as a loop counter in multiple-precision
