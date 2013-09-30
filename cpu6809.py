@@ -176,11 +176,11 @@ class Memory(object):
         self.cpu.cycles += 1
         if 0x400 <= address < 0x600:
             # FIXME: to default text screen
-            log.debug(" **** write $%x to text screen address $%x" % (value, address))
-            return
+            log.debug(" **** TODO: write $%x to text screen address $%x" % (value, address))
 
         if address < self.cfg.RAM_END:
             self.ram.write_byte(address, value)
+
         if 0x400 <= address < 0x800 or 0x2000 <= address < 0x5FFF:
             self.bus_write(address, value)
 
@@ -200,7 +200,7 @@ class Memory(object):
 
     def bus_write(self, address, value):
 #         self.cpu.cycles += 1 # ???
-        if not self.use_bus:
+        if not self.use_bus or bus is None:
             return
         op = struct.pack("<IBHB", self.cpu.cycles, 1, address, value)
         try:

@@ -128,7 +128,20 @@ class Test6809_Ops(BaseTestCase):
 #         ))
 #         self.accu_a += value
 
+class Test6809_Ops2(BaseTestCase):
+    def test_print(self):
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0x86, 0xfe, # LDA A=$fe
+            0x4C, # INCA A+=1
+            0xB7, 0x04, 0x00, # STA 0x0400 (start of text screen)
 
+            # LDB 0xff
+            # 0x81, 0xff, # CMPA 0xff
+            # 0x23, # BLS 0xffff (if A == 0xff: goto $ffff)
+
+            # 0x7E, 0x10, 0x05, # JMP 0x1003 (loop)
+        ])
+        self.assertEqual(self.cpu.memory.read_byte(0x0400), 0xff)
 
 
 if __name__ == '__main__':
@@ -149,6 +162,7 @@ if __name__ == '__main__':
 #             "Test6809_Ops.test_TFR02",
 #             "Test6809_Ops.test_CMPX_extended",
 #             "Test6809_AddressModes",
+             "Test6809_Ops2",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
