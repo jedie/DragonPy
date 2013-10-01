@@ -803,7 +803,14 @@ class CPU(object):
         return value
 
     def relative(self):
-        raise NotImplementedError
+        x = self.read_pc_byte()
+        x = signed8(x)
+        ea = self.program_counter + x
+        log.debug("$%x addressing 'relative' ea = $%x + %i = $%x \t| %s" % (
+            self.program_counter, self.program_counter, x, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        return ea
 
     def variant(self):
         raise NotImplementedError
