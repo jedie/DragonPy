@@ -1097,7 +1097,7 @@ class CPU(object):
         0x26, # BNE (relative)
         0x1026, # LBNE (relative)
     )
-    def instruction_BNE(self, opcode, ea=None):
+    def instruction_BNE(self, opcode, ea):
         """
         Tests the state of the Z (zero) bit and causes a branch if it is clear.
         When used after a subtract or compare operation on any binary values,
@@ -1108,7 +1108,15 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BNE" % opcode)
+        if self.cc.Z == 0:
+            log.debug("$%x BNE branch to $%x \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BNE: don't branch to $%x, because Z == 1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
 
     @opcode(# Branch if plus
         0x2a, # BPL (relative)
