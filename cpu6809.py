@@ -438,9 +438,9 @@ class CPU(object):
     ####
 
     def _add_ops(self, opcodes, instr_func):
-        log.debug("%20s: %s" % (
-            instr_func.__name__, ",".join(["$%x" % c for c in opcodes])
-        ))
+#         log.debug("%20s: %s" % (
+#             instr_func.__name__, ",".join(["$%x" % c for c in opcodes])
+#         ))
         for opcode in opcodes:
             assert opcode not in self.opcode_dict, \
                 "Opcode $%x (%s) defined more then one time!" % (
