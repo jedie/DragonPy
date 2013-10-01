@@ -704,10 +704,11 @@ class CPU(object):
 
     def direct(self):
         value = self.read_pc_byte()
-        ea = self.direct_page << 8 | value
+        dp = self.direct_page.get()
+        ea = dp << 8 | value
         log.debug("$%x addressing 'direct' value: $%x << 8 | $%x = $%x \t| %s" % (
             self.program_counter,
-            self.direct_page, value, ea,
+            dp, value, ea,
             self.cfg.mem_info.get_shortest(ea)
         ))
         return ea
