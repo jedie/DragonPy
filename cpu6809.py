@@ -2136,15 +2136,15 @@ class CPU(object):
         raise NotImplementedError("$%x TFR" % opcode)
         # Update CC bits: ccccc
 
-    @opcode(# Test accumulator or memory location
-        0xd, 0x6d, 0x7d, # TST (direct, indexed, extended)
+
+    @opcode(# Test accumulator
         0x4d, # TSTA (inherent)
         0x5d, # TSTB (inherent)
     )
-    def instruction_TST(self, opcode, ea=None, operand=None):
+    def instruction_TST_register(self, opcode, operand):
         """
         Set the N (negative) and Z (zero) bits according to the contents of
-        memory location M, and clear the V (overflow) bit. The TST instruction
+        accumulator A or B, and clear the V (overflow) bit. The TST instruction
         provides only minimum information when testing unsigned values; since no
         unsigned value is less than zero, BLO and BLS have no utility. While BHI
         could be used after TST, it provides exactly the same control as BNE,
@@ -2156,8 +2156,18 @@ class CPU(object):
 
         CC bits "HNZVC": -aa0-
         """
-        raise NotImplementedError("$%x TST" % opcode)
-        # self.cc.update_NZ0()
+        x = operand.get()
+        self.cc.update_NZ0_8(x)
+
+    @opcode(0xd, 0x6d) # TST (direct, indexed)
+    def instruction_TST_memory_8(self, opcode, ea):
+        """ Test memory location 8-Bit """
+        self.cc.update_NZ0_8(ea)
+
+    @opcode(0x7d) # TST extended
+    def instruction_TST_memory_16(self, opcode, ea):
+        """ Test memory location 16-Bit """
+        self.cc.update_NZ0_16(ea)
 
 
 
