@@ -74,11 +74,9 @@ class Test6809_Ops(BaseTestCase):
         self.cpu.index_x.set(512) # source
         self.assertEqual(self.cpu.index_y.get(), 0) # destination
 
-        self.cpu_test_run(start=0x1000, end=0x1002, mem=[
+        self.cpu_test_run(start=0x1000, end=None, mem=[
             0x1f, # TFR
             0x12, # from index register X (0x01) to Y (0x02)
-            0x1f, # TFR
-            0x9a, # from accumulator B (0x09) to condition code register CC (0x9a)
         ])
         self.assertEqual(self.cpu.index_y.get(), 512)
 
@@ -88,7 +86,7 @@ class Test6809_Ops(BaseTestCase):
 
         self.cpu_test_run(start=0x1000, end=0x1002, mem=[
             0x1f, # TFR
-            0x9a, # from accumulator B (0x09) to condition code register CC (0x9a)
+            0x9a, # from accumulator B (0x9) to condition code register CC (0xa)
         ])
         self.assertEqual(self.cpu.cc.get(), 0x55) # destination
 
