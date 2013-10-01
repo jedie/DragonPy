@@ -503,13 +503,14 @@ class CPU(object):
         return self.register_dict[addr_str]
 
     def get_register(self, addr):
-        log.debug("get register value from %s" % hex(addr))
         reg_obj = self._get_register_obj(addr)
-        return reg_obj.get()
+        value = reg_obj.get()
+        log.debug("get register value $%x from %s ($%x)" % (value, reg_obj.name, addr))
+        return value
 
     def set_register(self, addr, value):
-        log.debug("set register %s to %s" % (hex(addr), hex(value)))
         reg_obj = self._get_register_obj(addr)
+        log.debug("set register %s ($%x) to $%x" % (reg_obj.name, addr, value))
         return reg_obj.set(value)
 
     ####
@@ -2120,10 +2121,8 @@ class CPU(object):
         """
         raise NotImplementedError("$%x SYNC" % opcode)
 
-    @opcode(# Transfer R1 to R2
-        0x1f, # TFR (immediate)
-    )
-    def instruction_TFR(self, opcode, ea=None):
+    @opcode(0x1f) # TFR (immediate)
+    def instruction_TFR(self, opcode, ea):
         """
         0000 = A:B 1000 = A 0001 = X 1001 = B 0010 = Y 1010 = CCR 0011 = US 1011
         = DPR 0100 = SP 1100 = Undefined 0101 = PC 1101 = Undefined 0110 =
@@ -2133,8 +2132,15 @@ class CPU(object):
 
         CC bits "HNZVC": ccccc
         """
-        raise NotImplementedError("$%x TFR" % opcode)
-        # Update CC bits: ccccc
+        high, low = divmod(ea, 16)
+        log.debug("$%x TFR: post byte: $%x -> high: $%x low: $%x" % (
+            self.program_counter, ea, high, low
+        ))
+        # TODO: check if source and dest has the same size?
+        source = self.get_register(high)
+        self.set_register(low, source)
+
+        # TODO: Update CC bits: ccccc ?
 
 
     @opcode(# Test accumulator
@@ -2342,24 +2348,6 @@ class OLD:
             self.accu.B = value
         else:
             self.memory.write_byte(ea, value)
-
-    @opcode(0x1f)
-    def TFR(self):
-        """
-        TransFeR Register to Register
-        Number of Program Bytes: 2
-        Copies data in register r1 to another register r2 of the same size.
-        Addressing Mode: immediate register numbers
-        """
-        self.cycles += 7
-        post_byte = self.immediate_byte
-        high, low = divmod(post_byte, 16)
-        log.debug("$%x TFR: post byte: %s high: %s low: %s" % (
-            self.program_counter, hex(post_byte), hex(high), hex(low)
-        ))
-        # TODO: check if source and dest has the same size
-        source = self.get_register(high)
-        self.set_register(low, source)
 
     #### 8-bit arithmetic operations
 
