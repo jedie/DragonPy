@@ -1015,8 +1015,13 @@ class CPU(object):
 
         CC bits "HNZVC": -aa0-
         """
-        raise NotImplementedError("$%x BIT" % opcode)
-        # self.cc.update_NZ0()
+        x = operand.get()
+        r = ea & x
+        log.debug("$%x BIT update CC with $%x (ea:%i & %s:%i)" % (
+            self.program_counter,
+            r, ea, operand.name, x
+        ))
+        self.cc.update_NZ0_8(r)
 
     @opcode(# Branch if less than or equal (signed)
         0x2f, # BLE (relative)
