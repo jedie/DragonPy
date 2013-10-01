@@ -929,7 +929,7 @@ class CPU(object):
         0x27, # BEQ (relative)
         0x1027, # LBEQ (relative)
     )
-    def instruction_BEQ(self, opcode, ea=None):
+    def instruction_BEQ(self, opcode, ea):
         """
         Tests the state of the Z (zero) bit and causes a branch if it is set.
         When used after a subtract or compare operation, this instruction will
@@ -940,7 +940,15 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BEQ" % opcode)
+        if self.cc.Z == 1:
+            log.debug("$%x BEQ branch to $%x, because Z==1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BEQ: don't branch to $%x, because Z==0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
 
     @opcode(# Branch if greater than or equal (signed)
         0x2c, # BGE (relative)
@@ -1004,7 +1012,7 @@ class CPU(object):
         0x85, 0x95, 0xa5, 0xb5, # BITA (immediate, direct, indexed, extended)
         0xc5, 0xd5, 0xe5, 0xf5, # BITB (immediate, direct, indexed, extended)
     )
-    def instruction_BIT(self, opcode, ea=None, operand=None):
+    def instruction_BIT(self, opcode, ea, operand):
         """
         Performs the logical AND of the contents of accumulator A or B and the
         contents of memory location M and modifies the condition codes
@@ -1114,12 +1122,12 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if self.cc.Z == 0:
-            log.debug("$%x BNE branch to $%x \t| %s" % (
+            log.debug("$%x BNE branch to $%x, because Z==0 \t| %s" % (
                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
             ))
             self.program_counter = ea
         else:
-            log.debug("$%x BNE: don't branch to $%x, because Z == 1 \t| %s" % (
+            log.debug("$%x BNE: don't branch to $%x, because Z==1 \t| %s" % (
                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
             ))
 
