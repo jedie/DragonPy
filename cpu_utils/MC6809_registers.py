@@ -23,6 +23,13 @@ def signed8(x):
     return x
 
 
+def unsigned8(x):
+    """ convert a signed 8-Bit value into a unsigned value """
+    if x < 0:
+        x = x + 0x0100 # 0x100 == 2**8 == 256
+    return x
+
+
 def signed16(x):
     """ convert to signed 16-bit """
     if x > 0x7fff: # 0x7fff ==  2**15-1 == 32767
@@ -136,45 +143,23 @@ class ConditionCodeRegister(object):
     def set_C16(self, r):
         self.C = 1 if r & 0x10000 else 0
 
-    def set_V8(self, a, b, r):
-        if self.V == 0 and (a ^ b ^ r ^ (r >> 1)) & 0x80:
+    def set_V8(self, a, b, r): # FIXME
+        if self.V == 0 and ((a ^ b ^ r ^ (r >> 1)) & 0x80):
             self.V = 1
 
     def set_V16(self, a, b, r):
-        if self.V == 0 and (a ^ b ^ r ^ (r >> 1)) & 0x8000:
+        if self.V == 0 and ((a ^ b ^ r ^ (r >> 1)) & 0x8000):
             self.V = 1
 
     ####
 
-#     def update_NZ8(self, r):
-#         self.set_N8(r)
-#         self.set_Z8(r)
-#
-#     def update_NZ16(self, r):
-#         self.set_N16(r)
-#         self.set_Z16(r)
-#
-#     def update_NZC8(self, r):
-#         self.set_N8(r)
-#         self.set_Z8(r)
-#         self.set_C8(r)
-#
-#     def update_NZC16(self, r):
-#         self.set_N16(r)
-#         self.set_Z16(r)
-#         self.set_C16(r)
-#
-#     def update_NZVC8(self, a, b, r): # FIXME
-#         self.set_N8(r)
-#         self.set_Z8(r)
-#         self.set_V8(a, b, r)
-#         self.set_C8(r)
-#
-#     def update_NZVC16(self, a, b, r): # FIXME
-#         self.set_N16(r)
-#         self.set_Z16(r)
-#         self.set_V16(a, b, r)
-#         self.set_C16(r)
+    def clear_NZVC(self):
+        self.N = 0
+        self.Z = 0
+        self.V = 0
+        self.C = 0
+
+    ####
 
     def update_NZ8(self, r):
         self.set_N8(r)
@@ -202,11 +187,17 @@ class ConditionCodeRegister(object):
         self.set_N16(r)
         self.set_Z16(r)
         self.V = 0
-        
+
     def update_NZV_8(self, a, b, r):
         self.set_N8(r)
         self.set_Z8(r)
         self.set_V8(a, b, r)
+
+    def update_NZVC_8(self, a, b, r):
+        self.set_N8(r)
+        self.set_Z8(r)
+        self.set_V8(a, b, r)
+        self.set_C8(r)
 
     def update_HNZVC(self, a, b, r):
         self.set_H(a, b, r)

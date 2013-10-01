@@ -38,7 +38,7 @@ from DragonPy_CLI import DragonPyCLI
 from MC6809data import MC6809_data_raw as MC6809data
 from MC6809data.MC6809_skeleton import CPU6809Skeleton
 from cpu_utils.MC6809_registers import ValueStorage8Bit, ConcatenatedAccumulator, \
-    ValueStorage16Bit, ConditionCodeRegister
+    ValueStorage16Bit, ConditionCodeRegister, unsigned8
 
 log = logging.getLogger("DragonPy")
 
@@ -1701,12 +1701,11 @@ class CPU(object):
         raise NotImplementedError("$%x MUL" % opcode)
         # Update CC bits: --a-a
 
-    @opcode(# Negate accumulator or memory
-        0x0, 0x60, 0x70, # NEG (direct, indexed, extended)
+    @opcode(# Negate accumulator
         0x40, # NEGA (inherent)
         0x50, # NEGB (inherent)
     )
-    def instruction_NEG(self, opcode, ea=None, operand=None):
+    def instruction_NEG_register(self, opcode, operand):
         """
         Replaces the operand with its twos complement. The C (carry) bit
         represents a borrow and is set to the inverse of the resulting binary
@@ -1718,8 +1717,57 @@ class CPU(object):
 
         CC bits "HNZVC": uaaaa
         """
+        x1 = operand.get()
+        x2 = signed8(x1)
+        r1 = x2 * -1
+        r2 = unsigned8(r1)
+        operand.set(r2)
+        log.debug("$%x NEG %s unsigned:$%x (signed:$%x) to unsigned:$%x (signed:$%x) \t| %s" % (
+            self.program_counter,
+            operand.name, x1, x2, r1, r2,
+            self.cfg.mem_info.get_shortest(r2)
+        ))
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_8(0, x1, r2)
+
+    @opcode(0x0, 0x60, 0x70) # NEG (direct, indexed, extended)
+    def instruction_NEG_memory(self, opcode, ea=None, operand=None):
+        """ Negate memory """
         raise NotImplementedError("$%x NEG" % opcode)
         # self.cc.update_NZVC(a, b, r)
+
+#     @opcode([
+#         0x40, # NEGA
+#         0x50, # NEGB
+#         0x00, 0x60, 0x70 # NEG
+#     ])
+#     def NEG(self):
+#         """
+#         Negate (Twos Complement) a Byte in Memory
+#         Number of Program Bytes: 2
+#         Addressing Mode: direct
+#         """
+#         self.cycles += 6
+#         reg_type = divmod(self.opcode, 16)[0]
+#         reg_dict = {
+#             0x0: self.direct,
+#             0x4: "accu.A",
+#             0x5: "accu.B",
+#             0x6: self.indexed,
+#             0x7: self.extended,
+#         }
+#         ea, txt = reg_dict[reg_type]
+#
+
+#         value = -ea
+#         self.cc.set_NZVC8(0, ea, value)
+#
+#         if reg_type == 0x4:
+#             self.accu.A = value
+#         elif reg_type == 0x5:
+#             self.accu.B = value
+#         else:
+#             self.memory.write_byte(ea, value)
 
     @opcode(# No operation
         0x12, # NOP (inherent)
@@ -2313,42 +2361,7 @@ class OLD:
         ))
         self.memory.write_byte(address, result)
 
-    @opcode([
-        0x40, # NEGA
-        0x50, # NEGB
-        0x00, 0x60, 0x70 # NEG
-    ])
-    def NEG(self):
-        """
-        Negate (Twos Complement) a Byte in Memory
-        Number of Program Bytes: 2
-        Addressing Mode: direct
-        """
-        self.cycles += 6
-        reg_type = divmod(self.opcode, 16)[0]
-        reg_dict = {
-            0x0: self.direct,
-            0x4: "accu.A",
-            0x5: "accu.B",
-            0x6: self.indexed,
-            0x7: self.extended,
-        }
-        ea, txt = reg_dict[reg_type]
 
-        log.debug("$%x NEG %s $%x \t| %s" % (
-            self.program_counter,
-            txt, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
-        value = -ea
-        self.cc.set_NZVC8(0, ea, value)
-
-        if reg_type == 0x4:
-            self.accu.A = value
-        elif reg_type == 0x5:
-            self.accu.B = value
-        else:
-            self.memory.write_byte(ea, value)
 
     #### 8-bit arithmetic operations
 

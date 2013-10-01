@@ -113,6 +113,42 @@ class Test6809_Ops(BaseTestCase):
         self.assertEqual(self.cpu.cc.get(), 0x04)
         self.assertEqual(self.cpu.cc.C, 1)
 
+    def test_NEGA_01(self):
+        self.cpu.accu_a.set(0x0) # source
+
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0x40, # NEGA (inherent)
+        ])
+        self.assertEqual(self.cpu.accu_a.get(), 0x0)
+        self.assertEqual(self.cpu.cc.N, 0)
+        self.assertEqual(self.cpu.cc.Z, 1)
+        self.assertEqual(self.cpu.cc.V, 0)
+        self.assertEqual(self.cpu.cc.C, 0)
+
+    def test_NEGA_02(self):
+        self.cpu.accu_a.set(0x80) # source: 0x80 == 128 signed: -128 $-80
+
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0x40, # NEGA (inherent)
+        ])
+        self.assertEqual(self.cpu.accu_a.get(), 0x80)
+        self.assertEqual(self.cpu.cc.N, 1)
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.assertEqual(self.cpu.cc.V, 1) # FIXME
+        self.assertEqual(self.cpu.cc.C, 0)
+
+    def test_NEGA_03(self):
+        self.cpu.accu_a.set(0x1) # source: signed: 1 == unsigned: 1
+
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0x40, # NEGA (inherent)
+        ])
+        self.assertEqual(self.cpu.accu_a.get(), 0xff) # signed: -1 -> unsigned: 255 == 0xff
+        self.assertEqual(self.cpu.cc.N, 1)
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.assertEqual(self.cpu.cc.V, 0) # FIXME
+        self.assertEqual(self.cpu.cc.C, 0)
+
 
 #     @opcode(0xbb)
 #     def ADDA_extended(self):
@@ -157,10 +193,12 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
+            "Test6809_Ops",
 #             "Test6809_Ops.test_TFR02",
 #             "Test6809_Ops.test_CMPX_extended",
+#             "Test6809_Ops.test_NEGA_02",
 #             "Test6809_AddressModes",
-             "Test6809_Ops2",
+#             "Test6809_Ops2",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
