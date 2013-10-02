@@ -490,7 +490,7 @@ class CPU(object):
 
                     instr_kwargs["addr_func"] = func
 
-            log.debug("op code $%x data: %s" % (opcode, repr(instr_kwargs)))
+#             log.debug("op code $%x data: %s" % (opcode, repr(instr_kwargs)))
 # #             log.debug(pprint.pformat(opcode_data))
 #             log.debug(repr(opcode_data))
 #             log.debug(pprint.pformat(instr_kwargs))
@@ -2196,7 +2196,7 @@ class CPU(object):
         0x80, 0x90, 0xa0, 0xb0, # SUBA (immediate, direct, indexed, extended)
         0xc0, 0xd0, 0xe0, 0xf0, # SUBB (immediate, direct, indexed, extended)
     )
-    def instruction_SUB8(self, opcode, ea=None, operand=None):
+    def instruction_SUB8(self, opcode, ea, m, operand):
         """
         Subtracts the value in memory location M from the contents of a
         designated 8-bit register. The C (carry) bit represents a borrow and is
@@ -2206,8 +2206,18 @@ class CPU(object):
 
         CC bits "HNZVC": uaaaa
         """
-        raise NotImplementedError("$%x SUB8" % opcode)
-        # self.cc.update_NZVC_8(a, b, r)
+        x1 = operand.get()
+        x2 = signed8(x1)
+        r1 = m - x2
+        r2 = unsigned8(r1)
+        operand.set(r2)
+        log.debug("$%x SUB8 %s: %i - %i = %i (signed: %i)" % (
+            self.program_counter,
+            operand.name,
+            x2, m, r1, r2,
+        ))
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_8(x1, m, r2)
 
     @opcode(# Software interrupt (absolute indirect)
         0x3f, # SWI (inherent)

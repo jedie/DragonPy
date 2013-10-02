@@ -68,6 +68,17 @@ class Test6809_CC(BaseTestCase):
         self.assertEqual(self.cpu.accu_a.get(), 0x1e)
         self.assertEqual(self.cpu.accu_b.get(), 0x12)
 
+    def test_SUBA01(self):
+        # TODO: !
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0x86, 0x80, # LDA #-128
+            0x80, 0x01, # SUBA #1
+        ])
+        self.assertEqual(self.cpu.accu_a.get(), 0xff) # signed: -1 -> unsigned: 255 == 0xff
+        self.assertEqual(self.cpu.cc.N, 1)
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.assertEqual(self.cpu.cc.V, 0) # FIXME
+        self.assertEqual(self.cpu.cc.C, 0)
 
 class Test6809_Ops(BaseTestCase):
     def test_TFR01(self):
@@ -150,6 +161,7 @@ class Test6809_Ops(BaseTestCase):
         self.assertEqual(self.cpu.cc.C, 0)
 
 
+
 #     @opcode(0xbb)
 #     def ADDA_extended(self):
 #         """
@@ -193,7 +205,8 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-            "Test6809_Ops",
+            "Test6809_CC",
+#             "Test6809_Ops",
 #             "Test6809_Ops.test_TFR02",
 #             "Test6809_Ops.test_CMPX_extended",
 #             "Test6809_Ops.test_NEGA_02",
