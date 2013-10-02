@@ -377,8 +377,13 @@ class SoftSwitches(object):
                 return self.cassette.read_byte(cycle)
         else:
             pass # print "%04X" % address
-        log.debug("no soft switch at %s (cycle: %s)" % (hex(address), hex(cycle)))
-        raise
+
+        msg = "ERROR: no soft switch at $%x (cycle: %s) \t| %s" % (
+            address, cycle,
+            self.cfg.mem_info.get_shortest(address)
+        )
+        log.debug(msg)
+#         raise NotImplementedError(msg)
         return 0x00
 
 
