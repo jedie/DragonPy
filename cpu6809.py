@@ -957,7 +957,7 @@ class CPU(object):
         0x8b, 0x9b, 0xab, 0xbb, # ADDA (immediate, direct, indexed, extended)
         0xcb, 0xdb, 0xeb, 0xfb, # ADDB (immediate, direct, indexed, extended)
     )
-    def instruction_ADD8(self, opcode, ea=None, operand=None):
+    def instruction_ADD8(self, opcode, ea, m, operand):
         """
         Adds the memory byte into an 8-bit accumulator.
 
@@ -965,8 +965,18 @@ class CPU(object):
 
         CC bits "HNZVC": aaaaa
         """
-        raise NotImplementedError("$%x ADD8" % opcode)
-        # self.cc.update_HNZVC_8(a, b, r)
+        x1 = operand.get()
+        x2 = signed8(x1)
+        r1 = x2 + m
+        r2 = unsigned8(r1)
+        operand.set(r2)
+        log.debug("$%x ADD8 %s: %i + %i = %i (unsigned: %i)" % (
+            self.program_counter,
+            operand.name,
+            x2, m, r1, r2,
+        ))
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_8(x1, m, r2)
 
     @opcode(# AND memory with accumulator
         0x84, 0x94, 0xa4, 0xb4, # ANDA (immediate, direct, indexed, extended)
@@ -1678,8 +1688,8 @@ class CPU(object):
 
         CC bits "HNZVC": -aa0-
         """
-        operand.set(ea)
-        self.cc.update_NZ0_8(ea)
+        operand.set(m)
+        self.cc.update_NZ0_8(m)
 
     @opcode(# Load effective address into stack pointer
         0x32, # LEAS (indexed)
@@ -2208,10 +2218,10 @@ class CPU(object):
         """
         x1 = operand.get()
         x2 = signed8(x1)
-        r1 = m - x2
+        r1 = x2 - m
         r2 = unsigned8(r1)
         operand.set(r2)
-        log.debug("$%x SUB8 %s: %i - %i = %i (signed: %i)" % (
+        log.debug("$%x SUB8 %s: %i - %i = %i (unsigned: %i)" % (
             self.program_counter,
             operand.name,
             x2, m, r1, r2,

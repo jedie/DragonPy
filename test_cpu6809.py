@@ -85,17 +85,28 @@ class Test6809_CC(BaseTestCase):
         self.assertEqual(self.cpu.accu_a.get(), 0x1e)
         self.assertEqual(self.cpu.accu_b.get(), 0x12)
 
-    def test_SUBA01(self):
-        # TODO: !
+    def test_Overflow01(self):
         self.cpu_test_run(start=0x1000, end=None, mem=[
             0x86, 0x80, # LDA #-128
             0x80, 0x01, # SUBA #1
         ])
-        self.assertEqual(self.cpu.accu_a.get(), 0xff) # signed: -1 -> unsigned: 255 == 0xff
-        self.assertEqual(self.cpu.cc.N, 1)
-        self.assertEqual(self.cpu.cc.Z, 0)
-        self.assertEqual(self.cpu.cc.V, 0) # FIXME
-        self.assertEqual(self.cpu.cc.C, 0)
+        self.assertEqual(self.cpu.accu_a.get(), 0x7f) # $7f == signed: 127 == unsigned: 127
+        self.assertEqual(self.cpu.cc.N, 0) # N - 0x08 - bit 3 - Negative result (twos complement)
+        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
+        self.assertEqual(self.cpu.cc.V, 1) # V - 0x02 - bit 1 - Overflow
+        self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
+
+    def test_Overflow02(self):
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0x86, 0x7F, # LDA #+127
+            0x8B, 0x01, # ADDA #1
+        ])
+        self.assertEqual(self.cpu.accu_a.get(), 0x80) # $80 == signed: -128 == unsigned: 128
+        self.assertEqual(self.cpu.cc.N, 1) # N - 0x08 - bit 3 - Negative result (twos complement)
+        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
+        self.assertEqual(self.cpu.cc.V, 1) # V - 0x02 - bit 1 - Overflow
+        self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
+
 
 class Test6809_Ops(BaseTestCase):
     def test_TFR01(self):
