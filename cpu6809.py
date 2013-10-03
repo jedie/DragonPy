@@ -555,7 +555,7 @@ class CPU(object):
             ea, m = unbound_addr_method()
             func_kwargs["ea"] = ea
             func_kwargs["m"] = m
-            log.debug("ea: $%x  m = $%x" % (ea, m))
+            # log.debug("ea: $%x  m = $%x" % (ea, m))
 
         if instruction.operand is not None:
             func_kwargs["operand"] = instruction.operand
@@ -588,6 +588,7 @@ class CPU(object):
             print >> sys.stderr, pprint.pformat(func_kwargs)
             raise
         self.cycles += instruction.cycles
+        log.debug("-"*79)
 
     def run(self, bus_port):
         global bus
@@ -595,6 +596,8 @@ class CPU(object):
         bus.connect(("127.0.0.1", bus_port))
 
         assert self.cfg.bus != None
+
+        log.debug("-"*79)
 
 #         while not self.quit:
 #         for x in xrange(10):
@@ -625,6 +628,7 @@ class CPU(object):
 
     def test_run(self, start, end):
         self.program_counter = start
+        log.debug("-"*79)
         while True:
             if self.program_counter == end:
                 break
