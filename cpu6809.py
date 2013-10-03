@@ -406,7 +406,7 @@ class CPU(object):
 
         self.cycles = 0
 
-        log.debug("Add opcode functions:")
+#         log.debug("Add opcode functions:")
         self.opcode_dict = {}
 
         # Get the members not from class instance, so that's possible to
@@ -424,7 +424,7 @@ class CPU(object):
             instr_func = getattr(self, name)
             self._add_ops(opcodes, instr_func)
 
-        log.debug("illegal ops: %s" % ",".join(["$%x" % c for c in ILLEGAL_OPS]))
+#         log.debug("illegal ops: %s" % ",".join(["$%x" % c for c in ILLEGAL_OPS]))
         # add illegal ops
         for illegal_ops in ILLEGAL_OPS:
             self.opcode_dict[illegal_ops] = self.illegal_op
