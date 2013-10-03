@@ -49,6 +49,23 @@ class Test6809_AddressModes(BaseTestCase):
         self.assertEqual(hex(value), hex(0xf))
 
 
+class Test6809_Register(BaseTestCase):
+    def test_registerA(self):
+        for i in xrange(255):
+            self.cpu.accu_a.set(i)
+            t = self.cpu.accu_a.get()
+            self.assertEqual(i, t)
+
+    def test_registerA_overflow(self):
+        self.cpu.accu_a.set(256)
+        t = self.cpu.accu_a.get()
+        self.assertEqual(0, t)
+
+        self.cpu.accu_a.set(257)
+        t = self.cpu.accu_a.get()
+        self.assertEqual(1, t)
+
+
 class Test6809_CC(BaseTestCase):
     """
     condition code register tests
@@ -205,6 +222,7 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
+#             "Test6809_Register"
             "Test6809_CC",
 #             "Test6809_Ops",
 #             "Test6809_Ops.test_TFR02",
