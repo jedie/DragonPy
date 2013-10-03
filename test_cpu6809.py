@@ -31,6 +31,10 @@ class BaseTestCase(unittest.TestCase):
             end = start + len(mem)
         self.cpu.test_run(start, end)
 
+    def assertEqualHex(self, first, second):
+        msg = "$%x != $%x" % (first, second)
+        self.assertEqual(first, second, msg)
+
 
 class Test6809_AddressModes(BaseTestCase):
     def test_base_page_direct01(self):
@@ -205,17 +209,18 @@ class Test6809_Ops(BaseTestCase):
 class Test6809_Ops2(BaseTestCase):
     def test_print(self):
         self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x86, 0xfe, # LDA A=$fe
-            0x4C, # INCA A+=1
-            0xB7, 0x04, 0x00, # STA 0x0400 (start of text screen)
+            0x86, 0x12, # LDA A=$12
+            0xC6, 0x34, # LDB B=$34
 
-            # LDB 0xff
-            # 0x81, 0xff, # CMPA 0xff
-            # 0x23, # BLS 0xffff (if A == 0xff: goto $ffff)
+            0xB7, 0x06, 0x00, # STA 0x0600 (extended) ($0600-1dff = Available graphics pages w/o DOS)
+            0xF7, 0x06, 0x01, # STB 0x0601 (extended)
 
-            # 0x7E, 0x10, 0x05, # JMP 0x1003 (loop)
+            0xFC, 0x06, 0x00, # LDD 0x0600 (extended)
         ])
-        self.assertEqual(self.cpu.memory.read_byte(0x0400), 0xff)
+        self.assertEqualHex(self.cpu.memory.read_word(0x0600), 0x1234)
+        self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
+        self.assertEqualHex(self.cpu.accu_a.get(), 0x12)
+        self.assertEqualHex(self.cpu.accu_b.get(), 0x34)
 
 
 if __name__ == '__main__':
@@ -234,13 +239,13 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #             "Test6809_Register"
-            "Test6809_CC",
+#             "Test6809_CC",
 #             "Test6809_Ops",
 #             "Test6809_Ops.test_TFR02",
 #             "Test6809_Ops.test_CMPX_extended",
 #             "Test6809_Ops.test_NEGA_02",
 #             "Test6809_AddressModes",
-#             "Test6809_Ops2",
+            "Test6809_Ops2",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,

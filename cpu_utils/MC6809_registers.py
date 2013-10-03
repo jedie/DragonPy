@@ -204,6 +204,9 @@ class ConditionCodeRegister(object):
 
 
 class ConcatenatedAccumulator(object):
+    """
+    6809 has register D - 16 bit concatenated reg. (A + B)
+    """
     def __init__(self, name, a, b):
         self.name = name
         self._a = a

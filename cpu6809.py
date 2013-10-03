@@ -1692,6 +1692,11 @@ class CPU(object):
 
         CC bits "HNZVC": -aa0-
         """
+        log.debug("$%x LD8 %s = $%x \t| %s" % (
+            self.program_counter,
+            operand.name, m,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
         operand.set(m)
         self.cc.update_NZ0_8(m)
 
