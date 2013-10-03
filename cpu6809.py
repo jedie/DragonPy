@@ -847,7 +847,7 @@ class CPU(object):
         log.debug("$%x get 'indexed' byte: ea = $%x m = $%x" % (
             self.program_counter, ea, m,
         ))
-        return m, ea
+        return ea, m
 
     def indexed_word(self):
         ea = self.get_indexed_ea()
@@ -855,7 +855,7 @@ class CPU(object):
         log.debug("$%x get 'indexed' word: ea = $%x m = $%x" % (
             self.program_counter, ea, m,
         ))
-        return m, ea
+        return ea, m
 
     def get_extended_ea(self):
         """
@@ -873,7 +873,7 @@ class CPU(object):
         log.debug("$%x get 'extended' byte: ea = $%x m = $%x" % (
             self.program_counter, ea, m,
         ))
-        return m, ea
+        return ea, m
 
     def extended_word(self):
         ea = self.get_extended_ea()
@@ -881,7 +881,7 @@ class CPU(object):
         log.debug("$%x get 'extended' word: ea = $%x m = $%x" % (
             self.program_counter, ea, m,
         ))
-        return m, ea
+        return ea, m
 
     def get_relative_ea(self):
         x = self.read_pc_byte()
@@ -899,7 +899,7 @@ class CPU(object):
         log.debug("$%x get 'relative' byte: ea = $%x m = $%x" % (
             self.program_counter, ea, m,
         ))
-        return m, ea
+        return ea, m
 
     def relative_word(self):
         ea = self.get_relative_ea()
@@ -907,7 +907,7 @@ class CPU(object):
         log.debug("$%x get 'relative' word: ea = $%x m = $%x" % (
             self.program_counter, ea, m,
         ))
-        return m, ea
+        return ea, m
 
     def variant(self):
         raise NotImplementedError
