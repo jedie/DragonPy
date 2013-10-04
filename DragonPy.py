@@ -338,7 +338,7 @@ class SoftSwitches(object):
 
     def __init__(self, cfg, display, speaker, cassette):
         self.cfg = cfg
-        self.kbd = 0x00
+        self.kbd = 0xBF
         self.display = display
         self.speaker = speaker
         self.cassette = cassette
@@ -349,34 +349,86 @@ class SoftSwitches(object):
         assert self.cfg.RAM_END <= address <= 0xFFFF, \
             "cycles: %s - address: %s" % (cycle, hex(address))
 
-        if address == 0xC000:
+        if 0xc000 <= address <= 0xfeff:
+            # $c000-dfff = DOS ROM area
+            # Available address range to cartridge expansion port 32K mode
+            log.debug("TODO: cartridge expansion ROM")
+            return 0x7E
+
+        # http://www.6809.org.uk/dragon/hardware.shtml#pia0
+        # PIA0: MC6821 Peripheral Interface Adaptor
+        if address == 0xff00:
+            log.debug(" *** TODO: PIA 0 A side data register")
             return self.kbd
-        elif address == 0xC010:
-            self.kbd = self.kbd & 0x7F
-        elif address == 0xC030:
-            if self.speaker:
-                self.speaker.toggle(cycle)
-        elif address == 0xC050:
-            self.display.txtclr()
-        elif address == 0xC051:
-            self.display.txtset()
-        elif address == 0xC052:
-            self.display.mixclr()
-        elif address == 0xC053:
-            self.display.mixset()
-        elif address == 0xC054:
-            self.display.lowscr()
-        elif address == 0xC055:
-            self.display.hiscr()
-        elif address == 0xC056:
-            self.display.lores()
-        elif address == 0xC057:
-            self.display.hires()
-        elif address == 0xC060:
-            if self.cassette:
-                return self.cassette.read_byte(cycle)
-        else:
-            pass # print "%04X" % address
+        elif address == 0xff01:
+            log.debug(" *** TODO: PIA 0 A side control register")
+            return 0xb3
+        elif address == 0xff02:
+            log.debug(" *** TODO: PIA 0 B side data register")
+            return 0x00
+        elif address == 0xff03:
+            log.debug(" *** TODO: PIA 0 B side control register")
+            return 0x35
+        elif address == 0xff20:
+            log.debug(" *** TODO: PIA 1 A side data register")
+            return 0x01
+        elif address == 0xff21:
+            log.debug(" *** TODO: PIA 1 A side control register")
+            return 0x34
+        elif address == 0xff22:
+            log.debug(" *** TODO: PIA 1 B side data register")
+            return 0x34
+        elif address == 0xff23:
+            log.debug(" *** TODO: PIA 1 B side control register")
+            return 0x37
+
+
+        if 0xffc0 <= address <= 0xffdf:
+            log.debug(" *** TODO: SAM (Synchronous Address Multiplexer) register bits")
+            return 0x7E
+
+        if 0xffc0 <= address <= 0xffc5:
+            # $ffc0/ffc1    SAM VDG Reg V0
+            # $ffc2/ffc3    SAM VDG Reg V1
+            # $ffc3/ffc5    SAM VDG Reg V2
+            return 0x7E
+
+        if 0xffc6 <= address <= 0xffd3:
+            log.debug(" *** TODO: SAM Display offset in 512 byte pages F0-F6")
+            return 0x7E
+
+        if 0xffdc <= address <= 0xffdd:
+            log.debug(" *** TODO: SAM Memory Size select bit M1")
+            return 0x7E
+
+#         if address == 0xC000:
+#             return self.kbd
+#         elif address == 0xC010:
+#             self.kbd = self.kbd & 0x7F
+#         elif address == 0xC030:
+#             if self.speaker:
+#                 self.speaker.toggle(cycle)
+#         elif address == 0xC050:
+#             self.display.txtclr()
+#         elif address == 0xC051:
+#             self.display.txtset()
+#         elif address == 0xC052:
+#             self.display.mixclr()
+#         elif address == 0xC053:
+#             self.display.mixset()
+#         elif address == 0xC054:
+#             self.display.lowscr()
+#         elif address == 0xC055:
+#             self.display.hiscr()
+#         elif address == 0xC056:
+#             self.display.lores()
+#         elif address == 0xC057:
+#             self.display.hires()
+#         elif address == 0xC060:
+#             if self.cassette:
+#                 return self.cassette.read_byte(cycle)
+#         else:
+#             pass # print "%04X" % address
 
         msg = "ERROR: no soft switch at $%x (cycle: %s) \t| %s" % (
             address, cycle,
