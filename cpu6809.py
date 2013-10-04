@@ -84,6 +84,16 @@ def byte2bit_string(data):
     return '{0:08b}'.format(data)
 
 
+def hex_repr(d):
+    txt = []
+    for k, v in sorted(d.items()):
+        if isinstance(v, int):
+            txt.append("%s=$%x" % (k, v))
+        else:
+            txt.append("%s=%s" % (k, v))
+    return " ".join(txt)
+
+
 def opcode(*opcodes):
     """A decorator for opcodes"""
     def decorator(func):
@@ -176,7 +186,9 @@ class Memory(object):
         self.cpu.cycles += 1
         if 0x400 <= address < 0x600:
             # FIXME: to default text screen
-            log.debug(" **** TODO: write $%x to text screen address $%x" % (value, address))
+            msg = " **** TODO: write $%x to text screen address $%x" % (value, address)
+            log.debug(msg)
+            raise NotImplementedError(msg)
 
         if address < self.cfg.RAM_END:
             self.ram.write_byte(address, value)
@@ -344,7 +356,8 @@ class ControlHandlerFactory:
 
 
 class Instruction(object):
-    def __init__(self, instr_func, addr_mode, cycles, addr_func=None, operand=None):
+    def __init__(self, mnemonic, instr_func, addr_mode, cycles, addr_func=None, operand=None):
+        self.mnemonic = mnemonic
         self.instr_func = instr_func
         self.addr_mode = addr_mode
         self.cycles = cycles
@@ -458,6 +471,7 @@ class CPU(object):
                 "instr_func":instr_func,
                 "addr_mode": opcode_data["addr_mode"],
                 "cycles": opcode_data["cycles"],
+                "mnemonic": opcode_data["mnemonic"],
             }
 
             operand_txt = opcode_data["operand"]
@@ -547,6 +561,19 @@ class CPU(object):
             log.error(msg)
             sys.exit(msg)
 
+        msg = (
+            "$%(pc)x"
+            "\t%(mnemonic)s"
+            "\t%(mode)s %(func)s"
+        ) % {
+            "pc": self.program_counter - 1,
+            "mnemonic": instruction.mnemonic,
+
+            "mode":instruction.addr_mode,
+            "func":instruction.instr_func.__name__,
+        }
+        log.debug(msg)
+
         func_kwargs = {"opcode": opcode}
 
         unbound_addr_method = instruction.addr_func
@@ -563,10 +590,8 @@ class CPU(object):
         if opcode == self.last_op_code:
             self.same_op_count += 1
         elif self.same_op_count == 0:
-            log.debug("$%x *** new op code: $%x (%s) '%s' kwargs: %s" % (
-                self.program_counter - 1,
-                opcode, instruction.addr_mode, instruction.instr_func.__name__,
-                repr(func_kwargs),
+            log.debug("$%x %s kwargs: %s" % (
+                self.program_counter - 1, instruction.instr_func.__name__, hex_repr(func_kwargs)
             ))
 #             log.debug(pprint.pformat(instruction))
         else:
@@ -670,13 +695,13 @@ class CPU(object):
     def get_ea_and_pc_byte(self):
         ea = self.get_and_inc_PC()
         m = self.memory.read_byte(ea)
-        log.debug("$%x read pc byte: $%x" % (ea, m))
+        log.debug("$%x read pc byte: $%02x" % (ea, m))
         return ea, m
 
     def get_ea_and_pc_word(self):
         ea = self.get_and_inc_PC(2)
         m = self.memory.read_word(ea)
-        log.debug("$%x read pc word: $%x" % (ea, m))
+        log.debug("$%x read pc word: $%04x" % (ea, m))
         return ea, m
 
     def read_pc_byte(self):

@@ -221,7 +221,9 @@ class ConcatenatedAccumulator(object):
         b = self._b.get()
         return a * 256 + b
 
+    def __str__(self):
+        return "<%s (16-Bit):%s>" % (self.name, repr(self.get()))
 
-def get_6809_registers():
-
-    return d
+# def get_6809_registers():
+#
+#     return d
