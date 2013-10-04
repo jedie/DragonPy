@@ -435,7 +435,7 @@ class SoftSwitches(object):
             self.cfg.mem_info.get_shortest(address)
         )
         log.debug(msg)
-#         raise NotImplementedError(msg)
+        raise NotImplementedError(msg)
         return 0x00
 
 

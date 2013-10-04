@@ -1868,6 +1868,8 @@ class CPU(object):
     @opcode(0x0, 0x60, 0x70) # NEG (direct, indexed, extended)
     def instruction_NEG_memory(self, opcode, ea, m):
         """ Negate memory """
+        if opcode == 0x0 and ea == 0x0 and m == 0x0:
+            raise RuntimeError
         m2 = signed8(m)
         r1 = m2 * -1
         r2 = unsigned8(r1)
