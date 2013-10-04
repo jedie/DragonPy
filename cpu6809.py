@@ -1255,12 +1255,12 @@ class CPU(object):
         """
         if self.cc.Z == 0:
             log.debug("$%x BNE branch to $%x, because Z==0 \t| %s" % (
-                self.program_counter, m, self.cfg.mem_info.get_shortest(m)
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
             ))
-            self.program_counter = m
+            self.program_counter = ea
         else:
             log.debug("$%x BNE: don't branch to $%x, because Z==1 \t| %s" % (
-                self.program_counter, m, self.cfg.mem_info.get_shortest(m)
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
             ))
 
     @opcode(# Branch if plus
@@ -1661,10 +1661,10 @@ class CPU(object):
         """
         log.debug("$%x JMP to $%x \t| %s" % (
             self.program_counter,
-            m,
-            self.cfg.mem_info.get_shortest(m)
+            ea,
+            self.cfg.mem_info.get_shortest(ea)
         ))
-        self.program_counter = m
+        self.program_counter = ea
 
     @opcode(# Jump to subroutine
         0x9d, 0xad, 0xbd, # JSR (direct, indexed, extended)
