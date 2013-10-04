@@ -1287,7 +1287,7 @@ class CPU(object):
         0x20, # BRA (relative)
         0x16, # LBRA (relative)
     )
-    def instruction_BRA(self, opcode, ea=None):
+    def instruction_BRA(self, opcode, ea, m):
         """
         Causes an unconditional branch.
 
@@ -1295,7 +1295,10 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BRA" % opcode)
+        log.debug("$%x BRA branch to $%x \t| %s" % (
+            self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.program_counter = ea
 
     @opcode(# Branch never
         0x21, # BRN (relative)
