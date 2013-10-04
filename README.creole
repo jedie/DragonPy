@@ -1,12 +1,14 @@
 == PyDragon32
 
-Some Python tools/script around Dragon32/64 homecomputer:
+Some Python/BASIC tools/script around Dragon32/64 homecomputer:
 
 * PyDC - Convert dragon 32 Cassetts WAV files into plain text:
 ** https://github.com/jedie/PyDragon32/tree/master/PyDC
 
 * Simple memory HEX viewer written in BASIC:
 ** https://github.com/jedie/PyDragon32/tree/master/HexViewer 
+
+All script are copyleft 2013 by Jens Diemer and license unter GNU GPL v3 or above, see LICENSE for more details.
 
 = donation
 
