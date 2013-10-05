@@ -2190,7 +2190,7 @@ class CPU(object):
         0x9f, 0xaf, 0xbf, # STX (direct, indexed, extended)
         0x109f, 0x10af, 0x10bf, # STY (direct, indexed, extended)
     )
-    def instruction_ST16(self, opcode, ea=None, operand=None):
+    def instruction_ST16(self, opcode, ea, m, operand):
         """
         Writes the contents of a 16-bit register into two consecutive memory
         locations.
@@ -2199,8 +2199,14 @@ class CPU(object):
 
         CC bits "HNZVC": -aa0-
         """
-        raise NotImplementedError("$%x ST16" % opcode)
-        # self.cc.update_NZ0_16()
+        value = operand.get()
+        log.debug("$%x ST16 store value $%x from %s at $%x \t| %s" % (
+            self.program_counter,
+            value, operand.name, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.cc.update_NZ0_16(value)
+        self.memory.write_word(ea, value)
 
     @opcode(# Store accumulator to memroy
         0x97, 0xa7, 0xb7, # STA (direct, indexed, extended)
@@ -2215,8 +2221,6 @@ class CPU(object):
         CC bits "HNZVC": -aa0-
         """
         value = operand.get()
-
-#         ea = self.get_ea16(op)
         log.debug("$%x ST8 store value $%x from %s at $%x \t| %s" % (
             self.program_counter,
             value, operand.name, ea,
