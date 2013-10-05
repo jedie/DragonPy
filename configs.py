@@ -42,7 +42,7 @@ class Dragon32Cfg(BaseConfig):
     ROM_END = 0xBFFF
     ROM_SIZE = 0x4000 # 16384 Bytes
 
-    STACK_PAGE = 0x100
+    STACK_PAGE = 0x7e36
 
     RESET_VECTOR = 0xB3B4 # RESET interrupt service routine (CoCo $a027)
 #     RESET_VECTOR = 0xB3BA # Cold start routine - clears lo mem, inits BASIC

@@ -196,6 +196,11 @@ class Memory(object):
         if 0x400 <= address < 0x800 or 0x2000 <= address < 0x5FFF:
             self.bus_write(address, value)
 
+    def write_word(self, address, value):
+        # 6809 is Big-Endian
+        self.write_byte(address, value >> 8)
+        self.write_byte(address + 1, value & 0xff)
+
     def bus_read(self, address):
 #         self.cpu.cycles += 1 # ???
         if not self.use_bus:
@@ -365,6 +370,19 @@ class Instruction(object):
         self.operand = operand
 
 
+# used in e.g.: CPU.register_dict and CPU.REGISTER_BIT2STR
+REG_A = "A"
+REG_PC = "PC"
+REG_S = "S"
+REG_B = "B"
+REG_U = "U"
+REG_D = "D"
+REG_Y = "Y"
+REG_X = "X"
+REG_CC = "CC"
+REG_DP = "DP"
+
+
 class CPU(object):
 
     def __init__(self, cfg):
@@ -376,45 +394,45 @@ class CPU(object):
         else:
             self.control_server = None
 
-        self.index_x = ValueStorage16Bit("X", 0) # X - 16 bit index register
-        self.index_y = ValueStorage16Bit("X", 0) # Y - 16 bit index register
+        self.index_x = ValueStorage16Bit(REG_X, 0) # X - 16 bit index register
+        self.index_y = ValueStorage16Bit(REG_Y, 0) # Y - 16 bit index register
 
-        self.user_stack_pointer = ValueStorage16Bit("U", 0) # U - 16 bit user-stack pointer
-        self.system_stack_pointer = ValueStorage16Bit("S", 0) # S - 16 bit system-stack pointer
+        self.user_stack_pointer = ValueStorage16Bit(REG_U, 0) # U - 16 bit user-stack pointer
+        self.system_stack_pointer = self.cfg.STACK_PAGE # S - 16 bit system-stack pointer
 
         # PC - 16 bit program counter register
-#         self.program_counter = ValueStorage16Bit("PC", -1)
-        self._program_counter = ValueStorage16Bit("PC", 0x8000)
-#         self.program_counter = ValueStorage16Bit("PC", 0xb3b4)
-#         self.program_counter = ValueStorage16Bit("PC", 0xb3ba)
+#         self._program_counter = ValueStorage16Bit(REG_PC, -1)
+        self._program_counter = ValueStorage16Bit(REG_PC, 0x8000)
+#         self._program_counter = ValueStorage16Bit(REG_PC, 0xb3b4)
+#         self._program_counter = ValueStorage16Bit(REG_PC, 0xb3ba)
 
-        self.accu_a = ValueStorage8Bit("A", 0) # A - 8 bit accumulator
-        self.accu_b = ValueStorage8Bit("B", 0) # B - 8 bit accumulator
+        self.accu_a = ValueStorage8Bit(REG_A, 0) # A - 8 bit accumulator
+        self.accu_b = ValueStorage8Bit(REG_B, 0) # B - 8 bit accumulator
 
         # D - 16 bit concatenated reg. (A + B)
-        self.accu_d = ConcatenatedAccumulator("D", self.accu_a, self.accu_b)
+        self.accu_d = ConcatenatedAccumulator(REG_D, self.accu_a, self.accu_b)
 
         # DP - 8 bit direct page register
-        self.direct_page = ValueStorage8Bit("DP", 0)
+        self.direct_page = ValueStorage8Bit(REG_DP, 0)
 
         # 8 bit condition code register bits: E F H I N Z V C
         self.cc = ConditionCodeRegister()
 
         self.register_dict = {
-            "X": self.index_x,
-            "Y": self.index_y,
+            REG_X: self.index_x,
+            REG_Y: self.index_y,
 
-            "U": self.user_stack_pointer,
-            "S": self.system_stack_pointer,
+            REG_U: self.user_stack_pointer,
+            REG_S: self.system_stack_pointer,
 
-            "PC": self._program_counter,
+            REG_PC: self._program_counter,
 
-            "A": self.accu_a,
-            "B": self.accu_b,
-            "D": self.accu_d,
+            REG_A: self.accu_a,
+            REG_B: self.accu_b,
+            REG_D: self.accu_d,
 
-            "DP": self.direct_page,
-            "CC": self.cc,
+            REG_DP: self.direct_page,
+            REG_CC: self.cc,
         }
 
         self.cycles = 0
@@ -513,21 +531,26 @@ class CPU(object):
     ####
 
     REGISTER_BIT2STR = {
-        0x00: "D", # 0000 - 16 bit concatenated reg.(A B)
-        0x01: "X", # 0001 - 16 bit index register
-        0x02: "Y", # 0010 - 16 bit index register
-        0x03: "U", # 0011 - 16 bit user-stack pointer
-        0x04: "S", # 0100 - 16 bit system-stack pointer
-        0x05: "PC", # 0101 - 16 bit program counter register
-        0x08: "A", # 1000 - 8 bit accumulator
-        0x09: "B", # 1001 - 8 bit accumulator
-        0x0a: "CC", # 1010 - 8 bit condition code register as flags
-        0x0b: "DP", # 1011 - 8 bit direct page register
+        0x00: REG_D, # 0000 - 16 bit concatenated reg.(A B)
+        0x01: REG_X, # 0001 - 16 bit index register
+        0x02: REG_Y, # 0010 - 16 bit index register
+        0x03: REG_U, # 0011 - 16 bit user-stack pointer
+        0x04: REG_S, # 0100 - 16 bit system-stack pointer
+        0x05: REG_PC, # 0101 - 16 bit program counter register
+        0x08: REG_A, # 1000 - 8 bit accumulator
+        0x09: REG_B, # 1001 - 8 bit accumulator
+        0x0a: REG_CC, # 1010 - 8 bit condition code register as flags
+        0x0b: REG_DP, # 1011 - 8 bit direct page register
     }
 
     def _get_register_obj(self, addr):
         addr_str = self.REGISTER_BIT2STR[addr]
-        return self.register_dict[addr_str]
+        reg_obj = self.register_dict[addr_str]
+#         log.debug("get register obj: addr: $%x addr_str: %s -> register: %s" % (
+#             addr, addr_str, reg_obj.name
+#         ))
+#         log.debug(repr(self.register_dict))
+        return reg_obj
 
     def get_register(self, addr):
         reg_obj = self._get_register_obj(addr)
@@ -686,7 +709,7 @@ class CPU(object):
 
     def get_S(self):
         """ return S - 16 bit system-stack pointer """
-        return self.stack_pointer
+        return self.system_stack_pointer
 
     def get_V(self):
         """ return V - 16 bit variable inter-register """
@@ -724,22 +747,29 @@ class CPU(object):
         return pc
 
     def push_byte(self, byte):
-        self.memory.write_byte(self.cfg.STACK_PAGE + self.stack_pointer, byte)
-        self.stack_pointer = (self.stack_pointer - 1) % 0x100
+        # FIXME: What's about a min. limit?
+        self.system_stack_pointer -= 1
+        log.debug("push $%x to stack at $%x" % (byte, self.system_stack_pointer))
+        self.memory.write_byte(self.system_stack_pointer, byte)
 
     def pull_byte(self):
-        self.stack_pointer = (self.stack_pointer + 1) % 0x100
-        return self.read_byte(self.cfg.STACK_PAGE + self.stack_pointer)
+        # FIXME: Max limit to self.cfg.STACK_PAGE ???
+        byte = self.read_byte(self.system_stack_pointer)
+        log.debug("pull $%x from stack at $%x" % (byte, self.system_stack_pointer))
+        self.system_stack_pointer += 1
+        return byte
 
     def push_word(self, word):
+        log.debug("Push word $%x to stack" % word)
         hi, lo = divmod(word, 0x100)
         self.push_byte(hi)
         self.push_byte(lo)
 
     def pull_word(self):
-        s = self.cfg.STACK_PAGE + self.stack_pointer + 1
-        self.stack_pointer += 2
-        return self.read_word(s)
+        word = self.read_pc_word(self.system_stack_pointer)
+        log.debug("Pull word $%x from stack at $%x" % (word, self.system_stack_pointer))
+        self.system_stack_pointer += 2
+        return word
 
     ####
 
@@ -786,10 +816,10 @@ class CPU(object):
         return ea, m
 
     INDEX_POSTBYTE2STR = {
-        0x00: "X", # 16 bit index register
-        0x01: "Y", # 16 bit index register
-        0x02: "U", # 16 bit user-stack pointer
-        0x03: "S", # 16 bit system-stack pointer
+        0x00: REG_X, # 16 bit index register
+        0x01: REG_Y, # 16 bit index register
+        0x02: REG_U, # 16 bit user-stack pointer
+        0x03: REG_S, # 16 bit system-stack pointer
     }
     def get_indexed_ea(self):
         """
@@ -1398,7 +1428,7 @@ class CPU(object):
         0x8c, 0x9c, 0xac, 0xbc, # CMPX (immediate, direct, indexed, extended)
         0x108c, 0x109c, 0x10ac, 0x10bc, # CMPY (immediate, direct, indexed, extended)
     )
-    def instruction_CMP16(self, opcode, ea=None, operand=None):
+    def instruction_CMP16(self, opcode, ea, m, operand):
         """
         Compares the 16-bit contents of the concatenated memory locations M:M+1
         to the contents of the specified register and sets the appropriate
@@ -1672,7 +1702,7 @@ class CPU(object):
     @opcode(# Jump to subroutine
         0x9d, 0xad, 0xbd, # JSR (direct, indexed, extended)
     )
-    def instruction_JSR(self, opcode, ea=None):
+    def instruction_JSR(self, opcode, ea, m):
         """
         Program control is transferred to the effective address after storing
         the return address on the hardware stack. A RTS instruction should be
@@ -1682,7 +1712,13 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x JSR" % opcode)
+        log.debug("$%x JSR to $%x \t| %s" % (
+            self.program_counter,
+            ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.push_word(self.program_counter)
+        self.program_counter = ea
 
     @opcode(# Load stack pointer from memory
         0xcc, 0xdc, 0xec, 0xfc, # LDD (immediate, direct, indexed, extended)
