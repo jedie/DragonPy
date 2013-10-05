@@ -1116,7 +1116,7 @@ class CPU(object):
         0x2c, # BGE (relative)
         0x102c, # LBGE (relative)
     )
-    def instruction_BGE(self, opcode, ea=None):
+    def instruction_BGE(self, opcode, ea, m):
         """
         Causes a branch if the N (negative) bit and the V (overflow) bit are
         either both set or both clear. That is, branch if the sign of a valid
@@ -1135,7 +1135,7 @@ class CPU(object):
         0x2e, # BGT (relative)
         0x102e, # LBGT (relative)
     )
-    def instruction_BGT(self, opcode, ea=None):
+    def instruction_BGT(self, opcode, ea, m):
         """
         Causes a branch if the N (negative) bit and V (overflow) bit are either
         both set or both clear and the Z (zero) bit is clear. In other words,
@@ -1154,7 +1154,7 @@ class CPU(object):
         0x22, # BHI (relative)
         0x1022, # LBHI (relative)
     )
-    def instruction_BHI(self, opcode, ea=None):
+    def instruction_BHI(self, opcode, ea, m):
         """
         Causes a branch if the previous operation caused neither a carry nor a
         zero result. When used after a subtract or compare operation on unsigned
@@ -1197,7 +1197,7 @@ class CPU(object):
         0x2f, # BLE (relative)
         0x102f, # LBLE (relative)
     )
-    def instruction_BLE(self, opcode, ea=None):
+    def instruction_BLE(self, opcode, ea, m):
         """
         Causes a branch if the exclusive OR of the N (negative) and V (overflow)
         bits is 1 or if the Z (zero) bit is set. That is, branch if the sign of
@@ -1216,7 +1216,7 @@ class CPU(object):
         0x23, # BLS (relative)
         0x1023, # LBLS (relative)
     )
-    def instruction_BLS(self, opcode, ea=None):
+    def instruction_BLS(self, opcode, ea, m):
         """
         Causes a branch if the previous operation caused either a carry or a
         zero result. When used after a subtract or compare operation on unsigned
@@ -1235,7 +1235,7 @@ class CPU(object):
         0x2d, # BLT (relative)
         0x102d, # LBLT (relative)
     )
-    def instruction_BLT(self, opcode, ea=None):
+    def instruction_BLT(self, opcode, ea, m):
         """
         Causes a branch if either, but not both, of the N (negative) or V
         (overflow) bits is set. That is, branch if the sign of a valid twos
@@ -1350,7 +1350,7 @@ class CPU(object):
         0x21, # BRN (relative)
         0x1021, # LBRN (relative)
     )
-    def instruction_BRN(self, opcode, ea=None):
+    def instruction_BRN(self, opcode, ea, m):
         """
         Does not cause a branch. This instruction is essentially a no operation,
         but has a bit pattern logically related to branch always.
@@ -1365,7 +1365,7 @@ class CPU(object):
         0x8d, # BSR (relative)
         0x17, # LBSR (relative)
     )
-    def instruction_BSR(self, opcode, ea=None):
+    def instruction_BSR(self, opcode, ea, m):
         """
         The program counter is pushed onto the stack. The program counter is
         then loaded with the sum of the program counter and the offset.
@@ -1383,7 +1383,7 @@ class CPU(object):
         0x28, # BVC (relative)
         0x1028, # LBVC (relative)
     )
-    def instruction_BVC(self, opcode, ea=None):
+    def instruction_BVC(self, opcode, ea, m):
         """
         Tests the state of the V (overflow) bit and causes a branch if it is
         clear. That is, branch if the twos complement result was valid. When
@@ -1400,7 +1400,7 @@ class CPU(object):
         0x29, # BVS (relative)
         0x1029, # LBVS (relative)
     )
-    def instruction_BVS(self, opcode, ea=None):
+    def instruction_BVS(self, opcode, ea, m):
         """
         Tests the state of the V (overflow) bit and causes a branch if it is
         set. That is, branch if the twos complement result was invalid. When
@@ -1520,7 +1520,7 @@ class CPU(object):
     @opcode(# AND condition code register, then wait for interrupt
         0x3c, # CWAI (immediate)
     )
-    def instruction_CWAI(self, opcode, ea=None):
+    def instruction_CWAI(self, opcode, ea, m):
         """
         This instruction ANDs an immediate byte with the condition code register
         which may clear the interrupt mask bits I and F, stacks the entire
@@ -1639,7 +1639,7 @@ class CPU(object):
     @opcode(# Exchange Rl with R2
         0x1e, # EXG (immediate)
     )
-    def instruction_EXG(self, opcode, ea=None):
+    def instruction_EXG(self, opcode, ea, m):
         """
         0000 = A:B 1000 = A 0001 = X 1001 = B 0010 = Y 1010 = CCR 0011 = US 1011
         = DPR 0100 = SP 1100 = Undefined 0101 = PC 1101 = Undefined 0110 =
@@ -2412,7 +2412,7 @@ class CPU(object):
     @opcode(# Software interrupt (absolute indirect)
         0x103f, # SWI2 (inherent)
     )
-    def instruction_SWI2(self, opcode, ea=None):
+    def instruction_SWI2(self, opcode, ea, m):
         """
         All of the processor registers are pushed onto the hardware stack (with
         the exception of the hardware stack pointer itself), and control is
@@ -2429,7 +2429,7 @@ class CPU(object):
     @opcode(# Software interrupt (absolute indirect)
         0x113f, # SWI3 (inherent)
     )
-    def instruction_SWI3(self, opcode, ea=None):
+    def instruction_SWI3(self, opcode, ea, m):
         """
         All of the processor registers are pushed onto the hardware stack (with
         the exception of the hardware stack pointer itself), and control is
