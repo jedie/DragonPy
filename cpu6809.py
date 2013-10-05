@@ -2335,9 +2335,22 @@ class CPU(object):
     @opcode(0x1f) # TFR (immediate)
     def instruction_TFR(self, opcode, ea, m):
         """
-        0000 = A:B 1000 = A 0001 = X 1001 = B 0010 = Y 1010 = CCR 0011 = US 1011
-        = DPR 0100 = SP 1100 = Undefined 0101 = PC 1101 = Undefined 0110 =
-        Undefined 1110 = Undefined 0111 = Undefined 1111 = Undefined
+        0000 = A:B
+        1000 = A
+        0001 = X
+        1001 = B
+        0010 = Y
+        1010 = CCR
+        0011 = US
+        1011 = DPR
+        0100 = SP
+        1100 = Undefined
+        0101 = PC
+        1101 = Undefined
+        0110 = Undefined
+        1110 = Undefined
+        0111 = Undefined
+        1111 = Undefined
 
         source code forms: TFR R1, R2
 
