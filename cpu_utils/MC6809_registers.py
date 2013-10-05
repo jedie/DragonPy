@@ -48,6 +48,12 @@ class ValueStorage(object):
     def get(self):
         return self.value
 
+    # FIXME:
+    def decrement(self, value):
+        self.set(self.value - value)
+    def increment(self, value):
+        self.set(self.value + value)
+
     def __str__(self):
         return "<%s:%s>" % (self.name, repr(self.value))
     __repr__ = __str__

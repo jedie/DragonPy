@@ -398,7 +398,7 @@ class CPU(object):
         self.index_y = ValueStorage16Bit(REG_Y, 0) # Y - 16 bit index register
 
         self.user_stack_pointer = ValueStorage16Bit(REG_U, 0) # U - 16 bit user-stack pointer
-        self.system_stack_pointer = self.cfg.STACK_PAGE # S - 16 bit system-stack pointer
+        self._system_stack_pointer = ValueStorage16Bit(REG_S, self.cfg.STACK_PAGE) # S - 16 bit system-stack pointer
 
         # PC - 16 bit program counter register
 #         self._program_counter = ValueStorage16Bit(REG_PC, -1)
@@ -423,7 +423,7 @@ class CPU(object):
             REG_Y: self.index_y,
 
             REG_U: self.user_stack_pointer,
-            REG_S: self.system_stack_pointer,
+            REG_S: self._system_stack_pointer,
 
             REG_PC: self._program_counter,
 
@@ -709,7 +709,7 @@ class CPU(object):
 
     def get_S(self):
         """ return S - 16 bit system-stack pointer """
-        return self.system_stack_pointer
+        return self._system_stack_pointer
 
     def get_V(self):
         """ return V - 16 bit variable inter-register """
@@ -740,6 +740,10 @@ class CPU(object):
         self._program_counter.set(value)
     program_counter = property(_get_program_counter, _set_program_counter)
 
+    def _get_system_stack_pointer(self):
+        return self._system_stack_pointer.get()
+    system_stack_pointer = property(_get_system_stack_pointer)
+
     def get_and_inc_PC(self, inc=1):
         pc = self.program_counter
         self.program_counter += inc
@@ -748,27 +752,41 @@ class CPU(object):
 
     def push_byte(self, byte):
         # FIXME: What's about a min. limit?
-        self.system_stack_pointer -= 1
+
+        # FIXME: self._system_stack_pointer -= 1
+        self._system_stack_pointer.decrement(1)
+
         log.debug("push $%x to stack at $%x" % (byte, self.system_stack_pointer))
         self.memory.write_byte(self.system_stack_pointer, byte)
 
     def pull_byte(self):
         # FIXME: Max limit to self.cfg.STACK_PAGE ???
-        byte = self.read_byte(self.system_stack_pointer)
+        byte = self.memory.read_byte(self.system_stack_pointer)
         log.debug("pull $%x from stack at $%x" % (byte, self.system_stack_pointer))
-        self.system_stack_pointer += 1
+
+        # FIXME: self._system_stack_pointer += 1
+        self._system_stack_pointer.increment(1)
+
         return byte
 
     def push_word(self, word):
-        log.debug("Push word $%x to stack" % word)
-        hi, lo = divmod(word, 0x100)
-        self.push_byte(hi)
-        self.push_byte(lo)
+        # FIXME: hi/lo in the correct order?
+        log.debug("push word $%x to stack" % word)
+
+        # FIXME: self._system_stack_pointer -= 2
+        self._system_stack_pointer.decrement(2)
+        self.memory.write_word(self.system_stack_pointer, word)
+
+#         hi, lo = divmod(word, 0x100)
+#         self.push_byte(hi)
+#         self.push_byte(lo)
 
     def pull_word(self):
-        word = self.read_pc_word(self.system_stack_pointer)
-        log.debug("Pull word $%x from stack at $%x" % (word, self.system_stack_pointer))
-        self.system_stack_pointer += 2
+        # FIXME: hi/lo in the correct order?
+        word = self.memory.read_word(self.system_stack_pointer)
+        log.debug("pull word $%x from stack at $%x" % (word, self.system_stack_pointer))
+        # FIXME: self._system_stack_pointer -= 2
+        self._system_stack_pointer.decrement(2)
         return word
 
     ####
@@ -1229,7 +1247,16 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BLS" % opcode)
+#         if (self.cc.C|self.cc_Z) == 0:
+        if self.cc.C == 0 or self.cc_Z == 0:
+            log.debug("$%x BLS branch to $%x, because C|Z==0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BLS: don't branch to $%x, because C|Z!=0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
 
     @opcode(# Branch if less than (signed)
         0x2d, # BLT (relative)
@@ -2091,7 +2118,7 @@ class CPU(object):
     @opcode(# Push A, B, CC, DP, D, X, Y, U, or PC onto hardware stack
         0x34, # PSHS (immediate)
     )
-    def instruction_PSHS(self, opcode, ea=None, operand=None):
+    def instruction_PSHS(self, opcode, ea, m, operand):
         """
         All, some, or none of the processor registers are pushed onto the
         hardware stack (with the exception of the hardware stack pointer
@@ -2105,7 +2132,12 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x PSHS" % opcode)
+        value = operand.get()
+        log.debug("$%x PSHS: Push $%x from %s onto hardware stack" % (
+            self.program_counter,
+            value, operand.name
+        ))
+        self.push_word(value)
 
     @opcode(# Push A, B, CC, DP, D, X, Y, S, or PC onto user stack
         0x36, # PSHU (immediate)
@@ -2269,7 +2301,13 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x RTS" % opcode)
+        ea = self.pull_word()
+        log.debug("$%x RTS to $%x \t| %s" % (
+            self.program_counter,
+            ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.program_counter = ea
 
     @opcode(# Subtract memory from accumulator with borrow
         0x82, 0x92, 0xa2, 0xb2, # SBCA (immediate, direct, indexed, extended)
