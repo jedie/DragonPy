@@ -1566,6 +1566,16 @@ class CPU(object):
 
     def DEC(self, a):
         """
+        Subtract one from the operand. The carry bit is not affected, thus
+        allowing this instruction to be used as a loop counter in multiple-
+        precision computations. When operating on unsigned values, only BEQ and
+        BNE branches can be expected to behave consistently. When operating on
+        twos complement values, all signed branches are available.
+
+        source code forms: DEC Q; DECA; DECB
+
+        CC bits "HNZVC": -aaa-
+
         #define SET_Z(r)          ( REG_CC |= ((r) ? 0 : CC_Z) )
         #define SET_N8(r)         ( REG_CC |= (r&0x80)>>4 )
         #define SET_NZ8(r)        ( SET_N8(r), SET_Z(r&0xff) )
@@ -1588,42 +1598,26 @@ class CPU(object):
             self.cc.V = 1
         return r
 
-    @opcode(# Decrement memory location
-        0xa, 0x6a, 0x7a, # DEC (direct, indexed, extended)
-    )
-    def instruction_DEC(self, opcode, ea):
-        """
-        Subtract one from the operand. The carry bit is not affected, thus
-        allowing this instruction to be used as a loop counter in multiple-
-        precision computations. When operating on unsigned values, only BEQ and
-        BNE branches can be expected to behave consistently. When operating on
-        twos complement values, all signed branches are available.
-
-        source code forms: DEC Q
-
-        CC bits "HNZVC": -aaa-
-        """
-        r = self.DEC(ea)
+    @opcode(0xa, 0x6a, 0x7a) # DEC (direct, indexed, extended)
+    def instruction_DEC_memory(self, opcode, ea, m):
+        """ Decrement memory location """
+        r = self.DEC(m)
+        log.debug("$%x DEC memory value $%x -1 = $%x and write it to $%x \t| %s" % (
+            self.program_counter,
+            m, r, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
         self.memory.write_byte(ea, r)
 
-    @opcode(# Decrement accumulator
-        0x4a, # DECA (inherent)
-        0x5a, # DECB (inherent)
-    )
+    @opcode(0x4a, 0x5a) # DECA / DECB (inherent)
     def instruction_DEC_register(self, opcode, operand):
-        """
-        Subtract one from the operand. The carry bit is not affected, thus
-        allowing this instruction to be used as a loop counter in multiple-
-        precision computations. When operating on unsigned values, only BEQ and
-        BNE branches can be expected to behave consistently. When operating on
-        twos complement values, all signed branches are available.
-
-        source code forms: DECA; DECB
-
-        CC bits "HNZVC": -aaa-
-        """
+        """ Decrement accumulator """
         a = operand.get()
         r = self.DEC(a)
+        log.debug("$%x DEC %s value $%x -1 = $%x" % (
+            self.program_counter,
+            operand.name, a, r
+        ))
         operand.set(r)
 
     @opcode(# Exclusive OR memory with accumulator
@@ -1834,12 +1828,7 @@ class CPU(object):
         """
         raise NotImplementedError("$%x LEA_register" % opcode)
 
-    @opcode(# Logical shift left accumulator or memory location / Arithmetic shift of accumulator or memory left
-        0x8, 0x68, 0x78, # LSL/ASL (direct, indexed, extended)
-        0x48, # LSLA/ASLA (inherent)
-        0x58, # LSLB/ASLB (inherent)
-    )
-    def instruction_LSL(self, opcode, ea=None, operand=None):
+    def LSL(self, a):
         """
         Shifts all bits of accumulator A or B or memory location M one place to
         the left. Bit zero is loaded with a zero. Bit seven of accumulator A or
@@ -1852,8 +1841,36 @@ class CPU(object):
 
         CC bits "HNZVC": naaas
         """
-        raise NotImplementedError("$%x LSL" % opcode)
-        # self.cc.update_NZVC(a, b, r)
+        r = a << 1
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_8(a, a, r)
+        return r
+
+    @opcode(0x8, 0x68, 0x78) # LSL/ASL (direct, indexed, extended)
+    def instruction_LSL_memory(self, opcode, ea, m):
+        """
+        Logical shift left memory location / Arithmetic shift of memory left
+        """
+        r = self.LSL(m)
+        log.debug("$%x LSL memory value $%x << 1 = $%x and write it to $%x \t| %s" % (
+            self.program_counter,
+            m, r, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.memory.write_byte(ea, r)
+
+    @opcode(0x48, 0x58) # LSLA/ASLA / LSLB/ASLB (inherent)
+    def instruction_LSL_register(self, opcode, ea, operand):
+        """
+        Logical shift left accumulator / Arithmetic shift of accumulator
+        """
+        a = operand.get()
+        r = self.LSL(a)
+        log.debug("$%x LSL %s value $%x << 1 = $%x" % (
+            self.program_counter,
+            operand.name, a, r
+        ))
+        operand.set(r)
 
     @opcode(# Logical shift right accumulator or memory location
         0x4, 0x64, 0x74, # LSR (direct, indexed, extended)
@@ -2162,12 +2179,7 @@ class CPU(object):
         raise NotImplementedError("$%x RESET" % opcode)
         # Update CC bits: *****
 
-    @opcode(# Rotate accumulator or memory left
-        0x9, 0x69, 0x79, # ROL (direct, indexed, extended)
-        0x49, # ROLA (inherent)
-        0x59, # ROLB (inherent)
-    )
-    def instruction_ROL(self, opcode, ea=None, operand=None):
+    def ROL(self, a):
         """
         Rotates all bits of the operand one place left through the C (carry)
         bit. This is a 9-bit rotation.
@@ -2175,9 +2187,42 @@ class CPU(object):
         source code forms: ROL Q; ROLA; ROLB
 
         CC bits "HNZVC": -aaas
+
+        static uint8_t op_rol(struct MC6809 *cpu, uint8_t in) {
+            unsigned out = (in << 1) | (REG_CC & 1);
+            CLR_NZVC;
+            SET_NZVC8(in, in, out);
+            return out;
+        }
+
+        case 0x9: tmp1 = op_rol(cpu, tmp1); break; // ROL, ROLA, ROLB
         """
-        raise NotImplementedError("$%x ROL" % opcode)
-        # self.cc.update_NZVC(a, b, r)
+        r = (a << 1) | self.cc.C
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_8(a, a, r)
+        return r
+
+    @opcode(0x9, 0x69, 0x79) # ROL (direct, indexed, extended)
+    def instruction_ROL_memory(self, opcode, ea, m):
+        """ Rotate memory left """
+        r = self.ROL(m)
+        log.debug("$%x ROL memory value $%x << 1 | Carry = $%x and write it to $%x \t| %s" % (
+            self.program_counter,
+            m, r, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.memory.write_byte(ea, r)
+
+    @opcode(0x49, 0x59) # ROLA / ROLB (inherent)
+    def instruction_ROL_register(self, opcode, ea=None, operand=None):
+        """ Rotate accumulator left """
+        a = operand.get()
+        r = self.ROL(a)
+        log.debug("$%x ROL %s value $%x << 1 | Carry = $%x" % (
+            self.program_counter,
+            operand.name, a, r
+        ))
+        operand.set(r)
 
     @opcode(# Rotate accumulator or memory right
         0x6, 0x66, 0x76, # ROR (direct, indexed, extended)
