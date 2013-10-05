@@ -1253,7 +1253,7 @@ class CPU(object):
         0x2b, # BMI (relative)
         0x102b, # LBMI (relative)
     )
-    def instruction_BMI(self, opcode, ea=None):
+    def instruction_BMI(self, opcode, ea, m):
         """
         Tests the state of the N (negative) bit and causes a branch if set. That
         is, branch if the sign of the twos complement result is negative.
@@ -1266,7 +1266,15 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BMI" % opcode)
+        if self.cc.N == 1:
+            log.debug("$%x BMI branch to $%x, because N==1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BMI: don't branch to $%x, because N==0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
 
     @opcode(# Branch if not equal
         0x26, # BNE (relative)
@@ -1297,7 +1305,7 @@ class CPU(object):
         0x2a, # BPL (relative)
         0x102a, # LBPL (relative)
     )
-    def instruction_BPL(self, opcode, ea=None):
+    def instruction_BPL(self, opcode, ea, m):
         """
         Tests the state of the N (negative) bit and causes a branch if it is
         clear. That is, branch if the sign of the twos complement result is
@@ -1311,7 +1319,15 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BPL" % opcode)
+        if self.cc.N == 0:
+            log.debug("$%x BPL branch to $%x, because N==0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BPL: don't branch to $%x, because N==1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
 
     @opcode(# Branch always
         0x20, # BRA (relative)
