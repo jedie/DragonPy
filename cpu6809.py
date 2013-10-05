@@ -770,14 +770,14 @@ class CPU(object):
         return ea
 
     def direct_byte(self):
-        ea = self.get_direct_ea()
-        m = self.memory.read_byte(ea)
-        log.debug("$%x get 'direct' byte: ea = $%x m = $%x" % (
-            self.program_counter, ea, m,
+        ea = m = self.get_direct_ea()
+        log.debug("$%x get 'direct' byte: ea = m = $%x" % (
+            self.program_counter, ea,
         ))
         return ea, m
 
     def direct_word(self):
+        raise NotImplementedError("FIXME: !")
         ea = self.get_direct_ea()
         m = self.memory.read_word(ea)
         log.debug("$%x get 'direct' word: ea = $%x m = $%x" % (
