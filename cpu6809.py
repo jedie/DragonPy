@@ -1967,18 +1967,42 @@ class CPU(object):
         # Update CC bits: ddddd
 
     @opcode(# Branch if lower (unsigned)
-        0x24, # BHS/BCC (relative)
         0x25, # BLO/BCS (relative)
-        0x1024, # LBHS/LBCC (relative)
         0x1025, # LBLO/LBCS (relative)
     )
-    def instruction_OTHER_INSTRUCTIONS(self, opcode, ea=None):
+    def instruction_BLO(self, opcode, ea, m):
         """
-        source code forms:
-
         CC bits "HNZVC": -----
+        case 0x5: cond = REG_CC & CC_C; break; // BCS, BLO, LBCS, LBLO
         """
-        raise NotImplementedError("$%x OTHER_INSTRUCTIONS" % opcode)
+        if self.cc.C == 1:
+            log.debug("$%x BLO/BCS/LBLO/LBCS branch to $%x, because C==1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BLO/BCS/LBLO/LBCS: don't branch to $%x, because C==0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+
+    @opcode(# Branch if lower (unsigned)
+        0x24, # BHS/BCC (relative)
+        0x1024, # LBHS/LBCC (relative)
+    )
+    def instruction_BHS(self, opcode, ea, m):
+        """
+        CC bits "HNZVC": -----
+        case 0x4: cond = !(REG_CC & CC_C); break; // BCC, BHS, LBCC, LBHS
+        """
+        if self.cc.C == 0:
+            log.debug("$%x BHS/BCC/LBHS/LBCC branch to $%x, because C==0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BHS/BCC/LBHS/LBCC: don't branch to $%x, because C==1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
 
     @opcode(#
         0x10, # PAGE1+ (variant)
