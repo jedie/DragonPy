@@ -133,6 +133,17 @@ class Test6809_Ops(BaseTestCase):
         ])
         self.assertEqual(self.cpu.cc.get(), 0x55) # destination
 
+    def test_TFR03(self):
+        self.cpu.index_y = 0x12 # source
+        self.cpu.program_counter = 0 # destination
+
+        self.cpu_test_run(start=0x1000, end=0x12, mem=[
+            0x9E, 0x12, # LDX $12 (direct)
+            0x1f, # TFR
+            0x15, # from X (0x1) to PC (0x5)
+        ])
+        self.assertEqual(self.cpu.program_counter, 0x12) # destination
+
     def test_ADDA_extended01(self):
         self.cpu_test_run(start=0x1000, end=0x1003, mem=[
             0xbb, # ADDA extended
@@ -207,20 +218,47 @@ class Test6809_Ops(BaseTestCase):
 #         self.accu_a += value
 
 class Test6809_Ops2(BaseTestCase):
+    def test_LD16_ST16_CLR(self):
+        self.cpu.accu_d.set(0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[0xCC, 0x12, 0x34]) # LDD $1234 (Immediate)
+        self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[0xFD, 0x50, 0x00]) # STD $5000 (Extended)
+        self.assertEqualHex(self.cpu.memory.read_word(0x5000), 0x1234)
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[0x4F]) # CLRA
+        self.assertEqualHex(self.cpu.accu_d.get(), 0x34)
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[0x5F]) # CLRB
+        self.assertEqualHex(self.cpu.accu_d.get(), 0x0)
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[0xFC, 0x50, 0x00]) # LDD $5000 (Extended)
+        self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
+
     def test_print(self):
-        self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x86, 0x12, # LDA A=$12
-            0xC6, 0x34, # LDB B=$34
+#         self.cpu_test_run(start=0x1000, end=None, mem=[
+#             0x86, 0x12, # LDA A=$12
+#             0xC6, 0x34, # LDB B=$34
+#
+#             0xB7, 0x06, 0x00, # STA 0x0600 (extended) ($0600-1dff = Available graphics pages w/o DOS)
+#             0xF7, 0x06, 0x01, # STB 0x0601 (extended)
+#
+#             0xFC, 0x06, 0x00, # LDD 0x0600 (extended)
+#         ])
+#         self.assertEqualHex(self.cpu.memory.read_word(0x0600), 0x1234)
+#         self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
+#         self.assertEqualHex(self.cpu.accu_a.get(), 0x12)
+#         self.assertEqualHex(self.cpu.accu_b.get(), 0x34)
 
-            0xB7, 0x06, 0x00, # STA 0x0600 (extended) ($0600-1dff = Available graphics pages w/o DOS)
-            0xF7, 0x06, 0x01, # STB 0x0601 (extended)
-
-            0xFC, 0x06, 0x00, # LDD 0x0600 (extended)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0xCC, 0x12, 0x34, # LDD $1234        ; $5858 == 22616
+#             0xBD, 0x95, 0x7A, # JSR 38266        ; OUTPUT D REGISTER
+            0x7E, 0x95, 0x7A, # JMP 38266        ; OUTPUT D REGISTER
         ])
-        self.assertEqualHex(self.cpu.memory.read_word(0x0600), 0x1234)
         self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
         self.assertEqualHex(self.cpu.accu_a.get(), 0x12)
         self.assertEqualHex(self.cpu.accu_b.get(), 0x34)
+
 
 
 if __name__ == '__main__':
