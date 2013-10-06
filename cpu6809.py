@@ -398,7 +398,10 @@ class CPU(object):
         self.index_y = ValueStorage16Bit(REG_Y, 0) # Y - 16 bit index register
 
         self.user_stack_pointer = ValueStorage16Bit(REG_U, 0) # U - 16 bit user-stack pointer
-        self._system_stack_pointer = ValueStorage16Bit(REG_S, self.cfg.STACK_PAGE) # S - 16 bit system-stack pointer
+
+        # S - 16 bit system-stack pointer:
+        # Position will be set by ROM code after detection of total installed RAM
+        self._system_stack_pointer = ValueStorage16Bit(REG_S, 0xffff)
 
         # PC - 16 bit program counter register
 #         self._program_counter = ValueStorage16Bit(REG_PC, -1)
