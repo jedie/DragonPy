@@ -1247,8 +1247,8 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-#         if (self.cc.C|self.cc_Z) == 0:
-        if self.cc.C == 0 or self.cc_Z == 0:
+#         if (self.cc.C|self.cc.Z) == 0:
+        if self.cc.C == 0 or self.cc.Z == 0:
             log.debug("$%x BLS branch to $%x, because C|Z==0 \t| %s" % (
                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
             ))
