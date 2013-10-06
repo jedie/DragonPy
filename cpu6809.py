@@ -404,10 +404,7 @@ class CPU(object):
         self._system_stack_pointer = ValueStorage16Bit(REG_S, 0xffff)
 
         # PC - 16 bit program counter register
-#         self._program_counter = ValueStorage16Bit(REG_PC, -1)
-        self._program_counter = ValueStorage16Bit(REG_PC, 0x8000)
-#         self._program_counter = ValueStorage16Bit(REG_PC, 0xb3b4)
-#         self._program_counter = ValueStorage16Bit(REG_PC, 0xb3ba)
+        self._program_counter = ValueStorage16Bit(REG_PC, self.cfg.RESET_VECTOR)
 
         self.accu_a = ValueStorage8Bit(REG_A, 0) # A - 8 bit accumulator
         self.accu_b = ValueStorage8Bit(REG_B, 0) # B - 8 bit accumulator
