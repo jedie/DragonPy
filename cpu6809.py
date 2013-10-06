@@ -1808,7 +1808,7 @@ class CPU(object):
         0x32, # LEAS (indexed)
         0x33, # LEAU (indexed)
     )
-    def instruction_LEA_pointer(self, opcode, ea=None, operand=None):
+    def instruction_LEA_pointer(self, opcode, ea, m, operand):
         """
         Calculates the effective address from the indexed addressing mode and
         places the address in an indexable register. LEAX and LEAY affect the Z
@@ -1829,13 +1829,19 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x LEA_pointer" % opcode)
+        log.debug("$%x LEA %s: Set %s and Z to $%x \t| %s" % (
+            self.program_counter,
+            operand.name, operand.name, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        operand.set(ea)
+        self.cc.Z.set(ea)
 
     @opcode(# Load effective address into stack pointer
         0x30, # LEAX (indexed)
         0x31, # LEAY (indexed)
     )
-    def instruction_LEA_register(self, opcode, ea=None, operand=None):
+    def instruction_LEA_register(self, opcode, ea, m, operand):
         """
         Calculates the effective address from the indexed addressing mode and
         places the address in an indexable register. LEAX and LEAY affect the Z
@@ -1856,7 +1862,12 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x LEA_register" % opcode)
+        log.debug("$%x LEA %s: Set %s to $%x \t| %s" % (
+            self.program_counter,
+            operand.name, operand.name, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        operand.set(ea)
 
     def LSL(self, a):
         """
