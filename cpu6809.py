@@ -184,9 +184,12 @@ class Memory(object):
 
     def write_byte(self, address, value):
         self.cpu.cycles += 1
+
         if 0x400 <= address < 0x600:
             # FIXME: to default text screen
-            msg = " **** TODO: write $%x to text screen address $%x" % (value, address)
+            msg = " **** TODO: write $%x '%s' to text screen address $%x" % (
+                value, chr(value), address
+            )
             log.debug(msg)
             raise NotImplementedError(msg)
 
@@ -203,9 +206,14 @@ class Memory(object):
 
     def bus_read(self, address):
 #         self.cpu.cycles += 1 # ???
+        log.debug(" **** bus read $%x" % (address))
         if not self.use_bus:
             return 0
-        op = struct.pack("<IBHB", self.cpu.cycles, 0, address, 0)
+        op = struct.pack("<IBHB", self.cpu.cycles,
+            0, # 0 = read, 1 = write
+            address,
+            0 # value to write
+        )
         try:
             bus.send(op)
             b = bus.recv(1)
@@ -217,9 +225,14 @@ class Memory(object):
 
     def bus_write(self, address, value):
 #         self.cpu.cycles += 1 # ???
+        log.debug(" **** bus write $%x" % (address))
         if not self.use_bus or bus is None:
             return
-        op = struct.pack("<IBHB", self.cpu.cycles, 1, address, value)
+        op = struct.pack("<IBHB", self.cpu.cycles,
+            1, # 0 = read, 1 = write
+            address,
+            value # value to write
+        )
         try:
             bus.send(op)
         except IOError:
@@ -580,20 +593,22 @@ class CPU(object):
         try:
             instruction = self.opcode_dict[opcode]
         except KeyError:
-            msg = "$%x *** UNKNOWN OP $%x" % (self.program_counter - 1, opcode)
+            msg = "$%x *** UNKNOWN OP $%x" % (ea, opcode)
             log.error(msg)
             sys.exit(msg)
 
         msg = (
-            "$%(pc)x"
+            "$%(ea)x"
             "\t%(mnemonic)s"
             "\t%(mode)s %(func)s"
+            "\t| %(mem_info)s"
         ) % {
-            "pc": self.program_counter - 1,
+            "ea": ea,
             "mnemonic": instruction.mnemonic,
 
             "mode":instruction.addr_mode,
             "func":instruction.instr_func.__name__,
+            "mem_info": self.cfg.mem_info.get_shortest(ea)
         }
         log.debug(msg)
 
@@ -614,13 +629,13 @@ class CPU(object):
             self.same_op_count += 1
         elif self.same_op_count == 0:
             log.debug("$%x %s kwargs: %s" % (
-                self.program_counter - 1, instruction.instr_func.__name__, hex_repr(func_kwargs)
+                ea, instruction.instr_func.__name__, hex_repr(func_kwargs)
             ))
 #             log.debug(pprint.pformat(instruction))
         else:
             opcode_data = MC6809OP_DATA_DICT[opcode]
             log.debug("$%x *** last op code %s count: %s - new op code: $%x (%s -> %s)" % (
-                self.program_counter - 1, self.last_op_code, self.same_op_count,
+                ea, self.last_op_code, self.same_op_count,
                 opcode, opcode_data["mnemonic"], instruction.instr_func.__name__
             ))
             self.same_op_count = 0
@@ -718,13 +733,13 @@ class CPU(object):
     def get_ea_and_pc_byte(self):
         ea = self.get_and_inc_PC()
         m = self.memory.read_byte(ea)
-        log.debug("$%x read pc byte: $%02x" % (ea, m))
+        log.debug("$%x read pc byte: $%02x from $%04x" % (ea, m, ea))
         return ea, m
 
     def get_ea_and_pc_word(self):
         ea = self.get_and_inc_PC(2)
         m = self.memory.read_word(ea)
-        log.debug("$%x read pc word: $%04x" % (ea, m))
+        log.debug("$%x read pc word: $%04x from $%04x" % (ea, m, ea))
         return ea, m
 
     def read_pc_byte(self):
@@ -793,16 +808,12 @@ class CPU(object):
 
     def immediate_byte(self):
         ea, m = self.get_ea_and_pc_byte()
-        log.debug("$%x addressing 'immediate byte' value: $%x \t| %s" % (
-            ea, m, self.cfg.mem_info.get_shortest(ea)
-        ))
+        log.debug("$%x addressing 'immediate byte' value: $%x" % (ea, m))
         return ea, m
 
     def immediate_word(self):
         ea, m = self.get_ea_and_pc_word()
-        log.debug("$%x addressing 'immediate word' value: $%x \t| %s" % (
-            ea, m, self.cfg.mem_info.get_shortest(ea)
-        ))
+        log.debug("$%x addressing 'immediate word' value: $%x" % (ea, m))
         return ea, m
 
     def get_direct_ea(self):
@@ -810,10 +821,9 @@ class CPU(object):
         dp = self.direct_page.get()
         ea = dp << 8 | value
 
-        log.debug("$%x addressing 'direct': ea = $%x << 8 | $%x = $%x \t| %s" % (
+        log.debug("$%x addressing 'direct': ea = $%x << 8 | $%x = $%x" % (
             self.program_counter,
-            dp, value, ea,
-            self.cfg.mem_info.get_shortest(ea)
+            dp, value, ea
         ))
         return ea
 
