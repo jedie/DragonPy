@@ -473,12 +473,10 @@ class CPU(object):
         for illegal_ops in ILLEGAL_OPS:
             self.opcode_dict[illegal_ops] = self.illegal_op
 
-#         self.reset()
-#         if cfg.pc is not None:
-#             self.program_counter = cfg.pc
-
         self.running = True
         self.quit = False
+
+        self.reset()
 
     ####
 
@@ -579,12 +577,23 @@ class CPU(object):
     ####
 
     def reset(self):
-        pc = self.read_word(self.cfg.RESET_VECTOR)
-        log.debug("$%x CPU reset: read word from $%x set pc to %s" % (
-            self.program_counter, self.cfg.RESET_VECTOR,
-            self.cfg.mem_info.get_shortest(pc)
-        ))
-        self.program_counter = pc - 1
+        log.debug("$%x CPU reset:" % self.program_counter)
+
+        log.debug("\tset cc.F=1: FIRQ interrupt masked")
+        self.cc.F = 1
+
+        log.debug("\tset cc.I=1: IRQ interrupt masked")
+        self.cc.I = 1
+
+        log.debug("\tset PC to $%x" % self.cfg.RESET_VECTOR)
+        self.program_counter = self.cfg.RESET_VECTOR
+
+#         pc = self.read_word(self.cfg.RESET_VECTOR)
+#         log.debug("$%x CPU reset: read word from $%x set pc to %s" % (
+#             self.program_counter, self.cfg.RESET_VECTOR,
+#             self.cfg.mem_info.get_shortest(pc)
+#         ))
+#         self.program_counter = pc - 1
 
 
     def get_and_call_next_op(self):
