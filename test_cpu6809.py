@@ -60,14 +60,62 @@ class Test6809_Register(BaseTestCase):
             t = self.cpu.accu_a.get()
             self.assertEqual(i, t)
 
-    def test_registerA_overflow(self):
-        self.cpu.accu_a.set(256)
-        t = self.cpu.accu_a.get()
-        self.assertEqual(0, t)
+    def test_register_8bit_overflow(self):
+        self.cpu.accu_a.set(0xff)
+        a = self.cpu.accu_a.get()
+        self.assertEqualHex(a, 0xff)
 
-        self.cpu.accu_a.set(257)
+        self.cpu.accu_a.set(0x100)
+        a = self.cpu.accu_a.get()
+        self.assertEqualHex(a, 0)
+
+        self.cpu.accu_a.set(0x101)
+        a = self.cpu.accu_a.get()
+        self.assertEqualHex(a, 0x1)
+
+    def test_register_8bit_negative(self):
+        self.cpu.accu_a.set(0)
         t = self.cpu.accu_a.get()
-        self.assertEqual(1, t)
+        self.assertEqualHex(t, 0)
+
+        self.cpu.accu_a.set(-1)
+        t = self.cpu.accu_a.get()
+        self.assertEqualHex(t, 0xff)
+
+        self.cpu.accu_a.set(-2)
+        t = self.cpu.accu_a.get()
+        self.assertEqualHex(t, 0xfe)
+
+    def test_register_16bit_overflow(self):
+        self.cpu.index_x.set(0xffff)
+        x = self.cpu.index_x.get()
+        self.assertEqual(x, 0xffff)
+
+        self.cpu.index_x.set(0x10000)
+        x = self.cpu.index_x.get()
+        self.assertEqual(x, 0)
+
+        self.cpu.index_x.set(0x10001)
+        x = self.cpu.index_x.get()
+        self.assertEqual(x, 1)
+
+    def test_register_16bit_negative1(self):
+        self.cpu.index_x.set(-1)
+        x = self.cpu.index_x.get()
+        self.assertEqualHex(x, 0xffff)
+
+        self.cpu.index_x.set(-2)
+        x = self.cpu.index_x.get()
+        self.assertEqualHex(x, 0xfffe)
+
+    def test_register_16bit_negative2(self):
+        self.cpu.index_x.set(0)
+        x = self.cpu.index_x.decrement()
+        self.assertEqualHex(x, 0x10000 - 1)
+
+        self.cpu.index_x.set(0)
+        x = self.cpu.index_x.decrement(2)
+        self.assertEqualHex(x, 0x10000 - 2)
 
 
 class Test6809_CC(BaseTestCase):
