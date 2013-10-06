@@ -333,6 +333,52 @@ class Cassette:
         offset = self.start_offset + (cycle - self.start_cycle) * 22000 / 1000000
         return ord(self.raw[offset]) if offset < len(self.raw) else 0x80
 
+class SAM(object):
+    """
+    MC6883 (74LS783) Synchronous Address Multiplexer (SAM)
+
+    http://www.6809.org.uk/dragon/hardware.shtml#sam
+
+    $ffc0-ffdf    SAM (Synchronous Address Multiplexer) register bits - use
+                      even address to clear, odd address to set
+    $ffc0-ffc5    SAM VDG Mode registers V0-V2
+    $ffc0/ffc1    SAM VDG Reg V0
+    $ffc2/ffc3    SAM VDG Reg V1
+    $ffc3/ffc5    SAM VDG Reg V2
+    $ffc6-ffd3    SAM Display offset in 512 byte pages F0-F6
+    $ffc6/ffc7    SAM Display Offset bit F0
+    $ffc8/ffc9    SAM Display Offset bit F1
+    $ffca/ffcb    SAM Display Offset bit F2
+    $ffcc/ffcd    SAM Display Offset bit F3
+    $ffce/ffcf    SAM Display Offset bit F4
+    $ffd0/ffc1    SAM Display Offset bit F5
+    $ffd2/ffc3    SAM Display Offset bit F6
+    $ffd4/ffd5    SAM Page #1 bit - in D64 maps upper 32K Ram to $0000 to $7fff
+    $ffd6-ffd9    SAM MPU Rate R0-R1
+    $ffd6/ffd7    SAM MPU Rate bit R0
+    $ffd8/ffd9    SAM MPU Rate bit R1
+    $ffda-ffdd    SAM Memory Size select M0-M1
+    $ffda/ffdb    SAM Memory Size select bit M0
+    $ffdc/ffdd    SAM Memory Size select bit M1
+    $ffde/ffdf    SAM Map Type - in D64 switches in upper 32K RAM $8000-$feff
+    """
+    def __init__(self, cfg):
+        self.cfg = cfg
+
+    def __call__(self, address):
+        msg = "TODO: SAM call at $%x" % address
+        log.debug(msg)
+        value = 0x7e
+        log.debug(" SAM call at $%x returned $%x \t| %s" % (
+            address, value, self.cfg.mem_info.get_shortest(address)
+        ))
+        return value
+#         raise NotImplementedError
+
+    def write_byte(self, address, value):
+        log.debug(" *** TODO: SAM write byte $%x to $%x \t| %s" % (
+            value, address, self.cfg.mem_info.get_shortest(address)
+        ))
 
 class PIA_register(object):
     def __init__(self, name):
@@ -380,8 +426,15 @@ class PIA(object):
     def __call__(self, address):
         func = self.func_map[address]
         value = func()
-        log.debug(" PIA call at $%x %s returned $%x" % (address, func.__name__, value))
+        log.debug(" PIA call at $%x %s returned $%x \t| %s" % (
+            address, func.__name__, value, self.cfg.mem_info.get_shortest(address)
+        ))
         return value
+
+    def write_byte(self, address, value):
+        log.debug(" *** TODO: PIA write byte $%x to $%x \t| %s" % (
+            value, address, self.cfg.mem_info.get_shortest(address)
+        ))
 
     def pia_0_A_data(self):
         log.debug(" *** TODO: PIA 0 A side data register")
@@ -410,7 +463,7 @@ class PIA(object):
         return 0x37
 
 
-class SoftSwitches(object):
+class Periphery(object):
 
     def __init__(self, cfg, display, speaker, cassette):
         self.cfg = cfg
@@ -419,13 +472,16 @@ class SoftSwitches(object):
         self.speaker = speaker
         self.cassette = cassette
 
+        self.sam = SAM(cfg)
         self.pia = PIA(cfg)
 
     def read_byte(self, cycle, address):
-        self.cfg.mem_info(address, "SoftSwitches.read_byte (cycle: %s) from" % hex(cycle))
-
+        self.cfg.mem_info(address, "Periphery.read_byte (cycle: %s) from" % hex(cycle))
         assert self.cfg.RAM_END <= address <= 0xFFFF, \
             "cycles: %s - address: %s" % (cycle, hex(address))
+
+        if address == 0xfffe:
+            raise NotImplementedError("$fffe:ffff    RESET     ($b3b4; D64 64K mode $c000 - never accessed)")
 
         if 0xc000 <= address <= 0xfeff:
             # $c000-dfff = DOS ROM area
@@ -437,24 +493,28 @@ class SoftSwitches(object):
             # read/write to PIA 0 or PIA 1 - MC6821 Peripheral Interface Adaptor
             return self.pia(address)
 
-
         if 0xffc0 <= address <= 0xffdf:
-            log.debug(" *** TODO: SAM (Synchronous Address Multiplexer) register bits")
-            return 0x7E
+            # read/write to SAM (Synchronous Address Multiplexer)
+            return self.sam(address)
 
-        if 0xffc0 <= address <= 0xffc5:
-            # $ffc0/ffc1    SAM VDG Reg V0
-            # $ffc2/ffc3    SAM VDG Reg V1
-            # $ffc3/ffc5    SAM VDG Reg V2
-            return 0x7E
 
-        if 0xffc6 <= address <= 0xffd3:
-            log.debug(" *** TODO: SAM Display offset in 512 byte pages F0-F6")
-            return 0x7E
+#         if 0xffc0 <= address <= 0xffdf:
+#             log.debug(" *** TODO: SAM (Synchronous Address Multiplexer) register bits")
+#             return 0x7E
 
-        if 0xffdc <= address <= 0xffdd:
-            log.debug(" *** TODO: SAM Memory Size select bit M1")
-            return 0x7E
+#         if 0xffc0 <= address <= 0xffc5:
+#             # $ffc0/ffc1    SAM VDG Reg V0
+#             # $ffc2/ffc3    SAM VDG Reg V1
+#             # $ffc3/ffc5    SAM VDG Reg V2
+#             return 0x7E
+
+#         if 0xffc6 <= address <= 0xffd3:
+#             log.debug(" *** TODO: SAM Display offset in 512 byte pages F0-F6")
+#             return 0x7E
+
+#         if 0xffdc <= address <= 0xffdd:
+#             log.debug(" *** TODO: SAM Memory Size select bit M1")
+#             return 0x7E
 
 #         if address == 0xC000:
 #             return self.kbd
@@ -485,21 +545,38 @@ class SoftSwitches(object):
 #         else:
 #             pass # print "%04X" % address
 
-        msg = "ERROR: no soft switch at $%x (cycle: %s) \t| %s" % (
+        msg = "ERROR: no periphery handler at $%x (cycle: %s) \t| %s" % (
             address, cycle,
             self.cfg.mem_info.get_shortest(address)
         )
         log.debug(msg)
-        raise NotImplementedError(msg)
+#         raise NotImplementedError(msg)
         return 0x00
 
+    def write_byte(self, cycle, address, value):
+        log.debug(" *** write to periphery at $%x the value $%x" % (address, value))
+        if 0xff00 <= address <= 0xff23:
+            # read/write to PIA 0 or PIA 1 - MC6821 Peripheral Interface Adaptor
+            return self.pia.write_byte(address, value)
+
+        if 0xffc0 <= address <= 0xffdf:
+            # read/write to SAM (Synchronous Address Multiplexer)
+            return self.sam.write_byte(address, value)
+
+        msg = "ERROR: no periphery handler at $%x (cycle: %s) \t| %s" % (
+            address, cycle,
+            self.cfg.mem_info.get_shortest(address)
+        )
+        log.debug(msg)
+#         raise NotImplementedError(msg)
+        return 0x00
 
 class Dragon(object):
 
     def __init__(self, cfg, display, speaker, cassette):
         self.display = display
         self.speaker = speaker
-        self.softswitches = SoftSwitches(cfg, display, speaker, cassette)
+        self.periphery = Periphery(cfg, display, speaker, cassette)
 
         listener = socket.socket()
         listener.bind(("127.0.0.1", 0))
@@ -535,11 +612,17 @@ class Dragon(object):
             op = self.cpu.recv(8)
             if len(op) == 0:
                 break
-            cycle, rw, addr, val = struct.unpack("<IBHB", op)
+            cycle, rw, address, value = struct.unpack("<IBHB", op)
             if rw == 0:
-                self.cpu.send(chr(self.softswitches.read_byte(cycle, addr)))
+                value = self.periphery.read_byte(cycle, address)
+                try:
+                    char = chr(value)
+                except ValueError, err:
+                    raise ValueError("Error with $%x: %s" % (value, err))
+                self.cpu.send(char)
             elif rw == 1:
-                self.display.update(addr, val)
+                self.periphery.write_byte(cycle, address, value)
+                # self.display.update(address, value)
             else:
                 break
 
@@ -556,7 +639,7 @@ class Dragon(object):
                     if key:
                         if key == 0x7F:
                             key = 0x08
-                        self.softswitches.kbd = 0x80 + (key & 0x7F)
+                        self.periphery.kbd = 0x80 + (key & 0x7F)
 
             update_cycle += 1
             if update_cycle >= 1024:
