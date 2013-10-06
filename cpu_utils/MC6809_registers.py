@@ -213,6 +213,12 @@ class ConditionCodeRegister(object):
         self.set_V8(a, b, r)
         self.set_C8(r)
 
+    def update_NZVC_16(self, a, b, r):
+        self.set_N16(r)
+        self.set_Z16(r)
+        self.set_V16(a, b, r)
+        self.set_C16(r)
+
     def update_HNZVC(self, a, b, r):
         self.set_H(a, b, r)
 

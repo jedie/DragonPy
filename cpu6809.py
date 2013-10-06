@@ -1484,14 +1484,21 @@ class CPU(object):
 
         CC bits "HNZVC": -aaaa
         """
-        raise NotImplementedError("$%x CMP16" % opcode)
-        # self.cc.update_NZVC_16(a, b, r)
+        a = operand.get()
+        b = m
+        r = a - b
+        log.debug("$%x CMP16 %s $%x - $%x = $%x" % (
+            self.program_counter,
+            operand.name,
+            a, b, r
+        ))
+        self.cc.update_NZVC_16(a, b, r)
 
     @opcode(# Compare memory from accumulator
         0x81, 0x91, 0xa1, 0xb1, # CMPA (immediate, direct, indexed, extended)
         0xc1, 0xd1, 0xe1, 0xf1, # CMPB (immediate, direct, indexed, extended)
     )
-    def instruction_CMP8(self, opcode, ea=None, operand=None):
+    def instruction_CMP8(self, opcode, ea, m, operand):
         """
         Compares the contents of memory location to the contents of the
         specified register and sets the appropriate condition codes. Neither
@@ -1502,9 +1509,25 @@ class CPU(object):
         source code forms: CMPA P; CMPB P
 
         CC bits "HNZVC": uaaaa
+
+        static uint8_t op_sub(struct MC6809 *cpu, uint8_t a, uint8_t b) {
+            unsigned out = a - b;
+            CLR_NZVC;
+            SET_NZVC8(a, b, out);
+            return out;
+        }
+
         """
-        raise NotImplementedError("$%x CMP8" % opcode)
-        # self.cc.update_NZVC_8(a, b, r)
+        a = operand.get()
+        b = m
+        r = a - b
+        log.debug("$%x CMP8 %s $%x - $%x = $%x" % (
+            self.program_counter,
+            operand.name,
+            a, b, r
+        ))
+        self.cc.update_NZVC_8(a, b, r)
+
 
     @opcode(# Complement memory location
         0x3, 0x63, 0x73, # COM (direct, indexed, extended)
