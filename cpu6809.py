@@ -586,10 +586,14 @@ class CPU(object):
         ))
         self.program_counter = pc - 1
 
+
+    def get_and_call_next_op(self):
+        ea, opcode = self.get_ea_and_pc_byte()
+        self.call_instruction_func(ea, opcode)
+
     same_op_count = 0
     last_op_code = None
-    def call_instruction(self):
-        ea, opcode = self.get_ea_and_pc_byte()
+    def call_instruction_func(self, ea, opcode):
         try:
             instruction = self.opcode_dict[opcode]
         except KeyError:
@@ -653,6 +657,20 @@ class CPU(object):
         self.cycles += instruction.cycles
         log.debug("-"*79)
 
+
+    @opcode(
+        0x10, # PAGE1+ instructions
+        0x11, # PAGE2+ instructions
+    )
+    def instruction_PAGE(self, opcode):
+        """ call op from page 1 or 2 """
+        ea, opcode2 = self.get_ea_and_pc_byte()
+        paged_opcode = opcode * 256 + opcode2
+        log.debug("$%x *** call paged opcode $%x" % (
+            self.program_counter, paged_opcode
+        ))
+        self.call_instruction_func(ea, paged_opcode)
+
     def run(self, bus_port):
         global bus
         bus = socket.socket()
@@ -687,7 +705,7 @@ class CPU(object):
                 if not self.running:
                     break
 
-                self.call_instruction()
+                self.get_and_call_next_op()
 
     def test_run(self, start, end):
         self.program_counter = start
@@ -695,7 +713,7 @@ class CPU(object):
         while True:
             if self.program_counter == end:
                 break
-            self.call_instruction()
+            self.get_and_call_next_op()
 
     def illegal_op(self):
         self.program_counter -= 1
@@ -2143,21 +2161,6 @@ class CPU(object):
             log.debug("$%x BHS/BCC/LBHS/LBCC: don't branch to $%x, because C==1 \t| %s" % (
                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
             ))
-
-    @opcode(#
-        0x10, # PAGE1+ (variant)
-        0x11, # PAGE2+ (variant)
-    )
-    def instruction_PAGE(self, opcode):
-        """
-        Page 1/2 instructions
-
-        source code forms:
-
-        CC bits "HNZVC": +++++
-        """
-        raise NotImplementedError("$%x PAGE" % opcode)
-        # Update CC bits: +++++
 
     @opcode(# Push A, B, CC, DP, D, X, Y, U, or PC onto hardware stack
         0x34, # PSHS (immediate)
