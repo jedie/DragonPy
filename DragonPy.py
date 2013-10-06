@@ -334,6 +334,82 @@ class Cassette:
         return ord(self.raw[offset]) if offset < len(self.raw) else 0x80
 
 
+class PIA_register(object):
+    def __init__(self, name):
+        self.name = name
+        self.reset()
+
+    def reset(self):
+        self.control_register = 0x0
+        self.direction_register = 0x0
+        self.output_register = 0x0
+        self.interrupt_received = 0x0
+        self.irq = 0x0
+
+
+class PIA(object):
+    """
+    PIA - MC6821 - Peripheral Interface Adaptor
+
+    http://www.6809.org.uk/dragon/hardware.shtml#pia0
+    """
+    def __init__(self, cfg):
+        self.cfg = cfg
+
+        self.func_map = {
+            0xff00: self.pia_0_A_data,
+            0xff01: self.pia_0_A_control,
+            0xff02: self.pia_0_B_data,
+            0xff03: self.pia_0_B_control,
+            0xff20: self.pia_1_A_data,
+            0xff21: self.pia_1_A_control,
+            0xff22: self.pia_1_B_data,
+            0xff23: self.pia_1_B_control,
+        }
+        self.pia_0_A_registers = PIA_register("PIA0 A")
+        self.pia_0_B_registers = PIA_register("PIA0 B")
+        self.pia_1_A_registers = PIA_register("PIA1 A")
+        self.pia_1_B_registers = PIA_register("PIA1 B")
+
+    def reset(self):
+        self.pia_0_A_registers.reset()
+        self.pia_0_B_registers.reset()
+        self.pia_1_A_registers.reset()
+        self.pia_1_B_registers.reset()
+
+    def __call__(self, address):
+        func = self.func_map[address]
+        value = func()
+        log.debug(" PIA call at $%x %s returned $%x" % (address, func.__name__, value))
+        return value
+
+    def pia_0_A_data(self):
+        log.debug(" *** TODO: PIA 0 A side data register")
+        return 0x00 # self.kbd
+    def pia_0_A_control(self):
+        log.debug(" *** TODO: PIA 0 A side control register")
+        return 0xb3
+    def pia_0_B_data(self):
+        log.debug(" *** TODO: PIA 0 B side data register")
+        return 0x00
+    def pia_0_B_control(self):
+        log.debug(" *** TODO: PIA 0 B side control register")
+        return 0x35
+
+    def pia_1_A_data(self):
+        log.debug(" *** TODO: PIA 1 A side data register")
+        return 0x01
+    def pia_1_A_control(self):
+        log.debug(" *** TODO: PIA 1 A side control register")
+        return 0x34
+    def pia_1_B_data(self):
+        log.debug(" *** TODO: PIA 1 B side data register")
+        return 0x34
+    def pia_1_B_control(self):
+        log.debug(" *** TODO: PIA 1 B side control register")
+        return 0x37
+
+
 class SoftSwitches(object):
 
     def __init__(self, cfg, display, speaker, cassette):
@@ -342,6 +418,8 @@ class SoftSwitches(object):
         self.display = display
         self.speaker = speaker
         self.cassette = cassette
+
+        self.pia = PIA(cfg)
 
     def read_byte(self, cycle, address):
         self.cfg.mem_info(address, "SoftSwitches.read_byte (cycle: %s) from" % hex(cycle))
@@ -355,32 +433,9 @@ class SoftSwitches(object):
             log.debug("TODO: cartridge expansion ROM")
             return 0x7E
 
-        # http://www.6809.org.uk/dragon/hardware.shtml#pia0
-        # PIA0: MC6821 Peripheral Interface Adaptor
-        if address == 0xff00:
-            log.debug(" *** TODO: PIA 0 A side data register")
-            return self.kbd
-        elif address == 0xff01:
-            log.debug(" *** TODO: PIA 0 A side control register")
-            return 0xb3
-        elif address == 0xff02:
-            log.debug(" *** TODO: PIA 0 B side data register")
-            return 0x00
-        elif address == 0xff03:
-            log.debug(" *** TODO: PIA 0 B side control register")
-            return 0x35
-        elif address == 0xff20:
-            log.debug(" *** TODO: PIA 1 A side data register")
-            return 0x01
-        elif address == 0xff21:
-            log.debug(" *** TODO: PIA 1 A side control register")
-            return 0x34
-        elif address == 0xff22:
-            log.debug(" *** TODO: PIA 1 B side data register")
-            return 0x34
-        elif address == 0xff23:
-            log.debug(" *** TODO: PIA 1 B side control register")
-            return 0x37
+        if 0xff00 <= address <= 0xff23:
+            # read/write to PIA 0 or PIA 1 - MC6821 Peripheral Interface Adaptor
+            return self.pia(address)
 
 
         if 0xffc0 <= address <= 0xffdf:
