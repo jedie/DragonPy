@@ -195,8 +195,8 @@ class Memory(object):
 
         if address < self.cfg.RAM_END:
             self.ram.write_byte(address, value)
-
-        if 0x400 <= address < 0x800 or 0x2000 <= address < 0x5FFF:
+        else:
+#         if 0x400 <= address < 0x800 or 0x2000 <= address < 0x5FFF:
             self.bus_write(address, value)
 
     def write_word(self, address, value):
