@@ -20,7 +20,7 @@ class Simple6809Periphery(object):
     def __init__(self, cfg):
         self.cfg = cfg
         self.address2func_map = {
-            0xbffe: self.interrupt_vector,
+            0xbffe: self.reset_vector,
         }
 
     def read_byte(self, cpu_cycles, address):
@@ -46,8 +46,8 @@ class Simple6809Periphery(object):
     def cycle(self, cpu_cycles):
         log.debug("TODO: Simple6809Periphery.cycle")
 
-    def interrupt_vector(self, address):
-        return 0xdb46 # FIXME
+    def reset_vector(self, address):
+        return 0xdb46
 
 def get_simple6809_periphery(cfg):
     return Simple6809Periphery(cfg)

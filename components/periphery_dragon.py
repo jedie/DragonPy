@@ -41,7 +41,7 @@ class Periphery(object):
         self.update_cycle = 0
 
         self.address2func_map = {
-            0xfffe: self.interrupt_vector,
+            0xfffe: self.reset_vector,
         }
 
     def read_byte(self, cpu_cycles, address):
@@ -183,7 +183,7 @@ class Periphery(object):
 
         return quit_cpu
 
-    def interrupt_vector(self, address):
+    def reset_vector(self, address):
         return 0xB3B4 # FIXME: RESET interrupt service routine ???
 
 def get_dragon_periphery(cfg):
