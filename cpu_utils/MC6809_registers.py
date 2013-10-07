@@ -104,7 +104,7 @@ def _register_bit(key):
 class ConditionCodeRegister(object):
     """ CC - 8 bit condition code register bits """
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *cmd_args, **kwargs):
         self.name = "CC"
         self._register = {}
         self.set(0x0) # create all keys in dict with value 0

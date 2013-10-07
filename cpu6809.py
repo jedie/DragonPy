@@ -2624,21 +2624,23 @@ class CPU(object):
 
 if __name__ == "__main__":
     cli = DragonPyCLI()
-    cfg = cli.get_cfg()
+    cli.setup_cfg()
 
-    if cfg.bus is None:
+    if cli.cfg.bus is None:
         import subprocess
         subprocess.Popen([sys.executable,
             "DragonPy_CLI.py",
             "--verbosity=5",
 #             "--verbosity=50",
+            "--cfg=Simple6809Cfg",
+#             "--cfg=Dragon32Cfg",
         ]).wait()
         sys.exit(0)
         print "DragonPy cpu core"
         print "Run DragonPy_CLI.py instead"
         sys.exit(0)
 
-    log.debug("Use bus port: %s" % repr(cfg.bus))
+    log.debug("Use bus port: %s" % repr(cli.cfg.bus))
 
-    cpu = CPU(cfg)
-    cpu.run(cfg.bus)
+    cpu = CPU(cli.cfg)
+    cpu.run(cli.cfg.bus)

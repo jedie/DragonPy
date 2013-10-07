@@ -1,0 +1,15 @@
+=== Simple 6809
+
+Grant Searle's Simple 6809 design:
+* complete 8-bit computer on 6 chips (only 5 chips if using a USB to TTL serial cable)
+* a fully operational, running BASIC
+
+Emulate the Simple 6809 in DragonPy. 
+
+Homepage:
+ * http://searle.hostei.com/grant/6809/Simple6809.html
+
+== hex2bin
+
+With the hacked script 'hex2bin.py' i convertet the "ExBasROM.hex" file
+to the binary "ExBasROM.bin" for usage in DragonPy.

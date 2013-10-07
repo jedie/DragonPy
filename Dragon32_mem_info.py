@@ -21,6 +21,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 import sys
+import logging
+
+log = logging.getLogger(__name__)
 
 
 class DragonMemInfo(object):
@@ -698,6 +701,10 @@ class DragonMemInfo(object):
 
 def print_out(txt):
     print txt
+
+
+def get_dragon_meminfo():
+    return DragonMemInfo(log.debug)
 
 
 if __name__ == "__main__":
