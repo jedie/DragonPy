@@ -42,8 +42,9 @@ out_bytes = []
 
 for line in hex_file:
     #~ print line
-    data = line[9:].rstrip()
-    print data
+    line = line.strip()
+    data = line[9:-2]
+    #~ print data
     for byte_hex in iter_steps(data, steps=2):
         byte_hex = "".join(byte_hex)
         #~ print byte_hex,
@@ -51,9 +52,25 @@ for line in hex_file:
         byte = chr(codepoint)
         out_bytes.append(byte)
     #~ print
-
-
 hex_file.close()
+
+
+# Display only the dump:
+length = len(out_bytes)
+print "length: %i $%x" % (length, length)
+pos = 0xc000
+print "ORG: $%x" % pos
+steps = 32
+for bytes in iter_steps(out_bytes, steps=steps):
+    line = " ".join("%2X" % ord(b) for b in bytes)
+    if "10 CE  1 EE" in line or "X7E E5  0" in line:
+        print "*"*79
+    print "$%4x %s" % (pos, line)
+    if "10 CE  1 EE" in line or "X7E E5  0" in line:
+        print "*"*79
+    pos += steps
+
+
 
 print "Write to %s..." % OUT_FILENAME
 bin_file = open(OUT_FILENAME, "wb")
