@@ -40,6 +40,10 @@ class Periphery(object):
 
         self.update_cycle = 0
 
+        self.address2func_map = {
+            0xfffe: self.interrupt_vector,
+        }
+
     def read_byte(self, cpu_cycles, address):
         self.cfg.mem_info(address, "Periphery.read_byte (cpu_cycles: %s) from" % hex(cpu_cycles))
         assert self.cfg.RAM_END <= address <= 0xFFFF, \
@@ -118,6 +122,20 @@ class Periphery(object):
 #         raise NotImplementedError(msg)
         return 0x00
 
+    def read_word(self, cpu_cycles, address):
+        log.debug(
+            "Periphery.read_word from $%x (cpu_cycles: %i)" % (
+            address, cpu_cycles
+        ))
+        try:
+            func = self.address2func_map[address]
+        except KeyError, err:
+            log.debug("TODO: $%x" % address)
+        else:
+            return func(address)
+
+        raise NotImplementedError
+
     def write_byte(self, cpu_cycles, address, value):
         log.debug(" *** write to periphery at $%x the value $%x" % (address, value))
         if 0xff00 <= address <= 0xff23:
@@ -135,6 +153,8 @@ class Periphery(object):
         log.debug(msg)
 #         raise NotImplementedError(msg)
         return 0x00
+
+    write_word = write_byte # TODO: implement
 
     def cycle(self, cpu_cycles):
         quit_cpu = False
@@ -163,6 +183,23 @@ class Periphery(object):
 
         return quit_cpu
 
+    def interrupt_vector(self, address):
+        return 0xB3B4 # FIXME: RESET interrupt service routine ???
+
 def get_dragon_periphery(cfg):
     periphery = Periphery(cfg)
     return periphery
+
+
+def test_run():
+    import sys, subprocess
+    cmd_args = [sys.executable,
+        "DragonPy_CLI.py",
+        "--verbosity=5",
+        "--cfg=Dragon32Cfg",
+    ]
+    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    subprocess.Popen(cmd_args, cwd="..").wait()
+
+if __name__ == "__main__":
+    test_run()

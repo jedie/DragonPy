@@ -38,49 +38,75 @@ class Dragon(object):
         listener.bind(("127.0.0.1", 0))
         listener.listen(0)
 
+        bus_socket_host, bus_socket_port = listener.getsockname()
         cmd_args = [
             sys.executable,
             "cpu6809.py",
-            "--bus", str(listener.getsockname()[1]),
+            "--bus_socket_host=%s" % bus_socket_host,
+            "--bus_socket_port=%i" % bus_socket_port,
 #             "--rom", cfg.rom,
             "--verbosity=%s" % cfg.verbosity,
             "--cfg=%s" % cfg.config_name,
         ]
-#         if cfg.ram:
-#             cmd_args.extend([
-#                 "--ram", cfg.ram,
-#             ])
-#         if cfg.pc is not None:
-#             cmd_args.extend([
-#                 "--pc", str(cfg.pc),
-#             ])
+        print "Startup CPU with: %s" % " ".join(cmd_args[1:])
         self.core = subprocess.Popen(cmd_args)
 
         rs, _, _ = select.select([listener], [], [], 2)
         if not rs:
             print >> sys.stderr, "CPU module did not start"
             sys.exit(1)
+        else:
+            print "CPU started"
         self.cpu, _ = listener.accept()
+
+        self.bus_type_func_map = {
+            (self.cfg.BUS_ACTION_READ, self.cfg.BUS_STRUCTURE_BYTE): self.periphery.read_byte,
+            (self.cfg.BUS_ACTION_READ, self.cfg.BUS_STRUCTURE_WORD): self.periphery.read_word,
+            (self.cfg.BUS_ACTION_WRITE, self.cfg.BUS_STRUCTURE_BYTE): self.periphery.write_byte,
+            (self.cfg.BUS_ACTION_WRITE, self.cfg.BUS_STRUCTURE_WORD): self.periphery.write_word,
+        }
 
     def run(self):
         quit_cpu = False
         while not quit_cpu:
-            op = self.cpu.recv(8)
-            if len(op) == 0:
+            cpu_data = self.cpu.recv(self.cfg.STRUCT_TO_PERIPHERY_LEN)
+            log.debug("receive %s Bytes from CPU via bus" % self.cfg.STRUCT_TO_PERIPHERY_LEN)
+            if len(cpu_data) == 0:
                 break
-            cpu_cycles, rw, address, value = struct.unpack("<IBHB", op)
-            if rw == 0:
-                value = self.periphery.read_byte(cpu_cycles, address)
-                try:
-                    char = chr(value)
-                except ValueError, err:
-                    raise ValueError("Error with $%x: %s" % (value, err))
-                self.cpu.send(char)
-            elif rw == 1:
-                self.periphery.write_byte(cpu_cycles, address, value)
-                # self.display.update(address, value)
+
+            """
+                STRUCT_BYTE_FORMAT = (
+                    "<" # little-endian byte order
+                    "I" # CPU cycles - unsigned int (integer with size: 4)
+                    "B" # action: 0 = read, 1 = write - unsigned char (integer with size: 1)
+                    "B" # type: 0 = byte, 1 = word - unsigned char (integer with size: 1)
+                    "H" # Address - unsigned short (integer with size: 2)
+                    "H" # Bytes/Word to write - unsigned short (integer with size: 2)
+                )
+                BUS_ACTION_READ = 0
+                BUS_ACTION_WRITE = 1
+                BUS_TYPE_BYTE = 0
+                BUS_TYPE_WORD = 1
+            """
+            try:
+                cpu_cycles, action, structure, address, value = struct.unpack(self.cfg.STRUCT_TO_PERIPHERY_FORMAT, cpu_data)
+            except Exception, err:
+                msg = "Error unpack %s with %s: %s" % (
+                    repr(cpu_data), self.cfg.STRUCT_TO_PERIPHERY_FORMAT, err
+                )
+                print >> sys.stderr, msg
+                raise
+
+            periphery_func = self.bus_type_func_map[(action, structure)]
+
+            if action == self.cfg.BUS_ACTION_READ: # == 1
+                value = periphery_func(cpu_cycles, address)
+                data = struct.pack(self.cfg.STRUCT_TO_MEMORY_FORMAT, value)
+                self.cpu.send(data)
+            elif action == self.cfg.BUS_ACTION_WRITE: # == 0
+                periphery_func(cpu_cycles, address, value)
             else:
-                break
+                raise RuntimeError
 
             quit_cpu = self.periphery.cycle(cpu_cycles)
 

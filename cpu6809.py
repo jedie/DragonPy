@@ -25,18 +25,15 @@ import BaseHTTPServer
 import inspect
 import json
 import logging
-import os
 import pprint
 import re
 import select
 import socket
-import struct
 import sys
 
-from Dragon32_mem_info import DragonMemInfo, print_out
 from DragonPy_CLI import DragonPyCLI
 from MC6809data import MC6809_data_raw as MC6809data
-from MC6809data.MC6809_skeleton import CPU6809Skeleton
+from components.memory import Memory
 from cpu_utils.MC6809_registers import ValueStorage8Bit, ConcatenatedAccumulator, \
     ValueStorage16Bit, ConditionCodeRegister, unsigned8
 
@@ -46,8 +43,6 @@ MC6809OP_DATA_DICT = dict(
     [(op["opcode"], op)for op in MC6809data.OP_DATA]
 )
 
-
-bus = None # socket for bus I/O
 ILLEGAL_OPS = (
     0x1, 0x2, 0x5, 0xb,
     0x14, 0x15, 0x18, 0x1b,
@@ -103,140 +98,7 @@ def opcode(*opcodes):
     return decorator
 
 
-class ROM(object):
 
-    def __init__(self, cfg, start, size):
-        self.cfg = cfg
-        self.start = start
-        self.end = start + size
-        self._mem = [0x00] * size
-        log.info("init %s Bytes %s (%s - %s)" % (
-            size, self.__class__.__name__, hex(start), hex(self.end)
-        ))
-
-    def load(self, address, data):
-        for offset, datum in enumerate(data):
-            self._mem[address - self.start + offset] = datum
-
-    def load_file(self, address, filename):
-        with open(filename, "rb") as f:
-            for offset, datum in enumerate(f.read()):
-                index = address - self.start + offset
-                try:
-                    self._mem[index] = ord(datum)
-                except IndexError:
-                    size = os.stat(filename).st_size
-                    log.error("Error: File %s (%sBytes in hex: %s) is bigger than: %s" % (
-                        filename, size, hex(size), hex(index)
-                    ))
-        log.debug("Read %sBytes from %s into ROM %s-%s" % (
-            offset, filename, hex(address), hex(address + offset)
-        ))
-
-    def read_byte(self, address):
-        assert self.start <= address <= self.end, "Read %s from %s is not in range %s-%s" % (hex(address), self.__class__.__name__, hex(self.start), hex(self.end))
-        byte = self._mem[address - self.start]
-#         log.debug("Read byte %s: %s" % (hex(address), hex(byte)))
-#         self.cfg.mem_info(address, "read byte")
-        return byte
-
-
-class RAM(ROM):
-    def write_byte(self, address, value):
-        log.debug(" **** write $%x to $%x - mem info:" % (value, address))
-        log.debug("      %s" % self.cfg.mem_info.get_shortest(value))
-        log.debug("      %s" % self.cfg.mem_info.get_shortest(address))
-        self._mem[address] = value
-
-
-class Memory(object):
-    def __init__(self, cpu, cfg, use_bus=True):
-        self.cpu = cpu
-        self.cfg = cfg
-        self.use_bus = use_bus
-
-        self.rom = ROM(cfg, start=cfg.ROM_START, size=cfg.ROM_SIZE)
-
-        if cfg:
-            self.rom.load_file(cfg.ROM_START, cfg.rom)
-
-        self.ram = RAM(cfg, start=cfg.RAM_START, size=cfg.RAM_SIZE)
-
-        if cfg and cfg.ram:
-            self.ram.load_file(cfg.RAM_START, cfg.ram)
-
-    def load(self, address, data):
-        if address < self.cfg.RAM_END:
-            self.ram.load(address, data)
-
-    def read_byte(self, address):
-        self.cpu.cycles += 1
-        if address < self.cfg.RAM_END:
-            return self.ram.read_byte(address)
-        elif self.cfg.ROM_START <= address <= self.cfg.ROM_END:
-            return self.rom.read_byte(address)
-        else:
-            return self.bus_read(address)
-
-    def read_word(self, address):
-        # 6809 is Big-Endian
-        return self.read_byte(address + 1) + (self.read_byte(address) << 8)
-
-    def write_byte(self, address, value):
-        self.cpu.cycles += 1
-
-        if 0x400 <= address < 0x600:
-            # FIXME: to default text screen
-            msg = " **** TODO: write $%x '%s' to text screen address $%x" % (
-                value, chr(value), address
-            )
-            log.debug(msg)
-            raise NotImplementedError(msg)
-
-        if address < self.cfg.RAM_END:
-            self.ram.write_byte(address, value)
-        else:
-#         if 0x400 <= address < 0x800 or 0x2000 <= address < 0x5FFF:
-            self.bus_write(address, value)
-
-    def write_word(self, address, value):
-        # 6809 is Big-Endian
-        self.write_byte(address, value >> 8)
-        self.write_byte(address + 1, value & 0xff)
-
-    def bus_read(self, address):
-#         self.cpu.cycles += 1 # ???
-        log.debug(" **** bus read $%x" % (address))
-        if not self.use_bus:
-            return 0
-        op = struct.pack("<IBHB", self.cpu.cycles,
-            0, # 0 = read, 1 = write
-            address,
-            0 # value to write
-        )
-        try:
-            bus.send(op)
-            b = bus.recv(1)
-            if len(b) == 0:
-                sys.exit(0)
-            return ord(b)
-        except socket.error:
-            sys.exit(0)
-
-    def bus_write(self, address, value):
-#         self.cpu.cycles += 1 # ???
-        log.debug(" **** bus write $%x" % (address))
-        if not self.use_bus or bus is None:
-            return
-        op = struct.pack("<IBHB", self.cpu.cycles,
-            1, # 0 = read, 1 = write
-            address,
-            value # value to write
-        )
-        try:
-            bus.send(op)
-        except IOError:
-            sys.exit(0)
 
 
 class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
@@ -402,10 +264,14 @@ class CPU(object):
         self.cfg = cfg
         self.memory = Memory(self, cfg)
 
-        if self.cfg.bus:
-            self.control_server = BaseHTTPServer.HTTPServer(("127.0.0.1", 6809), ControlHandlerFactory(self))
-        else:
+        if self.cfg.bus is None:
             self.control_server = None
+        else:
+            control_handler = ControlHandlerFactory(self)
+            self.control_server = BaseHTTPServer.HTTPServer(
+                ("127.0.0.1", 6809), control_handler
+            )
+
 
         self.index_x = ValueStorage16Bit(REG_X, 0) # X - 16 bit index register
         self.index_y = ValueStorage16Bit(REG_Y, 0) # Y - 16 bit index register
@@ -585,15 +451,13 @@ class CPU(object):
         log.debug("\tset cc.I=1: IRQ interrupt masked")
         self.cc.I = 1
 
-        log.debug("\tset PC to $%x" % self.cfg.RESET_VECTOR)
-        self.program_counter = self.cfg.RESET_VECTOR
+#         log.debug("\tset PC to $%x" % self.cfg.RESET_VECTOR)
+#         self.program_counter = self.cfg.RESET_VECTOR
 
-#         pc = self.read_word(self.cfg.RESET_VECTOR)
-#         log.debug("$%x CPU reset: read word from $%x set pc to %s" % (
-#             self.program_counter, self.cfg.RESET_VECTOR,
-#             self.cfg.mem_info.get_shortest(pc)
-#         ))
-#         self.program_counter = pc - 1
+        log.debug("\tread word from $%x" % self.cfg.RESET_VECTOR)
+        pc = self.memory.read_word(self.cfg.RESET_VECTOR)
+        log.debug("\tset PC to $%x" % (pc))
+        self.program_counter = pc
 
 
     def get_and_call_next_op(self):
@@ -680,13 +544,7 @@ class CPU(object):
         ))
         self.call_instruction_func(ea, paged_opcode)
 
-    def run(self, bus_port):
-        global bus
-        bus = socket.socket()
-        bus.connect(("127.0.0.1", bus_port))
-
-        assert self.cfg.bus != None
-
+    def run(self):
         log.debug("-"*79)
 
 #         while not self.quit:
@@ -2619,28 +2477,38 @@ class CPU(object):
         self.cc.update_NZ0_16(ea)
 
 
-
+def test_run():
+    import subprocess
+    cmd_args = [sys.executable,
+        "DragonPy_CLI.py",
+        "--verbosity=5",
+#         "--verbosity=50",
+        "--cfg=Simple6809Cfg",
+#         "--cfg=Dragon32Cfg",
+    ]
+    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    subprocess.Popen(cmd_args).wait()
+    sys.exit(0)
 
 
 if __name__ == "__main__":
     cli = DragonPyCLI()
     cli.setup_cfg()
 
-    if cli.cfg.bus is None:
-        import subprocess
-        subprocess.Popen([sys.executable,
-            "DragonPy_CLI.py",
-            "--verbosity=5",
-#             "--verbosity=50",
-            "--cfg=Simple6809Cfg",
-#             "--cfg=Dragon32Cfg",
-        ]).wait()
-        sys.exit(0)
+    if not cli.cfg.use_bus:
+        test_run()
         print "DragonPy cpu core"
         print "Run DragonPy_CLI.py instead"
         sys.exit(0)
 
-    log.debug("Use bus port: %s" % repr(cli.cfg.bus))
+    bus_socket_addr = cli.cfg.bus_socket_addr
+
+    print "Connect to internal socket bus I/O %s" % repr(bus_socket_addr)
+    assert isinstance(bus_socket_addr, tuple)
+    bus = socket.socket()
+    bus.connect(bus_socket_addr)
+    assert bus is not None
+    cli.cfg.bus = bus
 
     cpu = CPU(cli.cfg)
-    cpu.run(cli.cfg.bus)
+    cpu.run()

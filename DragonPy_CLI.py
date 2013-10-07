@@ -5,13 +5,21 @@
     :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
-
+import atexit
 import logging
 import inspect
+import sys
 
 from DragonPy import Dragon
 from base_cli import Base_CLI
 import configs
+
+
+@atexit.register
+def goodbye():
+    print "-- END --"
+    sys.stdout.flush()
+    sys.stderr.flush()
 
 
 def get_configs():
@@ -42,17 +50,17 @@ class DragonPyCLI(Base_CLI):
             default="Dragon32Cfg",
             help="Used configuration"
         )
-        self.parser.add_argument("--bus", type=int,
-            help="Initial PC value"
+        self.parser.add_argument("--bus_socket_host",
+            help="Host internal socket bus I/O (do not set manually!)"
+        )
+        self.parser.add_argument("--bus_socket_port", type=int,
+            help="Port for internal socket bus I/O (do not set manually!)"
         )
         self.parser.add_argument("--ram",
             help="RAM file to load (default none)"
         )
         self.parser.add_argument("--rom",
             help="ROM file to use (default %s)" % default_cfg.DEFAULT_ROM
-        )
-        self.parser.add_argument("--pc",
-            help="Initial PC value"
         )
 
     def setup_cfg(self):

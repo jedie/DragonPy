@@ -76,8 +76,9 @@ class Base_CLI(object):
 
         args = self.parser.parse_args()
 
-        for arg, value in sorted(vars(args).items()):
-            self.log.debug("argument %s: %r", arg, value)
+#         for arg, value in sorted(vars(args).items()):
+#             self.log.debug("argument %s: %r", arg, value)
+#             print "argument %s: %r" % (arg, value)
 
         return args
 
