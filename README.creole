@@ -3,6 +3,22 @@
 A Open source (GPL v3 or later) emulator for the 30years old homecomputer {{{Dragon 32}}}...
 
 
+== example
+
+Start Simple6809 (with debug output):
+{{{
+DragonPy$ ./DragonPy_CLI.py --cfg Simple6809Cfg --verbosity=5
+}}}
+More info about Sumple6809, read: [[https://github.com/jedie/DragonPy/blob/master/Simple6809/README.creole|/Simple6809/README.creole]]
+
+Start Dragon 32 (with debug output):
+{{{
+DragonPy$ ./DragonPy_CLI.py --cfg Dragon32Cfg --verbosity=5
+}}}
+
+
+== Links
+
 Some links:
 
  * http://www.burgins.com/m6809.html
