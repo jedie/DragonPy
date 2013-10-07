@@ -157,12 +157,10 @@ class Simple6809Cfg(BaseConfig):
     RAM_END = 0x7FFF
     RAM_SIZE = 0x8000 # 32768 Bytes
 
-    ROM_START = 0xBD00
+    ROM_START = 0xC000
     ROM_END = 0xFFFF
-#     ROM_SIZE = 0x4001 # 16384 Bytes
+    ROM_SIZE = 0x4000 # 16384 Bytes
 
-#     RESET_VECTOR = 0x1bd8
-#     RESET_VECTOR = 0xDB00
     RESET_VECTOR = 0xBFFE
 
     BUS_ADDR_AREAS = (
