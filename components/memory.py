@@ -126,6 +126,8 @@ class Memory(object):
 
     def write_byte(self, address, value):
         self.cpu.cycles += 1
+        
+        assert 0x0 <= value <= 0xff, "Write out of range value $%x to $%x" % (value, address)
 
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]

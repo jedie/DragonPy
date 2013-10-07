@@ -1423,24 +1423,24 @@ class CPU(object):
         ))
         self.cc.update_NZVC_8(a, b, r)
 
+    def COM(self, value):
+        value = unsigned8(~value) # the bits of m inverted
+        self.cc.update_NZ01_8(value)
+        return value
 
     @opcode(# Complement memory location
         0x3, 0x63, 0x73, # COM (direct, indexed, extended)
     )
-    def instruction_COM(self, opcode, ea):
+    def instruction_COM_memory(self, opcode, ea, m):
         """
         Replaces the contents of memory location M with its logical complement.
         source code forms: COM Q
         CC bits "HNZVC": -aa01
         """
-        value = ea ^ -1
-        log.debug("$%x COM $%x to $%x \t| %s" % (
-            self.program_counter,
-            ea, value,
-            self.cfg.mem_info.get_shortest(ea)
+        self.memory.write_byte(ea, self.COM(value=m))
+        log.debug("$%x COM memory $%x" % (
+            self.program_counter, m,
         ))
-        self.cc.update_NZ01_8(value)
-        self.memory.write_byte(ea, value)
 
     @opcode(# Complement accumulator
         0x43, # COMA (inherent)
@@ -1452,15 +1452,10 @@ class CPU(object):
         source code forms: COMA; COMB
         CC bits "HNZVC": -aa01
         """
-        old_value = operand.get()
-        value = old_value ^ -1
-        operand.set(value)
-        log.debug("$%x COM %s from $%x to $%x \t| %s" % (
-            self.program_counter,
-            operand.name, old_value, value,
-            self.cfg.mem_info.get_shortest(value)
+        operand.set(self.COM(value=operand.get()))
+        log.debug("$%x COM %s" % (
+            self.program_counter, operand.name,
         ))
-        self.cc.update_NZ01_8(value)
 
     @opcode(# AND condition code register, then wait for interrupt
         0x3c, # CWAI (immediate)
