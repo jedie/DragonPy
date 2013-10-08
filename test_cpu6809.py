@@ -169,6 +169,49 @@ class Test6809_CC(BaseTestCase):
         self.assertEqual(self.cpu.cc.V, 1) # V - 0x02 - bit 1 - Overflow
         self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
 
+    def test_HalfCarry01(self):
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0x86, 0x0e, # LDA #14
+            0x8B, 0x01, # ADDA #1
+        ])
+        self.assertEqual(self.cpu.accu_a.get(), 0xf) # $f == 15
+        self.assertEqual(self.cpu.cc.H, 0) # H - 0x20 - bit 5 - Half-Carry
+        self.assertEqual(self.cpu.cc.N, 0) # N - 0x08 - bit 3 - Negative result (twos complement)
+        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
+        self.assertEqual(self.cpu.cc.V, 0) # V - 0x02 - bit 1 - Overflow
+        self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
+
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0x86, 0x0f, # LDA #15
+            0x8B, 0x01, # ADDA #1
+        ])
+        self.assertEqual(self.cpu.accu_a.get(), 0x10) # $f == 16
+        self.assertEqual(self.cpu.cc.H, 1) # H - 0x20 - bit 5 - Half-Carry
+        self.assertEqual(self.cpu.cc.N, 0) # N - 0x08 - bit 3 - Negative result (twos complement)
+        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
+        self.assertEqual(self.cpu.cc.V, 0) # V - 0x02 - bit 1 - Overflow
+        self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
+
+    def test_Carry01(self):
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0x86, 0xfe, # LDA #254
+            0x8B, 0x01, # ADDA #1
+        ])
+        self.assertEqual(self.cpu.accu_a.get(), 0xff)
+        self.assertEqual(self.cpu.cc.N, 1) # N - 0x08 - bit 3 - Negative result (twos complement)
+        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
+        self.assertEqual(self.cpu.cc.V, 0) # V - 0x02 - bit 1 - Overflow
+        self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
+
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0x86, 0xFF, # LDA #255
+            0x8B, 0x01, # ADDA #1
+        ])
+        self.assertEqual(self.cpu.accu_a.get(), 0x0) # $ff wrap around
+        self.assertEqual(self.cpu.cc.N, 0) # N - 0x08 - bit 3 - Negative result (twos complement)
+        self.assertEqual(self.cpu.cc.Z, 1) # Z - 0x04 - bit 2 - Zero result
+        self.assertEqual(self.cpu.cc.V, 1) # V - 0x02 - bit 1 - Overflow
+        self.assertEqual(self.cpu.cc.C, 1) # C - 0x01 - bit 0 - Carry (or borrow)
 
 class Test6809_Ops(BaseTestCase):
     def test_TFR01(self):
@@ -319,6 +362,8 @@ class Test6809_Ops2(BaseTestCase):
 
 
 
+
+
 if __name__ == '__main__':
     log = logging.getLogger("DragonPy")
     log.setLevel(
@@ -335,7 +380,7 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #             "Test6809_Register"
-#             "Test6809_CC",
+            "Test6809_CC",
 #             "Test6809_Ops",
 #             "Test6809_Ops.test_TFR02",
 #             "Test6809_Ops.test_CMPX_extended",
