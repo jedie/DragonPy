@@ -2,6 +2,19 @@
 
 A Open source (GPL v3 or later) emulator for the 30years old homecomputer {{{Dragon 32}}}...
 
+It's in a eary developement state and not useable, yet.
+A useable Dragon / CoCo emulator is [[http://www.6809.org.uk/dragon/xroar.shtml|XRoar]].
+
+DragonPy will not be a second XRoar written in Python.
+This project is primarily to lean and understand.
+
+The first target is to be able to run the Simple6809 design.
+More info about Simple6809, read: [[https://github.com/jedie/DragonPy/blob/master/Simple6809/README.creole|/Simple6809/README.creole]]
+
+Future goals are:
+* run Dragon 32 ROMs (maybe in far future: Dragon 64)
+* Implement a integrated development environment for BASIC programs
+
 
 == example
 
@@ -9,7 +22,6 @@ Start Simple6809 (with debug output):
 {{{
 DragonPy$ ./DragonPy_CLI.py --cfg Simple6809Cfg --verbosity=5
 }}}
-More info about Sumple6809, read: [[https://github.com/jedie/DragonPy/blob/master/Simple6809/README.creole|/Simple6809/README.creole]]
 
 Start Dragon 32 (with debug output):
 {{{
@@ -26,23 +38,23 @@ Some links:
  * http://www.6809.org.uk/dragon/hardware.shtml
  * http://dragondata.worldofdragon.org/Publications/inside-dragon.htm
  * http://koti.mbnet.fi/~atjs/mc6809/ - 6809 Emulation Page
- 
+
 Source codes:
  * http://mamedev.org/source/src/mess/drivers/dragon.c.html
  * http://mamedev.org/source/src/mess/machine/dragon.c.html
  * http://mamedev.org/source/src/emu/cpu/m6809/m6809.c.html
- * https://github.com/kjetilhoem/hatchling-32/blob/master/hatchling-32/src/no/k/m6809/InstructionSet.scala       
+ * https://github.com/kjetilhoem/hatchling-32/blob/master/hatchling-32/src/no/k/m6809/InstructionSet.scala
 
 Dragon 32 resources:
 
  * Forum: http://archive.worldofdragon.org/phpBB3/index.php
  * Wiki: http://archive.worldofdragon.org/index.php?title=Main_Page
- 
+
 
 == Credits
 
 Based on:
-    
+
 ApplePy - an Apple ][ emulator in Python by James Tauber:
 
  * https://github.com/jtauber/applepy
