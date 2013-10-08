@@ -264,7 +264,7 @@ class CPU(object):
         self.cfg = cfg
         self.memory = Memory(self, cfg)
 
-        if self.cfg.bus is None:
+        if not self.cfg.use_bus:
             self.control_server = None
         else:
             control_handler = ControlHandlerFactory(self)
@@ -341,8 +341,6 @@ class CPU(object):
 
         self.running = True
         self.quit = False
-
-        self.reset()
 
     ####
 
@@ -2506,4 +2504,5 @@ if __name__ == "__main__":
     cli.cfg.bus = bus
 
     cpu = CPU(cli.cfg)
+    cpu.reset()
     cpu.run()

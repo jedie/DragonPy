@@ -16,9 +16,19 @@ from Dragon32_mem_info import DragonMemInfo
 from test_base import TextTestRunner2
 
 
+class UnittestCmdArgs(object):
+    bus_socket_host = None
+    bus_socket_port = None
+    ram = None
+    rom = None
+    verbosity = 5
+    
+
 class BaseTestCase(unittest.TestCase):
     def setUp(self):
-        cfg = Dragon32Cfg()
+        cmd_args = UnittestCmdArgs
+        cfg = Dragon32Cfg(cmd_args)
+        self.assertFalse(cfg.use_bus)
         cfg.mem_info = DragonMemInfo(log.debug)
         self.cpu = CPU(cfg)
 
@@ -40,17 +50,17 @@ class Test6809_AddressModes(BaseTestCase):
     def test_base_page_direct01(self):
         self.cpu.memory.load(0x1000, [0x12, 0x34, 0xf])
         self.cpu.program_counter = 0x1000
-        self.cpu.direct_page = 0xab
+        self.cpu.direct_page.set(0xab)
 
-        value = self.cpu.direct()
-        self.assertEqual(hex(value), hex(0xab12))
+        ea = self.cpu.get_direct_ea()
+        self.assertEqualHex(ea, 0xab12)
 
-        value = self.cpu.direct()
-        self.assertEqual(hex(value), hex(0xab34))
+        ea = self.cpu.get_direct_ea()
+        self.assertEqualHex(ea, 0xab34)
 
-        self.cpu.direct_page = 0x0
-        value = self.cpu.direct()
-        self.assertEqual(hex(value), hex(0xf))
+        self.cpu.direct_page.set(0x0)
+        ea = self.cpu.get_direct_ea()
+        self.assertEqualHex(ea, 0xf)
 
 
 class Test6809_Register(BaseTestCase):
@@ -331,7 +341,7 @@ if __name__ == '__main__':
 #             "Test6809_Ops.test_CMPX_extended",
 #             "Test6809_Ops.test_NEGA_02",
 #             "Test6809_AddressModes",
-            "Test6809_Ops2",
+#             "Test6809_Ops2",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,

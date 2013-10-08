@@ -76,14 +76,16 @@ class RAM(ROM):
 
 
 class Memory(object):
-    def __init__(self, cpu, cfg, use_bus=True):
+    def __init__(self, cpu, cfg):
         self.cpu = cpu
         self.cfg = cfg
-        self.use_bus = use_bus
-        self.bus = cfg.bus # socket for internal bus I/O
-        if use_bus:
+        self.use_bus = cfg.use_bus
+        if self.use_bus:
+            self.bus = cfg.bus # socket for internal bus I/O
             log.debug("Bus socket: %s" % repr(self.bus))
             assert self.bus is not None
+        else:
+            self.bus = None
 
         self.rom = ROM(cfg, start=cfg.ROM_START, size=cfg.ROM_SIZE)
 
@@ -181,6 +183,8 @@ class Memory(object):
     def _bus_read(self, structure, address):
 #         self.cpu.cycles += 1 # ???
         self._bus_communication(structure, address)
+        if not self.cfg.use_bus:
+            raise NotImplementedError
         try:
             data = self.bus.recv(self.cfg.STRUCT_MEMORY_LEN)
         except socket.error, err:
