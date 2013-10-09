@@ -149,23 +149,43 @@ class ConditionCodeRegister(object):
         self.Z = 1 if r & 0xffff == 0 else 0
 
     def set_N8(self, r):
-        self.N = 1 if signed8(r) < 0 else 0
+#         self.N = 1 if signed8(r) < 0 else 0
+        self.N = 1 if 127 < r < 256 else 0
+        log.debug("\tSet N negative flag to %i: 127 < %i < 256 = %s" % (
+            self.N, r, repr(127 < r < 256)
+        ))
 
     def set_N16(self, r):
         self.N = 1 if signed16(r) < 0 else 0
 
-    def set_H(self, a, b, r): # TODO: Add tests
-        self.H = 1 if (a ^ b ^ r) & 0x10 else 0
-
     def set_C8(self, r):
+        """
+        Carry flag:
+        CC.C = 0 - result in range 0-255
+        CC.C = 1 - result out of range
+        """
+        if self.C == 0 and (r > 255 or r < 0):
+            self.C = 1
+
         self.C = 1 if r & 0x100 else 0
+        log.debug("\tSet C 8bit carry flag to %i: %i & 256 = %i" % (
+            self.C, r, r & 0x100
+        ))
 
     def set_C16(self, r):
         self.C = 1 if r & 0x10000 else 0
 
     def set_V8(self, a, b, r): # FIXME
-        if self.V == 0 and ((a ^ b ^ r ^ (r >> 1)) & 0x80):
+#         if self.V == 0 and ((a ^ b ^ r ^ (r >> 1)) & 0x80):
+#             self.V = 1
+#         log.debug("\tSet V overflow flag to %i: ((%i ^ %i ^ %i ^ (%i >> 1)) & 128) = %i" % (
+#             self.V, a, b, r, r, ((a ^ b ^ r ^ (r >> 1)) & 0x80)
+#         ))
+        if self.V == 0 and (r > 255 or r < 0):
             self.V = 1
+        log.debug("\tSet V overflow flag to %i" % (
+            self.V,
+        ))
 
     def set_V16(self, a, b, r):
         if self.V == 0 and ((a ^ b ^ r ^ (r >> 1)) & 0x8000):
