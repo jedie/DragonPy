@@ -23,6 +23,14 @@ INSTRUCTION_INFO.update({
     },
 })
 
+# overwrite the examples for push/pull register:
+INSTRUCTION_INFO['PSHS']['operation'] = "Push Registers on S Stack: S -= 1: MEM(S) = Reg."
+INSTRUCTION_INFO['PSHU']['operation'] = "Push Registers on U Stack: U -= 1: MEM(U) = Reg."
+INSTRUCTION_INFO['PULS']['operation'] = "Pull Registers from S Stack: Reg. = MEM(S): S += 1"
+INSTRUCTION_INFO['PULU']['operation'] = "Pull Registers from U Stack: Reg. = MEM(U): U += 1"
+INSTRUCTION_INFO['DAA']['operation'] = "Decimal Adjust A"
+
+
 OpDescriptions = {}
 categories = {
     0: "8-Bit Accumulator and Memory Instructions",
@@ -55,15 +63,19 @@ SPLIT_MNEMONIC = {
     "LEAY": "LEA_register",
 }
 
-ADDR_MODES = {
-    "IMMEDIATE": 0,
-    "DIRECT": 1,
-    "INDEXED": 2,
-    "EXTENDED": 3,
-    "INHERENT": 4,
-    "RELATIVE": 5,
-    "VARIANT": 6,
-}
+EXTENDED = "EXTENDED"
+VARIANT = "VARIANT"
+DIRECT = "DIRECT"
+IMMEDIATE = "IMMEDIATE"
+RELATIVE = "RELATIVE"
+INDEXED = "INDEXED"
+INHERENT = "INHERENT"
+
+ADDRES_MODES = (EXTENDED, VARIANT, DIRECT, IMMEDIATE, RELATIVE, INDEXED, INHERENT)
+ADDRES_MODE_DICT = dict([(i, i) for i in ADDRES_MODES])
+
+MEM_ACCESS_BYTE = "MEM_ACCESS_BYTE"
+MEM_ACCESS_WORD = "MEM_ACCESS_WORD"
 
 INSTRUCTIONS = (
     "ABX", "ADC", "ADD", "AND", "ASL", "ASR", "BIT", "CLR", "CMP", "COM", "CWAI",
@@ -72,16 +84,162 @@ INSTRUCTIONS = (
     "SBC", "SEX", "ST", "SUB", "SWI", "SYNC", "TFR", "TST",
     "PAGE"
 )
-OPERANDS = (
-    "X", "Y", # 16 bit index register X,Y
-    "U", "S", # 16 bit stack pointer registers U,S
-    "A", "B", # 8 bit accumulator A,B
-    "D", # 16 bit concatenated reg. (A + B)
-    "CC", # condition code register
-)
+REG_A = "A"
+REG_PC = "PC"
+REG_S = "S"
+REG_B = "B"
+REG_U = "U"
+REG_D = "D"
+REG_Y = "Y"
+REG_X = "X"
+REG_CC = "CC"
+REG_DP = "DP"
+REGISTER_INFO = {
+    REG_D: (16, "0000", "concatenated register (A+B)"),
+    REG_X: (16, "0001", "index register"),
+    REG_Y: (16, "0010", "index register"),
+    REG_U: (16, "0011", "user-stack pointer"),
+    REG_S: (16, "0100", "system-stack pointer"),
+    REG_PC: (16, "0101", "program counter register"),
+    REG_A: (8, "1000", "accumulator"),
+    REG_B: (8, "1001", "accumulator"),
+    REG_CC: (8, "1010", "condition code register as flags"),
+    REG_DP: (8, "1011", "direct page register"),
+}
+REGISTERS = REGISTER_INFO.keys()
 
 #------------------------------------------------------------------------------
 
+ops = [0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0a, 0x0b, 0x0c, 0x0d, 0x0f,
+    0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x46, 0x47, 0x48, 0x49, 0x4a, 0x4b, 0x4c, 0x4d, 0x4f,
+    0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x56, 0x57, 0x58, 0x59, 0x5a, 0x5b, 0x5c, 0x5d, 0x5f,
+    0x60, 0x61, 0x62, 0x63, 0x64, 0x65, 0x66, 0x67, 0x68, 0x69, 0x6a, 0x6b, 0x6c, 0x6d, 0x6f,
+    0x70, 0x71, 0x72, 0x73, 0x74, 0x75, 0x76, 0x77, 0x78, 0x79, 0x7a, 0x7b, 0x7c, 0x7d, 0x7f
+]
+
+op_types = {
+    0x0: (True, DIRECT),
+    0x4: (False, REG_A),
+    0x5: (False, REG_B),
+    0x6: (True, INDEXED),
+    0x7: (True, EXTENDED),
+}
+
+OVERWRITE_DATA = {}
+for op in ops:
+    t = (op >> 4) & 0xf
+    op_type = op_types[t]
+#     print hex(op), op_type
+    OVERWRITE_DATA[op] = op_type
+
+#------------------------------------------------------------------------------
+
+SHORT_DESC = {
+    "ABX":"X = B+X (Unsigned)",
+    "ADCA":"A = A+M+C",
+    "ADCB":"B = B+M+C",
+    "ADDA":"A = A+M",
+    "ADDB":"B = B+M",
+    "ADDD":"D = D+M:M+1",
+    "ANDA":"A = A && M",
+    "ANDB":"B = B && M",
+    "ANDCC":"C = CC && IMM",
+    "ASLA":"Arithmetic shift A left",
+    "ASLB":"Arithmetic shift B left",
+    "ASL":"Arithmetic shift M left",
+    "ASRA":"Arithmetic shift A right",
+    "ASRB":"Arithmetic shift B right",
+    "ASR":"Arithmetic shift M right",
+    "BITA":"Bit Test A (M&&A)",
+    "BITB":"Bit Test B (M&&B)",
+    "CLRA":"A = 0",
+    "CLRB":"B = 0",
+    "CLR":"M = 0",
+    "CMPA":"Compare M from A",
+    "CMPB":"Compare M from B",
+    "CMPD":"Compare M:M+1 from D",
+    "CMPS":"Compare M:M+1 from S",
+    "CMPU":"Compare M:M+1 from U",
+    "CMPX":"Compare M:M+1 from X",
+    "CMPY":"Compare M:M+1 from Y",
+    "COMA":"A = complement(A)",
+    "COMB":"B = complement(B)",
+    "COM":"M = complement(M)",
+    "CWAI":"CC = CC ^ IMM; (Wait for Interrupt)",
+    "DAA":"Decimal Adjust A",
+    "DECA":"A = A  1",
+    "DECB":"B = B  1",
+    "DEC":"M = M  1",
+    "EORA":"A = A XOR M",
+    "EORB":"B = M XOR B",
+    "EXG":"exchange R1,R2",
+    "INCA":"A = A + 1",
+    "INCB":"B = B + 1",
+    "INC":"M = M + 1",
+    "JMP":"pc = EA",
+    "JSR":"jump to subroutine",
+    "LDA":"A = M",
+    "LDB":"B = M",
+    "LDD":"D = M:M+1",
+    "LDS":"S = M:M+1",
+    "LDU":"U = M:M+1",
+    "LDX":"X = M:M+1",
+    "LDY":"Y = M:M+1",
+    "LEAS":"S = EA",
+    "LEAU":"U = EA",
+    "LEAX":"X = EA",
+    "LEAY":"Y = EA",
+    "LSLA":"Logical shift A left",
+    "LSLB":"Logical shift B left",
+    "LSL":"Logical shift M left",
+    "LSRA":"Logical shift A right",
+    "LSRB":"Logical shift B right",
+    "LSR":"Logical shift M right",
+    "MUL":"D = A*B (Unsigned)",
+    "NEGA":"A = !A + 1",
+    "NEGB":"B = !B + 1",
+    "NEG":"M = !M + 1",
+    "NOP":"No Operation",
+    "ORA":"A = A || M",
+    "ORB":"B = B || M",
+    "ORCC":"C = CC || IMM",
+    "PSHS":"S -= 1: MEM(S) = R; Push Register on S Stack",
+    "PSHU":"U -= 1: MEM(U) = R; Push Register on U Stack",
+    "PULS":"R=MEM(S) : S += 1; Pull register from S Stack",
+    "PULU":"R=MEM(U) : U += 1; Pull register from U Stack",
+    "ROLA":"Rotate A left thru carry",
+    "ROLB":"Rotate B left thru carry",
+    "ROL":"Rotate M left thru carry",
+    "RORA":"Rotate A Right thru carry",
+    "RORB":"Rotate B Right thru carry",
+    "ROR":"Rotate M Right thru carry",
+    "RTI":"Return from Interrupt",
+    "RTS":"Return from subroutine",
+    "SBCA":"A = A - M - C",
+    "SBCB":"B = B - M - C",
+    "SEX":"Sign extend B into A",
+    "STA":"M = A",
+    "STB":"M = B",
+    "STD":"M:M+1 = D",
+    "STS":"M:M+1 = S",
+    "STU":"M:M+1 = U",
+    "STX":"M:M+1 = X",
+    "STY":"M:M+1 = Y",
+    "SUBA":"A = A - M",
+    "SUBB":"B = B - M",
+    "SUBD":"D = D - M:M+1",
+    "SWI":"Software interrupt 1",
+    "SWI2":"Software interrupt 2",
+    "SWI3":"Software interrupt 3",
+    "SYNC":"Synchronize to Interrupt",
+    "R1,R2":"Transfer R2 = R1",
+    "TSTA":"Test A",
+    "TSTB":"Test B",
+    "TST":"Test M",
+
+    "PAGE1+":"Page 1 Instructions prefix",
+    "PAGE2+":"Page 2 Instructions prefix",
+}
 
 #------------------------------------------------------------------------------
 
@@ -93,7 +251,12 @@ def add(category_id, txt):
         line = line.strip()
         if not line:
             continue
-        ops, desc = line.split("\t")
+        try:
+            ops, desc = line.split("\t")
+        except ValueError:
+            ops, desc = line.split(" ", 1)
+            ops = ops.strip()
+            desc = desc.strip()
         ops = [o.strip() for o in ops.split(",")]
         for op in ops:
             OpDescriptions[op] = (category_id, desc)
@@ -205,6 +368,11 @@ SWI, SWI2, SWI3	Software interrupt (absolute indirect)
 SYNC	Synchronize with interrupt line
 """)
 
+add(8, """
+PAGE1+    Page 1 Instructions prefix
+PAGE2+    Page 2 Instructions prefix
+""")
+
 txt = """ +-----------------------------------------------------------------+
  |                       Page 0 Instructions                       |
  +------------+-------------+--------------+---------------+-------+
@@ -273,7 +441,7 @@ txt = """ +-----------------------------------------------------------------+
  | 3B    0059 | RTI         | INHERENT     | 6/15  |   1   | ----- |
  | 3C    0060 | CWAI        | Immediate    |  21   |   2   | ddddd |
  | 3D    0061 | MUL         | INHERENT     |  11   |   1   | --a-a |
- | 3E    0062 | RESET*      | INHERENT     |   *   |   1   | ***** |
+ | 3E    0062 | RESET       | INHERENT     |   *   |   1   | ***** |
  | 3F    0063 | SWI         | INHERENT     |  19   |   1   | ----- |
  | 40    0064 | NEGA        | INHERENT     |   2   |   1   | uaaaa |
  | 41    0065 | ILLEGAL     | ILLEGAL      |   1   |   1   | uuuuu |
@@ -577,6 +745,7 @@ for line in txt.splitlines():
     sections = line.split("|")
     if len(sections) != 8:
         continue
+#     print line
     sections = [s.strip() for s in sections if s.strip()]
     # ~ print sections
     raw_hex, raw_dec = sections[0].split(" ", 1)
@@ -592,31 +761,20 @@ for line in txt.splitlines():
         illegal.append(opcode)
         continue
 
-#     if not mnemonic.startswith("LD"):continue
-#     if not mnemonic.startswith("AND"):continue
-#     if not mnemonic.startswith("BIT"):continue
+    if "/" in mnemonic:
+        # duplicate assembly-language mnemonic
+        mnemonic_single = mnemonic.split("/")[0]
+    else:
+        mnemonic_single = mnemonic
 
     try:
-        category_id, desc = OpDescriptions[mnemonic]
+        category_id, instr_desc = OpDescriptions[mnemonic_single]
     except KeyError:
-        # ~ print "***", mnemonic
-        if not "/" in mnemonic:
-            category_id = 8 # other
-            desc = ""
-        else:
-            m1, m2 = mnemonic.split("/")
-            desc_info1 = OpDescriptions[m1]
-            desc_info2 = OpDescriptions[m2]
-            # ~ print desc_info1
-            # ~ print desc_info2
-            if desc_info1 == desc_info2:
-                category_id, desc = desc_info1
-            else:
-                category_id = desc_info1[0]
-                desc = "%s / %s" % (desc_info1[1], desc_info2[1])
+        print "***", mnemonic
+        category_id = 8 # other
+        instr_desc = ""
 
-
-    operand = None
+    register = None
     instruction = mnemonic
     if instruction in CHANGE_INSTRUCTIONS:
         instruction = CHANGE_INSTRUCTIONS[instruction]
@@ -631,9 +789,9 @@ for line in txt.splitlines():
             else:
                 test_mnemonic = mnemonic
             operand_test = test_mnemonic[len(instruction):]
-            if operand_test in OPERANDS:
-                operand = operand_test
-            print " **** ", mnemonic, instruction, operand_test, operand
+            if operand_test in REGISTERS:
+                register = operand_test
+            print " **** ", mnemonic, instruction, operand_test, register
             break
 
     instr_info_key, instr_info = get_instr_info(mnemonic, instruction)
@@ -656,13 +814,21 @@ for line in txt.splitlines():
         INSTRUCTION_INFO.setdefault(instr_info_key, instr_info)
         print "Change instr_info_key for %s to %s" % (mnemonic, instr_info_key)
 
+    instr_info["instr_desc"] = instr_desc
+
+    print mnemonic, "%02x" % opcode
+
     cc_HNZVC = sections[5]
     if instr_info_key not in HNZVC_dict:
         instr_info["HNZVC"] = cc_HNZVC
     elif instr_info["HNZVC"] != cc_HNZVC:
         raise AssertionError("Diffrerent cc bits?")
 
-    instr_info["short_desc"] = desc
+    try:
+        mnemonic_desc = SHORT_DESC[mnemonic_single]
+    except KeyError:
+        mnemonic_desc = instr_desc
+
     raw_cycles = sections[3]
     try:
         cycles = int(raw_cycles)
@@ -677,24 +843,66 @@ for line in txt.splitlines():
             print "Use sycles %i from %r" % (cycles, raw_cycles)
 
     bytes = int(sections[4])
+    mem_access = False
+
+    try:
+        operation_example = instr_info['operation']
+    except KeyError:
+        operation_example = None
+        print "No operation for", mnemonic
+    else:
+        if "M" in operation_example:
+            print "mem_access=BYTE, because 'M' in example: %s" % repr(operation_example)
+            mem_access = MEM_ACCESS_BYTE
+
+    addr_mode = ADDRES_MODE_DICT[sections[2].upper()]
+
+    if addr_mode == IMMEDIATE:
+        mem_access = MEM_ACCESS_BYTE
+
+    if opcode in OVERWRITE_DATA:
+        op_type = OVERWRITE_DATA[opcode]
+        print "overwrite data with:", op_type
+        mem_access = op_type[0]
+        if mem_access == False:
+            register = op_type[1]
+        else:
+            mem_access = MEM_ACCESS_BYTE
+            addr_mode = op_type[1]
+
+    if mem_access and register is not None:
+        reg_info = REGISTER_INFO[register]
+        if reg_info[0] == 8:
+            mem_access = MEM_ACCESS_BYTE
+        elif reg_info[0] == 16:
+            mem_access = MEM_ACCESS_WORD
+        else:
+            raise ValueError
+
+    assert mem_access in (False, MEM_ACCESS_BYTE, MEM_ACCESS_WORD)
 
     opcode_data = {
         "opcode": opcode,
         "category": category_id,
         "instruction": instruction,
         "mnemonic": mnemonic,
-        "operand": operand,
-        "addr_mode": ADDR_MODES[sections[2].upper()],
+        "register": register,
+        "addr_mode": addr_mode,
+        "mem_access": mem_access,
+        "example": operation_example,
         "cycles": cycles,
         "bytes": bytes,
+        "desc":mnemonic_desc,
         "instr_info_key": instr_info_key,
     }
-#     print "-"*79
-#     pprint.pprint(opcode_data)
-#     pprint.pprint(instr_info)
-#     print "-"*7
+    pprint.pprint(opcode_data)
+    pprint.pprint(instr_info)
+    if bytes == 1:
+        assert mem_access == False
+    print "-"*79
     opcodes.append(opcode_data)
     categoriesed_opcodes.setdefault(category_id, []).append(opcode_data)
+
 
 
 # sys.exit()
@@ -723,7 +931,7 @@ for key, data in sorted(INSTRUCTION_INFO.items()):
     for addr_mode in addr_modes.split(" "):
         addr_mode = addr_mode.upper()
         try:
-            addr_mode_ids.append(ADDR_MODES[addr_mode])
+            addr_mode_ids.append(ADDRES_MODE_DICT[addr_mode])
         except KeyError, err:
             print "ERROR: unknown addr. mode: %s from: %s" % (err, repr(addr_modes))
             print "data:",
@@ -782,39 +990,28 @@ sys.stdout = Tee("MC6809_data_raw.py", sys.stdout,
 )
 
 
-ADDRES_MODE_DICT = dict(zip(ADDR_MODES.values(), ADDR_MODES.keys()))
-ADDRES_MODES = sorted(ADDR_MODES.values())
+# ADDRES_MODE_DICT = dict(zip(ADDR_MODES.values(), ADDR_MODES.keys()))
+# ADDRES_MODES = sorted(ADDR_MODES.values())
 
 print '"""%s"""' % __doc__
 print
 print "OP_CATEGORIES = ", pformat(categories)
 print
-for txt in ADDR_MODES:
-    print '%s="%s"' % (txt, txt)
-print
-print "ADDRES_MODES = (%s)" % ", ".join([x for x in ADDR_MODES])
-print "ADDRES_MODE_DICT = dict([(i,i) for i in ADDRES_MODES])"
+for addr_mode in ADDRES_MODES:
+    print '%s = "%s"' % (addr_mode, addr_mode)
 print
 print '# operands:'
-print 'X = "X"'
-print 'Y = "Y"'
-print 'U = "U"'
-print 'S = "S"'
-print 'A = "A"'
-print 'B = "B"'
-print 'D = "D"'
-print 'CC = "CC"'
+for register in REGISTERS:
+    print 'REG_%(op)s = "%(op)s"' % {"op":register}
 print
-print 'OPERANT_DICT = {'
-print '    X: "X (16 bit index register)",'
-print '    Y: "Y (16 bit index register)",'
-print '    U: "U (16 bit user stack pointer)",'
-print '    S: "S (16 bit system stack pointer)",'
-print '    A: "A (8 bit accumulator)",'
-print '    B: "B (8 bit accumulator)",'
-print '    D: "D (16 bit concatenated register A + B)",'
-print '    CC: "CC (8 bit condition code register bits)",'
-print '}'
+print
+print "REGISTER_INFO = {"
+for k, v in REGISTER_INFO.items():
+    print "    REG_%s: %s," % (k, v)
+print "}"
+print
+print "MEM_ACCESS_BYTE = 8"
+print "MEM_ACCESS_WORD = 16"
 print
 print '# illegal opcode:'
 print 'ILLEGAL_OPS = (%s)' % ",".join([hex(i) for i in illegal])
@@ -856,12 +1053,34 @@ for category_id, category in categories.items():
         print '        "opcode": 0x%x, "instruction": "%s", "mnemonic": "%s",' % (
             opcode["opcode"], opcode["instruction"], opcode["mnemonic"]
         )
-        print '        "addr_mode": %s, "operand": %s,' % (
-            ADDRES_MODE_DICT[opcode["addr_mode"]], opcode["operand"]
+
+        print '        "desc": "%s",' % (
+            opcode["desc"]
         )
-        print '        "cycles": %i, "bytes": %i,' % (
-            opcode["cycles"], opcode["bytes"]
+
+        print '        "addr_mode": %s, "cycles": %i, "bytes": %i,' % (
+            ADDRES_MODE_DICT[opcode["addr_mode"]], opcode["cycles"], opcode["bytes"]
         )
+
+        mem_access = opcode["mem_access"]
+        if mem_access != False:
+            operation_example = opcode["example"]
+            if not operation_example:
+                example = ""
+            else:
+                example = " # %s" % operation_example.replace("\n", ";")
+            print '        "mem_access": %s,%s' % (
+                mem_access, example,
+            )
+
+        register = opcode["register"]
+        if register:
+            register_info = REGISTER_INFO[register]
+            # e.g: (16, "0000", "concatenated register (A+B)")
+            print '        "register": REG_%s, # %i Bit %s %s' % (
+                register, register_info[0], register_info[2], register
+            )
+
         print '        "category": %i, "instr_info_key": %s,' % (
             category_id, opcode["instr_info_key"]
         )
