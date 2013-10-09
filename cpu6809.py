@@ -509,8 +509,8 @@ class CPU(object):
     def run(self):
         log.debug("-"*79)
 
-#         while not self.quit:
-        for x in xrange(10):
+        while not self.quit:
+#         for x in xrange(10):
 #         for x in xrange(100):
 #         for x in xrange(1000):
             timeout = 0
@@ -528,9 +528,9 @@ class CPU(object):
                 else:
                     pass
 
-            for count in xrange(10):
+#             for count in xrange(10):
 #             for count in xrange(100):
-#             for count in xrange(1000):
+            for count in xrange(1000):
                 if not self.running:
                     break
 
@@ -2421,7 +2421,8 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-        "--verbosity=5",
+#         "--verbosity=5",
+        "--verbosity=20",
 #         "--verbosity=50",
         "--cfg=Simple6809Cfg",
 #         "--cfg=Dragon32Cfg",

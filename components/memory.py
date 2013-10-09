@@ -115,7 +115,12 @@ class Memory(object):
         elif self.cfg.ROM_START <= address <= self.cfg.ROM_END:
             return self.rom.read_byte(address)
         else:
-            raise
+            msg = "reading outside memory area (PC:$%x)" % self.cpu.program_counter
+            self.cfg.mem_info(address, msg)
+            msg2 = "%s: $%x" % (msg, address)
+            log.warn(msg2)
+#             raise RuntimeError(msg2)
+        return 0x0
 
     def read_word(self, address):
         if address in self.cfg.bus_addr_areas:
@@ -139,7 +144,11 @@ class Memory(object):
         if address < self.cfg.RAM_END:
             self.ram.write_byte(address, value)
         else:
-            raise
+            msg = "writing outside memory area (PC:$%x)" % self.cpu.program_counter
+            self.cfg.mem_info(address, msg)
+            msg2 = "%s: $%x" % (msg, address)
+            log.warn(msg2)
+#             raise RuntimeError(msg2)
 
     def write_word(self, address, value):
         if address in self.cfg.bus_addr_areas:
