@@ -10,16 +10,19 @@
 import inspect
 import logging
 import os
+import struct
 
 from Dragon32_mem_info import get_dragon_meminfo
 from components.periphery_dragon import get_dragon_periphery
 from components.periphery_simple6809 import get_simple6809_periphery
-import struct
+from Simple6809.mem_info import get_simple6809_meminfo
 
 
 
 class DummyMemInfo(object):
     def get_shortest(self, *args):
+        pass
+    def __call__(self, *args):
         pass
 
 
@@ -141,7 +144,7 @@ class Dragon32Cfg(BaseConfig):
     def __init__(self, cmd_args):
         super(Dragon32Cfg, self).__init__(cmd_args)
 
-        if self.verbosity <= logging.DEBUG:
+        if self.verbosity <= logging.INFO:
             self.mem_info = get_dragon_meminfo()
 
         self.periphery = get_dragon_periphery(self)
@@ -173,6 +176,10 @@ class Simple6809Cfg(BaseConfig):
     def __init__(self, cmd_args):
         self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
         super(Simple6809Cfg, self).__init__(cmd_args)
+
+        if self.verbosity <= logging.INFO:
+            self.mem_info = get_simple6809_meminfo()
+
 
         self.periphery = get_simple6809_periphery(self)
 

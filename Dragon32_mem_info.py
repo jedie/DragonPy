@@ -20,13 +20,15 @@
     :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
-import sys
+
 import logging
+
+from utils.memory_info import BaseMemoryInfo
 
 log = logging.getLogger(__name__)
 
 
-class DragonMemInfo(object):
+class DragonMemInfo(BaseMemoryInfo):
     MEM_INFO = (
         (0x0, 0x0, "BREAK message flag - if negative print BREAK"),
         (0x1, 0x1, """String delimiting char (0x22 '"')"""),
@@ -647,56 +649,6 @@ class DragonMemInfo(object):
         (0xbffc, 0xbffd, "NMI vector   ($0109)"),
         (0xbffe, 0xbfff, "RESET vector ($b3b4)"),
     )
-
-    def __init__(self, out_func):
-        self.out_func = out_func
-
-    def get_shortest(self, addr):
-        shortest = None
-        size = sys.maxint
-        for start, end, txt in self.MEM_INFO:
-            if not start <= addr <= end:
-                continue
-
-            current_size = abs(end - start)
-            if current_size < size:
-                size = current_size
-                shortest = start, end, txt
-
-        if shortest is None:
-            return "$%x: UNKNOWN" % addr
-
-        start, end, txt = shortest
-        if start == end:
-            return "$%x: $%x - %s" % (addr, start, txt)
-        else:
-            return "$%x: $%x-$%x - %s" % (addr, start, end, txt)
-
-    def __call__(self, addr, info="", shortest=True):
-        if shortest:
-            mem_info = self.get_shortest(addr)
-            if info:
-                self.out_func("%s: %s" % (info, mem_info))
-            else:
-                self.out_func(mem_info)
-            return
-
-        mem_info = []
-        for start, end, txt in self.MEM_INFO:
-            if start <= addr <= end:
-                mem_info.append(
-                    (start, end, txt)
-                )
-
-        if not mem_info:
-            self.out_func("%s $%x: UNKNOWN" % (info, addr))
-        else:
-            self.out_func("%s $%x:" % (info, addr))
-            for start, end, txt in mem_info:
-                if start == end:
-                    self.out_func(" * $%x - %s" % (start, txt))
-                else:
-                    self.out_func(" * $%x-$%x - %s" % (start, end, txt))
 
 
 def print_out(txt):
