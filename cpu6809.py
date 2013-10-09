@@ -843,7 +843,7 @@ class CPU(object):
         0x89, 0x99, 0xa9, 0xb9, # ADCA (immediate, direct, indexed, extended)
         0xc9, 0xd9, 0xe9, 0xf9, # ADCB (immediate, direct, indexed, extended)
     )
-    def instruction_ADC(self, opcode, ea, register):
+    def instruction_ADC(self, opcode, ea, m, register):
         """
         Adds the contents of the C (carry) bit and the memory byte into an 8-bit
         accumulator.
@@ -852,8 +852,14 @@ class CPU(object):
 
         CC bits "HNZVC": aaaaa
         """
-        raise NotImplementedError("$%x ADC" % opcode)
-        # self.cc.update_HNZVC(a, b, r)
+        a = register.get()
+        r = a + m + self.cc.C
+        log.debug("$%x %02x ADC %s: %i + %i + %i = %i (=$%x)" % (
+            self.program_counter, opcode, register.name,
+            a, m, self.cc.C, r, r
+        ))
+        self.cc.clear_HNZVC()
+        self.cc.update_HNZVC_8(a, m, r)
 
     @opcode(# Add memory to D accumulator
         0xc3, 0xd3, 0xe3, 0xf3, # ADDD (immediate, direct, indexed, extended)
@@ -1243,7 +1249,11 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BSR" % opcode)
+        log.debug("$%x BSR push $%x to S and branch to $%x \t| %s" % (
+            self.program_counter, self.program_counter, m, self.cfg.mem_info.get_shortest(m)
+        ))
+        self.push_word(self.program_counter)
+        self.program_counter = m
 
     @opcode(# Branch if valid twos complement result
         0x28, # BVC (relative)
