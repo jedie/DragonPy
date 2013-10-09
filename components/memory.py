@@ -55,14 +55,14 @@ class ROM(object):
                     log.error("Error: File %s (%sBytes in hex: %s) is bigger than: %s" % (
                         filename, size, hex(size), hex(index)
                     ))
-        log.debug("Read %sBytes from %s into ROM %s-%s" % (
+        log.debug("\tread %sBytes from %s into ROM %s-%s" % (
             offset, filename, hex(address), hex(address + offset)
         ))
 
     def read_byte(self, address):
         assert self.start <= address <= self.end, "Read %s from %s is not in range %s-%s" % (hex(address), self.__class__.__name__, hex(self.start), hex(self.end))
         byte = self._mem[address - self.start]
-#         log.debug("Read byte %s: %s" % (hex(address), hex(byte)))
+#         log.debug("\tread byte %s: %s" % (hex(address), hex(byte)))
 #         self.cfg.mem_info(address, "read byte")
         return byte
 
@@ -103,11 +103,11 @@ class Memory(object):
 
     def read_byte(self, address):
         self.cpu.cycles += 1
-        log.debug("Read byte at $%x" % address)
+        log.debug("\tread byte at $%x" % address)
 
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
-            log.debug("Read byte at $%x from bus: %s" % (address, info))
+            log.debug("\tread byte at $%x from bus: %s" % (address, info))
             return self.bus_read_byte(address)
 
         if address < self.cfg.RAM_END:
@@ -120,7 +120,7 @@ class Memory(object):
     def read_word(self, address):
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
-            log.debug("Write word at $%x to bus: %s" % (address, info))
+            log.debug("\twrite word at $%x to bus: %s" % (address, info))
             return self.bus_read_word(address)
 
         # 6809 is Big-Endian
@@ -133,7 +133,7 @@ class Memory(object):
 
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
-            log.debug("Write byte at $%x to bus: %s" % (address, info))
+            log.debug("\twrite byte at $%x to bus: %s" % (address, info))
             return self.bus_write_byte(address, value)
 
         if address < self.cfg.RAM_END:
@@ -144,7 +144,7 @@ class Memory(object):
     def write_word(self, address, value):
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
-            log.debug("Write word at $%x to bus: %s" % (address, info))
+            log.debug("\twrite word at $%x to bus: %s" % (address, info))
             return self.bus_write_word(address, value)
 
         # 6809 is Big-Endian
