@@ -42,13 +42,12 @@ class Dragon(object):
         cmd_args = [
             sys.executable,
             "cpu6809.py",
-            "--bus_socket_host=%s" % bus_socket_host,
-            "--bus_socket_port=%i" % bus_socket_port,
-#             "--rom", cfg.rom,
-            "--verbosity=%s" % cfg.verbosity,
-            "--cfg=%s" % cfg.config_name,
+             "--bus_socket_host=%s" % bus_socket_host,
+             "--bus_socket_port=%i" % bus_socket_port,
         ]
-        print "Startup CPU with: %s" % " ".join(cmd_args[1:])
+        cmd_args += sys.argv[1:]
+        print "Startup CPU with: %s" % " ".join(cmd_args)
+
         self.core = subprocess.Popen(cmd_args)
 
         rs, _, _ = select.select([listener], [], [], 2)
