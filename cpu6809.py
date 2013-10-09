@@ -295,19 +295,24 @@ class Instruction(object):
 
     def debug(self, ea, op_kwargs):
         msg = "$%04x %02X %s\t" % (
-            self.cpu.program_counter, self.opcode, self.data["mnemonic"]
+            ea, self.opcode, self.data["mnemonic"]
         )
 
+        kwargs_info = ""
         if "register" in op_kwargs:
-            msg += " register:%s" % op_kwargs["register"]
+            kwargs_info += " register:%s" % op_kwargs["register"]
 
         if "ea" in op_kwargs:
-            msg += " ea:$%x" % op_kwargs["ea"]
+            kwargs_info += " ea:$%x" % op_kwargs["ea"]
 
         if "m" in op_kwargs:
-            msg += " m:$%x" % op_kwargs["m"]
+            kwargs_info += " m:$%x" % op_kwargs["m"]
 
-        log.debug(msg)
+        msg += "%-40s | %s" % (
+            kwargs_info,
+            self.cpu.cfg.mem_info.get_shortest(ea)
+        )
+        log.info(msg)
         log.debug("\t%s", repr(self.data))
 
 
@@ -316,6 +321,7 @@ class CPU(object):
 
     def __init__(self, cfg):
         self.cfg = cfg
+        log.info("Use config: %s", cfg)
         self.memory = Memory(self, cfg)
 
         if not self.cfg.use_bus:
