@@ -626,7 +626,29 @@ class CPU(object):
 
     def _get_program_counter(self):
         return self._program_counter.get()
+
+    area_debug_active = False
     def _set_program_counter(self, value):
+        if self.cfg.area_debug is not None:
+            # cfg.area_debug = (level, start, end)
+            # TODO: make it workable with the other loggers
+            if not self.area_debug_active:
+                if value >= self.cfg.area_debug[1]: # start
+                    self.area_debug_active = True
+                    handler = logging.StreamHandler()
+                    handler.level = self.cfg.area_debug[0] # FIXME: Doesn't work?!?!
+                    log.handlers = (handler,)
+#                     log.addHandler(handler)
+                    log.info("Activate area debug at $%x", value)
+            else:
+                if value >= self.cfg.area_debug[2]: # end
+                    log.info("Deactivate area debug at $%x", value)
+                    self.area_debug_active = False
+                    self.cfg.area_debug = None
+#                     handler = log.handlers[-1]
+#                     log.removeHandler(handler)
+                    log.handlers = (logging.NullHandler(),)
+
         self._program_counter.set(value)
     program_counter = property(_get_program_counter, _set_program_counter)
 

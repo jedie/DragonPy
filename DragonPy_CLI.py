@@ -62,6 +62,13 @@ class DragonPyCLI(Base_CLI):
         self.parser.add_argument("--rom",
             help="ROM file to use (default %s)" % default_cfg.DEFAULT_ROM
         )
+        self.parser.add_argument("--max", type=int,
+            help="TODO: max. cpu cycles"
+        )
+        self.parser.add_argument("--area_debug_active",
+            help="Debug in PC area: <level>:<start>-<end> - e.g.: --area_debug_active=10:db79-ffff"
+        )
+
 
     def setup_cfg(self):
         args = self.parse_args()
@@ -71,6 +78,20 @@ class DragonPyCLI(Base_CLI):
         config_cls = self.configs[config_name]
         self.cfg = config_cls(args)
         self.cfg.config_name = config_name
+
+        if args.area_debug_active:
+            # FIXME: How do this in a easier way?
+            level, area = args.area_debug_active.split(":")
+            level = int(level)
+            start, end = area.split("-")
+            start = start.strip()
+            end = end.strip()
+            start = int(start, 16)
+            end = int(end, 16)
+            self.cfg.area_debug = (level, start, end)
+            print "Activate area debug: Set debug level to %i from $%x to $%x" % self.cfg.area_debug
+        else:
+            self.cfg.area_debug = None
 
     def run(self):
         self.setup_cfg()
