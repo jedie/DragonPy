@@ -936,17 +936,17 @@ class CPU(object):
         CC bits "HNZVC": aaaaa
         """
         x1 = operand.get()
-        x2 = signed8(x1)
-        r1 = x2 + m
+#         x2 = signed8(x1)
+        r1 = x1 + m
         r2 = unsigned8(r1)
         operand.set(r2)
-        log.debug("$%x ADD8 %s: %i + %i = %i (unsigned: %i)" % (
-            self.program_counter,
+        log.debug("$%x %02x %02x ADD8 %s: %i + %i = %i (signed: %i)" % (
+            self.program_counter, opcode, m,
             operand.name,
-            x2, m, r1, r2,
+            x1, m, r2, r1,
         ))
-        self.cc.clear_NZVC()
-        self.cc.update_NZVC_8(x1, m, r2)
+        self.cc.clear_HNZVC()
+        self.cc.update_HNZVC_8(x1, m, r1)
 
     @opcode(# AND memory with accumulator
         0x84, 0x94, 0xa4, 0xb4, # ANDA (immediate, direct, indexed, extended)
@@ -1531,7 +1531,7 @@ class CPU(object):
         tmp1 = op_dec(cpu, tmp1); break; // DEC, DECA, DECB
         """
         r = a - 1
-        self.cc.update_NZ8(r)
+        self.cc.update_NZ_8(r)
         if r == 0x7f:
             self.cc.V = 1
         return r
@@ -2336,7 +2336,8 @@ class CPU(object):
             x2, m, r1, r2,
         ))
         self.cc.clear_NZVC()
-        self.cc.update_NZVC_8(x1, m, r2)
+#         self.cc.update_NZVC_8(x1, m, r2)
+        self.cc.update_NZVC_8(x1, m, r1)
 
     @opcode(# Software interrupt (absolute indirect)
         0x3f, # SWI (inherent)

@@ -136,6 +136,12 @@ class ConditionCodeRegister(object):
 
     ####
 
+    def set_H8(self, a, b, r):
+        self.H = 1 if (a ^ b ^ r) & 0x10 else 0
+        log.debug("\tSet H half-carry flag to %i: (%i ^ %i ^ %i) & 16 = %i" % (
+            self.H, a, b, r, (a ^ b ^ r) & 0x10
+        ))
+
     def set_Z8(self, r):
         self.Z = 1 if r & 0xff == 0 else 0
 
@@ -173,9 +179,16 @@ class ConditionCodeRegister(object):
         self.V = 0
         self.C = 0
 
+    def clear_HNZVC(self):
+        self.H = 0
+        self.N = 0
+        self.Z = 0
+        self.V = 0
+        self.C = 0
+
     ####
 
-    def update_NZ8(self, r):
+    def update_NZ_8(self, r):
         self.set_N8(r)
         self.set_Z8(r)
 
@@ -219,8 +232,12 @@ class ConditionCodeRegister(object):
         self.set_V16(a, b, r)
         self.set_C16(r)
 
-    def update_HNZVC(self, a, b, r):
-        self.set_H(a, b, r)
+    def update_HNZVC_8(self, a, b, r):
+        self.set_H8(a, b, r)
+        self.set_N8(r)
+        self.set_Z8(r)
+        self.set_V8(a, b, r)
+        self.set_C8(r)
 
 
 class ConcatenatedAccumulator(object):
