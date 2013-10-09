@@ -319,6 +319,21 @@ class Test6809_Ops(BaseTestCase):
 #         self.accu_a += value
 
 class Test6809_Ops2(BaseTestCase):
+    def test_TFR_CC_B(self):
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x7E, 0x40, 0x04, # JMP $4004
+            0xfe, # $12 value for A
+            0xB6, 0x40, 0x03, # LDA $4003
+            0x8B, 0x01, # ADDA 1
+            0x1F, 0xA9, # TFR CC,B
+            0xF7, 0x50, 0x01, # STB $5001
+            0xB7, 0x50, 0x00, # STA $5000
+        ])
+        self.assertEqualHex(self.cpu.accu_a.get(), 0xff)
+        self.assertEqualHex(self.cpu.accu_b.get(), 0x8) # N=1
+        self.assertEqualHex(self.cpu.memory.read_byte(0x5000), 0xff) # A
+        self.assertEqualHex(self.cpu.memory.read_byte(0x5001), 0x8) # B == CC
+
     def test_LD16_ST16_CLR(self):
         self.cpu.accu_d.set(0)
         self.cpu_test_run(start=0x4000, end=None, mem=[0xCC, 0x12, 0x34]) # LDD $1234 (Immediate)
@@ -336,6 +351,10 @@ class Test6809_Ops2(BaseTestCase):
         self.cpu_test_run(start=0x4000, end=None, mem=[0xFC, 0x50, 0x00]) # LDD $5000 (Extended)
         self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
 
+class TestDragon32ROM(BaseTestCase):
+    """
+    use routines from Dragon 32 ROM
+    """
     def test_print(self):
 #         self.cpu_test_run(start=0x1000, end=None, mem=[
 #             0x86, 0x12, # LDA A=$12
@@ -380,16 +399,18 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #             "Test6809_Register"
-            "Test6809_CC",
+#             "Test6809_CC",
+#             "Test6809_CC.test_Overflow01",
 #             "Test6809_Ops",
-#             "Test6809_Ops.test_TFR02",
+#             "Test6809_Ops.test_TFR03",
 #             "Test6809_Ops.test_CMPX_extended",
 #             "Test6809_Ops.test_NEGA_02",
 #             "Test6809_AddressModes",
 #             "Test6809_Ops2",
+#             "Test6809_Ops2.test_TFR_CC_B",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
         verbosity=2,
-#         failfast=True,
+        failfast=True,
     )
