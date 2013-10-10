@@ -748,14 +748,16 @@ class CPU(object):
         addr_mode = postbyte & 0x0f
         self.cycles += 1
         if addr_mode == 0x0: # 0000 0x0 | ,R+ | increment by 1
-            ea = register_value + 1
+            ea = register_value
+            register_obj.increment(1)
         elif addr_mode == 0x1: # 0001 0x1 | ,R++ | increment by 2
-            ea = register_value + 2
+            ea = register_value
+            register_obj.increment(2)
             self.cycles += 1
         elif addr_mode == 0x2: # 0010 0x2 | ,R- | decrement by 1
-            ea = register_value - 1
+            ea = register_obj.decrement(1)
         elif addr_mode == 0x3: # 0011 0x3 | ,R-- | decrement by 2
-            ea = register_value - 2
+            ea = register_obj.decrement(2)
             self.cycles += 1
         elif addr_mode == 0x4: # 0100 0x4 | ,R | No offset
             ea = register_value
