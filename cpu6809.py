@@ -2291,7 +2291,7 @@ class CPU(object):
             value, register.name, ea,
             self.cfg.mem_info.get_shortest(ea)
         ))
-        self.cc.update_NZ0_8(ea)
+        self.cc.update_NZ0_8(value)
         self.memory.write_byte(ea, value)
 
     @opcode(# Subtract memory from D accumulator
