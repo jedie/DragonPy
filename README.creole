@@ -28,6 +28,36 @@ Start Dragon 32 (with debug output):
 DragonPy$ ./DragonPy_CLI.py --cfg Dragon32Cfg --verbosity=5
 }}}
 
+== CLI
+
+{{{
+optional arguments:
+  -h, --help            show this help message and exit
+  --verbosity {5,7,0,10,20,30,40,50}
+                        verbosity level to stdout (lower == more output!)
+                        (default: 20)
+  --logfile {5,7,0,10,20,30,40,50}
+                        verbosity level to log file (lower == more output!)
+                        (default: 10)
+  --log_formatter LOG_FORMATTER
+                        see: http://docs.python.org/2/library/logging.html
+                        #logrecord-attributes
+  --cfg {Simple6809Cfg,Dragon32Cfg}
+                        Used configuration
+  --bus_socket_host BUS_SOCKET_HOST
+                        Host internal socket bus I/O (do not set manually!)
+  --bus_socket_port BUS_SOCKET_PORT
+                        Port for internal socket bus I/O (do not set
+                        manually!)
+  --ram RAM             RAM file to load (default none)
+  --rom ROM             ROM file to use (default d32.rom)
+  --max MAX             If given: Stop CPU after given cycles else: run
+                        forever
+  --area_debug_active AREA_DEBUG_ACTIVE
+                        Debug in PC area: <level>:<start>-<end> - e.g.:
+                        --area_debug_active=10:db79-ffff
+}}}
+
 
 == Links
 

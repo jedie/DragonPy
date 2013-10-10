@@ -322,6 +322,18 @@ class CPU(object):
     def __init__(self, cfg):
         self.cfg = cfg
         log.info("Use config: %s", cfg)
+
+        if self.cfg.area_debug is not None:
+            self.area_debug_active = False
+            log.warn(
+                "Activate area debug: Set debug level to %i from $%x to $%x" % self.cfg.area_debug
+            )
+
+        if self.cfg.max_cpu_cycles is not None:
+            log.warn(
+                "--max set: Stop CPU after %i cycles" % self.cfg.max_cpu_cycles
+            )
+
         self.memory = Memory(self, cfg)
 
         if not self.cfg.use_bus:
@@ -510,9 +522,6 @@ class CPU(object):
         log.debug("-"*79)
 
         while not self.quit:
-#         for x in xrange(10):
-#         for x in xrange(100):
-#         for x in xrange(1000):
             timeout = 0
             if not self.running:
                 timeout = 1
@@ -529,12 +538,18 @@ class CPU(object):
                     pass
 
 #             for count in xrange(10):
-#             for count in xrange(100):
-            for count in xrange(1000):
+            for count in xrange(100):
+#             for count in xrange(1000):
                 if not self.running:
                     break
-
                 self.get_and_call_next_op()
+
+            if self.cfg.max_cpu_cycles is not None \
+                and self.cycles >= self.cfg.max_cpu_cycles:
+                log.warn(
+                    "Stop CPU after %i cycles" % self.cycles
+                )
+                self.quit = True
 
     def test_run(self, start, end):
         self.program_counter = start
@@ -627,7 +642,6 @@ class CPU(object):
     def _get_program_counter(self):
         return self._program_counter.get()
 
-    area_debug_active = False
     def _set_program_counter(self, value):
         if self.cfg.area_debug is not None:
             # cfg.area_debug = (level, start, end)
