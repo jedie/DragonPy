@@ -282,22 +282,15 @@ class Instruction(object):
             op_kwargs["m"] = m
 
         if log.level <= logging.INFO:
-            kwargs_info = ""
+            kwargs_info = []
             if "register" in op_kwargs:
-                kwargs_info += " register:%s" % op_kwargs["register"]
+                kwargs_info.append(str(op_kwargs["register"]))
 
             if "ea" in op_kwargs:
-                kwargs_info += " ea:$%x" % op_kwargs["ea"]
+                kwargs_info.append("ea:%x" % op_kwargs["ea"])
 
             if "m" in op_kwargs:
-                kwargs_info += " m:$%x" % op_kwargs["m"]
-
-            msg = "$%04x %-4s %-6s %-35s" % (
-                ea,
-                ("%02X" % self.opcode),
-                self.data["mnemonic"],
-                kwargs_info
-            )
+                kwargs_info.append("m:%x" % op_kwargs["m"])
 
         try:
             self.instr_func(**op_kwargs)
@@ -309,8 +302,14 @@ class Instruction(object):
         self.cpu.cycles += self.data["cycles"]
 
         if log.level <= logging.INFO:
-            msg += " | %s" % self.cpu.get_info()
-            log.info(msg)
+            log.info("%(ea)04x %(opcode)-4s %(mnemonic)-6s %(kwargs)-25s | %(cpu)s | CC: %(cc)s", {
+                "ea": ea,
+                "opcode": "%02X" % self.opcode,
+                "mnemonic": self.data["mnemonic"],
+                "kwargs": " ".join(kwargs_info),
+                "cpu": self.cpu.get_info,
+                "cc": self.cpu.cc.get_info,
+            })
             log.debug("\t%s", repr(self.data))
             log.debug("-"*79)
 
@@ -590,6 +589,7 @@ class CPU(object):
         """ return V - 16 bit variable inter-register """
         return self.value_register
 
+    @property
     def get_info(self):
         return "cc=%02x a=%02x b=%02x dp=%02x x=%04x y=%04x u=%04x s=%04x" % (
             self.cc.get(),

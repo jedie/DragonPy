@@ -134,6 +134,12 @@ class ConditionCodeRegister(object):
             self.F << 6 | \
             self.E << 7
 
+    @property
+    def get_info(self):
+        return "E=%i F=%i H=%i I=%i N=%i Z=%i V=%i C=%i" % (
+            self.E, self.F, self.H, self.I, self.N, self.Z, self.V, self.C
+        )
+
     ####
 
     def set_H8(self, a, b, r):
