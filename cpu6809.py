@@ -272,14 +272,12 @@ class Instruction(object):
 #         log.debug(pprint.pformat(instr_kwargs))
 #         log.debug("-"*79)
 
-    def call_instr_func(self, ea):
+    def call_instr_func(self, op_attr):
         op_kwargs = self.static_kwargs.copy()
         if self.get_ea_func is not None:
             op_kwargs["ea"] = self.get_ea_func()
         elif self.get_m_func is not None:
-            ea, m = self.get_m_func()
-            op_kwargs["ea"] = ea
-            op_kwargs["m"] = m
+            op_kwargs["ea"], op_kwargs["m"] = self.get_m_func()
 
         if log.level <= logging.INFO:
             kwargs_info = []
@@ -292,8 +290,6 @@ class Instruction(object):
             if "m" in op_kwargs:
                 kwargs_info.append("m:%x" % op_kwargs["m"])
 
-        pc = self.cpu.program_counter
-
         try:
             self.instr_func(**op_kwargs)
         except TypeError, err:
@@ -304,8 +300,8 @@ class Instruction(object):
         self.cpu.cycles += self.data["cycles"]
 
         if log.level <= logging.INFO:
-            log.info("%(pc)04x %(opcode)-4s %(mnemonic)-6s %(kwargs)-25s | %(cpu)s | CC: %(cc)s", {
-                "pc": pc,
+            log.info("%(op_attr)04x %(opcode)-4s %(mnemonic)-6s %(kwargs)-25s | %(cpu)s | CC: %(cc)s", {
+                "op_attr": op_attr,
                 "opcode": "%02X" % self.opcode,
                 "mnemonic": self.data["mnemonic"],
                 "kwargs": " ".join(kwargs_info),
@@ -489,20 +485,20 @@ class CPU(object):
 
 
     def get_and_call_next_op(self):
-        ea, opcode = self.get_ea_and_pc_byte()
-        self.call_instruction_func(ea, opcode)
+        op_attr, opcode = self.read_pc_byte()
+        self.call_instruction_func(op_attr, opcode)
 
     same_op_count = 0
     last_op_code = None
-    def call_instruction_func(self, ea, opcode):
+    def call_instruction_func(self, op_attr, opcode):
         try:
             instruction = self.opcode_dict[opcode]
         except KeyError:
-            msg = "$%x *** UNKNOWN OP $%x" % (ea, opcode)
+            msg = "$%x *** UNKNOWN OP $%x" % (op_attr, opcode)
             log.error(msg)
             sys.exit(msg)
 
-        instruction.call_instr_func(ea)
+        instruction.call_instr_func(op_attr)
 
     @opcode(
         0x10, # PAGE1+ instructions
@@ -510,12 +506,12 @@ class CPU(object):
     )
     def instruction_PAGE(self, opcode):
         """ call op from page 1 or 2 """
-        ea, opcode2 = self.get_ea_and_pc_byte()
+        op_attr, opcode2 = self.read_pc_byte()
         paged_opcode = opcode * 256 + opcode2
         log.debug("$%x *** call paged opcode $%x" % (
             self.program_counter, paged_opcode
         ))
-        self.call_instruction_func(ea, paged_opcode)
+        self.call_instruction_func(op_attr, paged_opcode)
 
     def run(self):
         log.debug("-"*79)
@@ -675,43 +671,34 @@ class CPU(object):
         self._program_counter.set(value)
     program_counter = property(_get_program_counter, _set_program_counter)
 
-    def get_and_inc_PC(self, inc=1):
-        pc = self.program_counter
-        self.program_counter += inc
-#         log.debug(" ++++ inc pc: $%x + %i = $%x" % (pc, inc, self.program_counter))
-        return pc
-
-    def get_ea_and_pc_byte(self):
-        ea = self.get_and_inc_PC()
-        m = self.memory.read_byte(ea)
-        log.debug("\tread pc byte: $%02x from $%04x", m, ea)
-        return ea, m
-
-    def get_ea_and_pc_word(self):
-        ea = self.get_and_inc_PC(2)
-        m = self.memory.read_word(ea)
-        log.debug("\tread pc word: $%04x from $%04x", m, ea)
-        return ea, m
-
     def read_pc_byte(self):
-        return self.get_ea_and_pc_byte()[1]
+        op_addr = self.program_counter
+        m = self.memory.read_byte(op_addr)
+        self.program_counter += 1
+        log.debug("\tread pc byte: $%02x from $%04x", m, op_addr)
+        return op_addr, m
+
     def read_pc_word(self):
-        return self.get_ea_and_pc_word()[1]
+        op_addr = self.program_counter
+        m = self.memory.read_word(op_addr)
+        self.program_counter += 2
+        log.debug("\tread pc word: $%04x from $%04x", m, op_addr)
+        return op_addr, m
 
     ####
 
     def get_immediate_byte(self):
-        ea, m = self.get_ea_and_pc_byte()
+        ea, m = self.read_pc_byte()
         log.debug("\tget_immediate_byte(): ea=$%x m=$%x", ea, m)
         return ea, m
 
     def get_immediate_word(self):
-        ea, m = self.get_ea_and_pc_word()
+        ea, m = self.read_pc_word()
         log.debug("\tget_immediate_word(): ea=$%x m=$%x", ea, m)
         return ea, m
 
     def get_direct_ea(self):
-        m = self.read_pc_byte()
+        op_addr, m = self.read_pc_byte()
         dp = self.direct_page.get()
         ea = dp << 8 | m
         log.debug("\tget_direct_ea(): ea = dp << 8 | m  =>  $%x=$%x<<8|$%x", ea, dp, m)
@@ -738,9 +725,9 @@ class CPU(object):
         """
         Calculate the address for all indexed addressing modes
         """
-        postbyte = self.read_pc_byte()
-        log.debug("\tget_indexed_ea(): postbyte: $%x (%s)",
-            postbyte, byte2bit_string(postbyte)
+        addr, postbyte = self.read_pc_byte()
+        log.debug("\tget_indexed_ea(): postbyte: $%x (%s) from $%x",
+            postbyte, byte2bit_string(postbyte), addr
         )
 
         rr = (postbyte >> 5) & 3
@@ -777,9 +764,9 @@ class CPU(object):
         elif addr_mode == 0x6: # 0110 0x6 | A, R | A register offset
             ea = register_value + signed8(self.accu.A)
         elif addr_mode == 0x8: # 1000 0x8 | n, R | 8 bit offset
-            ea = register_value + signed8(self.read_pc_byte())
+            ea = register_value + signed8(self.read_pc_byte()[1])
         elif addr_mode == 0x9: # 1001 0x9 | n, R | 16 bit offset
-            ea = register_value + signed16(self.read_pc_word()) # FIXME: signed16() ok?
+            ea = register_value + signed16(self.read_pc_word()[1]) # FIXME: signed16() ok?
             self.cycles += 1
 
 #         elif addr_mode == 0xa: # 1010 0xa | FIXME: illegal???
@@ -790,17 +777,17 @@ class CPU(object):
             ea = register_value + signed16(self.accu.D) # FIXME: signed16() ok?
             self.cycles += 1
         elif addr_mode == 0xc: # 1100 0xc | n, PCR | 8 bit offset from program counter
-            ea = signed8(self.read_pc_byte()) + self.program_counter
+            ea = signed8(self.read_pc_byte()[1]) + self.program_counter
         elif addr_mode == 0xd: # 1101 0xd | n, PCR | 16 bit offset from program counter
-            ea = self.read_pc_word() + self.program_counter # FIXME: use signed16() here?
+            ea = self.read_pc_word()[1] + self.program_counter # FIXME: use signed16() here?
             self.cycles += 1
         elif addr_mode == 0xf and indirect: # 1111 0xf | [n] | 16 bit address - extended indirect
-            ea = self.read_pc_word()
+            ea = self.read_pc_word()[1]
         else:
             raise RuntimeError("Illegal indexed addressing mode: $%x" % addr_mode)
 
         if indirect: # bit 4 is 1 -> Indirect
-            tmp_ea = self.read_pc_byte()
+            tmp_ea = self.read_pc_byte()[1]
             tmp_ea = tmp_ea << 8
             ea = tmp_ea | self.read_byte(ea + 1)
 
@@ -823,8 +810,8 @@ class CPU(object):
         """
         extended indirect addressing mode takes a 2-byte value from post-bytes
         """
-        ea = self.read_pc_word()
-        log.debug("\tget_extended_ea() ea=$%x", ea)
+        attr, ea = self.read_pc_word()
+        log.debug("\tget_extended_ea() ea=$%x from $%x", ea, attr)
         return ea
 
     def get_extended_byte(self):
@@ -844,7 +831,7 @@ class CPU(object):
         return ea, m
 
     def get_relative_ea(self):
-        x = self.read_pc_byte()
+        addr, x = self.read_pc_byte()
         x = signed8(x)
         ea = self.program_counter + x
         log.debug("$%x addressing 'relative' ea = $%x + %i = $%x \t| %s" % (
