@@ -225,6 +225,15 @@ class ControlHandlerFactory:
     def __call__(self, request, client_address, server):
         return ControlHandler(request, client_address, server, self.cpu)
 
+import os
+try:
+    # Hacked bugtracking...
+    trace_file = open(os.path.expanduser(r"~/xroar_trace.txt"), "r")
+except IOError, err:
+    log.error("No trace file: %s" % err)
+    trace_file = None
+else:
+    trace_file.readline() # Skip reset line
 
 class Instruction(object):
     def __init__(self, cpu, opcode, opcode_data, instr_func):
@@ -300,14 +309,54 @@ class Instruction(object):
         self.cpu.cycles += self.data["cycles"]
 
         if log.level <= logging.INFO:
-            log.info("%(op_attr)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-25s | %(cpu)s | CC: %(cc)s", {
+            msg = "%(op_attr)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | CC: %(cc)s" % {
                 "op_attr": op_attr,
-                "opcode": "%02X" % self.opcode,
+                "opcode": "%02x" % self.opcode,
                 "mnemonic": self.data["mnemonic"],
                 "kwargs": " ".join(kwargs_info),
                 "cpu": self.cpu.get_info,
                 "cc": self.cpu.cc.get_info,
-            })
+            }
+            log.info(msg)
+
+            if trace_file is None:
+                return
+
+            # Hacked bugtracking...
+
+            if self.opcode in (0x10, 0x11): # PAGE 1/2 instructions
+                return
+
+            ref_line = trace_file.readline().strip()
+#             log.info(ref_line)
+
+            addr1 = msg.split("|", 1)[0]
+            addr2 = ref_line.split("|", 1)[0]
+            if addr1 != addr2:
+                log.info("trace: %s", ref_line)
+                log.info("own..: %s", msg)
+                log.error("address (%r != %r) not the same as trace reference!\n" % (
+                    addr1, addr2
+                ))
+
+            mnemonic1 = msg[11:18].strip()
+            mnemonic2 = ref_line[18:24].strip()
+            if mnemonic1 != mnemonic2:
+                log.info("trace: %s", ref_line)
+                log.info("own..: %s" , msg)
+                log.error("mnemonic (%r != %r) not the same as trace reference!\n" % (
+                    mnemonic1, mnemonic2
+                ))
+
+            registers1 = msg[46:95]
+            registers2 = ref_line[46:95]
+            if registers1 != registers2:
+                log.info("trace: %s" , ref_line)
+                log.info("own..: %s" , msg)
+                log.error("registers (%r != %r) not the same as trace reference!\n" % (
+                    registers1, registers2
+                ))
+
             log.debug("\t%s", repr(self.data))
             log.debug("-"*79)
 
@@ -2468,6 +2517,7 @@ def test_run():
 #         "--verbosity=5",
         "--verbosity=20",
 #         "--verbosity=50",
+#         "--area_debug_active=5:bb79-ffff",
 #         "--cfg=Simple6809Cfg",
         "--cfg=Dragon32Cfg",
         "--max=1",
