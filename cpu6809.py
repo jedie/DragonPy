@@ -1001,12 +1001,12 @@ class CPU(object):
         """
         if self.cc.Z == 1:
             log.debug("$%x BEQ branch to $%x, because Z==1 \t| %s" % (
-                self.program_counter, m, self.cfg.mem_info.get_shortest(m)
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
             ))
-            self.program_counter = m
+            self.program_counter = ea
         else:
             log.debug("$%x BEQ: don't branch to $%x, because Z==0 \t| %s" % (
-                self.program_counter, m, self.cfg.mem_info.get_shortest(m)
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
             ))
 
     @opcode(# Branch if greater than or equal (signed)
