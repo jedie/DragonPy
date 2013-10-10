@@ -281,7 +281,23 @@ class Instruction(object):
             op_kwargs["ea"] = ea
             op_kwargs["m"] = m
 
-        self.debug(ea, op_kwargs)
+        if log.level <= logging.INFO:
+            kwargs_info = ""
+            if "register" in op_kwargs:
+                kwargs_info += " register:%s" % op_kwargs["register"]
+
+            if "ea" in op_kwargs:
+                kwargs_info += " ea:$%x" % op_kwargs["ea"]
+
+            if "m" in op_kwargs:
+                kwargs_info += " m:$%x" % op_kwargs["m"]
+
+            msg = "$%04x %-4s %-6s %-35s" % (
+                ea,
+                ("%02X" % self.opcode),
+                self.data["mnemonic"],
+                kwargs_info
+            )
 
         try:
             self.instr_func(**op_kwargs)
@@ -291,30 +307,12 @@ class Instruction(object):
             raise
 
         self.cpu.cycles += self.data["cycles"]
-        log.debug("-"*79)
 
-    def debug(self, ea, op_kwargs):
-        msg = "$%04x %02X %s\t" % (
-            ea, self.opcode, self.data["mnemonic"]
-        )
-
-        kwargs_info = ""
-        if "register" in op_kwargs:
-            kwargs_info += " register:%s" % op_kwargs["register"]
-
-        if "ea" in op_kwargs:
-            kwargs_info += " ea:$%x" % op_kwargs["ea"]
-
-        if "m" in op_kwargs:
-            kwargs_info += " m:$%x" % op_kwargs["m"]
-
-        msg += "%-40s | %s" % (
-            kwargs_info,
-            self.cpu.cfg.mem_info.get_shortest(ea)
-        )
-        log.info(msg)
-        log.debug("\t%s", repr(self.data))
-
+        if log.level <= logging.INFO:
+            msg += " | %s" % self.cpu.get_info()
+            log.info(msg)
+            log.debug("\t%s", repr(self.data))
+            log.debug("-"*79)
 
 
 class CPU(object):
@@ -352,7 +350,7 @@ class CPU(object):
 
         # S - 16 bit system-stack pointer:
         # Position will be set by ROM code after detection of total installed RAM
-        self._system_stack_pointer = ValueStorage16Bit(REG_S, 0xffff)
+        self._system_stack_pointer = ValueStorage16Bit(REG_S, 0)
 
         # PC - 16 bit program counter register
         self._program_counter = ValueStorage16Bit(REG_PC, self.cfg.RESET_VECTOR)
@@ -591,6 +589,15 @@ class CPU(object):
     def get_V(self):
         """ return V - 16 bit variable inter-register """
         return self.value_register
+
+    def get_info(self):
+        return "cc=%02x a=%02x b=%02x dp=%02x x=%04x y=%04x u=%04x s=%04x" % (
+            self.cc.get(),
+            self.accu_a.get(), self.accu_b.get(),
+            self.direct_page.get(),
+            self.index_x.get(), self.index_y.get(),
+            self.user_stack_pointer.get(), self.system_stack_pointer
+        )
 
     ####
 

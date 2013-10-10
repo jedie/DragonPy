@@ -72,7 +72,7 @@ class ValueStorage8Bit(ValueStorage):
         self.value = v
         return self.value # e.g.: r = operand.set(a + 1)
     def __str__(self):
-        return "<%s (8-Bit):$%02x>" % (self.name, self.value)
+        return "%s=%02x" % (self.name, self.value)
 
 
 class ValueStorage16Bit(ValueStorage):
@@ -88,7 +88,7 @@ class ValueStorage16Bit(ValueStorage):
         self.value = v
         return self.value # e.g.: r = operand.set(a + 1)
     def __str__(self):
-        return "<%s (16-Bit):$%04x>" % (self.name, self.value)
+        return "%s=%04x" % (self.name, self.value)
 
 
 
@@ -279,7 +279,7 @@ class ConcatenatedAccumulator(object):
         return a * 256 + b
 
     def __str__(self):
-        return "<%s (16-Bit):$%x>" % (self.name, self.get())
+        return "%s=%04x" % (self.name, self.get())
 
 # def get_6809_registers():
 #
