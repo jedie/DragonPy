@@ -292,6 +292,8 @@ class Instruction(object):
             if "m" in op_kwargs:
                 kwargs_info.append("m:%x" % op_kwargs["m"])
 
+        pc = self.cpu.program_counter
+
         try:
             self.instr_func(**op_kwargs)
         except TypeError, err:
@@ -302,8 +304,8 @@ class Instruction(object):
         self.cpu.cycles += self.data["cycles"]
 
         if log.level <= logging.INFO:
-            log.info("%(ea)04x %(opcode)-4s %(mnemonic)-6s %(kwargs)-25s | %(cpu)s | CC: %(cc)s", {
-                "ea": ea,
+            log.info("%(pc)04x %(opcode)-4s %(mnemonic)-6s %(kwargs)-25s | %(cpu)s | CC: %(cc)s", {
+                "pc": pc,
                 "opcode": "%02X" % self.opcode,
                 "mnemonic": self.data["mnemonic"],
                 "kwargs": " ".join(kwargs_info),
@@ -2477,8 +2479,9 @@ def test_run():
 #         "--verbosity=5",
         "--verbosity=20",
 #         "--verbosity=50",
-        "--cfg=Simple6809Cfg",
-#         "--cfg=Dragon32Cfg",
+#         "--cfg=Simple6809Cfg",
+        "--cfg=Dragon32Cfg",
+        "--max=1",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args).wait()
