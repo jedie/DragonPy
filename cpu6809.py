@@ -300,7 +300,7 @@ class Instruction(object):
         self.cpu.cycles += self.data["cycles"]
 
         if log.level <= logging.INFO:
-            log.info("%(op_attr)04x %(opcode)-4s %(mnemonic)-6s %(kwargs)-25s | %(cpu)s | CC: %(cc)s", {
+            log.info("%(op_attr)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-25s | %(cpu)s | CC: %(cc)s", {
                 "op_attr": op_attr,
                 "opcode": "%02X" % self.opcode,
                 "mnemonic": self.data["mnemonic"],

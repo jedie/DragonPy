@@ -22,7 +22,7 @@ from components.display import Display
 from components.speaker import Speaker
 from components.cassette import Cassette
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("DragonPy.perophery.dragon")
 
 
 
@@ -184,7 +184,9 @@ class Periphery(object):
         return quit_cpu
 
     def reset_vector(self, address):
-        return 0xB3B4 # FIXME: RESET interrupt service routine ???
+        ea = 0xb3b4
+        log.info("%x| %x        [RESET]" % (address, ea))
+        return ea # FIXME: RESET interrupt service routine ???
 
 def get_dragon_periphery(cfg):
     periphery = Periphery(cfg)
@@ -195,8 +197,10 @@ def test_run():
     import sys, subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-        "--verbosity=5",
+#         "--verbosity=5",
+        "--verbosity=20",
         "--cfg=Dragon32Cfg",
+        "--max=1",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()
