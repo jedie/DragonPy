@@ -97,7 +97,7 @@ class PIA(object):
         return 0x34
     def pia_1_B_data(self):
         log.debug(" *** TODO: PIA 1 B side data register")
-        return 0x34
+        return 0x00
     def pia_1_B_control(self):
         log.debug(" *** TODO: PIA 1 B side control register")
         return 0x37
