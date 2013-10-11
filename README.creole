@@ -1,14 +1,23 @@
 == PyDragon32
 
-Some Python/BASIC tools/script around Dragon32/64 homecomputer:
+Some Python/BASIC tools/scripts around Dragon32/64 / CoCo homecomputer.
+
+All script are copyleft 2013 by Jens Diemer and license unter GNU GPL v3 or above, see LICENSE for more details.
+
+=== Python scripts:
 
 * PyDC - Convert dragon 32 Cassetts WAV files into plain text:
 ** https://github.com/jedie/PyDragon32/tree/master/PyDC
 
-* Simple memory HEX viewer written in BASIC:
-** https://github.com/jedie/PyDragon32/tree/master/HexViewer 
+=== BASIC programms:
 
-All script are copyleft 2013 by Jens Diemer and license unter GNU GPL v3 or above, see LICENSE for more details.
+* Simple memory HEX viewer:
+** https://github.com/jedie/PyDragon32/tree/master/HexViewer
+
+* Test CC Registers:
+** https://github.com/jedie/PyDragon32/tree/master/TestCC_Registers
+
+
 
 = donation
 

@@ -1,0 +1,15 @@
+
+=== Test CC Registers
+
+A BASIC programm with inserted machine code to diplay the CC registers of the CPU.
+
+
+
+
+copyleft: 2013 by Jens Diemer
+license: GNU GPL v3 or above, see LICENSE for more details.
+
+
+
+Many thanks to the people from:
+ * [[http://archive.worldofdragon.org/phpBB3/| World Of Dragon - Forum]]
