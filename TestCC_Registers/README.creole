@@ -3,12 +3,13 @@
 
 A BASIC programm with inserted machine code to diplay the CC registers of the CPU.
 
-
-
-
 copyleft: 2013 by Jens Diemer
 license: GNU GPL v3 or above, see LICENSE for more details.
 
+
+{{http://www.jensdiemer.de/media/jensdiemer.de/screenshots/test_cc_register01.PNG|test_cc_register01.PNG}}
+
+{{http://www.jensdiemer.de/media/jensdiemer.de/screenshots/test_cc_register02.PNG|test_cc_register02.PNG}}
 
 
 Many thanks to the people from:
