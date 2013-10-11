@@ -90,6 +90,24 @@ class BaseConfig(object):
 
         self.verbosity = cmd_args.verbosity
 
+        if cmd_args.max:
+            self.max_cpu_cycles = cmd_args.max
+        else:
+            self.max_cpu_cycles = None
+
+        if cmd_args.area_debug_active:
+            # FIXME: How do this in a easier way?
+            level, area = cmd_args.area_debug_active.split(":")
+            level = int(level)
+            start, end = area.split("-")
+            start = start.strip()
+            end = end.strip()
+            start = int(start, 16)
+            end = int(end, 16)
+            self.area_debug = (level, start, end)
+        else:
+            self.area_debug = None
+
         self.mem_info = DummyMemInfo()
 
     def print_debug_info(self):

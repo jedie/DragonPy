@@ -21,7 +21,9 @@ class UnittestCmdArgs(object):
     bus_socket_port = None
     ram = None
     rom = None
-    verbosity = 5
+    verbosity = None
+    max = None
+    area_debug_active = None
     
 
 class BaseTestCase(unittest.TestCase):
@@ -387,9 +389,9 @@ if __name__ == '__main__':
     log = logging.getLogger("DragonPy")
     log.setLevel(
 #         logging.ERROR
-#         logging.INFO
+        logging.INFO
 #         logging.WARNING
-        logging.DEBUG
+#         logging.DEBUG
     )
     log.addHandler(logging.StreamHandler())
 

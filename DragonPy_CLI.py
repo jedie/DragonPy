@@ -79,24 +79,6 @@ class DragonPyCLI(Base_CLI):
         self.cfg = config_cls(args)
         self.cfg.config_name = config_name
 
-        if args.max:
-            self.cfg.max_cpu_cycles = args.max
-        else:
-            self.cfg.max_cpu_cycles = None
-
-        if args.area_debug_active:
-            # FIXME: How do this in a easier way?
-            level, area = args.area_debug_active.split(":")
-            level = int(level)
-            start, end = area.split("-")
-            start = start.strip()
-            end = end.strip()
-            start = int(start, 16)
-            end = int(end, 16)
-            self.cfg.area_debug = (level, start, end)
-        else:
-            self.cfg.area_debug = None
-
     def run(self):
         self.setup_cfg()
 
