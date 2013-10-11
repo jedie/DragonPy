@@ -1,271 +1,272 @@
-NEG;0;6;0x0;0;;DIRECT;NEG;2 bytes;NEG;M' = 0 - M
-COM;0;6;0x3;3;;DIRECT;COM;2 bytes;COM;M' = 0 + M
-LSR;0;6;0x4;4;;DIRECT;LSR;2 bytes;LSR;0 -> -> C b7 -> b0
-ROR;0;6;0x6;6;;DIRECT;ROR;2 bytes;ROR;C -> -> C b7 -> b0
-ASR;0;6;0x7;7;;DIRECT;ASR;2 bytes;ASR;b7 -> -> C b7 -> b0
-LSL/ASL;0;6;0x8;8;;DIRECT;LSL;2 bytes;LSL;C = = 0 b7 = b0
-ROL;0;6;0x9;9;;DIRECT;ROL;2 bytes;ROL;C = = C b7 = b0
-DEC;0;6;0xa;10;;DIRECT;DEC;2 bytes;DEC;M' = M - 1
-INC;0;6;0xc;12;;DIRECT;INC;2 bytes;INC;M' = M + 1
-TST;0;6;0xd;13;;DIRECT;TST;2 bytes;TST;TEMP = M - 0
-CLR;0;6;0xf;15;;DIRECT;CLR;2 bytes;CLR;TEMP = M M = 00 16
-DAA;0;2;0x19;25;;INHERENT;DAA;1 bytes;DAA;Least Significant Nibble Least Significant Nibble CF(LSN) = 6 IFF 1) C = 1 or 2) LSN > 9 Most Significant Nibble Most Significant Nibble CF(MSN) = 6 IFF 1) C = 1 or 2) MSN > 9 or 3) MSN > 8 and LSN > 9
-EXG;0;8;0x1e;30;;IMMEDIATE;EXG;2 bytes;EXG;R1 <-> R2
-TFR;0;7;0x1f;31;;IMMEDIATE;TFR;2 bytes;TFR;R1 -> R2
-MUL;0;11;0x3d;61;;INHERENT;MUL;1 bytes;MUL;ACCA':ACCB' = ACCA * ACCB
-NEGA;0;2;0x40;64;A;INHERENT;NEG;1 bytes;NEG;M' = 0 - M
-COMA;0;2;0x43;67;A;INHERENT;COM;1 bytes;COM;M' = 0 + M
-LSRA;0;2;0x44;68;A;INHERENT;LSR;1 bytes;LSR;0 -> -> C b7 -> b0
-RORA;0;2;0x46;70;A;INHERENT;ROR;1 bytes;ROR;C -> -> C b7 -> b0
-ASRA;0;2;0x47;71;A;INHERENT;ASR;1 bytes;ASR;b7 -> -> C b7 -> b0
-LSLA/ASLA;0;2;0x48;72;A;INHERENT;LSL;1 bytes;LSL;C = = 0 b7 = b0
-ROLA;0;2;0x49;73;A;INHERENT;ROL;1 bytes;ROL;C = = C b7 = b0
-DECA;0;2;0x4a;74;A;INHERENT;DEC;1 bytes;DEC;M' = M - 1
-INCA;0;2;0x4c;76;A;INHERENT;INC;1 bytes;INC;M' = M + 1
-TSTA;0;2;0x4d;77;A;INHERENT;TST;1 bytes;TST;TEMP = M - 0
-CLRA;0;2;0x4f;79;A;INHERENT;CLR;1 bytes;CLR;TEMP = M M = 00 16
-NEGB;0;2;0x50;80;B;INHERENT;NEG;1 bytes;NEG;M' = 0 - M
-COMB;0;2;0x53;83;B;INHERENT;COM;1 bytes;COM;M' = 0 + M
-LSRB;0;2;0x54;84;B;INHERENT;LSR;1 bytes;LSR;0 -> -> C b7 -> b0
-RORB;0;2;0x56;86;B;INHERENT;ROR;1 bytes;ROR;C -> -> C b7 -> b0
-ASRB;0;2;0x57;87;B;INHERENT;ASR;1 bytes;ASR;b7 -> -> C b7 -> b0
-LSLB/ASLB;0;2;0x58;88;B;INHERENT;LSL;1 bytes;LSL;C = = 0 b7 = b0
-ROLB;0;2;0x59;89;B;INHERENT;ROL;1 bytes;ROL;C = = C b7 = b0
-DECB;0;2;0x5a;90;B;INHERENT;DEC;1 bytes;DEC;M' = M - 1
-INCB;0;2;0x5c;92;B;INHERENT;INC;1 bytes;INC;M' = M + 1
-TSTB;0;2;0x5d;93;B;INHERENT;TST;1 bytes;TST;TEMP = M - 0
-CLRB;0;2;0x5f;95;B;INHERENT;CLR;1 bytes;CLR;TEMP = M M = 00 16
-NEG;0;6;0x60;96;;INDEXED;NEG;2 bytes;NEG;M' = 0 - M
-COM;0;6;0x63;99;;INDEXED;COM;2 bytes;COM;M' = 0 + M
-LSR;0;6;0x64;100;;INDEXED;LSR;2 bytes;LSR;0 -> -> C b7 -> b0
-ROR;0;6;0x66;102;;INDEXED;ROR;2 bytes;ROR;C -> -> C b7 -> b0
-ASR;0;6;0x67;103;;INDEXED;ASR;2 bytes;ASR;b7 -> -> C b7 -> b0
-LSL/ASL;0;6;0x68;104;;INDEXED;LSL;2 bytes;LSL;C = = 0 b7 = b0
-ROL;0;6;0x69;105;;INDEXED;ROL;2 bytes;ROL;C = = C b7 = b0
-DEC;0;6;0x6a;106;;INDEXED;DEC;2 bytes;DEC;M' = M - 1
-INC;0;6;0x6c;108;;INDEXED;INC;2 bytes;INC;M' = M + 1
-TST;0;6;0x6d;109;;INDEXED;TST;2 bytes;TST;TEMP = M - 0
-CLR;0;6;0x6f;111;;INDEXED;CLR;2 bytes;CLR;TEMP = M M = 00 16
-NEG;0;7;0x70;112;;EXTENDED;NEG;3 bytes;NEG;M' = 0 - M
-COM;0;7;0x73;115;;EXTENDED;COM;3 bytes;COM;M' = 0 + M
-LSR;0;7;0x74;116;;EXTENDED;LSR;3 bytes;LSR;0 -> -> C b7 -> b0
-ROR;0;7;0x76;118;;EXTENDED;ROR;3 bytes;ROR;C -> -> C b7 -> b0
-ASR;0;7;0x77;119;;EXTENDED;ASR;3 bytes;ASR;b7 -> -> C b7 -> b0
-LSL/ASL;0;7;0x78;120;;EXTENDED;LSL;3 bytes;LSL;C = = 0 b7 = b0
-ROL;0;7;0x79;121;;EXTENDED;ROL;3 bytes;ROL;C = = C b7 = b0
-DEC;0;7;0x7a;122;;EXTENDED;DEC;3 bytes;DEC;M' = M - 1
-INC;0;7;0x7c;124;;EXTENDED;INC;3 bytes;INC;M' = M + 1
-TST;0;7;0x7d;125;;EXTENDED;TST;3 bytes;TST;TEMP = M - 0
-CLR;0;7;0x7f;127;;EXTENDED;CLR;3 bytes;CLR;TEMP = M M = 00 16
-SUBA;0;2;0x80;128;A;IMMEDIATE;SUB;2 bytes;SUB8;R' = R - M
-CMPA;0;2;0x81;129;A;IMMEDIATE;CMP;2 bytes;CMP8;TEMP = R - M
-SBCA;0;2;0x82;130;A;IMMEDIATE;SBC;2 bytes;SBC;R' = R - M - C
-ANDA;0;2;0x84;132;A;IMMEDIATE;AND;2 bytes;AND;R' = R AND M
-BITA;0;2;0x85;133;A;IMMEDIATE;BIT;2 bytes;BIT;TEMP = R AND M
-LDA;0;2;0x86;134;A;IMMEDIATE;LD;2 bytes;LD8;R' = M
-EORA;0;2;0x88;136;A;IMMEDIATE;EOR;2 bytes;EOR;R' = R XOR M
-ADCA;0;2;0x89;137;A;IMMEDIATE;ADC;2 bytes;ADC;R' = R + M + C
-ORA;0;2;0x8a;138;A;IMMEDIATE;OR;2 bytes;OR;R' = R OR M
-ADDA;0;2;0x8b;139;A;IMMEDIATE;ADD;2 bytes;ADD8;R' = R + M
-SUBA;0;4;0x90;144;A;DIRECT;SUB;2 bytes;SUB8;R' = R - M
-CMPA;0;4;0x91;145;A;DIRECT;CMP;2 bytes;CMP8;TEMP = R - M
-SBCA;0;4;0x92;146;A;DIRECT;SBC;2 bytes;SBC;R' = R - M - C
-ANDA;0;4;0x94;148;A;DIRECT;AND;2 bytes;AND;R' = R AND M
-BITA;0;4;0x95;149;A;DIRECT;BIT;2 bytes;BIT;TEMP = R AND M
-LDA;0;4;0x96;150;A;DIRECT;LD;2 bytes;LD8;R' = M
-STA;0;4;0x97;151;A;DIRECT;ST;2 bytes;ST8;M' = R
-EORA;0;4;0x98;152;A;DIRECT;EOR;2 bytes;EOR;R' = R XOR M
-ADCA;0;4;0x99;153;A;DIRECT;ADC;2 bytes;ADC;R' = R + M + C
-ORA;0;4;0x9a;154;A;DIRECT;OR;2 bytes;OR;R' = R OR M
-ADDA;0;4;0x9b;155;A;DIRECT;ADD;2 bytes;ADD8;R' = R + M
-SUBA;0;4;0xa0;160;A;INDEXED;SUB;2 bytes;SUB8;R' = R - M
-CMPA;0;4;0xa1;161;A;INDEXED;CMP;2 bytes;CMP8;TEMP = R - M
-SBCA;0;4;0xa2;162;A;INDEXED;SBC;2 bytes;SBC;R' = R - M - C
-ANDA;0;4;0xa4;164;A;INDEXED;AND;2 bytes;AND;R' = R AND M
-BITA;0;4;0xa5;165;A;INDEXED;BIT;2 bytes;BIT;TEMP = R AND M
-LDA;0;4;0xa6;166;A;INDEXED;LD;2 bytes;LD8;R' = M
-STA;0;4;0xa7;167;A;INDEXED;ST;2 bytes;ST8;M' = R
-EORA;0;4;0xa8;168;A;INDEXED;EOR;2 bytes;EOR;R' = R XOR M
-ADCA;0;4;0xa9;169;A;INDEXED;ADC;2 bytes;ADC;R' = R + M + C
-ORA;0;4;0xaa;170;A;INDEXED;OR;2 bytes;OR;R' = R OR M
-ADDA;0;4;0xab;171;A;INDEXED;ADD;2 bytes;ADD8;R' = R + M
-SUBA;0;5;0xb0;176;A;EXTENDED;SUB;3 bytes;SUB8;R' = R - M
-CMPA;0;5;0xb1;177;A;EXTENDED;CMP;3 bytes;CMP8;TEMP = R - M
-SBCA;0;5;0xb2;178;A;EXTENDED;SBC;3 bytes;SBC;R' = R - M - C
-ANDA;0;5;0xb4;180;A;EXTENDED;AND;3 bytes;AND;R' = R AND M
-BITA;0;5;0xb5;181;A;EXTENDED;BIT;3 bytes;BIT;TEMP = R AND M
-LDA;0;5;0xb6;182;A;EXTENDED;LD;3 bytes;LD8;R' = M
-STA;0;5;0xb7;183;A;EXTENDED;ST;3 bytes;ST8;M' = R
-EORA;0;5;0xb8;184;A;EXTENDED;EOR;3 bytes;EOR;R' = R XOR M
-ADCA;0;5;0xb9;185;A;EXTENDED;ADC;3 bytes;ADC;R' = R + M + C
-ORA;0;5;0xba;186;A;EXTENDED;OR;3 bytes;OR;R' = R OR M
-ADDA;0;5;0xbb;187;A;EXTENDED;ADD;3 bytes;ADD8;R' = R + M
-SUBB;0;2;0xc0;192;B;IMMEDIATE;SUB;2 bytes;SUB8;R' = R - M
-CMPB;0;2;0xc1;193;B;IMMEDIATE;CMP;2 bytes;CMP8;TEMP = R - M
-SBCB;0;2;0xc2;194;B;IMMEDIATE;SBC;2 bytes;SBC;R' = R - M - C
-ANDB;0;2;0xc4;196;B;IMMEDIATE;AND;2 bytes;AND;R' = R AND M
-BITB;0;2;0xc5;197;B;IMMEDIATE;BIT;2 bytes;BIT;TEMP = R AND M
-LDB;0;2;0xc6;198;B;IMMEDIATE;LD;2 bytes;LD8;R' = M
-EORB;0;2;0xc8;200;B;IMMEDIATE;EOR;2 bytes;EOR;R' = R XOR M
-ADCB;0;2;0xc9;201;B;IMMEDIATE;ADC;2 bytes;ADC;R' = R + M + C
-ORB;0;2;0xca;202;B;IMMEDIATE;OR;2 bytes;OR;R' = R OR M
-ADDB;0;2;0xcb;203;B;IMMEDIATE;ADD;2 bytes;ADD8;R' = R + M
-SUBB;0;4;0xd0;208;B;DIRECT;SUB;2 bytes;SUB8;R' = R - M
-CMPB;0;4;0xd1;209;B;DIRECT;CMP;2 bytes;CMP8;TEMP = R - M
-SBCB;0;4;0xd2;210;B;DIRECT;SBC;2 bytes;SBC;R' = R - M - C
-ANDB;0;4;0xd4;212;B;DIRECT;AND;2 bytes;AND;R' = R AND M
-BITB;0;4;0xd5;213;B;DIRECT;BIT;2 bytes;BIT;TEMP = R AND M
-LDB;0;4;0xd6;214;B;DIRECT;LD;2 bytes;LD8;R' = M
-STB;0;4;0xd7;215;B;DIRECT;ST;2 bytes;ST8;M' = R
-EORB;0;4;0xd8;216;B;DIRECT;EOR;2 bytes;EOR;R' = R XOR M
-ADCB;0;4;0xd9;217;B;DIRECT;ADC;2 bytes;ADC;R' = R + M + C
-ORB;0;4;0xda;218;B;DIRECT;OR;2 bytes;OR;R' = R OR M
-ADDB;0;4;0xdb;219;B;DIRECT;ADD;2 bytes;ADD8;R' = R + M
-SUBB;0;4;0xe0;224;B;INDEXED;SUB;2 bytes;SUB8;R' = R - M
-CMPB;0;4;0xe1;225;B;INDEXED;CMP;2 bytes;CMP8;TEMP = R - M
-SBCB;0;4;0xe2;226;B;INDEXED;SBC;2 bytes;SBC;R' = R - M - C
-ANDB;0;4;0xe4;228;B;INDEXED;AND;2 bytes;AND;R' = R AND M
-BITB;0;4;0xe5;229;B;INDEXED;BIT;2 bytes;BIT;TEMP = R AND M
-LDB;0;4;0xe6;230;B;INDEXED;LD;2 bytes;LD8;R' = M
-STB;0;4;0xe7;231;B;INDEXED;ST;2 bytes;ST8;M' = R
-EORB;0;4;0xe8;232;B;INDEXED;EOR;2 bytes;EOR;R' = R XOR M
-ADCB;0;4;0xe9;233;B;INDEXED;ADC;2 bytes;ADC;R' = R + M + C
-ORB;0;4;0xea;234;B;INDEXED;OR;2 bytes;OR;R' = R OR M
-ADDB;0;4;0xeb;235;B;INDEXED;ADD;2 bytes;ADD8;R' = R + M
-SUBB;0;5;0xf0;240;B;EXTENDED;SUB;3 bytes;SUB8;R' = R - M
-CMPB;0;5;0xf1;241;B;EXTENDED;CMP;3 bytes;CMP8;TEMP = R - M
-SBCB;0;5;0xf2;242;B;EXTENDED;SBC;3 bytes;SBC;R' = R - M - C
-ANDB;0;5;0xf4;244;B;EXTENDED;AND;3 bytes;AND;R' = R AND M
-BITB;0;5;0xf5;245;B;EXTENDED;BIT;3 bytes;BIT;TEMP = R AND M
-LDB;0;5;0xf6;246;B;EXTENDED;LD;3 bytes;LD8;R' = M
-STB;0;5;0xf7;247;B;EXTENDED;ST;3 bytes;ST8;M' = R
-EORB;0;5;0xf8;248;B;EXTENDED;EOR;3 bytes;EOR;R' = R XOR M
-ADCB;0;5;0xf9;249;B;EXTENDED;ADC;3 bytes;ADC;R' = R + M + C
-ORB;0;5;0xfa;250;B;EXTENDED;OR;3 bytes;OR;R' = R OR M
-ADDB;0;5;0xfb;251;B;EXTENDED;ADD;3 bytes;ADD8;R' = R + M
-SEX;1;2;0x1d;29;;INHERENT;SEX;1 bytes;SEX;If bit seven of ACCB is set then ACCA' = FF 16 else ACCA' = 00 16
-SUBD;1;4;0x83;131;D;IMMEDIATE;SUB;3 bytes;SUB16;R' = R - M:M+1
-SUBD;1;6;0x93;147;D;DIRECT;SUB;2 bytes;SUB16;R' = R - M:M+1
-SUBD;1;6;0xa3;163;D;INDEXED;SUB;2 bytes;SUB16;R' = R - M:M+1
-SUBD;1;7;0xb3;179;D;EXTENDED;SUB;3 bytes;SUB16;R' = R - M:M+1
-ADDD;1;4;0xc3;195;D;IMMEDIATE;ADD;3 bytes;ADD16;R' = R + M:M+1
-LDD;1;3;0xcc;204;D;IMMEDIATE;LD;3 bytes;LD16;R' = M:M+1
-ADDD;1;6;0xd3;211;D;DIRECT;ADD;2 bytes;ADD16;R' = R + M:M+1
-LDD;1;5;0xdc;220;D;DIRECT;LD;2 bytes;LD16;R' = M:M+1
-STD;1;5;0xdd;221;D;DIRECT;ST;2 bytes;ST16;M':M+1' = R
-ADDD;1;6;0xe3;227;D;INDEXED;ADD;2 bytes;ADD16;R' = R + M:M+1
-LDD;1;5;0xec;236;D;INDEXED;LD;2 bytes;LD16;R' = M:M+1
-STD;1;5;0xed;237;D;INDEXED;ST;2 bytes;ST16;M':M+1' = R
-ADDD;1;7;0xf3;243;D;EXTENDED;ADD;3 bytes;ADD16;R' = R + M:M+1
-LDD;1;6;0xfc;252;D;EXTENDED;LD;3 bytes;LD16;R' = M:M+1
-STD;1;6;0xfd;253;D;EXTENDED;ST;3 bytes;ST16;M':M+1' = R
-CMPD;1;5;0x1083;4227;D;IMMEDIATE;CMP;4 bytes;CMP16;TEMP = R - M:M+1
-CMPD;1;7;0x1093;4243;D;DIRECT;CMP;3 bytes;CMP16;TEMP = R - M:M+1
-CMPD;1;7;0x10a3;4259;D;INDEXED;CMP;3 bytes;CMP16;TEMP = R - M:M+1
-CMPD;1;8;0x10b3;4275;D;EXTENDED;CMP;4 bytes;CMP16;TEMP = R - M:M+1
-LEAX;2;4;0x30;48;X;INDEXED;LEA;2 bytes;LEA_register;R' = EA
-LEAY;2;4;0x31;49;Y;INDEXED;LEA;2 bytes;LEA_register;R' = EA
-LEAS;2;4;0x32;50;S;INDEXED;LEA;2 bytes;LEA_pointer;R' = EA
-LEAU;2;4;0x33;51;U;INDEXED;LEA;2 bytes;LEA_pointer;R' = EA
-PSHS;2;5;0x34;52;S;IMMEDIATE;PSH;2 bytes;PSHS;IFF b7 of postbyte set, then: SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH IFF b6 of postbyte set, then: SP' = SP-1, (SP) = USL SP' = SP-1, (SP) = USH IFF b5 of postbyte set, then: SP' = SP-1, (SP) = IYL SP' = SP-1, (SP) = IYH IFF b4 of postbyte set, then: SP' = SP-1, (SP) = IXL SP' = SP-1, (SP) = IXH IFF b3 of postbyte set, then: SP' = SP-1, (SP) = DPR IFF b2 of postbyte set, then: SP' = SP-1, (SP) = ACCB IFF b1 of postbyte set, then: SP' = SP-1, (SP) = ACCA IFF b0 of postbyte set, then: SP' = SP-1, (SP) = CCR
-PULS;2;5;0x35;53;S;IMMEDIATE;PUL;2 bytes;PULS;IFF b0 of postbyte set, then: CCR' = (SP), SP' = SP+1 IFF b1 of postbyte set, then: ACCA' = (SP), SP' = SP+1 IFF b2 of postbyte set, then: ACCB' = (SP), SP' = SP+1 IFF b3 of postbyte set, then: DPR' = (SP), SP'  = SP+1 IFF b4 of postbyte set, then: IXH' IXL' = (SP), SP' = SP+1 = (SP), SP' = SP+1 IFF b5 of postbyte set, then: IYH' IYL' = (SP), SP' = SP+1 = (SP), SP' = SP+1 IFF b6 of postbyte set, then: USH' USL' = (SP), SP' = SP+1 = (SP), SP' = SP+1 IFF b7 of postbyte set, then: PCH' PCL' = (SP), SP' = SP+1 = (SP), SP' = SP+1
-PSHU;2;5;0x36;54;U;IMMEDIATE;PSH;2 bytes;PSHU;IFF b7 of postbyte set, then: US' = US-1, (US) = PCL US' = US-1, (US) = PCH IFF b6 of postbyte set, then: US' = US-1, (US) = SPL US' = US-1, (US) = SPH IFF b5 of postbyte set, then: US' = US-1, (US) = IYL US' = US-1, (US) = IYH IFF b4 of postbyte set, then: US' = US-1, (US) = IXL US' = US-1, (US) = IXH IFF b3 of postbyte set, then: US' = US-1, (US) = DPR IFF b2 of postbyte set, then: US' = US-1, (US) = ACCB IFF b1 of postbyte set, then: US' = US-1, (US) = ACCA IFF b0 of postbyte set, then: US' = US-1, (US) = CCR
-PULU;2;5;0x37;55;U;IMMEDIATE;PUL;2 bytes;PULU;IFF b0 of postbyte set, then: CCR' = (US), US' = US+1 IFF b1 of postbyte set, then: ACCA' = (US), US' = US+1 IFF b2 of postbyte set, then: ACCB' = (US), US' = US+1 IFF b3 of postbyte set, then: DPR' = (US), US' = US+1 IFF b4 of postbyte set, then: IXH' IXL' = (US), US' = US+1 = (US), US' = US+1 IFF b5 of postbyte set, then: IYH' IYL' = (US), US' = US+1 = (US), US' = US+1 IFF b6 of postbyte set, then: SPH' SPL' = (US), US' = US+1 = (US), US' = US+1 IFF b7 of postbyte set, then: PCH' PCL' = (US), US' = US+1 = (US), US' = US+1
-ABX;2;3;0x3a;58;;INHERENT;ABX;1 bytes;ABX;IX' = IX + ACCB
-CMPX;2;4;0x8c;140;X;IMMEDIATE;CMP;3 bytes;CMP16;TEMP = R - M:M+1
-LDX;2;3;0x8e;142;X;IMMEDIATE;LD;3 bytes;LD16;R' = M:M+1
-CMPX;2;6;0x9c;156;X;DIRECT;CMP;2 bytes;CMP16;TEMP = R - M:M+1
-LDX;2;5;0x9e;158;X;DIRECT;LD;2 bytes;LD16;R' = M:M+1
-STX;2;5;0x9f;159;X;DIRECT;ST;2 bytes;ST16;M':M+1' = R
-CMPX;2;6;0xac;172;X;INDEXED;CMP;2 bytes;CMP16;TEMP = R - M:M+1
-LDX;2;5;0xae;174;X;INDEXED;LD;2 bytes;LD16;R' = M:M+1
-STX;2;5;0xaf;175;X;INDEXED;ST;2 bytes;ST16;M':M+1' = R
-CMPX;2;7;0xbc;188;X;EXTENDED;CMP;3 bytes;CMP16;TEMP = R - M:M+1
-LDX;2;6;0xbe;190;X;EXTENDED;LD;3 bytes;LD16;R' = M:M+1
-STX;2;6;0xbf;191;X;EXTENDED;ST;3 bytes;ST16;M':M+1' = R
-LDU;2;3;0xce;206;U;IMMEDIATE;LD;3 bytes;LD16;R' = M:M+1
-LDU;2;5;0xde;222;U;DIRECT;LD;2 bytes;LD16;R' = M:M+1
-STU;2;5;0xdf;223;U;DIRECT;ST;2 bytes;ST16;M':M+1' = R
-LDU;2;5;0xee;238;U;INDEXED;LD;2 bytes;LD16;R' = M:M+1
-STU;2;5;0xef;239;U;INDEXED;ST;2 bytes;ST16;M':M+1' = R
-LDU;2;6;0xfe;254;U;EXTENDED;LD;3 bytes;LD16;R' = M:M+1
-STU;2;6;0xff;255;U;EXTENDED;ST;3 bytes;ST16;M':M+1' = R
-CMPY;2;5;0x108c;4236;Y;IMMEDIATE;CMP;4 bytes;CMP16;TEMP = R - M:M+1
-LDY;2;4;0x108e;4238;Y;IMMEDIATE;LD;4 bytes;LD16;R' = M:M+1
-CMPY;2;7;0x109c;4252;Y;DIRECT;CMP;3 bytes;CMP16;TEMP = R - M:M+1
-LDY;2;6;0x109e;4254;Y;DIRECT;LD;3 bytes;LD16;R' = M:M+1
-STY;2;6;0x109f;4255;Y;DIRECT;ST;3 bytes;ST16;M':M+1' = R
-CMPY;2;7;0x10ac;4268;Y;INDEXED;CMP;3 bytes;CMP16;TEMP = R - M:M+1
-LDY;2;6;0x10ae;4270;Y;INDEXED;LD;3 bytes;LD16;R' = M:M+1
-STY;2;6;0x10af;4271;Y;INDEXED;ST;3 bytes;ST16;M':M+1' = R
-CMPY;2;8;0x10bc;4284;Y;EXTENDED;CMP;4 bytes;CMP16;TEMP = R - M:M+1
-LDY;2;7;0x10be;4286;Y;EXTENDED;LD;4 bytes;LD16;R' = M:M+1
-STY;2;7;0x10bf;4287;Y;EXTENDED;ST;4 bytes;ST16;M':M+1' = R
-LDS;2;4;0x10ce;4302;S;IMMEDIATE;LD;4 bytes;LD16;R' = M:M+1
-LDS;2;6;0x10de;4318;S;DIRECT;LD;3 bytes;LD16;R' = M:M+1
-STS;2;6;0x10df;4319;S;DIRECT;ST;3 bytes;ST16;M':M+1' = R
-LDS;2;6;0x10ee;4334;S;INDEXED;LD;3 bytes;LD16;R' = M:M+1
-STS;2;6;0x10ef;4335;S;INDEXED;ST;3 bytes;ST16;M':M+1' = R
-LDS;2;7;0x10fe;4350;S;EXTENDED;LD;4 bytes;LD16;R' = M:M+1
-STS;2;7;0x10ff;4351;S;EXTENDED;ST;4 bytes;ST16;M':M+1' = R
-CMPU;2;5;0x1183;4483;U;IMMEDIATE;CMP;4 bytes;CMP16;TEMP = R - M:M+1
-CMPS;2;5;0x118c;4492;S;IMMEDIATE;CMP;4 bytes;CMP16;TEMP = R - M:M+1
-CMPU;2;7;0x1193;4499;U;DIRECT;CMP;3 bytes;CMP16;TEMP = R - M:M+1
-CMPS;2;7;0x119c;4508;S;DIRECT;CMP;3 bytes;CMP16;TEMP = R - M:M+1
-CMPU;2;7;0x11a3;4515;U;INDEXED;CMP;3 bytes;CMP16;TEMP = R - M:M+1
-CMPS;2;7;0x11ac;4524;S;INDEXED;CMP;3 bytes;CMP16;TEMP = R - M:M+1
-CMPU;2;8;0x11b3;4531;U;EXTENDED;CMP;4 bytes;CMP16;TEMP = R - M:M+1
-CMPS;2;8;0x11bc;4540;S;EXTENDED;CMP;4 bytes;CMP16;TEMP = R - M:M+1
-BPL;3;3;0x2a;42;;RELATIVE;BPL;2 bytes;BPL;TEMP = MI IFF N = 0 then PC' = PC + TEMP
-BMI;3;3;0x2b;43;;RELATIVE;BMI;2 bytes;BMI;TEMP = MI IFF N = 1 then PC' = PC + TEMP
-LBPL;3;5;0x102a;4138;;RELATIVE;LBPL;4 bytes;BPL;TEMP = MI IFF N = 0 then PC' = PC + TEMP
-LBMI;3;5;0x102b;4139;;RELATIVE;LBMI;4 bytes;BMI;TEMP = MI IFF N = 1 then PC' = PC + TEMP
-BVC;4;3;0x28;40;;RELATIVE;BVC;2 bytes;BVC;TEMP = MI IFF V = 0 then PC' = PC + TEMP
-BVS;4;3;0x29;41;;RELATIVE;BVS;2 bytes;BVS;TEMP' = MI IFF V = 1 then PC' = PC + TEMP
-BGE;4;3;0x2c;44;;RELATIVE;BGE;2 bytes;BGE;TEMP = MI IFF [N XOR V] = 0 then PC' = PC + TEMP
-BLT;4;3;0x2d;45;;RELATIVE;BLT;2 bytes;BLT;TEMP = MI IFF [ N XOR V ] = 1 then PC' = PC + TEMP
-BGT;4;3;0x2e;46;;RELATIVE;BGT;2 bytes;BGT;TEMP = MI IFF Z AND [N XOR V] = 0 then PC' = PC + TEMP
-BLE;4;3;0x2f;47;;RELATIVE;BLE;2 bytes;BLE;TEMP = MI IFF Z OR [ N XOR V ] = 1 then PC' = PC + TEMP
-LBVC;4;5;0x1028;4136;;RELATIVE;LBVC;4 bytes;BVC;TEMP = MI IFF V = 0 then PC' = PC + TEMP
-LBVS;4;5;0x1029;4137;;RELATIVE;LBVS;4 bytes;BVS;TEMP' = MI IFF V = 1 then PC' = PC + TEMP
-LBGE;4;5;0x102c;4140;;RELATIVE;LBGE;4 bytes;BGE;TEMP = MI IFF [N XOR V] = 0 then PC' = PC + TEMP
-LBLT;4;5;0x102d;4141;;RELATIVE;LBLT;4 bytes;BLT;TEMP = MI IFF [ N XOR V ] = 1 then PC' = PC + TEMP
-LBGT;4;5;0x102e;4142;;RELATIVE;LBGT;4 bytes;BGT;TEMP = MI IFF Z AND [N XOR V] = 0 then PC' = PC + TEMP
-LBLE;4;5;0x102f;4143;;RELATIVE;LBLE;4 bytes;BLE;TEMP = MI IFF Z OR [ N XOR V ] = 1 then PC' = PC + TEMP
-BHI;5;3;0x22;34;;RELATIVE;BHI;2 bytes;BHI;TEMP = MI IFF [ C OR Z ] = 0 then PC' = PC + TEMP
-BLS;5;3;0x23;35;;RELATIVE;BLS;2 bytes;BLS;TEMP = MI IFF (C OR Z) = 1 then PC' = PC + TEMP
-BHS/BCC;5;3;0x24;36;;RELATIVE;BHS/BCC;2 bytes;OTHER_INSTRUCTIONS;
-BLO/BCS;5;3;0x25;37;;RELATIVE;BLO/BCS;2 bytes;OTHER_INSTRUCTIONS;
-BNE;5;3;0x26;38;;RELATIVE;BNE;2 bytes;BNE;TEMP = MI IFF Z = 0 then PC' = PC + TEMP
-BEQ;5;3;0x27;39;;RELATIVE;BEQ;2 bytes;BEQ;TEMP = MI IFF Z = 1 then PC' = PC + TEMP
-LBHI;5;5;0x1022;4130;;RELATIVE;LBHI;4 bytes;BHI;TEMP = MI IFF [ C OR Z ] = 0 then PC' = PC + TEMP
-LBLS;5;5;0x1023;4131;;RELATIVE;LBLS;4 bytes;BLS;TEMP = MI IFF (C OR Z) = 1 then PC' = PC + TEMP
-LBHS/LBCC;5;5;0x1024;4132;;RELATIVE;LBHS/LBCC;4 bytes;OTHER_INSTRUCTIONS;
-LBLO/LBCS;5;5;0x1025;4133;;RELATIVE;LBLO/LBCS;4 bytes;OTHER_INSTRUCTIONS;
-LBNE;5;5;0x1026;4134;;RELATIVE;LBNE;4 bytes;BNE;TEMP = MI IFF Z = 0 then PC' = PC + TEMP
-LBEQ;5;5;0x1027;4135;;RELATIVE;LBEQ;4 bytes;BEQ;TEMP = MI IFF Z = 1 then PC' = PC + TEMP
-LBRA;6;5;0x16;22;;RELATIVE;LBRA;3 bytes;BRA;TEMP = MI PC' = PC + TEMP
-LBSR;6;9;0x17;23;;RELATIVE;LBSR;3 bytes;BSR;TEMP = MI SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' = PC + TEMP
-BRA;6;3;0x20;32;;RELATIVE;BRA;2 bytes;BRA;TEMP = MI PC' = PC + TEMP
-BRN;6;3;0x21;33;;RELATIVE;BRN;2 bytes;BRN;TEMP = MI
-BSR;6;7;0x8d;141;;RELATIVE;BSR;2 bytes;BSR;TEMP = MI SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' = PC + TEMP
-LBRN;6;5;0x1021;4129;;RELATIVE;LBRN;4 bytes;BRN;TEMP = MI
-JMP;7;3;0xe;14;;DIRECT;JMP;2 bytes;JMP;PC' = EA
-NOP;7;2;0x12;18;;INHERENT;NOP;1 bytes;NOP;Not affected.
-SYNC;7;2;0x13;19;;INHERENT;SYNC;1 bytes;SYNC;Stop processing instructions
-ORCC;7;3;0x1a;26;CC;IMMEDIATE;OR;2 bytes;ORCC;R' = R OR MI
-ANDCC;7;3;0x1c;28;CC;IMMEDIATE;AND;2 bytes;ANDCC;R' = R AND MI
-RTS;7;5;0x39;57;;INHERENT;RTS;1 bytes;RTS;PCH' = (SP), SP' = SP+1 PCL' = (SP), SP' = SP+1
-RTI;7;6;0x3b;59;;INHERENT;RTI;1 bytes;RTI;IFF CCR bit E is set, then: ACCA' ACCB' DPR' IXH' IXL' IYH' IYL' USH' USL' PCH' PCL' = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 = (SP), SP' = SP+1 IFF CCR bit E is clear, then: PCH' PCL' = (SP), SP' = SP+1 = (SP), SP' = SP+1
-CWAI;7;21;0x3c;60;;IMMEDIATE;CWAI;2 bytes;CWAI;CCR = CCR AND MI (Possibly clear masks) Set E (entire state saved) SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH SP' = SP-1, (SP) = USL SP' = SP-1, (SP) = USH SP' = SP-1, (SP) = IYL SP' = SP-1, (SP) = IYH SP' = SP-1, (SP) = IXL SP' = SP-1, (SP) = IXH SP' = SP-1, (SP) = DPR SP' = SP-1, (SP) = ACCB SP' = SP-1, (SP) = ACCA SP' = SP-1, (SP) = CCR
-SWI;7;19;0x3f;63;;INHERENT;SWI;1 bytes;SWI;Set E (entire state will be saved) SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH SP' = SP-1, (SP) = USL SP' = SP-1, (SP) = USH SP' = SP-1, (SP) = IYL SP' = SP-1, (SP) = IYH SP' = SP-1, (SP) = IXL SP' = SP-1, (SP) = IXH SP' = SP-1, (SP) = DPR SP' = SP-1, (SP) = ACCB SP' = SP-1, (SP) = ACCA SP' = SP-1, (SP) = CCR Set I, F (mask interrupts) PC' = (FFFA):(FFFB)
-JMP;7;3;0x6e;110;;INDEXED;JMP;2 bytes;JMP;PC' = EA
-JMP;7;3;0x7e;126;;EXTENDED;JMP;3 bytes;JMP;PC' = EA
-JSR;7;7;0x9d;157;;DIRECT;JSR;2 bytes;JSR;SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' =EA
-JSR;7;7;0xad;173;;INDEXED;JSR;2 bytes;JSR;SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' =EA
-JSR;7;8;0xbd;189;;EXTENDED;JSR;3 bytes;JSR;SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' =EA
-SWI2;7;20;0x103f;4159;;INHERENT;SWI;2 bytes;SWI2;Set E (entire state saved) SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH SP' = SP-1, (SP) = USL SP' = SP-1, (SP) = USH SP' = SP-1, (SP) = IYL SP' = SP-1, (SP) = IYH SP' = SP-1, (SP) = IXL SP' = SP-1, (SP) = IXH SP' = SP-1, (SP) = DPR SP' = SP-1, (SP) = ACCB SP' = SP-1, (SP) = ACCA SP' = SP-1, (SP) = CCR PC' = (FFF4):(FFF5)
-SWI3;7;20;0x113f;4415;;INHERENT;SWI;2 bytes;SWI3;Set E (entire state will be saved) SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH SP' = SP-1, (SP) = USL SP' = SP-1, (SP) = USH SP' = SP-1, (SP) = IYL SP' = SP-1, (SP) = IYH SP' = SP-1, (SP) = IXL SP' = SP-1, (SP) = IXH SP' = SP-1, (SP) = DPR SP' = SP-1, (SP) = ACCB SP' = SP-1, (SP) = ACCA SP' = SP-1, (SP) = CCR PC' = (FFF2):(FFF3)
-PAGE1+;8;1;0x10;16;;VARIANT;PAGE;1 bytes;PAGE;
-PAGE2+;8;1;0x11;17;;VARIANT;PAGE;1 bytes;PAGE;
-RESET*;8;-1;0x3e;62;;INHERENT;RESET;1 bytes;RESET;
+mnemonic	category	instr_info_key	opcode_hex	cycles	opcode	addr_mode	instruction	bytes	mem_access	desc	HNZVC	instr_desc
+NEG	0	NEG	0x0	6	0	DIRECT	NEG	2	byte	M = !M + 1	uaaaa	Negate accumulator or memory
+COM	0	COM	0x3	6	3	DIRECT	COM	2	byte	M = complement(M)	-aa01	Complement accumulator or memory location
+LSR	0	LSR	0x4	6	4	DIRECT	LSR	2	byte	Logical shift M right	-0a-s	Logical shift right accumulator or memory location
+ROR	0	ROR	0x6	6	6	DIRECT	ROR	2	byte	Rotate M Right thru carry	-aa-s	Rotate accumulator or memory right
+ASR	0	ASR	0x7	6	7	DIRECT	ASR	2	byte	Arithmetic shift M right	uaa-s	Arithmetic shift of accumulator or memory right
+LSL/ASL	0	LSL	0x8	6	8	DIRECT	LSL	2	byte	Logical shift M left	naaas	Logical shift left accumulator or memory location
+ROL	0	ROL	0x9	6	9	DIRECT	ROL	2	byte	Rotate M left thru carry	-aaas	Rotate accumulator or memory left
+DEC	0	DEC	0xa	6	10	DIRECT	DEC	2	byte	M = M  1	-aaa-	Decrement accumulator or memory location
+INC	0	INC	0xc	6	12	DIRECT	INC	2	byte	M = M + 1	-aaa-	Increment accumulator or memory location
+TST	0	TST	0xd	6	13	DIRECT	TST	2	byte	Test M	-aa0-	Test accumulator or memory location
+CLR	0	CLR	0xf	6	15	DIRECT	CLR	2	byte	M = 0	-0100	Clear accumulator or memory location
+DAA	0	DAA	0x19	2	25	INHERENT	DAA	1	-	Decimal Adjust A	-aa0a	Decimal adjust A accumulator
+EXG	0	EXG	0x1e	8	30	IMMEDIATE	EXG	2	byte	exchange R1,R2	ccccc	Exchange Rl with R2
+TFR	0	TFR	0x1f	7	31	IMMEDIATE	TFR	2	byte	Transfer R1 to R2	ccccc	Transfer R1 to R2
+MUL	0	MUL	0x3d	11	61	INHERENT	MUL	1	-	D = A*B (Unsigned)	--a-a	Unsigned multiply (A * B ? D)
+NEGA	0	NEG	0x40	2	64	INHERENT	NEG	1	-	A = !A + 1	uaaaa	Negate accumulator or memory
+COMA	0	COM	0x43	2	67	INHERENT	COM	1	-	A = complement(A)	-aa01	Complement accumulator or memory location
+LSRA	0	LSR	0x44	2	68	INHERENT	LSR	1	-	Logical shift A right	-0a-s	Logical shift right accumulator or memory location
+RORA	0	ROR	0x46	2	70	INHERENT	ROR	1	-	Rotate A Right thru carry	-aa-s	Rotate accumulator or memory right
+ASRA	0	ASR	0x47	2	71	INHERENT	ASR	1	-	Arithmetic shift A right	uaa-s	Arithmetic shift of accumulator or memory right
+LSLA/ASLA	0	LSL	0x48	2	72	INHERENT	LSL	1	-	Logical shift A left	naaas	Logical shift left accumulator or memory location
+ROLA	0	ROL	0x49	2	73	INHERENT	ROL	1	-	Rotate A left thru carry	-aaas	Rotate accumulator or memory left
+DECA	0	DEC	0x4a	2	74	INHERENT	DEC	1	-	A = A  1	-aaa-	Decrement accumulator or memory location
+INCA	0	INC	0x4c	2	76	INHERENT	INC	1	-	A = A + 1	-aaa-	Increment accumulator or memory location
+TSTA	0	TST	0x4d	2	77	INHERENT	TST	1	-	Test A	-aa0-	Test accumulator or memory location
+CLRA	0	CLR	0x4f	2	79	INHERENT	CLR	1	-	A = 0	-0100	Clear accumulator or memory location
+NEGB	0	NEG	0x50	2	80	INHERENT	NEG	1	-	B = !B + 1	uaaaa	Negate accumulator or memory
+COMB	0	COM	0x53	2	83	INHERENT	COM	1	-	B = complement(B)	-aa01	Complement accumulator or memory location
+LSRB	0	LSR	0x54	2	84	INHERENT	LSR	1	-	Logical shift B right	-0a-s	Logical shift right accumulator or memory location
+RORB	0	ROR	0x56	2	86	INHERENT	ROR	1	-	Rotate B Right thru carry	-aa-s	Rotate accumulator or memory right
+ASRB	0	ASR	0x57	2	87	INHERENT	ASR	1	-	Arithmetic shift B right	uaa-s	Arithmetic shift of accumulator or memory right
+LSLB/ASLB	0	LSL	0x58	2	88	INHERENT	LSL	1	-	Logical shift B left	naaas	Logical shift left accumulator or memory location
+ROLB	0	ROL	0x59	2	89	INHERENT	ROL	1	-	Rotate B left thru carry	-aaas	Rotate accumulator or memory left
+DECB	0	DEC	0x5a	2	90	INHERENT	DEC	1	-	B = B  1	-aaa-	Decrement accumulator or memory location
+INCB	0	INC	0x5c	2	92	INHERENT	INC	1	-	B = B + 1	-aaa-	Increment accumulator or memory location
+TSTB	0	TST	0x5d	2	93	INHERENT	TST	1	-	Test B	-aa0-	Test accumulator or memory location
+CLRB	0	CLR	0x5f	2	95	INHERENT	CLR	1	-	B = 0	-0100	Clear accumulator or memory location
+NEG	0	NEG	0x60	6	96	INDEXED	NEG	2	byte	M = !M + 1	uaaaa	Negate accumulator or memory
+COM	0	COM	0x63	6	99	INDEXED	COM	2	byte	M = complement(M)	-aa01	Complement accumulator or memory location
+LSR	0	LSR	0x64	6	100	INDEXED	LSR	2	byte	Logical shift M right	-0a-s	Logical shift right accumulator or memory location
+ROR	0	ROR	0x66	6	102	INDEXED	ROR	2	byte	Rotate M Right thru carry	-aa-s	Rotate accumulator or memory right
+ASR	0	ASR	0x67	6	103	INDEXED	ASR	2	byte	Arithmetic shift M right	uaa-s	Arithmetic shift of accumulator or memory right
+LSL/ASL	0	LSL	0x68	6	104	INDEXED	LSL	2	byte	Logical shift M left	naaas	Logical shift left accumulator or memory location
+ROL	0	ROL	0x69	6	105	INDEXED	ROL	2	byte	Rotate M left thru carry	-aaas	Rotate accumulator or memory left
+DEC	0	DEC	0x6a	6	106	INDEXED	DEC	2	byte	M = M  1	-aaa-	Decrement accumulator or memory location
+INC	0	INC	0x6c	6	108	INDEXED	INC	2	byte	M = M + 1	-aaa-	Increment accumulator or memory location
+TST	0	TST	0x6d	6	109	INDEXED	TST	2	byte	Test M	-aa0-	Test accumulator or memory location
+CLR	0	CLR	0x6f	6	111	INDEXED	CLR	2	byte	M = 0	-0100	Clear accumulator or memory location
+NEG	0	NEG	0x70	7	112	EXTENDED	NEG	3	byte	M = !M + 1	uaaaa	Negate accumulator or memory
+COM	0	COM	0x73	7	115	EXTENDED	COM	3	byte	M = complement(M)	-aa01	Complement accumulator or memory location
+LSR	0	LSR	0x74	7	116	EXTENDED	LSR	3	byte	Logical shift M right	-0a-s	Logical shift right accumulator or memory location
+ROR	0	ROR	0x76	7	118	EXTENDED	ROR	3	byte	Rotate M Right thru carry	-aa-s	Rotate accumulator or memory right
+ASR	0	ASR	0x77	7	119	EXTENDED	ASR	3	byte	Arithmetic shift M right	uaa-s	Arithmetic shift of accumulator or memory right
+LSL/ASL	0	LSL	0x78	7	120	EXTENDED	LSL	3	byte	Logical shift M left	naaas	Logical shift left accumulator or memory location
+ROL	0	ROL	0x79	7	121	EXTENDED	ROL	3	byte	Rotate M left thru carry	-aaas	Rotate accumulator or memory left
+DEC	0	DEC	0x7a	7	122	EXTENDED	DEC	3	byte	M = M  1	-aaa-	Decrement accumulator or memory location
+INC	0	INC	0x7c	7	124	EXTENDED	INC	3	byte	M = M + 1	-aaa-	Increment accumulator or memory location
+TST	0	TST	0x7d	7	125	EXTENDED	TST	3	byte	Test M	-aa0-	Test accumulator or memory location
+CLR	0	CLR	0x7f	7	127	EXTENDED	CLR	3	byte	M = 0	-0100	Clear accumulator or memory location
+SUBA	0	SUB8	0x80	2	128	IMMEDIATE	SUB	2	byte	A = A - M	uaaaa	Subtract memory from accumulator
+CMPA	0	CMP8	0x81	2	129	IMMEDIATE	CMP	2	byte	Compare M from A	uaaaa	Compare memory from accumulator
+SBCA	0	SBC	0x82	2	130	IMMEDIATE	SBC	2	byte	A = A - M - C	uaaaa	Subtract memory from accumulator with borrow
+ANDA	0	AND	0x84	2	132	IMMEDIATE	AND	2	byte	A = A && M	-aa0-	AND memory with accumulator
+BITA	0	BIT	0x85	2	133	IMMEDIATE	BIT	2	byte	Bit Test A (M&&A)	-aa0-	Bit test memory with accumulator
+LDA	0	LD8	0x86	2	134	IMMEDIATE	LD	2	byte	A = M	-aa0-	Load accumulator from memory
+EORA	0	EOR	0x88	2	136	IMMEDIATE	EOR	2	byte	A = A XOR M	-aa0-	Exclusive OR memory with accumulator
+ADCA	0	ADC	0x89	2	137	IMMEDIATE	ADC	2	byte	A = A+M+C	aaaaa	Add memory to accumulator with carry
+ORA	0	OR	0x8a	2	138	IMMEDIATE	OR	2	byte	|A = A |||| M|	-aa0-	OR memory with accumulator
+ADDA	0	ADD8	0x8b	2	139	IMMEDIATE	ADD	2	byte	A = A+M	aaaaa	Add memory to accumulator
+SUBA	0	SUB8	0x90	4	144	DIRECT	SUB	2	byte	A = A - M	uaaaa	Subtract memory from accumulator
+CMPA	0	CMP8	0x91	4	145	DIRECT	CMP	2	byte	Compare M from A	uaaaa	Compare memory from accumulator
+SBCA	0	SBC	0x92	4	146	DIRECT	SBC	2	byte	A = A - M - C	uaaaa	Subtract memory from accumulator with borrow
+ANDA	0	AND	0x94	4	148	DIRECT	AND	2	byte	A = A && M	-aa0-	AND memory with accumulator
+BITA	0	BIT	0x95	4	149	DIRECT	BIT	2	byte	Bit Test A (M&&A)	-aa0-	Bit test memory with accumulator
+LDA	0	LD8	0x96	4	150	DIRECT	LD	2	byte	A = M	-aa0-	Load accumulator from memory
+STA	0	ST8	0x97	4	151	DIRECT	ST	2	byte	M = A	-aa0-	Store accumulator to memroy
+EORA	0	EOR	0x98	4	152	DIRECT	EOR	2	byte	A = A XOR M	-aa0-	Exclusive OR memory with accumulator
+ADCA	0	ADC	0x99	4	153	DIRECT	ADC	2	byte	A = A+M+C	aaaaa	Add memory to accumulator with carry
+ORA	0	OR	0x9a	4	154	DIRECT	OR	2	byte	|A = A |||| M|	-aa0-	OR memory with accumulator
+ADDA	0	ADD8	0x9b	4	155	DIRECT	ADD	2	byte	A = A+M	aaaaa	Add memory to accumulator
+SUBA	0	SUB8	0xa0	4	160	INDEXED	SUB	2	byte	A = A - M	uaaaa	Subtract memory from accumulator
+CMPA	0	CMP8	0xa1	4	161	INDEXED	CMP	2	byte	Compare M from A	uaaaa	Compare memory from accumulator
+SBCA	0	SBC	0xa2	4	162	INDEXED	SBC	2	byte	A = A - M - C	uaaaa	Subtract memory from accumulator with borrow
+ANDA	0	AND	0xa4	4	164	INDEXED	AND	2	byte	A = A && M	-aa0-	AND memory with accumulator
+BITA	0	BIT	0xa5	4	165	INDEXED	BIT	2	byte	Bit Test A (M&&A)	-aa0-	Bit test memory with accumulator
+LDA	0	LD8	0xa6	4	166	INDEXED	LD	2	byte	A = M	-aa0-	Load accumulator from memory
+STA	0	ST8	0xa7	4	167	INDEXED	ST	2	byte	M = A	-aa0-	Store accumulator to memroy
+EORA	0	EOR	0xa8	4	168	INDEXED	EOR	2	byte	A = A XOR M	-aa0-	Exclusive OR memory with accumulator
+ADCA	0	ADC	0xa9	4	169	INDEXED	ADC	2	byte	A = A+M+C	aaaaa	Add memory to accumulator with carry
+ORA	0	OR	0xaa	4	170	INDEXED	OR	2	byte	|A = A |||| M|	-aa0-	OR memory with accumulator
+ADDA	0	ADD8	0xab	4	171	INDEXED	ADD	2	byte	A = A+M	aaaaa	Add memory to accumulator
+SUBA	0	SUB8	0xb0	5	176	EXTENDED	SUB	3	byte	A = A - M	uaaaa	Subtract memory from accumulator
+CMPA	0	CMP8	0xb1	5	177	EXTENDED	CMP	3	byte	Compare M from A	uaaaa	Compare memory from accumulator
+SBCA	0	SBC	0xb2	5	178	EXTENDED	SBC	3	byte	A = A - M - C	uaaaa	Subtract memory from accumulator with borrow
+ANDA	0	AND	0xb4	5	180	EXTENDED	AND	3	byte	A = A && M	-aa0-	AND memory with accumulator
+BITA	0	BIT	0xb5	5	181	EXTENDED	BIT	3	byte	Bit Test A (M&&A)	-aa0-	Bit test memory with accumulator
+LDA	0	LD8	0xb6	5	182	EXTENDED	LD	3	byte	A = M	-aa0-	Load accumulator from memory
+STA	0	ST8	0xb7	5	183	EXTENDED	ST	3	byte	M = A	-aa0-	Store accumulator to memroy
+EORA	0	EOR	0xb8	5	184	EXTENDED	EOR	3	byte	A = A XOR M	-aa0-	Exclusive OR memory with accumulator
+ADCA	0	ADC	0xb9	5	185	EXTENDED	ADC	3	byte	A = A+M+C	aaaaa	Add memory to accumulator with carry
+ORA	0	OR	0xba	5	186	EXTENDED	OR	3	byte	|A = A |||| M|	-aa0-	OR memory with accumulator
+ADDA	0	ADD8	0xbb	5	187	EXTENDED	ADD	3	byte	A = A+M	aaaaa	Add memory to accumulator
+SUBB	0	SUB8	0xc0	2	192	IMMEDIATE	SUB	2	byte	B = B - M	uaaaa	Subtract memory from accumulator
+CMPB	0	CMP8	0xc1	2	193	IMMEDIATE	CMP	2	byte	Compare M from B	uaaaa	Compare memory from accumulator
+SBCB	0	SBC	0xc2	2	194	IMMEDIATE	SBC	2	byte	B = B - M - C	uaaaa	Subtract memory from accumulator with borrow
+ANDB	0	AND	0xc4	2	196	IMMEDIATE	AND	2	byte	B = B && M	-aa0-	AND memory with accumulator
+BITB	0	BIT	0xc5	2	197	IMMEDIATE	BIT	2	byte	Bit Test B (M&&B)	-aa0-	Bit test memory with accumulator
+LDB	0	LD8	0xc6	2	198	IMMEDIATE	LD	2	byte	B = M	-aa0-	Load accumulator from memory
+EORB	0	EOR	0xc8	2	200	IMMEDIATE	EOR	2	byte	B = M XOR B	-aa0-	Exclusive OR memory with accumulator
+ADCB	0	ADC	0xc9	2	201	IMMEDIATE	ADC	2	byte	B = B+M+C	aaaaa	Add memory to accumulator with carry
+ORB	0	OR	0xca	2	202	IMMEDIATE	OR	2	byte	|B = B |||| M|	-aa0-	OR memory with accumulator
+ADDB	0	ADD8	0xcb	2	203	IMMEDIATE	ADD	2	byte	B = B+M	aaaaa	Add memory to accumulator
+SUBB	0	SUB8	0xd0	4	208	DIRECT	SUB	2	byte	B = B - M	uaaaa	Subtract memory from accumulator
+CMPB	0	CMP8	0xd1	4	209	DIRECT	CMP	2	byte	Compare M from B	uaaaa	Compare memory from accumulator
+SBCB	0	SBC	0xd2	4	210	DIRECT	SBC	2	byte	B = B - M - C	uaaaa	Subtract memory from accumulator with borrow
+ANDB	0	AND	0xd4	4	212	DIRECT	AND	2	byte	B = B && M	-aa0-	AND memory with accumulator
+BITB	0	BIT	0xd5	4	213	DIRECT	BIT	2	byte	Bit Test B (M&&B)	-aa0-	Bit test memory with accumulator
+LDB	0	LD8	0xd6	4	214	DIRECT	LD	2	byte	B = M	-aa0-	Load accumulator from memory
+STB	0	ST8	0xd7	4	215	DIRECT	ST	2	byte	M = B	-aa0-	Store accumulator to memroy
+EORB	0	EOR	0xd8	4	216	DIRECT	EOR	2	byte	B = M XOR B	-aa0-	Exclusive OR memory with accumulator
+ADCB	0	ADC	0xd9	4	217	DIRECT	ADC	2	byte	B = B+M+C	aaaaa	Add memory to accumulator with carry
+ORB	0	OR	0xda	4	218	DIRECT	OR	2	byte	|B = B |||| M|	-aa0-	OR memory with accumulator
+ADDB	0	ADD8	0xdb	4	219	DIRECT	ADD	2	byte	B = B+M	aaaaa	Add memory to accumulator
+SUBB	0	SUB8	0xe0	4	224	INDEXED	SUB	2	byte	B = B - M	uaaaa	Subtract memory from accumulator
+CMPB	0	CMP8	0xe1	4	225	INDEXED	CMP	2	byte	Compare M from B	uaaaa	Compare memory from accumulator
+SBCB	0	SBC	0xe2	4	226	INDEXED	SBC	2	byte	B = B - M - C	uaaaa	Subtract memory from accumulator with borrow
+ANDB	0	AND	0xe4	4	228	INDEXED	AND	2	byte	B = B && M	-aa0-	AND memory with accumulator
+BITB	0	BIT	0xe5	4	229	INDEXED	BIT	2	byte	Bit Test B (M&&B)	-aa0-	Bit test memory with accumulator
+LDB	0	LD8	0xe6	4	230	INDEXED	LD	2	byte	B = M	-aa0-	Load accumulator from memory
+STB	0	ST8	0xe7	4	231	INDEXED	ST	2	byte	M = B	-aa0-	Store accumulator to memroy
+EORB	0	EOR	0xe8	4	232	INDEXED	EOR	2	byte	B = M XOR B	-aa0-	Exclusive OR memory with accumulator
+ADCB	0	ADC	0xe9	4	233	INDEXED	ADC	2	byte	B = B+M+C	aaaaa	Add memory to accumulator with carry
+ORB	0	OR	0xea	4	234	INDEXED	OR	2	byte	|B = B |||| M|	-aa0-	OR memory with accumulator
+ADDB	0	ADD8	0xeb	4	235	INDEXED	ADD	2	byte	B = B+M	aaaaa	Add memory to accumulator
+SUBB	0	SUB8	0xf0	5	240	EXTENDED	SUB	3	byte	B = B - M	uaaaa	Subtract memory from accumulator
+CMPB	0	CMP8	0xf1	5	241	EXTENDED	CMP	3	byte	Compare M from B	uaaaa	Compare memory from accumulator
+SBCB	0	SBC	0xf2	5	242	EXTENDED	SBC	3	byte	B = B - M - C	uaaaa	Subtract memory from accumulator with borrow
+ANDB	0	AND	0xf4	5	244	EXTENDED	AND	3	byte	B = B && M	-aa0-	AND memory with accumulator
+BITB	0	BIT	0xf5	5	245	EXTENDED	BIT	3	byte	Bit Test B (M&&B)	-aa0-	Bit test memory with accumulator
+LDB	0	LD8	0xf6	5	246	EXTENDED	LD	3	byte	B = M	-aa0-	Load accumulator from memory
+STB	0	ST8	0xf7	5	247	EXTENDED	ST	3	byte	M = B	-aa0-	Store accumulator to memroy
+EORB	0	EOR	0xf8	5	248	EXTENDED	EOR	3	byte	B = M XOR B	-aa0-	Exclusive OR memory with accumulator
+ADCB	0	ADC	0xf9	5	249	EXTENDED	ADC	3	byte	B = B+M+C	aaaaa	Add memory to accumulator with carry
+ORB	0	OR	0xfa	5	250	EXTENDED	OR	3	byte	|B = B |||| M|	-aa0-	OR memory with accumulator
+ADDB	0	ADD8	0xfb	5	251	EXTENDED	ADD	3	byte	B = B+M	aaaaa	Add memory to accumulator
+SEX	1	SEX	0x1d	2	29	INHERENT	SEX	1	-	Sign extend B into A	-aa0-	Sign Extend B accumulator into A accumulator
+SUBD	1	SUB16	0x83	4	131	IMMEDIATE	SUB	3	word	D = D - M:M+1	-aaaa	Subtract memory from D accumulator
+SUBD	1	SUB16	0x93	6	147	DIRECT	SUB	2	word	D = D - M:M+1	-aaaa	Subtract memory from D accumulator
+SUBD	1	SUB16	0xa3	6	163	INDEXED	SUB	2	word	D = D - M:M+1	-aaaa	Subtract memory from D accumulator
+SUBD	1	SUB16	0xb3	7	179	EXTENDED	SUB	3	word	D = D - M:M+1	-aaaa	Subtract memory from D accumulator
+ADDD	1	ADD16	0xc3	4	195	IMMEDIATE	ADD	3	word	D = D+M:M+1	-aaaa	Add memory to D accumulator
+LDD	1	LD16	0xcc	3	204	IMMEDIATE	LD	3	word	D = M:M+1	-aa0-	Load stack pointer from memory
+ADDD	1	ADD16	0xd3	6	211	DIRECT	ADD	2	word	D = D+M:M+1	-aaaa	Add memory to D accumulator
+LDD	1	LD16	0xdc	5	220	DIRECT	LD	2	word	D = M:M+1	-aa0-	Load stack pointer from memory
+STD	1	ST16	0xdd	5	221	DIRECT	ST	2	word	M:M+1 = D	-aa0-	Store stack pointer to memory
+ADDD	1	ADD16	0xe3	6	227	INDEXED	ADD	2	word	D = D+M:M+1	-aaaa	Add memory to D accumulator
+LDD	1	LD16	0xec	5	236	INDEXED	LD	2	word	D = M:M+1	-aa0-	Load stack pointer from memory
+STD	1	ST16	0xed	5	237	INDEXED	ST	2	word	M:M+1 = D	-aa0-	Store stack pointer to memory
+ADDD	1	ADD16	0xf3	7	243	EXTENDED	ADD	3	word	D = D+M:M+1	-aaaa	Add memory to D accumulator
+LDD	1	LD16	0xfc	6	252	EXTENDED	LD	3	word	D = M:M+1	-aa0-	Load stack pointer from memory
+STD	1	ST16	0xfd	6	253	EXTENDED	ST	3	word	M:M+1 = D	-aa0-	Store stack pointer to memory
+CMPD	1	CMP16	0x1083	5	4227	IMMEDIATE	CMP	4	word	Compare M:M+1 from D	-aaaa	Compare memory from stack pointer
+CMPD	1	CMP16	0x1093	7	4243	DIRECT	CMP	3	word	Compare M:M+1 from D	-aaaa	Compare memory from stack pointer
+CMPD	1	CMP16	0x10a3	7	4259	INDEXED	CMP	3	word	Compare M:M+1 from D	-aaaa	Compare memory from stack pointer
+CMPD	1	CMP16	0x10b3	8	4275	EXTENDED	CMP	4	word	Compare M:M+1 from D	-aaaa	Compare memory from stack pointer
+LEAX	2	LEA_register	0x30	4	48	INDEXED	LEA	2	-	X = EA	-----	Load effective address into stack pointer
+LEAY	2	LEA_register	0x31	4	49	INDEXED	LEA	2	-	Y = EA	-----	Load effective address into stack pointer
+LEAS	2	LEA_pointer	0x32	4	50	INDEXED	LEA	2	-	S = EA	-----	Load effective address into stack pointer
+LEAU	2	LEA_pointer	0x33	4	51	INDEXED	LEA	2	-	U = EA	-----	Load effective address into stack pointer
+PSHS	2	PSHS	0x34	5	52	IMMEDIATE	PSH	2	word	S -= 1: MEM(S) = R; Push Register on S Stack	-----	Push A, B, CC, DP, D, X, Y, U, or PC onto hardware stack
+PULS	2	PULS	0x35	5	53	IMMEDIATE	PUL	2	word	R=MEM(S) : S += 1; Pull register from S Stack	ccccc	Pull A, B, CC, DP, D, X, Y, U, or PC from hardware stack
+PSHU	2	PSHU	0x36	5	54	IMMEDIATE	PSH	2	word	U -= 1: MEM(U) = R; Push Register on U Stack	-----	Push A, B, CC, DP, D, X, Y, S, or PC onto user stack
+PULU	2	PULU	0x37	5	55	IMMEDIATE	PUL	2	word	R=MEM(U) : U += 1; Pull register from U Stack	ccccc	Pull A, B, CC, DP, D, X, Y, S, or PC from hardware stack
+ABX	2	ABX	0x3a	3	58	INHERENT	ABX	1	-	X = B+X (Unsigned)	-----	Add B accumulator to X (unsigned)
+CMPX	2	CMP16	0x8c	4	140	IMMEDIATE	CMP	3	word	Compare M:M+1 from X	-aaaa	Compare memory from stack pointer
+LDX	2	LD16	0x8e	3	142	IMMEDIATE	LD	3	word	X = M:M+1	-aa0-	Load stack pointer from memory
+CMPX	2	CMP16	0x9c	6	156	DIRECT	CMP	2	word	Compare M:M+1 from X	-aaaa	Compare memory from stack pointer
+LDX	2	LD16	0x9e	5	158	DIRECT	LD	2	word	X = M:M+1	-aa0-	Load stack pointer from memory
+STX	2	ST16	0x9f	5	159	DIRECT	ST	2	word	M:M+1 = X	-aa0-	Store stack pointer to memory
+CMPX	2	CMP16	0xac	6	172	INDEXED	CMP	2	word	Compare M:M+1 from X	-aaaa	Compare memory from stack pointer
+LDX	2	LD16	0xae	5	174	INDEXED	LD	2	word	X = M:M+1	-aa0-	Load stack pointer from memory
+STX	2	ST16	0xaf	5	175	INDEXED	ST	2	word	M:M+1 = X	-aa0-	Store stack pointer to memory
+CMPX	2	CMP16	0xbc	7	188	EXTENDED	CMP	3	word	Compare M:M+1 from X	-aaaa	Compare memory from stack pointer
+LDX	2	LD16	0xbe	6	190	EXTENDED	LD	3	word	X = M:M+1	-aa0-	Load stack pointer from memory
+STX	2	ST16	0xbf	6	191	EXTENDED	ST	3	word	M:M+1 = X	-aa0-	Store stack pointer to memory
+LDU	2	LD16	0xce	3	206	IMMEDIATE	LD	3	word	U = M:M+1	-aa0-	Load stack pointer from memory
+LDU	2	LD16	0xde	5	222	DIRECT	LD	2	word	U = M:M+1	-aa0-	Load stack pointer from memory
+STU	2	ST16	0xdf	5	223	DIRECT	ST	2	word	M:M+1 = U	-aa0-	Store stack pointer to memory
+LDU	2	LD16	0xee	5	238	INDEXED	LD	2	word	U = M:M+1	-aa0-	Load stack pointer from memory
+STU	2	ST16	0xef	5	239	INDEXED	ST	2	word	M:M+1 = U	-aa0-	Store stack pointer to memory
+LDU	2	LD16	0xfe	6	254	EXTENDED	LD	3	word	U = M:M+1	-aa0-	Load stack pointer from memory
+STU	2	ST16	0xff	6	255	EXTENDED	ST	3	word	M:M+1 = U	-aa0-	Store stack pointer to memory
+CMPY	2	CMP16	0x108c	5	4236	IMMEDIATE	CMP	4	word	Compare M:M+1 from Y	-aaaa	Compare memory from stack pointer
+LDY	2	LD16	0x108e	4	4238	IMMEDIATE	LD	4	word	Y = M:M+1	-aa0-	Load stack pointer from memory
+CMPY	2	CMP16	0x109c	7	4252	DIRECT	CMP	3	word	Compare M:M+1 from Y	-aaaa	Compare memory from stack pointer
+LDY	2	LD16	0x109e	6	4254	DIRECT	LD	3	word	Y = M:M+1	-aa0-	Load stack pointer from memory
+STY	2	ST16	0x109f	6	4255	DIRECT	ST	3	word	M:M+1 = Y	-aa0-	Store stack pointer to memory
+CMPY	2	CMP16	0x10ac	7	4268	INDEXED	CMP	3	word	Compare M:M+1 from Y	-aaaa	Compare memory from stack pointer
+LDY	2	LD16	0x10ae	6	4270	INDEXED	LD	3	word	Y = M:M+1	-aa0-	Load stack pointer from memory
+STY	2	ST16	0x10af	6	4271	INDEXED	ST	3	word	M:M+1 = Y	-aa0-	Store stack pointer to memory
+CMPY	2	CMP16	0x10bc	8	4284	EXTENDED	CMP	4	word	Compare M:M+1 from Y	-aaaa	Compare memory from stack pointer
+LDY	2	LD16	0x10be	7	4286	EXTENDED	LD	4	word	Y = M:M+1	-aa0-	Load stack pointer from memory
+STY	2	ST16	0x10bf	7	4287	EXTENDED	ST	4	word	M:M+1 = Y	-aa0-	Store stack pointer to memory
+LDS	2	LD16	0x10ce	4	4302	IMMEDIATE	LD	4	word	S = M:M+1	-aa0-	Load stack pointer from memory
+LDS	2	LD16	0x10de	6	4318	DIRECT	LD	3	word	S = M:M+1	-aa0-	Load stack pointer from memory
+STS	2	ST16	0x10df	6	4319	DIRECT	ST	3	word	M:M+1 = S	-aa0-	Store stack pointer to memory
+LDS	2	LD16	0x10ee	6	4334	INDEXED	LD	3	word	S = M:M+1	-aa0-	Load stack pointer from memory
+STS	2	ST16	0x10ef	6	4335	INDEXED	ST	3	word	M:M+1 = S	-aa0-	Store stack pointer to memory
+LDS	2	LD16	0x10fe	7	4350	EXTENDED	LD	4	word	S = M:M+1	-aa0-	Load stack pointer from memory
+STS	2	ST16	0x10ff	7	4351	EXTENDED	ST	4	word	M:M+1 = S	-aa0-	Store stack pointer to memory
+CMPU	2	CMP16	0x1183	5	4483	IMMEDIATE	CMP	4	word	Compare M:M+1 from U	-aaaa	Compare memory from stack pointer
+CMPS	2	CMP16	0x118c	5	4492	IMMEDIATE	CMP	4	word	Compare M:M+1 from S	-aaaa	Compare memory from stack pointer
+CMPU	2	CMP16	0x1193	7	4499	DIRECT	CMP	3	word	Compare M:M+1 from U	-aaaa	Compare memory from stack pointer
+CMPS	2	CMP16	0x119c	7	4508	DIRECT	CMP	3	word	Compare M:M+1 from S	-aaaa	Compare memory from stack pointer
+CMPU	2	CMP16	0x11a3	7	4515	INDEXED	CMP	3	word	Compare M:M+1 from U	-aaaa	Compare memory from stack pointer
+CMPS	2	CMP16	0x11ac	7	4524	INDEXED	CMP	3	word	Compare M:M+1 from S	-aaaa	Compare memory from stack pointer
+CMPU	2	CMP16	0x11b3	8	4531	EXTENDED	CMP	4	word	Compare M:M+1 from U	-aaaa	Compare memory from stack pointer
+CMPS	2	CMP16	0x11bc	8	4540	EXTENDED	CMP	4	word	Compare M:M+1 from S	-aaaa	Compare memory from stack pointer
+BPL	3	BPL	0x2a	3	42	RELATIVE	BPL	2	byte	Branch if plus	-----	Branch if plus
+BMI	3	BMI	0x2b	3	43	RELATIVE	BMI	2	byte	Branch if minus	-----	Branch if minus
+LBPL	3	BPL	0x102a	5	4138	RELATIVE	LBPL	4	byte	Branch if plus	-----	Branch if plus
+LBMI	3	BMI	0x102b	5	4139	RELATIVE	LBMI	4	byte	Branch if minus	-----	Branch if minus
+BVC	4	BVC	0x28	3	40	RELATIVE	BVC	2	byte	Branch if valid twos complement result	-----	Branch if valid twos complement result
+BVS	4	BVS	0x29	3	41	RELATIVE	BVS	2	byte	Branch if invalid twos complement result	-----	Branch if invalid twos complement result
+BGE	4	BGE	0x2c	3	44	RELATIVE	BGE	2	byte	Branch if greater than or equal (signed)	-----	Branch if greater than or equal (signed)
+BLT	4	BLT	0x2d	3	45	RELATIVE	BLT	2	byte	Branch if less than (signed)	-----	Branch if less than (signed)
+BGT	4	BGT	0x2e	3	46	RELATIVE	BGT	2	byte	Branch if greater (signed)	-----	Branch if greater (signed)
+BLE	4	BLE	0x2f	3	47	RELATIVE	BLE	2	byte	Branch if less than or equal (signed)	-----	Branch if less than or equal (signed)
+LBVC	4	BVC	0x1028	5	4136	RELATIVE	LBVC	4	byte	Branch if valid twos complement result	-----	Branch if valid twos complement result
+LBVS	4	BVS	0x1029	5	4137	RELATIVE	LBVS	4	byte	Branch if invalid twos complement result	-----	Branch if invalid twos complement result
+LBGE	4	BGE	0x102c	5	4140	RELATIVE	LBGE	4	byte	Branch if greater than or equal (signed)	-----	Branch if greater than or equal (signed)
+LBLT	4	BLT	0x102d	5	4141	RELATIVE	LBLT	4	byte	Branch if less than (signed)	-----	Branch if less than (signed)
+LBGT	4	BGT	0x102e	5	4142	RELATIVE	LBGT	4	byte	Branch if greater (signed)	-----	Branch if greater (signed)
+LBLE	4	BLE	0x102f	5	4143	RELATIVE	LBLE	4	byte	Branch if less than or equal (signed)	-----	Branch if less than or equal (signed)
+BHI	5	BHI	0x22	3	34	RELATIVE	BHI	2	byte	Branch if higher (unsigned)	-----	Branch if higher (unsigned)
+BLS	5	BLS	0x23	3	35	RELATIVE	BLS	2	byte	Branch if lower or same (unsigned)	-----	Branch if lower or same (unsigned)
+BHS/BCC	5	OTHER_INSTRUCTIONS	0x24	3	36	RELATIVE	BHS/BCC	2	-	Branch if higher or same (unsigned)	-----	Branch if lower (unsigned)
+BLO/BCS	5	OTHER_INSTRUCTIONS	0x25	3	37	RELATIVE	BLO/BCS	2	-	Branch if lower (unsigned)	-----	Branch if lower (unsigned)
+BNE	5	BNE	0x26	3	38	RELATIVE	BNE	2	byte	Branch if not equal	-----	Branch if not equal
+BEQ	5	BEQ	0x27	3	39	RELATIVE	BEQ	2	byte	Branch if equal	-----	Branch if equal
+LBHI	5	BHI	0x1022	5	4130	RELATIVE	LBHI	4	byte	Branch if higher (unsigned)	-----	Branch if higher (unsigned)
+LBLS	5	BLS	0x1023	5	4131	RELATIVE	LBLS	4	byte	Branch if lower or same (unsigned)	-----	Branch if lower or same (unsigned)
+LBHS/LBCC	5	OTHER_INSTRUCTIONS	0x1024	5	4132	RELATIVE	LBHS/LBCC	4	-	Branch if higher or same (unsigned)	-----	Branch if lower (unsigned)
+LBLO/LBCS	5	OTHER_INSTRUCTIONS	0x1025	5	4133	RELATIVE	LBLO/LBCS	4	-	Branch if lower (unsigned)	-----	Branch if lower (unsigned)
+LBNE	5	BNE	0x1026	5	4134	RELATIVE	LBNE	4	byte	Branch if not equal	-----	Branch if not equal
+LBEQ	5	BEQ	0x1027	5	4135	RELATIVE	LBEQ	4	byte	Branch if equal	-----	Branch if equal
+LBRA	6	BRA	0x16	5	22	RELATIVE	LBRA	3	byte	Branch always	-----	Branch always
+LBSR	6	BSR	0x17	9	23	RELATIVE	LBSR	3	byte	Branch to subroutine	-----	Branch to subroutine
+BRA	6	BRA	0x20	3	32	RELATIVE	BRA	2	byte	Branch always	-----	Branch always
+BRN	6	BRN	0x21	3	33	RELATIVE	BRN	2	byte	Branch never	-----	Branch never
+BSR	6	BSR	0x8d	7	141	RELATIVE	BSR	2	byte	Branch to subroutine	-----	Branch to subroutine
+LBRN	6	BRN	0x1021	5	4129	RELATIVE	LBRN	4	byte	Branch never	-----	Branch never
+JMP	7	JMP	0xe	3	14	DIRECT	JMP	2	-	pc = EA	-----	Jump
+NOP	7	NOP	0x12	2	18	INHERENT	NOP	1	-	No Operation	-----	No operation
+SYNC	7	SYNC	0x13	2	19	INHERENT	SYNC	1	-	Synchronize to Interrupt	-----	Synchronize with interrupt line
+ORCC	7	ORCC	0x1a	3	26	IMMEDIATE	OR	2	byte	|C = CC |||| IMM|	ddddd	OR condition code register
+ANDCC	7	ANDCC	0x1c	3	28	IMMEDIATE	AND	2	byte	C = CC && IMM	ddddd	AND condition code register
+RTS	7	RTS	0x39	5	57	INHERENT	RTS	1	-	Return from subroutine	-----	Return from subroutine
+RTI	7	RTI	0x3b	6	59	INHERENT	RTI	1	-	Return from Interrupt	-----	Return from interrupt
+CWAI	7	CWAI	0x3c	21	60	IMMEDIATE	CWAI	2	byte	CC = CC ^ IMM; (Wait for Interrupt)	ddddd	AND condition code register, then wait for interrupt
+SWI	7	SWI	0x3f	19	63	INHERENT	SWI	1	-	Software interrupt 1	-----	Software interrupt (absolute indirect)
+JMP	7	JMP	0x6e	3	110	INDEXED	JMP	2	-	pc = EA	-----	Jump
+JMP	7	JMP	0x7e	3	126	EXTENDED	JMP	3	-	pc = EA	-----	Jump
+JSR	7	JSR	0x9d	7	157	DIRECT	JSR	2	-	jump to subroutine	-----	Jump to subroutine
+JSR	7	JSR	0xad	7	173	INDEXED	JSR	2	-	jump to subroutine	-----	Jump to subroutine
+JSR	7	JSR	0xbd	8	189	EXTENDED	JSR	3	-	jump to subroutine	-----	Jump to subroutine
+SWI2	7	SWI2	0x103f	20	4159	INHERENT	SWI	2	-	Software interrupt 2	-----	Software interrupt (absolute indirect)
+SWI3	7	SWI3	0x113f	20	4415	INHERENT	SWI	2	-	Software interrupt 3	-----	Software interrupt (absolute indirect)
+PAGE1+	8	PAGE	0x10	1	16	VARIANT	PAGE	1	-	Page 1 Instructions prefix	+++++	Page 2 Instructions prefix
+PAGE2+	8	PAGE	0x11	1	17	VARIANT	PAGE	1	-	Page 2 Instructions prefix	+++++	Page 2 Instructions prefix
+RESET	8	RESET	0x3e	-1	62	INHERENT	RESET	1	-		*****	
