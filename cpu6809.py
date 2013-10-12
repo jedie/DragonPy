@@ -1124,7 +1124,15 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BHI" % opcode)
+        if self.cc.C == 0 and self.cc.Z == 0:
+            log.debug("$%x BHI branch to $%x, because C==0 and Z==0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BHI: don't branch to $%x, because C and Z not 0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
 
     @opcode(# Bit test memory with accumulator
         0x85, 0x95, 0xa5, 0xb5, # BITA (immediate, direct, indexed, extended)
