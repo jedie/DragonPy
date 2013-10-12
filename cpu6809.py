@@ -687,8 +687,8 @@ class CPU(object):
         # FIXME: hi/lo in the correct order?
         word = self.memory.read_word(self.system_stack_pointer)
         log.debug("pull word $%x from stack at $%x" % (word, self.system_stack_pointer))
-        # FIXME: self._system_stack_pointer -= 2
-        self._system_stack_pointer.decrement(2)
+        # FIXME: self._system_stack_pointer += 2
+        self._system_stack_pointer.increment(2)
         return word
 
     ####
