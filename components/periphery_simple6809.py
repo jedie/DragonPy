@@ -45,6 +45,9 @@ class Simple6809Periphery(object):
     read_word = read_byte
 
     def write_byte(self, cpu_cycles, address, value):
+        if 0xa000 <= address <= 0xbfef:
+            return self.write_rs232_interface(cpu_cycles, address, value)
+
         msg = "TODO: write byte $%x to $%x" % (value, address)
         log.error(msg)
         raise NotImplementedError(msg)
@@ -56,7 +59,10 @@ class Simple6809Periphery(object):
 
     def read_rs232_interface(self, cpu_cycles, address):
         log.error("read from RS232 address: $%x" % address)
+        return 0x0
 
+    def write_rs232_interface(self, cpu_cycles, address, value):
+        log.error("write to RS232 address: $%x value: $%x" % (address, value))
 
     def reset_vector(self, address):
         return 0xdb46
