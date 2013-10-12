@@ -1366,11 +1366,11 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        log.debug("$%x BSR push $%x to S and branch to $%x \t| %s" % (
-            self.program_counter, self.program_counter, m, self.cfg.mem_info.get_shortest(m)
+        log.debug("$%x BSR push $%x to S and branch to $%x" % (
+            self.program_counter, self.program_counter, ea
         ))
         self.push_word(self.program_counter)
-        self.program_counter = m
+        self.program_counter = ea
 
     @opcode(# Branch if valid twos complement result
         0x28, # BVC (relative)
