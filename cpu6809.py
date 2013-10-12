@@ -2143,7 +2143,7 @@ class CPU(object):
     @opcode(# Pull A, B, CC, DP, D, X, Y, U, or PC from hardware stack
         0x35, # PULS (immediate)
     )
-    def instruction_PULS(self, opcode, ea, register):
+    def instruction_PULS(self, opcode, ea, m, register):
         """
         All, some, or none of the processor registers are pulled from the
         hardware stack (with the exception of the hardware stack pointer
@@ -2157,8 +2157,12 @@ class CPU(object):
 
         CC bits "HNZVC": ccccc
         """
-        raise NotImplementedError("$%x PULS" % opcode)
-        # Update CC bits: ccccc
+        value = register.get()
+        log.debug("$%x PULS: Pull $%x to %s onto hardware stack" % (
+            self.program_counter,
+            value, register.name
+        ))
+        self.pull_word()
 
     @opcode(# Pull A, B, CC, DP, D, X, Y, S, or PC from hardware stack
         0x37, # PULU (immediate)
