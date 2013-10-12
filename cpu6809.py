@@ -372,6 +372,7 @@ class CPU(object):
 
         if self.cfg.__class__.__name__ == "Simple6809Cfg":
             # FIXME: Hacked bugtracking only with Dragon 32
+            global trace_file
             trace_file = None
 
         if self.cfg.area_debug is not None:
