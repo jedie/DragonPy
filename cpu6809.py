@@ -309,7 +309,7 @@ class Instruction(object):
         self.cpu.cycles += self.data["cycles"]
 
         if log.level <= logging.INFO:
-            msg = "%(op_attr)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | CC: %(cc)s" % {
+            msg = "%(op_attr)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | %(cc)s" % {
                 "op_attr": op_attr,
                 "opcode": "%02x" % self.opcode,
                 "mnemonic": self.data["mnemonic"],
@@ -328,7 +328,10 @@ class Instruction(object):
                 return
 
             ref_line = trace_file.readline().strip()
-#             log.info(ref_line)
+            xroar_cc = int(ref_line[49:51], 16)
+            xroar_cc = tuple([0 if xroar_cc & x == 0 else 1 for x in (128, 64, 32, 16, 8, 4, 2, 1)])
+            xroar_cc = "E=%i F=%i H=%i I=%i N=%i Z=%i V=%i C=%i" % xroar_cc
+            log.info("%s | %s", ref_line, xroar_cc)
 
             addr1 = msg.split("|", 1)[0]
             addr2 = ref_line.split("|", 1)[0]
