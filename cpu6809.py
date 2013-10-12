@@ -364,6 +364,15 @@ class Instruction(object):
             log.debug("-"*79)
 
 
+class IllegalInstruction(object):
+    def __init__(self, cpu, opcode):
+        self.cpu = cpu
+        self.opcode = opcode
+
+    def call_instr_func(self, op_attr):
+        log.error("$%x +++ Illegal op code: $%x", op_attr, op)
+
+
 class CPU(object):
 
     def __init__(self, cfg):
@@ -459,9 +468,9 @@ class CPU(object):
             self._add_ops(opcodes, instr_func)
 
 #         log.debug("illegal ops: %s" % ",".join(["$%x" % c for c in ILLEGAL_OPS]))
-        # add illegal ops
-        for illegal_ops in ILLEGAL_OPS:
-            self.opcode_dict[illegal_ops] = self.illegal_op
+        # add illegal instruction
+        for opcode in ILLEGAL_OPS:
+            self.opcode_dict[opcode] = IllegalInstruction(self, opcode)
 
         self.running = True
         self.quit = False
@@ -610,13 +619,6 @@ class CPU(object):
             if self.program_counter == end:
                 break
             self.get_and_call_next_op()
-
-    def illegal_op(self):
-        self.program_counter -= 1
-        op = self.read_pc_byte()
-        log.error("$%x +++ Illegal op code: $%x" % (
-            self.program_counter - 1, op
-        ))
 
     ####
 
