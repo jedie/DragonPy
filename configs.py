@@ -110,6 +110,22 @@ class BaseConfig(object):
 
         self.mem_info = DummyMemInfo()
 
+    def _get_initial_Memory(self, size):
+        return [0x00] * size
+
+    def get_initial_RAM(self):
+        return self._get_initial_Memory(self.RAM_SIZE)
+
+    def get_initial_ROM(self):
+        return self._get_initial_Memory(self.ROM_SIZE)
+
+
+#     def get_initial_ROM(self):
+#         start=cfg.ROM_START, size=cfg.ROM_SIZE
+#         self.start = start
+#         self.end = start + size
+#         self._mem = [0x00] * size
+
     def print_debug_info(self):
         print "Config: '%s'" % self.__class__.__name__
 
@@ -167,6 +183,20 @@ class Dragon32Cfg(BaseConfig):
 
         self.periphery = get_dragon_periphery(self)
 
+    def get_initial_RAM(self):
+        """
+        init the Dragon RAM
+        See: http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4444
+        """
+        mem_FF = [0xff for _ in xrange(4)]
+        mem_00 = [0x00 for _ in xrange(4)]
+
+        mem = []
+        for _ in xrange(self.RAM_SIZE / 8):
+            mem += mem_FF
+            mem += mem_00
+
+        return mem
 
 
 class Simple6809Cfg(BaseConfig):

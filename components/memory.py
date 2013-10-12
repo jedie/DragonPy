@@ -31,11 +31,12 @@ log = logging.getLogger("DragonPy.memory")
 
 class ROM(object):
 
-    def __init__(self, cfg, start, size):
+    def __init__(self, cfg, memory, start, size):
         self.cfg = cfg
         self.start = start
         self.end = start + size
-        self._mem = [0x00] * size
+        self._mem = memory # [0x00] * size
+        assert len(self._mem) == size
         log.info("init %s Bytes %s (%s - %s)" % (
             size, self.__class__.__name__, hex(start), hex(self.end)
         ))
@@ -87,12 +88,17 @@ class Memory(object):
         else:
             self.bus = None
 
-        self.rom = ROM(cfg, start=cfg.ROM_START, size=cfg.ROM_SIZE)
-
+        self.rom = ROM(
+            cfg, memory=cfg.get_initial_ROM(),
+            start=cfg.ROM_START, size=cfg.ROM_SIZE
+        )
         if cfg:
             self.rom.load_file(cfg.ROM_START, cfg.rom)
 
-        self.ram = RAM(cfg, start=cfg.RAM_START, size=cfg.RAM_SIZE)
+        self.ram = RAM(
+            cfg, memory=cfg.get_initial_RAM(),
+            start=cfg.RAM_START, size=cfg.RAM_SIZE
+        )
 
         if cfg and cfg.ram:
             self.ram.load_file(cfg.RAM_START, cfg.ram)
