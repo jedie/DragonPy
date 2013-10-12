@@ -104,7 +104,15 @@ class Dragon(object):
 
             if action == self.cfg.BUS_ACTION_READ: # == 1
                 value = periphery_func(cpu_cycles, address)
-                data = struct.pack(self.cfg.STRUCT_TO_MEMORY_FORMAT, value)
+                assert isinstance(value, int), "Periphery Func. %r must return a integer! It has returned: %s" % (periphery_func.__name__, repr(value))
+                try:
+                    data = struct.pack(self.cfg.STRUCT_TO_MEMORY_FORMAT, value)
+                except struct.error, err:
+                    msg = "Error pack response %s with %s: %s" % (
+                        repr(value), self.cfg.STRUCT_TO_MEMORY_FORMAT, err
+                    )
+                    print >> sys.stderr, msg
+                    raise
                 self.cpu.send(data)
             elif action == self.cfg.BUS_ACTION_WRITE: # == 0
                 periphery_func(cpu_cycles, address, value)
