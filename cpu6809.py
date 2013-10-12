@@ -2030,7 +2030,7 @@ class CPU(object):
     @opcode(# OR condition code register
         0x1a, # ORCC (immediate)
     )
-    def instruction_ORCC(self, opcode, ea, register):
+    def instruction_ORCC(self, opcode, ea, m, register):
         """
         Performs an inclusive OR operation between the contents of the condition
         code registers and the immediate value, and the result is placed in the
@@ -2040,9 +2040,25 @@ class CPU(object):
         source code forms: ORCC #XX
 
         CC bits "HNZVC": ddddd
+
+            // 0x1a ORCC immediate
+            case 0x1a: {
+                unsigned data;
+                data = byte_immediate(cpu);
+                REG_CC |= data;
+                peek_byte(cpu, REG_PC);
+            } break;
+
         """
-        raise NotImplementedError("$%x ORCC" % opcode)
-        # Update CC bits: ddddd
+        old_cc_info = self.cc.get_info
+        cc = old_cc = register.get()
+        cc |= m
+        register.set(cc)
+        log.error("$%x ORCC: $%x |= $%x ; set CC to $%x (from %r to %r)" % (
+            self.program_counter,
+            old_cc, m, cc, old_cc_info, self.cc.get_info
+        ))
+        raise
 
     @opcode(# Branch if lower (unsigned)
         0x25, # BLO/BCS (relative)
