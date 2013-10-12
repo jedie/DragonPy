@@ -220,19 +220,19 @@ class Memory(object):
         self._bus_communication(structure, address, value)
 
     def bus_read_byte(self, address):
-        log.debug(" **** bus read byte from $%x" % (address))
+        log.info(" **** bus read byte from $%x" % (address))
         return self._bus_read(self.cfg.BUS_STRUCTURE_BYTE, address)
 
     def bus_read_word(self, address):
-        log.debug(" **** bus read word from $%x" % (address))
+        log.info(" **** bus read word from $%x" % (address))
         return self._bus_read(self.cfg.BUS_STRUCTURE_WORD, address)
 
     def bus_write_byte(self, address, value):
-        log.debug(" **** bus write byte $%x to $%x" % (value, address))
+        log.info(" **** bus write byte $%x to $%x" % (value, address))
         return self._bus_write(self.cfg.BUS_STRUCTURE_BYTE, address, value)
 
     def bus_write_word(self, address, value):
-        log.debug(" **** bus write word $%x to $%x" % (value, address))
+        log.info(" **** bus write word $%x to $%x" % (value, address))
         return self._bus_write(self.cfg.BUS_STRUCTURE_WORD, address, value)
 
 
