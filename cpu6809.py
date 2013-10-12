@@ -227,7 +227,7 @@ class ControlHandlerFactory:
 
 import os
 try:
-    # Hacked bugtracking...
+    # FIXME: Hacked bugtracking...
     trace_file = open(os.path.expanduser(r"~/xroar_trace.txt"), "r")
 except IOError, err:
     log.error("No trace file: %s" % err)
@@ -369,6 +369,10 @@ class CPU(object):
     def __init__(self, cfg):
         self.cfg = cfg
         log.info("Use config: %s", cfg)
+
+        if self.cfg.__class__.__name__ == "Simple6809Cfg":
+            # FIXME: Hacked bugtracking only with Dragon 32
+            trace_file = None
 
         if self.cfg.area_debug is not None:
             self.area_debug_active = False
