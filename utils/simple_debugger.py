@@ -31,19 +31,21 @@ def print_exc_plus():
         f = f.f_back
 #     stack.reverse()
     traceback.print_exc()
-    print "Locals by frame, innermost last"
+    print "Locals by frame, most recent call first:"
     for frame in stack:
-        print
-        print "Frame %s in %s at line %s" % (frame.f_code.co_name,
-                                             frame.f_code.co_filename,
-                                             frame.f_lineno)
+        print '\n *** File "%s", line %i, in %s' % (
+            frame.f_code.co_filename, frame.f_lineno, frame.f_code.co_name
+        )
         for key, value in frame.f_locals.items():
-            print "\t%20s = " % key,
+            print "\t%10s = " % key,
             # We have to be careful not to cause a new error in our error
             # printer! Calling str() on an unknown object could cause an
             # error we don't want.
             if isinstance(value, basestring):
                 value = repr(value)
+            elif isinstance(value, int):
+                value = "$%x (decimal: %i)" % (value, value)
+
             try:
                 print value
             except:
