@@ -560,7 +560,7 @@ class CPU(object):
         log.debug("$%x *** call paged opcode $%x" % (
             self.program_counter, paged_opcode
         ))
-        self.call_instruction_func(op_attr, paged_opcode)
+        self.call_instruction_func(op_attr - 1, paged_opcode)
 
     def run(self):
         log.debug("-"*79)
