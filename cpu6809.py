@@ -371,7 +371,7 @@ class IllegalInstruction(object):
         self.opcode = opcode
 
     def call_instr_func(self, op_attr):
-        log.error("$%x +++ Illegal op code: $%x", op_attr, op)
+        log.error("$%x +++ Illegal op code: $%x", op_attr, self.opcode)
 
 
 class CPU(object):
