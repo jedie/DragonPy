@@ -16,7 +16,7 @@
 
 import logging
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("DragonPy.components.MC6821_PIA")
 
 
 class PIA_register(object):
@@ -72,32 +72,32 @@ class PIA(object):
         return value
 
     def write_byte(self, address, value):
-        log.debug(" *** TODO: PIA write byte $%x to $%x \t| %s" % (
+        log.error(" *** TODO: PIA write byte $%x to $%x \t| %s" % (
             value, address, self.cfg.mem_info.get_shortest(address)
         ))
 
     def pia_0_A_data(self):
-        log.debug(" *** TODO: PIA 0 A side data register")
+        log.error(" *** TODO: PIA 0 A side data register")
         return 0x00 # self.kbd
     def pia_0_A_control(self):
-        log.debug(" *** TODO: PIA 0 A side control register")
+        log.error(" *** TODO: PIA 0 A side control register")
         return 0xb3
     def pia_0_B_data(self):
-        log.debug(" *** TODO: PIA 0 B side data register")
+        log.error(" *** TODO: PIA 0 B side data register")
         return 0x00
     def pia_0_B_control(self):
-        log.debug(" *** TODO: PIA 0 B side control register")
+        log.error(" *** TODO: PIA 0 B side control register")
         return 0x35
 
     def pia_1_A_data(self):
-        log.debug(" *** TODO: PIA 1 A side data register")
+        log.error(" *** TODO: PIA 1 A side data register")
         return 0x01
     def pia_1_A_control(self):
-        log.debug(" *** TODO: PIA 1 A side control register")
+        log.error(" *** TODO: PIA 1 A side control register")
         return 0x34
     def pia_1_B_data(self):
-        log.debug(" *** TODO: PIA 1 B side data register")
+        log.error(" *** TODO: PIA 1 B side data register")
         return 0x00
     def pia_1_B_control(self):
-        log.debug(" *** TODO: PIA 1 B side control register")
+        log.error(" *** TODO: PIA 1 B side control register")
         return 0x37

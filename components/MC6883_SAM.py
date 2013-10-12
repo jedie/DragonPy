@@ -49,7 +49,7 @@
 
 import logging
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("DragonPy.components.MC6883_SAM")
 
 
 class SAM(object):
@@ -61,7 +61,7 @@ class SAM(object):
 
     def __call__(self, address):
         msg = "TODO: SAM call at $%x" % address
-        log.debug(msg)
+        log.error(msg)
         value = 0x7e
         log.debug(" SAM call at $%x returned $%x \t| %s" % (
             address, value, self.cfg.mem_info.get_shortest(address)
@@ -70,6 +70,6 @@ class SAM(object):
 #         raise NotImplementedError
 
     def write_byte(self, address, value):
-        log.debug(" *** TODO: SAM write byte $%x to $%x \t| %s" % (
+        log.error(" *** TODO: SAM write byte $%x to $%x \t| %s" % (
             value, address, self.cfg.mem_info.get_shortest(address)
         ))
