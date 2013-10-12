@@ -1176,13 +1176,13 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
 #         if (self.cc.C|self.cc.Z) == 0:
-        if self.cc.C == 0 or self.cc.Z == 0:
-            log.debug("$%x BLS branch to $%x, because C|Z==0 \t| %s" % (
+        if self.cc.C == 1 or self.cc.Z == 1:
+            log.debug("$%x BLS branch to $%x, because C|Z==1 \t| %s" % (
                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
             ))
             self.program_counter = ea
         else:
-            log.debug("$%x BLS: don't branch to $%x, because C|Z!=0 \t| %s" % (
+            log.debug("$%x BLS: don't branch to $%x, because C|Z!=1 \t| %s" % (
                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
             ))
 
