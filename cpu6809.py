@@ -38,6 +38,7 @@ from MC6809data.MC6809_data_raw import ILLEGAL_OPS, MEM_ACCESS_BYTE, \
 from components.memory import Memory
 from cpu_utils.MC6809_registers import ValueStorage8Bit, ConcatenatedAccumulator, \
     ValueStorage16Bit, ConditionCodeRegister, unsigned8
+from utils.simple_debugger import print_exc_plus
 
 
 log = logging.getLogger("DragonPy")
@@ -2568,4 +2569,8 @@ if __name__ == "__main__":
 
     cpu = CPU(cli.cfg)
     cpu.reset()
-    cpu.run()
+    try:
+        cpu.run()
+    except:
+        print_exc_plus()
+

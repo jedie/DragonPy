@@ -22,6 +22,7 @@ import subprocess
 import sys
 
 import logging
+from utils.simple_debugger import print_exc_plus
 
 
 log = logging.getLogger(__name__)
@@ -48,7 +49,10 @@ class Dragon(object):
         cmd_args += sys.argv[1:]
         print "Startup CPU with: %s" % " ".join(cmd_args)
 
-        self.core = subprocess.Popen(cmd_args)
+        try:
+            self.core = subprocess.Popen(cmd_args)
+        except:
+            print_exc_plus()
 
         rs, _, _ = select.select([listener], [], [], 2)
         if not rs:
