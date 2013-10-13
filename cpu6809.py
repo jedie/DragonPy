@@ -300,6 +300,8 @@ class Instruction(object):
             if "m" in op_kwargs:
                 kwargs_info.append("m:%x" % op_kwargs["m"])
 
+        log.info("CPU cycles: %i", self.cpu.cycles)
+
         try:
             self.instr_func(**op_kwargs)
         except TypeError, err:
