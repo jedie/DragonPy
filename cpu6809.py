@@ -765,8 +765,9 @@ class CPU(object):
         return ea
 
     def get_direct_byte(self):
-        ea = m = self.get_direct_ea()
-        log.debug("\tget_direct_byte(): ea = m = $%x", ea)
+        ea = self.get_direct_ea()
+        m = self.memory.read_byte(ea)
+        log.debug("\tget_direct_byte(): ea=$%x m=$%x", ea, m)
         return ea, m
 
     def get_direct_word(self):
