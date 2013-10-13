@@ -58,11 +58,12 @@ class Simple6809Periphery(object):
 
 
     def read_rs232_interface(self, cpu_cycles, address):
-        log.error("read from RS232 address: $%x" % address)
-        return 0x0
+        value = 0x0
+        log.error("read from RS232 address: $%x send $%x back" % (address, value))
+        return value
 
     def write_rs232_interface(self, cpu_cycles, address, value):
-        log.error("write to RS232 address: $%x value: $%x" % (address, value))
+        log.error("write to RS232 address: $%x value: $%x ASCII: %r" % (address, value, chr(value)))
 
     def reset_vector(self, address):
         return 0xdb46
