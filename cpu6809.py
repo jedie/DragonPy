@@ -355,14 +355,6 @@ class Instruction(object):
                     mnemonic1, mnemonic2
                 ))
 
-            cc1 = msg[98:106]
-            if cc1 != xroar_cc:
-                log.info("trace: %s" , ref_line)
-                log.info("own..: %s" , msg)
-                log.error("CC (%r != %r) not the same as trace reference!\n" % (
-                    cc1, xroar_cc
-                ))
-
             registers1 = msg[52:95]
             registers2 = ref_line[52:95]
             if registers1 != registers2:
@@ -371,6 +363,14 @@ class Instruction(object):
                 log.error("registers (%r != %r) not the same as trace reference!\n" % (
                     registers1, registers2
                 ))
+            else:
+                cc1 = msg[98:106]
+                if cc1 != xroar_cc:
+                    log.info("trace: %s" , ref_line)
+                    log.info("own..: %s" , msg)
+                    log.error("CC (%r != %r) not the same as trace reference!\n" % (
+                        cc1, xroar_cc
+                    ))
 
             log.debug("\t%s", repr(self.data))
             log.debug("-"*79)
