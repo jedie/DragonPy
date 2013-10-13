@@ -101,6 +101,20 @@ def _register_bit(key):
     return property(get_flag, set_flag)
 
 
+def cc_value2txt(status):
+    """
+    >>> cc_value2txt(0x50)
+    '.F.I....'
+    >>> cc_value2txt(0x54)
+    '.F.I.Z..'
+    >>> cc_value2txt(0x59)
+    '.F.IN..C'
+    """
+    return "".join(
+        ["." if status & x == 0 else char for char, x in zip("EFHINZVC", (128, 64, 32, 16, 8, 4, 2, 1))]
+    )
+
+
 class ConditionCodeRegister(object):
     """ CC - 8 bit condition code register bits """
 
@@ -136,9 +150,7 @@ class ConditionCodeRegister(object):
 
     @property
     def get_info(self):
-        return "E=%i F=%i H=%i I=%i N=%i Z=%i V=%i C=%i" % (
-            self.E, self.F, self.H, self.I, self.N, self.Z, self.V, self.C
-        )
+        return cc_value2txt(self.get())
 
     ####
 

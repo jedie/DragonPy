@@ -37,7 +37,7 @@ from MC6809data.MC6809_data_raw import ILLEGAL_OPS, MEM_ACCESS_BYTE, \
     REG_X, REG_CC, REG_DP
 from components.memory import Memory
 from cpu_utils.MC6809_registers import ValueStorage8Bit, ConcatenatedAccumulator, \
-    ValueStorage16Bit, ConditionCodeRegister, unsigned8
+    ValueStorage16Bit, ConditionCodeRegister, unsigned8, cc_value2txt
 from utils.simple_debugger import print_exc_plus
 
 
@@ -329,9 +329,10 @@ class Instruction(object):
                 return
 
             ref_line = trace_file.readline().strip()
+
+            # Add CC register info, e.g.: .F.IN..C
             xroar_cc = int(ref_line[49:51], 16)
-            xroar_cc = tuple([0 if xroar_cc & x == 0 else 1 for x in (128, 64, 32, 16, 8, 4, 2, 1)])
-            xroar_cc = "E=%i F=%i H=%i I=%i N=%i Z=%i V=%i C=%i" % xroar_cc
+            xroar_cc = cc_value2txt(xroar_cc)
             log.info("%s | %s", ref_line, xroar_cc)
 
             addr1 = msg.split("|", 1)[0]
@@ -352,8 +353,16 @@ class Instruction(object):
                     mnemonic1, mnemonic2
                 ))
 
-            registers1 = msg[46:95]
-            registers2 = ref_line[46:95]
+            cc1 = msg[98:106]
+            if cc1 != xroar_cc:
+                log.info("trace: %s" , ref_line)
+                log.info("own..: %s" , msg)
+                log.error("CC (%r != %r) not the same as trace reference!\n" % (
+                    cc1, xroar_cc
+                ))
+
+            registers1 = msg[52:95]
+            registers2 = ref_line[52:95]
             if registers1 != registers2:
                 log.info("trace: %s" , ref_line)
                 log.info("own..: %s" , msg)
