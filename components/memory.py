@@ -109,24 +109,27 @@ class Memory(object):
 
     def read_byte(self, address):
         self.cpu.cycles += 1
-        log.debug("\tread byte at $%x" % address)
 
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
-            log.debug("\tread byte at $%x from bus: %s" % (address, info))
-            return self.bus_read_byte(address)
+            byte = self.bus_read_byte(address)
+            log.debug("\tread byte $%x from address $%x from bus: %s", byte, address, info)
+            return byte
 
         if address < self.cfg.RAM_END:
-            return self.ram.read_byte(address)
+            byte = self.ram.read_byte(address)
         elif self.cfg.ROM_START <= address <= self.cfg.ROM_END:
-            return self.rom.read_byte(address)
+            byte = self.rom.read_byte(address)
         else:
             msg = "reading outside memory area (PC:$%x)" % self.cpu.program_counter
             self.cfg.mem_info(address, msg)
             msg2 = "%s: $%x" % (msg, address)
             log.warn(msg2)
 #             raise RuntimeError(msg2)
-        return 0x0
+            byte = 0x0
+
+        log.debug("\tread byte $%x from $%x", byte, address)
+        return byte
 
     def read_word(self, address):
         if address in self.cfg.bus_addr_areas:
