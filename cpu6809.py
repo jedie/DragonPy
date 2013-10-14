@@ -295,12 +295,12 @@ class Instruction(object):
                 kwargs_info.append(str(op_kwargs["register"]))
 
             if "ea" in op_kwargs:
-                kwargs_info.append("ea:%x" % op_kwargs["ea"])
+                kwargs_info.append("ea:%04x" % op_kwargs["ea"])
 
             if "m" in op_kwargs:
                 kwargs_info.append("m:%x" % op_kwargs["m"])
 
-        log.info("CPU cycles: %i", self.cpu.cycles)
+#         log.info("CPU cycles: %i", self.cpu.cycles)
 
         try:
             self.instr_func(**op_kwargs)
@@ -342,6 +342,7 @@ class Instruction(object):
             if addr1 != addr2:
                 log.info("trace: %s", ref_line)
                 log.info("own..: %s", msg)
+                log.error("Error in CPU cycles: %i", self.cpu.cycles)
                 log.error("address (%r != %r) not the same as trace reference!\n" % (
                     addr1, addr2
                 ))
@@ -351,6 +352,7 @@ class Instruction(object):
             if mnemonic1 != mnemonic2:
                 log.info("trace: %s", ref_line)
                 log.info("own..: %s" , msg)
+                log.error("Error in CPU cycles: %i", self.cpu.cycles)
                 log.error("mnemonic (%r != %r) not the same as trace reference!\n" % (
                     mnemonic1, mnemonic2
                 ))
@@ -360,6 +362,7 @@ class Instruction(object):
             if registers1 != registers2:
                 log.info("trace: %s" , ref_line)
                 log.info("own..: %s" , msg)
+                log.error("Error in CPU cycles: %i", self.cpu.cycles)
                 log.error("registers (%r != %r) not the same as trace reference!\n" % (
                     registers1, registers2
                 ))
@@ -368,6 +371,7 @@ class Instruction(object):
                 if cc1 != xroar_cc:
                     log.info("trace: %s" , ref_line)
                     log.info("own..: %s" , msg)
+                    log.error("Error in CPU cycles: %i", self.cpu.cycles)
                     log.error("CC (%r != %r) not the same as trace reference!\n" % (
                         cc1, xroar_cc
                     ))
