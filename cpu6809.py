@@ -1014,7 +1014,7 @@ class CPU(object):
         0x84, 0x94, 0xa4, 0xb4, # ANDA (immediate, direct, indexed, extended)
         0xc4, 0xd4, 0xe4, 0xf4, # ANDB (immediate, direct, indexed, extended)
     )
-    def instruction_AND(self, opcode, ea, register):
+    def instruction_AND(self, opcode, ea, m, register):
         """
         Performs the logical AND operation between the contents of an
         accumulator and the contents of memory location M and the result is
@@ -1024,8 +1024,15 @@ class CPU(object):
 
         CC bits "HNZVC": -aa0-
         """
-        raise NotImplementedError("$%x AND" % opcode)
-        # self.cc.update_NZ0()
+        a = register.get()
+        r = a & m
+        register.set(r)
+        self.cc.update_NZ0_8(r)
+        log.debug("$%x %02x AND %s: %i & %i = %i" % (
+            self.program_counter, opcode,
+            register.name,
+            a, m, r
+        ))
 
     @opcode(# AND condition code register
         0x1c, # ANDCC (immediate)
