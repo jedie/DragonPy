@@ -37,10 +37,10 @@ REG_S = "S"
 REG_B = "B"
 REG_U = "U"
 REG_D = "D"
-REG_DP = "DP"
 REG_Y = "Y"
 REG_X = "X"
 REG_CC = "CC"
+REG_DP = "DP"
 
 
 REGISTER_INFO = {
@@ -50,10 +50,10 @@ REGISTER_INFO = {
     REG_B: (8, '1001', 'accumulator'),
     REG_U: (16, '0011', 'user-stack pointer'),
     REG_D: (16, '0000', 'concatenated register (A+B)'),
-    REG_DP: (8, '1011', 'direct page register'),
     REG_Y: (16, '0010', 'index register'),
     REG_X: (16, '0001', 'index register'),
     REG_CC: (8, '1010', 'condition code register as flags'),
+    REG_DP: (8, '1011', 'direct page register'),
 }
 
 MEM_ACCESS_BYTE = 8
@@ -233,7 +233,7 @@ INSTRUCTION_INFO = {
         'description': 'Performs the logical AND of the contents of accumulator A or B and the contents of memory location M and modifies the condition codes accordingly.\nThe contents of accumulator A or B and memory location M are not affected.',
         'instr_desc': 'Bit test memory with accumulator',
         'operation': 'TEMP = R AND M',
-        'source form': 'BITA P; BITB P'
+        'source form': 'Bit P'
     },
     BLE: {
         'HNZVC': '-----',
@@ -1995,7 +1995,7 @@ OP_DATA = (
         "opcode": 0x34, "instruction": "PSH", "mnemonic": "PSHS",
         "desc": "S -= 1: MEM(S) = R; Push Register on S Stack",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
-        "mem_access": MEM_ACCESS_WORD, # Push Registers on S Stack: S -= 1: MEM(S) = Reg.
+        "mem_access": MEM_ACCESS_BYTE, # Push Registers on S Stack: S -= 1: MEM(S) = Reg.
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": PSHS,
     },
@@ -2003,7 +2003,7 @@ OP_DATA = (
         "opcode": 0x35, "instruction": "PUL", "mnemonic": "PULS",
         "desc": "R=MEM(S) : S += 1; Pull register from S Stack",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
-        "mem_access": MEM_ACCESS_WORD, # Pull Registers from S Stack: Reg. = MEM(S): S += 1
+        "mem_access": MEM_ACCESS_BYTE, # Pull Registers from S Stack: Reg. = MEM(S): S += 1
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": PULS,
     },
@@ -2011,7 +2011,7 @@ OP_DATA = (
         "opcode": 0x36, "instruction": "PSH", "mnemonic": "PSHU",
         "desc": "U -= 1: MEM(U) = R; Push Register on U Stack",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
-        "mem_access": MEM_ACCESS_WORD, # Push Registers on U Stack: U -= 1: MEM(U) = Reg.
+        "mem_access": MEM_ACCESS_BYTE, # Push Registers on U Stack: U -= 1: MEM(U) = Reg.
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": PSHU,
     },
@@ -2019,7 +2019,7 @@ OP_DATA = (
         "opcode": 0x37, "instruction": "PUL", "mnemonic": "PULU",
         "desc": "R=MEM(U) : U += 1; Pull register from U Stack",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
-        "mem_access": MEM_ACCESS_WORD, # Pull Registers from U Stack: Reg. = MEM(U): U += 1
+        "mem_access": MEM_ACCESS_BYTE, # Pull Registers from U Stack: Reg. = MEM(U): U += 1
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": PULU,
     },

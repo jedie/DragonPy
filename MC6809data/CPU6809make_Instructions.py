@@ -871,13 +871,17 @@ for line in txt.splitlines():
             addr_mode = op_type[1]
 
     if mem_access and register is not None:
-        reg_info = REGISTER_INFO[register]
-        if reg_info[0] == 8:
+        if bytes == 2 and addr_mode == IMMEDIATE:
             mem_access = MEM_ACCESS_BYTE
-        elif reg_info[0] == 16:
-            mem_access = MEM_ACCESS_WORD
         else:
-            raise ValueError
+            reg_info = REGISTER_INFO[register]
+            reg_width = reg_info[0]
+            if reg_width == 8:
+                mem_access = MEM_ACCESS_BYTE
+            elif reg_width == 16:
+                mem_access = MEM_ACCESS_WORD
+            else:
+                raise ValueError
 
     assert mem_access in (False, MEM_ACCESS_BYTE, MEM_ACCESS_WORD)
 
