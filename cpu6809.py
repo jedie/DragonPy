@@ -1703,7 +1703,7 @@ class CPU(object):
     @opcode(# Increment memory location
         0xc, 0x6c, 0x7c, # INC (direct, indexed, extended)
     )
-    def instruction_INC_memory(self, opcode, ea, register):
+    def instruction_INC_memory(self, opcode, ea, m):
         """
         Adds to the register. The carry bit is not affected, thus allowing this
         instruction to be used as a loop counter in multiple-precision
@@ -1715,8 +1715,14 @@ class CPU(object):
 
         CC bits "HNZVC": -aaa-
         """
-        raise NotImplementedError("$%x INC" % opcode)
-        # self.cc.update_NZV(a, b, r)
+        r = m + 1
+        log.debug("$%x INC memory value $%x +1 = $%x and write it to $%x \t| %s" % (
+            self.program_counter,
+            m, r, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.cc.update_NZV_8(a=m, b=1, r=r)
+        self.memory.write_byte(ea, r)
 
     @opcode(# Jump
         0xe, 0x6e, 0x7e, # JMP (direct, indexed, extended)
