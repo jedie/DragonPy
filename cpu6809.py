@@ -2093,7 +2093,7 @@ class CPU(object):
         0x25, # BLO/BCS (relative)
         0x1025, # LBLO/LBCS (relative)
     )
-    def instruction_BLO(self, opcode, ea, m):
+    def instruction_BLO(self, opcode, ea):
         """
         CC bits "HNZVC": -----
         case 0x5: cond = REG_CC & CC_C; break; // BCS, BLO, LBCS, LBLO
@@ -2112,7 +2112,7 @@ class CPU(object):
         0x24, # BHS/BCC (relative)
         0x1024, # LBHS/LBCC (relative)
     )
-    def instruction_BHS(self, opcode, ea, m):
+    def instruction_BHS(self, opcode, ea):
         """
         CC bits "HNZVC": -----
         case 0x4: cond = !(REG_CC & CC_C); break; // BCC, BHS, LBCC, LBHS
