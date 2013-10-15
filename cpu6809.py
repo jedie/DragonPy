@@ -261,9 +261,10 @@ class Instruction(object):
         addr_mode = opcode_data["addr_mode"]
         if addr_mode not in (MC6809data.INHERENT, MC6809data.VARIANT):
             func_name = "get_%s" % opcode_data["addr_mode"].lower()
-            mem_access = opcode_data.get("mem_access")
-            if mem_access is not None:
+            mem_read = opcode_data["mem_read"]
+            if mem_read:
                 # instruction used the memory content
+                mem_access = opcode_data["mem_access"]
                 if mem_access == MEM_ACCESS_BYTE:
                     func_name += "_byte"
                 elif mem_access == MEM_ACCESS_WORD:
@@ -1092,7 +1093,7 @@ class CPU(object):
         0x27, # BEQ (relative)
         0x1027, # LBEQ (relative)
     )
-    def instruction_BEQ(self, opcode, ea, m):
+    def instruction_BEQ(self, opcode, ea):
         """
         Tests the state of the Z (zero) bit and causes a branch if it is set.
         When used after a subtract or compare operation, this instruction will
@@ -1155,7 +1156,7 @@ class CPU(object):
         0x22, # BHI (relative)
         0x1022, # LBHI (relative)
     )
-    def instruction_BHI(self, opcode, ea, m):
+    def instruction_BHI(self, opcode, ea):
         """
         Causes a branch if the previous operation caused neither a carry nor a
         zero result. When used after a subtract or compare operation on unsigned
@@ -1225,7 +1226,7 @@ class CPU(object):
         0x23, # BLS (relative)
         0x1023, # LBLS (relative)
     )
-    def instruction_BLS(self, opcode, ea, m):
+    def instruction_BLS(self, opcode, ea):
         """
         Causes a branch if the previous operation caused either a carry or a
         zero result. When used after a subtract or compare operation on unsigned
@@ -1271,7 +1272,7 @@ class CPU(object):
         0x2b, # BMI (relative)
         0x102b, # LBMI (relative)
     )
-    def instruction_BMI(self, opcode, ea, m):
+    def instruction_BMI(self, opcode, ea):
         """
         Tests the state of the N (negative) bit and causes a branch if set. That
         is, branch if the sign of the twos complement result is negative.
@@ -1298,7 +1299,7 @@ class CPU(object):
         0x26, # BNE (relative)
         0x1026, # LBNE (relative)
     )
-    def instruction_BNE(self, opcode, ea, m):
+    def instruction_BNE(self, opcode, ea):
         """
         Tests the state of the Z (zero) bit and causes a branch if it is clear.
         When used after a subtract or compare operation on any binary values,
@@ -1323,7 +1324,7 @@ class CPU(object):
         0x2a, # BPL (relative)
         0x102a, # LBPL (relative)
     )
-    def instruction_BPL(self, opcode, ea, m):
+    def instruction_BPL(self, opcode, ea):
         """
         Tests the state of the N (negative) bit and causes a branch if it is
         clear. That is, branch if the sign of the twos complement result is
@@ -1351,7 +1352,7 @@ class CPU(object):
         0x20, # BRA (relative)
         0x16, # LBRA (relative)
     )
-    def instruction_BRA(self, opcode, ea, m):
+    def instruction_BRA(self, opcode, ea):
         """
         Causes an unconditional branch.
 
@@ -1398,7 +1399,7 @@ class CPU(object):
         0x8d, # BSR (relative)
         0x17, # LBSR (relative)
     )
-    def instruction_BSR(self, opcode, ea, m):
+    def instruction_BSR(self, opcode, ea):
         """
         The program counter is pushed onto the stack. The program counter is
         then loaded with the sum of the program counter and the offset.
@@ -1451,7 +1452,7 @@ class CPU(object):
         raise NotImplementedError("$%x BVS" % opcode)
 
     @opcode(0xf, 0x6f, 0x7f) # CLR (direct, indexed, extended)
-    def instruction_CLR(self, opcode, ea, m):
+    def instruction_CLR(self, opcode, ea):
         """
         Clear memory location
         source code forms: CLR
@@ -1839,7 +1840,7 @@ class CPU(object):
         0x32, # LEAS (indexed)
         0x33, # LEAU (indexed)
     )
-    def instruction_LEA_pointer(self, opcode, ea, m, register):
+    def instruction_LEA_pointer(self, opcode, ea, register):
         """
         Calculates the effective address from the indexed addressing mode and
         places the address in an indexable register.
@@ -1919,7 +1920,7 @@ class CPU(object):
         self.memory.write_byte(ea, r)
 
     @opcode(0x48, 0x58) # LSLA/ASLA / LSLB/ASLB (inherent)
-    def instruction_LSL_register(self, opcode, ea, register):
+    def instruction_LSL_register(self, opcode, register):
         """
         Logical shift left accumulator / Arithmetic shift of accumulator
         """
@@ -2164,6 +2165,16 @@ class CPU(object):
         ->
 
         CC bits "HNZVC": -----
+
+        TODO:
+        if (postbyte & 0x80) { push_word(cpu, s, REG_PC); }
+        if (postbyte & 0x40) { push_word(cpu, s, as); }
+        if (postbyte & 0x20) { push_word(cpu, s, REG_Y); }
+        if (postbyte & 0x10) { push_word(cpu, s, REG_X); }
+        if (postbyte & 0x08) { push_byte(cpu, s, REG_DP); }
+        if (postbyte & 0x04) { push_byte(cpu, s, RREG_B); }
+        if (postbyte & 0x02) { push_byte(cpu, s, RREG_A); }
+        if (postbyte & 0x01) { push_byte(cpu, s, REG_CC); }
         """
         value = register.get()
         log.debug("$%x PSHS: Push $%x from %s onto hardware stack" % (
@@ -2193,7 +2204,7 @@ class CPU(object):
     @opcode(# Pull A, B, CC, DP, D, X, Y, U, or PC from hardware stack
         0x35, # PULS (immediate)
     )
-    def instruction_PULS(self, opcode, ea, m, register):
+    def instruction_PULS(self, opcode, ea, register):
         """
         All, some, or none of the processor registers are pulled from the
         hardware stack (with the exception of the hardware stack pointer
@@ -2386,7 +2397,7 @@ class CPU(object):
         0x9f, 0xaf, 0xbf, # STX (direct, indexed, extended)
         0x109f, 0x10af, 0x10bf, # STY (direct, indexed, extended)
     )
-    def instruction_ST16(self, opcode, ea, m, register):
+    def instruction_ST16(self, opcode, ea, register):
         """
         Writes the contents of a 16-bit register into two consecutive memory
         locations.
@@ -2408,7 +2419,7 @@ class CPU(object):
         0x97, 0xa7, 0xb7, # STA (direct, indexed, extended)
         0xd7, 0xe7, 0xf7, # STB (direct, indexed, extended)
     )
-    def instruction_ST8(self, opcode, ea, m, register):
+    def instruction_ST8(self, opcode, ea, register):
         """
         Writes the contents of an 8-bit register into a memory location.
 
@@ -2606,12 +2617,13 @@ def test_run():
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
 #         "--verbosity=5",
-        "--verbosity=20",
+#         "--verbosity=20",
+        "--verbosity=30",
 #         "--verbosity=50",
 #         "--area_debug_active=5:bb79-ffff",
 #         "--cfg=Simple6809Cfg",
         "--cfg=Dragon32Cfg",
-        "--max=1",
+#         "--max=1",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args).wait()
