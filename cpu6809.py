@@ -306,7 +306,7 @@ class Instruction(object):
             self.instr_func(**op_kwargs)
         except TypeError, err:
             print >> sys.stderr, "kwargs:"
-            print >> sys.stderr, pprint.pformat(op_kwargs)
+            print >> sys.stderr, hex_repr(op_kwargs)
             raise
 
         self.cpu.cycles += self.data["cycles"]
@@ -510,7 +510,15 @@ class CPU(object):
                 log.error("ERROR: no OP_DATA entry for $%x" % opcode)
                 continue
 
-            self.opcode_dict[opcode] = Instruction(self, opcode, opcode_data, instr_func)
+            try:
+                instruction = Instruction(self, opcode, opcode_data, instr_func)
+            except Exception, err:
+                print >> sys.stderr, "Error init instruction for $%x" % opcode
+                print >> sys.stderr, "opcode data: %s" % repr(opcode_data)
+                print >> sys.stderr, "instr_func: %s" % instr_func.__name__
+                raise
+
+            self.opcode_dict[opcode] = instruction
 
     ####
 
