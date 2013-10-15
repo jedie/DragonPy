@@ -24,11 +24,11 @@ import BaseHTTPServer
 import inspect
 import json
 import logging
-import pprint
 import re
 import select
 import socket
 import sys
+import time
 
 from DragonPy_CLI import DragonPyCLI
 from MC6809data import MC6809_data_raw as MC6809data
@@ -610,6 +610,8 @@ class CPU(object):
     def run(self):
         log.debug("-"*79)
 
+        last_update = time.time()
+        last_cycles = 0
         while not self.quit:
             timeout = 0
             if not self.running:
@@ -632,6 +634,13 @@ class CPU(object):
                 if not self.running:
                     break
                 self.get_and_call_next_op()
+
+            duration = time.time() - last_update
+            if duration >= 1:
+                count = self.cycles - last_cycles
+                log.error("%.2f cycles/sec.", float(count / duration))
+                last_cycles = self.cycles
+                last_update = time.time()
 
             if self.cfg.max_cpu_cycles is not None \
                 and self.cycles >= self.cfg.max_cpu_cycles:
