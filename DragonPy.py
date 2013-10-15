@@ -33,7 +33,7 @@ class Dragon(object):
 
     def __init__(self, cfg):
         self.cfg = cfg
-        self.periphery = cfg.periphery
+        self.periphery = cfg.periphery_class(cfg)
 
         listener = socket.socket()
         listener.bind(("127.0.0.1", 0))
@@ -77,22 +77,8 @@ class Dragon(object):
             if len(cpu_data) == 0:
                 break
 
-            """
-                STRUCT_BYTE_FORMAT = (
-                    "<" # little-endian byte order
-                    "I" # CPU cycles - unsigned int (integer with size: 4)
-                    "B" # action: 0 = read, 1 = write - unsigned char (integer with size: 1)
-                    "B" # type: 0 = byte, 1 = word - unsigned char (integer with size: 1)
-                    "H" # Address - unsigned short (integer with size: 2)
-                    "H" # Bytes/Word to write - unsigned short (integer with size: 2)
-                )
-                BUS_ACTION_READ = 0
-                BUS_ACTION_WRITE = 1
-                BUS_TYPE_BYTE = 0
-                BUS_TYPE_WORD = 1
-            """
             try:
-                cpu_cycles, action, structure, address, value = struct.unpack(self.cfg.STRUCT_TO_PERIPHERY_FORMAT, cpu_data)
+                cpu_cycles, op_address, action, structure, address, value = struct.unpack(self.cfg.STRUCT_TO_PERIPHERY_FORMAT, cpu_data)
             except Exception, err:
                 msg = "Error unpack %s with %s: %s" % (
                     repr(cpu_data), self.cfg.STRUCT_TO_PERIPHERY_FORMAT, err
@@ -103,7 +89,7 @@ class Dragon(object):
             periphery_func = self.bus_type_func_map[(action, structure)]
 
             if action == self.cfg.BUS_ACTION_READ: # == 1
-                value = periphery_func(cpu_cycles, address)
+                value = periphery_func(cpu_cycles, op_address, address)
                 assert isinstance(value, int), "Periphery Func. %r must return a integer! It has returned: %s" % (periphery_func.__name__, repr(value))
                 try:
                     data = struct.pack(self.cfg.STRUCT_TO_MEMORY_FORMAT, value)
@@ -115,11 +101,11 @@ class Dragon(object):
                     raise
                 self.cpu.send(data)
             elif action == self.cfg.BUS_ACTION_WRITE: # == 0
-                periphery_func(cpu_cycles, address, value)
+                periphery_func(cpu_cycles, op_address, address, value)
             else:
                 raise RuntimeError
 
-            quit_cpu = self.periphery.cycle(cpu_cycles)
+            quit_cpu = self.periphery.cycle(cpu_cycles, op_address)
 
 
 

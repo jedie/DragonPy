@@ -184,6 +184,7 @@ class Memory(object):
 
         args = (
             self.cpu.cycles,
+            self.cpu.last_op_address,
             action, # 0 = read, 1 = write
             structure, # 0 = byte, 1 = word
             address,

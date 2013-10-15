@@ -282,7 +282,7 @@ class Instruction(object):
 #         log.debug(pprint.pformat(instr_kwargs))
 #         log.debug("-"*79)
 
-    def call_instr_func(self, op_attr):
+    def call_instr_func(self):
         op_kwargs = self.static_kwargs.copy()
         if self.get_ea_func is not None:
             op_kwargs["ea"] = self.get_ea_func()
@@ -312,8 +312,10 @@ class Instruction(object):
         self.cpu.cycles += self.data["cycles"]
 
         if log.level <= logging.INFO:
-            msg = "%(op_attr)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | %(cc)s" % {
-                "op_attr": op_attr,
+            op_address = self.cpu.last_op_address
+
+            msg = "%(op_address)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | %(cc)s" % {
+                "op_address": op_address,
                 "opcode": "%02x" % self.opcode,
                 "mnemonic": self.data["mnemonic"],
                 "kwargs": " ".join(kwargs_info),
@@ -322,61 +324,58 @@ class Instruction(object):
             }
             log.info(msg)
 
-            if trace_file is None:
-                return
+            if trace_file: # Hacked bugtracking...
 
-            # Hacked bugtracking...
+                if self.opcode in (0x10, 0x11): # PAGE 1/2 instructions
+                    return
 
-            if self.opcode in (0x10, 0x11): # PAGE 1/2 instructions
-                return
+                ref_line = trace_file.readline().strip()
 
-            ref_line = trace_file.readline().strip()
+                # Add CC register info, e.g.: .F.IN..C
+                xroar_cc = int(ref_line[49:51], 16)
+                xroar_cc = cc_value2txt(xroar_cc)
+                log.info("%s | %s", ref_line, xroar_cc)
 
-            # Add CC register info, e.g.: .F.IN..C
-            xroar_cc = int(ref_line[49:51], 16)
-            xroar_cc = cc_value2txt(xroar_cc)
-            log.info("%s | %s", ref_line, xroar_cc)
+                addr1 = msg.split("|", 1)[0]
+                addr2 = ref_line.split("|", 1)[0]
+                if addr1 != addr2:
+                    log.info("trace: %s", ref_line)
+                    log.info("own..: %s", msg)
+                    log.error("Error in CPU cycles: %i", self.cpu.cycles)
+                    log.error("address (%r != %r) not the same as trace reference!\n" % (
+                        addr1, addr2
+                    ))
 
-            addr1 = msg.split("|", 1)[0]
-            addr2 = ref_line.split("|", 1)[0]
-            if addr1 != addr2:
-                log.info("trace: %s", ref_line)
-                log.info("own..: %s", msg)
-                log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                log.error("address (%r != %r) not the same as trace reference!\n" % (
-                    addr1, addr2
-                ))
+                mnemonic1 = msg[11:18].strip()
+                mnemonic2 = ref_line[18:24].strip()
+                if mnemonic1 != mnemonic2:
+                    log.info("trace: %s", ref_line)
+                    log.info("own..: %s" , msg)
+                    log.error("Error in CPU cycles: %i", self.cpu.cycles)
+                    log.error("mnemonic (%r != %r) not the same as trace reference!\n" % (
+                        mnemonic1, mnemonic2
+                    ))
 
-            mnemonic1 = msg[11:18].strip()
-            mnemonic2 = ref_line[18:24].strip()
-            if mnemonic1 != mnemonic2:
-                log.info("trace: %s", ref_line)
-                log.info("own..: %s" , msg)
-                log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                log.error("mnemonic (%r != %r) not the same as trace reference!\n" % (
-                    mnemonic1, mnemonic2
-                ))
-
-            registers1 = msg[52:95]
-            registers2 = ref_line[52:95]
-            if registers1 != registers2:
-                log.info("trace: %s" , ref_line)
-                log.info("own..: %s" , msg)
-                log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                log.error("registers (%r != %r) not the same as trace reference!\n" % (
-                    registers1, registers2
-                ))
-            else:
-                cc1 = msg[98:106]
-                if cc1 != xroar_cc:
+                registers1 = msg[52:95]
+                registers2 = ref_line[52:95]
+                if registers1 != registers2:
                     log.info("trace: %s" , ref_line)
                     log.info("own..: %s" , msg)
                     log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                    log.error("CC (%r != %r) not the same as trace reference!\n" % (
-                        cc1, xroar_cc
+                    log.error("registers (%r != %r) not the same as trace reference!\n" % (
+                        registers1, registers2
                     ))
+                else:
+                    cc1 = msg[98:106]
+                    if cc1 != xroar_cc:
+                        log.info("trace: %s" , ref_line)
+                        log.info("own..: %s" , msg)
+                        log.error("Error in CPU cycles: %i", self.cpu.cycles)
+                        log.error("CC (%r != %r) not the same as trace reference!\n" % (
+                            cc1, xroar_cc
+                        ))
 
-            log.debug("\t%s", repr(self.data))
+                log.debug("\t%s", repr(self.data))
             log.debug("-"*79)
 
 
@@ -385,8 +384,9 @@ class IllegalInstruction(object):
         self.cpu = cpu
         self.opcode = opcode
 
-    def call_instr_func(self, op_attr):
-        log.error("$%x +++ Illegal op code: $%x", op_attr, self.opcode)
+    def call_instr_func(self):
+        op_address = self.cpu.last_op_address
+        log.error("$%x +++ Illegal op code: $%x", op_address, self.opcode)
 
 
 class CPU(object):
@@ -464,6 +464,7 @@ class CPU(object):
         }
 
         self.cycles = 0
+        self.last_op_address = 0 # Store the current run opcode memory address
 
 #         log.debug("Add opcode functions:")
         self.opcode_dict = {}
@@ -551,6 +552,8 @@ class CPU(object):
     def reset(self):
         log.debug("$%x CPU reset:" % self.program_counter)
 
+        self.last_op_address = 0
+
         log.debug("\tset cc.F=1: FIRQ interrupt masked")
         self.cc.F = 1
 
@@ -567,20 +570,21 @@ class CPU(object):
 
 
     def get_and_call_next_op(self):
-        op_attr, opcode = self.read_pc_byte()
-        self.call_instruction_func(op_attr, opcode)
+        op_address, opcode = self.read_pc_byte()
+        self.call_instruction_func(op_address, opcode)
 
     same_op_count = 0
     last_op_code = None
-    def call_instruction_func(self, op_attr, opcode):
+    def call_instruction_func(self, op_address, opcode):
+        self.last_op_address = op_address
         try:
             instruction = self.opcode_dict[opcode]
         except KeyError:
-            msg = "$%x *** UNKNOWN OP $%x" % (op_attr, opcode)
+            msg = "$%x *** UNKNOWN OP $%x" % (op_address, opcode)
             log.error(msg)
             sys.exit(msg)
 
-        instruction.call_instr_func(op_attr)
+        instruction.call_instr_func()
 
     @opcode(
         0x10, # PAGE1+ instructions
@@ -588,12 +592,12 @@ class CPU(object):
     )
     def instruction_PAGE(self, opcode):
         """ call op from page 1 or 2 """
-        op_attr, opcode2 = self.read_pc_byte()
+        op_address, opcode2 = self.read_pc_byte()
         paged_opcode = opcode * 256 + opcode2
         log.debug("$%x *** call paged opcode $%x" % (
             self.program_counter, paged_opcode
         ))
-        self.call_instruction_func(op_attr - 1, paged_opcode)
+        self.call_instruction_func(op_address - 1, paged_opcode)
 
     def run(self):
         log.debug("-"*79)

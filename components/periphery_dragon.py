@@ -26,7 +26,7 @@ log = logging.getLogger("DragonPy.perophery.dragon")
 
 
 
-class Periphery(object):
+class Dragon32Periphery(object):
 
     def __init__(self, cfg):
         self.cfg = cfg
@@ -44,7 +44,7 @@ class Periphery(object):
             0xfffe: self.reset_vector,
         }
 
-    def read_byte(self, cpu_cycles, address):
+    def read_byte(self, cpu_cycles, op_address, address):
         self.cfg.mem_info(address, "Periphery.read_byte (cpu_cycles: %s) from" % hex(cpu_cycles))
         assert self.cfg.RAM_END <= address <= 0xFFFF, \
             "cycles: %s - address: %s" % (cpu_cycles, hex(address))
@@ -122,7 +122,7 @@ class Periphery(object):
 #         raise NotImplementedError(msg)
         return 0x00
 
-    def read_word(self, cpu_cycles, address):
+    def read_word(self, cpu_cycles, op_address, address):
         log.debug(
             "Periphery.read_word from $%x (cpu_cycles: %i)" % (
             address, cpu_cycles
@@ -136,7 +136,7 @@ class Periphery(object):
 
         raise NotImplementedError
 
-    def write_byte(self, cpu_cycles, address, value):
+    def write_byte(self, cpu_cycles, op_address, address, value):
         log.debug(" *** write to periphery at $%x the value $%x" % (address, value))
         if 0xff00 <= address <= 0xff23:
             # read/write to PIA 0 or PIA 1 - MC6821 Peripheral Interface Adaptor
@@ -156,7 +156,7 @@ class Periphery(object):
 
     write_word = write_byte # TODO: implement
 
-    def cycle(self, cpu_cycles):
+    def cycle(self, cpu_cycles, op_address):
         quit_cpu = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -187,10 +187,6 @@ class Periphery(object):
         ea = 0xb3b4
         log.info("%x| %x        [RESET]" % (address, ea))
         return ea # FIXME: RESET interrupt service routine ???
-
-def get_dragon_periphery(cfg):
-    periphery = Periphery(cfg)
-    return periphery
 
 
 def test_run():
