@@ -37,10 +37,10 @@ REG_S = "S"
 REG_B = "B"
 REG_U = "U"
 REG_D = "D"
+REG_DP = "DP"
 REG_Y = "Y"
 REG_X = "X"
 REG_CC = "CC"
-REG_DP = "DP"
 
 
 REGISTER_INFO = {
@@ -50,10 +50,10 @@ REGISTER_INFO = {
     REG_B: (8, '1001', 'accumulator'),
     REG_U: (16, '0011', 'user-stack pointer'),
     REG_D: (16, '0000', 'concatenated register (A+B)'),
+    REG_DP: (8, '1011', 'direct page register'),
     REG_Y: (16, '0010', 'index register'),
     REG_X: (16, '0001', 'index register'),
     REG_CC: (8, '1010', 'condition code register as flags'),
-    REG_DP: (8, '1011', 'direct page register'),
 }
 
 MEM_ACCESS_BYTE = 8
@@ -233,7 +233,7 @@ INSTRUCTION_INFO = {
         'description': 'Performs the logical AND of the contents of accumulator A or B and the contents of memory location M and modifies the condition codes accordingly.\nThe contents of accumulator A or B and memory location M are not affected.',
         'instr_desc': 'Bit test memory with accumulator',
         'operation': 'TEMP = R AND M',
-        'source form': 'Bit P'
+        'source form': 'BITA P; BITB P'
     },
     BLE: {
         'HNZVC': '-----',
@@ -705,6 +705,7 @@ OP_DATA = (
         "desc": "M = !M + 1",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = 0 - M
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": NEG,
     },
     {
@@ -712,41 +713,47 @@ OP_DATA = (
         "desc": "M = complement(M)",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = 0 + M
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": COM,
     },
     {
         "opcode": 0x4, "instruction": "LSR", "mnemonic": "LSR",
-        "desc": "Logical shift M right",
+        "desc": "M = Logical shift M right",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # 0 -> -> C;b7 -> b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": LSR,
     },
     {
         "opcode": 0x6, "instruction": "ROR", "mnemonic": "ROR",
-        "desc": "Rotate M Right thru carry",
+        "desc": "M = Rotate M Right thru carry",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # C -> -> C;b7 -> b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": ROR,
     },
     {
         "opcode": 0x7, "instruction": "ASR", "mnemonic": "ASR",
-        "desc": "Arithmetic shift M right",
+        "desc": "M = Arithmetic shift M right",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # b7 -> -> C;b7 -> b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": ASR,
     },
     {
         "opcode": 0x8, "instruction": "LSL", "mnemonic": "LSL/ASL",
-        "desc": "Logical shift M left",
+        "desc": "M = Logical shift M left",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # C = = 0;b7 = b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": LSL,
     },
     {
         "opcode": 0x9, "instruction": "ROL", "mnemonic": "ROL",
-        "desc": "Rotate M left thru carry",
+        "desc": "M = Rotate M left thru carry",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # C = = C;b7 = b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": ROL,
     },
     {
@@ -754,6 +761,7 @@ OP_DATA = (
         "desc": "M = M  1",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = M - 1
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": DEC,
     },
     {
@@ -761,6 +769,7 @@ OP_DATA = (
         "desc": "M = M + 1",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = M + 1
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": INC,
     },
     {
@@ -768,6 +777,7 @@ OP_DATA = (
         "desc": "Test M",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = M - 0
+        "mem_read": True, "mem_write": False,
         "category": 0, "instr_info_key": TST,
     },
     {
@@ -775,12 +785,14 @@ OP_DATA = (
         "desc": "M = 0",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = M M = 00 16
+        "mem_read": False, "mem_write": True,
         "category": 0, "instr_info_key": CLR,
     },
     {
         "opcode": 0x19, "instruction": "DAA", "mnemonic": "DAA",
         "desc": "Decimal Adjust A",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "category": 0, "instr_info_key": DAA,
     },
     {
@@ -788,6 +800,7 @@ OP_DATA = (
         "desc": "exchange R1,R2",
         "addr_mode": IMMEDIATE, "cycles": 8, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R1 <-> R2
+        "mem_read": True, "mem_write": False,
         "category": 0, "instr_info_key": EXG,
     },
     {
@@ -795,18 +808,21 @@ OP_DATA = (
         "desc": "Transfer R1 to R2",
         "addr_mode": IMMEDIATE, "cycles": 7, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R1 -> R2
+        "mem_read": True, "mem_write": False,
         "category": 0, "instr_info_key": TFR,
     },
     {
         "opcode": 0x3d, "instruction": "MUL", "mnemonic": "MUL",
         "desc": "D = A*B (Unsigned)",
         "addr_mode": INHERENT, "cycles": 11, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "category": 0, "instr_info_key": MUL,
     },
     {
         "opcode": 0x40, "instruction": "NEG", "mnemonic": "NEGA",
         "desc": "A = !A + 1",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": NEG,
     },
@@ -814,41 +830,47 @@ OP_DATA = (
         "opcode": 0x43, "instruction": "COM", "mnemonic": "COMA",
         "desc": "A = complement(A)",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": COM,
     },
     {
         "opcode": 0x44, "instruction": "LSR", "mnemonic": "LSRA",
-        "desc": "Logical shift A right",
+        "desc": "A = Logical shift A right",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": LSR,
     },
     {
         "opcode": 0x46, "instruction": "ROR", "mnemonic": "RORA",
-        "desc": "Rotate A Right thru carry",
+        "desc": "A = Rotate A Right thru carry",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ROR,
     },
     {
         "opcode": 0x47, "instruction": "ASR", "mnemonic": "ASRA",
-        "desc": "Arithmetic shift A right",
+        "desc": "A = Arithmetic shift A right",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ASR,
     },
     {
         "opcode": 0x48, "instruction": "LSL", "mnemonic": "LSLA/ASLA",
-        "desc": "Logical shift A left",
+        "desc": "A = Logical shift A left",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": LSL,
     },
     {
         "opcode": 0x49, "instruction": "ROL", "mnemonic": "ROLA",
-        "desc": "Rotate A left thru carry",
+        "desc": "A = Rotate A left thru carry",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ROL,
     },
@@ -856,6 +878,7 @@ OP_DATA = (
         "opcode": 0x4a, "instruction": "DEC", "mnemonic": "DECA",
         "desc": "A = A  1",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": DEC,
     },
@@ -863,6 +886,7 @@ OP_DATA = (
         "opcode": 0x4c, "instruction": "INC", "mnemonic": "INCA",
         "desc": "A = A + 1",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": INC,
     },
@@ -870,6 +894,7 @@ OP_DATA = (
         "opcode": 0x4d, "instruction": "TST", "mnemonic": "TSTA",
         "desc": "Test A",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": TST,
     },
@@ -877,6 +902,7 @@ OP_DATA = (
         "opcode": 0x4f, "instruction": "CLR", "mnemonic": "CLRA",
         "desc": "A = 0",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": CLR,
     },
@@ -884,6 +910,7 @@ OP_DATA = (
         "opcode": 0x50, "instruction": "NEG", "mnemonic": "NEGB",
         "desc": "B = !B + 1",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": NEG,
     },
@@ -891,41 +918,47 @@ OP_DATA = (
         "opcode": 0x53, "instruction": "COM", "mnemonic": "COMB",
         "desc": "B = complement(B)",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": COM,
     },
     {
         "opcode": 0x54, "instruction": "LSR", "mnemonic": "LSRB",
-        "desc": "Logical shift B right",
+        "desc": "B = Logical shift B right",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": LSR,
     },
     {
         "opcode": 0x56, "instruction": "ROR", "mnemonic": "RORB",
-        "desc": "Rotate B Right thru carry",
+        "desc": "B = Rotate B Right thru carry",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ROR,
     },
     {
         "opcode": 0x57, "instruction": "ASR", "mnemonic": "ASRB",
-        "desc": "Arithmetic shift B right",
+        "desc": "B = Arithmetic shift B right",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ASR,
     },
     {
         "opcode": 0x58, "instruction": "LSL", "mnemonic": "LSLB/ASLB",
-        "desc": "Logical shift B left",
+        "desc": "B = Logical shift B left",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": LSL,
     },
     {
         "opcode": 0x59, "instruction": "ROL", "mnemonic": "ROLB",
-        "desc": "Rotate B left thru carry",
+        "desc": "B = Rotate B left thru carry",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ROL,
     },
@@ -933,6 +966,7 @@ OP_DATA = (
         "opcode": 0x5a, "instruction": "DEC", "mnemonic": "DECB",
         "desc": "B = B  1",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": DEC,
     },
@@ -940,6 +974,7 @@ OP_DATA = (
         "opcode": 0x5c, "instruction": "INC", "mnemonic": "INCB",
         "desc": "B = B + 1",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": INC,
     },
@@ -947,6 +982,7 @@ OP_DATA = (
         "opcode": 0x5d, "instruction": "TST", "mnemonic": "TSTB",
         "desc": "Test B",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": TST,
     },
@@ -954,6 +990,7 @@ OP_DATA = (
         "opcode": 0x5f, "instruction": "CLR", "mnemonic": "CLRB",
         "desc": "B = 0",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": CLR,
     },
@@ -962,6 +999,7 @@ OP_DATA = (
         "desc": "M = !M + 1",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = 0 - M
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": NEG,
     },
     {
@@ -969,41 +1007,47 @@ OP_DATA = (
         "desc": "M = complement(M)",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = 0 + M
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": COM,
     },
     {
         "opcode": 0x64, "instruction": "LSR", "mnemonic": "LSR",
-        "desc": "Logical shift M right",
+        "desc": "M = Logical shift M right",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # 0 -> -> C;b7 -> b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": LSR,
     },
     {
         "opcode": 0x66, "instruction": "ROR", "mnemonic": "ROR",
-        "desc": "Rotate M Right thru carry",
+        "desc": "M = Rotate M Right thru carry",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # C -> -> C;b7 -> b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": ROR,
     },
     {
         "opcode": 0x67, "instruction": "ASR", "mnemonic": "ASR",
-        "desc": "Arithmetic shift M right",
+        "desc": "M = Arithmetic shift M right",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # b7 -> -> C;b7 -> b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": ASR,
     },
     {
         "opcode": 0x68, "instruction": "LSL", "mnemonic": "LSL/ASL",
-        "desc": "Logical shift M left",
+        "desc": "M = Logical shift M left",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # C = = 0;b7 = b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": LSL,
     },
     {
         "opcode": 0x69, "instruction": "ROL", "mnemonic": "ROL",
-        "desc": "Rotate M left thru carry",
+        "desc": "M = Rotate M left thru carry",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # C = = C;b7 = b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": ROL,
     },
     {
@@ -1011,6 +1055,7 @@ OP_DATA = (
         "desc": "M = M  1",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = M - 1
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": DEC,
     },
     {
@@ -1018,6 +1063,7 @@ OP_DATA = (
         "desc": "M = M + 1",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = M + 1
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": INC,
     },
     {
@@ -1025,6 +1071,7 @@ OP_DATA = (
         "desc": "Test M",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = M - 0
+        "mem_read": True, "mem_write": False,
         "category": 0, "instr_info_key": TST,
     },
     {
@@ -1032,6 +1079,7 @@ OP_DATA = (
         "desc": "M = 0",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = M M = 00 16
+        "mem_read": False, "mem_write": True,
         "category": 0, "instr_info_key": CLR,
     },
     {
@@ -1039,6 +1087,7 @@ OP_DATA = (
         "desc": "M = !M + 1",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # M' = 0 - M
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": NEG,
     },
     {
@@ -1046,41 +1095,47 @@ OP_DATA = (
         "desc": "M = complement(M)",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # M' = 0 + M
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": COM,
     },
     {
         "opcode": 0x74, "instruction": "LSR", "mnemonic": "LSR",
-        "desc": "Logical shift M right",
+        "desc": "M = Logical shift M right",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # 0 -> -> C;b7 -> b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": LSR,
     },
     {
         "opcode": 0x76, "instruction": "ROR", "mnemonic": "ROR",
-        "desc": "Rotate M Right thru carry",
+        "desc": "M = Rotate M Right thru carry",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # C -> -> C;b7 -> b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": ROR,
     },
     {
         "opcode": 0x77, "instruction": "ASR", "mnemonic": "ASR",
-        "desc": "Arithmetic shift M right",
+        "desc": "M = Arithmetic shift M right",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # b7 -> -> C;b7 -> b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": ASR,
     },
     {
         "opcode": 0x78, "instruction": "LSL", "mnemonic": "LSL/ASL",
-        "desc": "Logical shift M left",
+        "desc": "M = Logical shift M left",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # C = = 0;b7 = b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": LSL,
     },
     {
         "opcode": 0x79, "instruction": "ROL", "mnemonic": "ROL",
-        "desc": "Rotate M left thru carry",
+        "desc": "M = Rotate M left thru carry",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # C = = C;b7 = b0
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": ROL,
     },
     {
@@ -1088,6 +1143,7 @@ OP_DATA = (
         "desc": "M = M  1",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # M' = M - 1
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": DEC,
     },
     {
@@ -1095,6 +1151,7 @@ OP_DATA = (
         "desc": "M = M + 1",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # M' = M + 1
+        "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": INC,
     },
     {
@@ -1102,6 +1159,7 @@ OP_DATA = (
         "desc": "Test M",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = M - 0
+        "mem_read": True, "mem_write": False,
         "category": 0, "instr_info_key": TST,
     },
     {
@@ -1109,6 +1167,7 @@ OP_DATA = (
         "desc": "M = 0",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = M M = 00 16
+        "mem_read": False, "mem_write": True,
         "category": 0, "instr_info_key": CLR,
     },
     {
@@ -1116,6 +1175,7 @@ OP_DATA = (
         "desc": "A = A - M",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1124,6 +1184,7 @@ OP_DATA = (
         "desc": "Compare M from A",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1132,6 +1193,7 @@ OP_DATA = (
         "desc": "A = A - M - C",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SBC,
     },
@@ -1140,6 +1202,7 @@ OP_DATA = (
         "desc": "A = A && M",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": AND,
     },
@@ -1148,6 +1211,7 @@ OP_DATA = (
         "desc": "Bit Test A (M&&A)",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": BIT,
     },
@@ -1156,6 +1220,7 @@ OP_DATA = (
         "desc": "A = M",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": LD8,
     },
@@ -1164,6 +1229,7 @@ OP_DATA = (
         "desc": "A = A XOR M",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": EOR,
     },
@@ -1172,6 +1238,7 @@ OP_DATA = (
         "desc": "A = A+M+C",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADC,
     },
@@ -1180,6 +1247,7 @@ OP_DATA = (
         "desc": "A = A || M",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": OR,
     },
@@ -1188,6 +1256,7 @@ OP_DATA = (
         "desc": "A = A+M",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1196,6 +1265,7 @@ OP_DATA = (
         "desc": "A = A - M",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1204,6 +1274,7 @@ OP_DATA = (
         "desc": "Compare M from A",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1212,6 +1283,7 @@ OP_DATA = (
         "desc": "A = A - M - C",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SBC,
     },
@@ -1220,6 +1292,7 @@ OP_DATA = (
         "desc": "A = A && M",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": AND,
     },
@@ -1228,6 +1301,7 @@ OP_DATA = (
         "desc": "Bit Test A (M&&A)",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": BIT,
     },
@@ -1236,6 +1310,7 @@ OP_DATA = (
         "desc": "A = M",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": LD8,
     },
@@ -1244,6 +1319,7 @@ OP_DATA = (
         "desc": "M = A",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ST8,
     },
@@ -1252,6 +1328,7 @@ OP_DATA = (
         "desc": "A = A XOR M",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": EOR,
     },
@@ -1260,6 +1337,7 @@ OP_DATA = (
         "desc": "A = A+M+C",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADC,
     },
@@ -1268,6 +1346,7 @@ OP_DATA = (
         "desc": "A = A || M",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": OR,
     },
@@ -1276,6 +1355,7 @@ OP_DATA = (
         "desc": "A = A+M",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1284,6 +1364,7 @@ OP_DATA = (
         "desc": "A = A - M",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1292,6 +1373,7 @@ OP_DATA = (
         "desc": "Compare M from A",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1300,6 +1382,7 @@ OP_DATA = (
         "desc": "A = A - M - C",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SBC,
     },
@@ -1308,6 +1391,7 @@ OP_DATA = (
         "desc": "A = A && M",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": AND,
     },
@@ -1316,6 +1400,7 @@ OP_DATA = (
         "desc": "Bit Test A (M&&A)",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": BIT,
     },
@@ -1324,6 +1409,7 @@ OP_DATA = (
         "desc": "A = M",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": LD8,
     },
@@ -1332,6 +1418,7 @@ OP_DATA = (
         "desc": "M = A",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ST8,
     },
@@ -1340,6 +1427,7 @@ OP_DATA = (
         "desc": "A = A XOR M",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": EOR,
     },
@@ -1348,6 +1436,7 @@ OP_DATA = (
         "desc": "A = A+M+C",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADC,
     },
@@ -1356,6 +1445,7 @@ OP_DATA = (
         "desc": "A = A || M",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": OR,
     },
@@ -1364,6 +1454,7 @@ OP_DATA = (
         "desc": "A = A+M",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1372,6 +1463,7 @@ OP_DATA = (
         "desc": "A = A - M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1380,6 +1472,7 @@ OP_DATA = (
         "desc": "Compare M from A",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1388,6 +1481,7 @@ OP_DATA = (
         "desc": "A = A - M - C",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SBC,
     },
@@ -1396,6 +1490,7 @@ OP_DATA = (
         "desc": "A = A && M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": AND,
     },
@@ -1404,6 +1499,7 @@ OP_DATA = (
         "desc": "Bit Test A (M&&A)",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": BIT,
     },
@@ -1412,6 +1508,7 @@ OP_DATA = (
         "desc": "A = M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": LD8,
     },
@@ -1420,6 +1517,7 @@ OP_DATA = (
         "desc": "M = A",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # M' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ST8,
     },
@@ -1428,6 +1526,7 @@ OP_DATA = (
         "desc": "A = A XOR M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": EOR,
     },
@@ -1436,6 +1535,7 @@ OP_DATA = (
         "desc": "A = A+M+C",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADC,
     },
@@ -1444,6 +1544,7 @@ OP_DATA = (
         "desc": "A = A || M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": OR,
     },
@@ -1452,6 +1553,7 @@ OP_DATA = (
         "desc": "A = A+M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
+        "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1460,6 +1562,7 @@ OP_DATA = (
         "desc": "B = B - M",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1468,6 +1571,7 @@ OP_DATA = (
         "desc": "Compare M from B",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1476,6 +1580,7 @@ OP_DATA = (
         "desc": "B = B - M - C",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SBC,
     },
@@ -1484,6 +1589,7 @@ OP_DATA = (
         "desc": "B = B && M",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": AND,
     },
@@ -1492,6 +1598,7 @@ OP_DATA = (
         "desc": "Bit Test B (M&&B)",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": BIT,
     },
@@ -1500,6 +1607,7 @@ OP_DATA = (
         "desc": "B = M",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": LD8,
     },
@@ -1508,6 +1616,7 @@ OP_DATA = (
         "desc": "B = M XOR B",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": EOR,
     },
@@ -1516,6 +1625,7 @@ OP_DATA = (
         "desc": "B = B+M+C",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADC,
     },
@@ -1524,6 +1634,7 @@ OP_DATA = (
         "desc": "B = B || M",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": OR,
     },
@@ -1532,6 +1643,7 @@ OP_DATA = (
         "desc": "B = B+M",
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1540,6 +1652,7 @@ OP_DATA = (
         "desc": "B = B - M",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1548,6 +1661,7 @@ OP_DATA = (
         "desc": "Compare M from B",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1556,6 +1670,7 @@ OP_DATA = (
         "desc": "B = B - M - C",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SBC,
     },
@@ -1564,6 +1679,7 @@ OP_DATA = (
         "desc": "B = B && M",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": AND,
     },
@@ -1572,6 +1688,7 @@ OP_DATA = (
         "desc": "Bit Test B (M&&B)",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": BIT,
     },
@@ -1580,6 +1697,7 @@ OP_DATA = (
         "desc": "B = M",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": LD8,
     },
@@ -1588,6 +1706,7 @@ OP_DATA = (
         "desc": "M = B",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ST8,
     },
@@ -1596,6 +1715,7 @@ OP_DATA = (
         "desc": "B = M XOR B",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": EOR,
     },
@@ -1604,6 +1724,7 @@ OP_DATA = (
         "desc": "B = B+M+C",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADC,
     },
@@ -1612,6 +1733,7 @@ OP_DATA = (
         "desc": "B = B || M",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": OR,
     },
@@ -1620,6 +1742,7 @@ OP_DATA = (
         "desc": "B = B+M",
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1628,6 +1751,7 @@ OP_DATA = (
         "desc": "B = B - M",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1636,6 +1760,7 @@ OP_DATA = (
         "desc": "Compare M from B",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1644,6 +1769,7 @@ OP_DATA = (
         "desc": "B = B - M - C",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SBC,
     },
@@ -1652,6 +1778,7 @@ OP_DATA = (
         "desc": "B = B && M",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": AND,
     },
@@ -1660,6 +1787,7 @@ OP_DATA = (
         "desc": "Bit Test B (M&&B)",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": BIT,
     },
@@ -1668,6 +1796,7 @@ OP_DATA = (
         "desc": "B = M",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": LD8,
     },
@@ -1676,6 +1805,7 @@ OP_DATA = (
         "desc": "M = B",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ST8,
     },
@@ -1684,6 +1814,7 @@ OP_DATA = (
         "desc": "B = M XOR B",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": EOR,
     },
@@ -1692,6 +1823,7 @@ OP_DATA = (
         "desc": "B = B+M+C",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADC,
     },
@@ -1700,6 +1832,7 @@ OP_DATA = (
         "desc": "B = B || M",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": OR,
     },
@@ -1708,6 +1841,7 @@ OP_DATA = (
         "desc": "B = B+M",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1716,6 +1850,7 @@ OP_DATA = (
         "desc": "B = B - M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1724,6 +1859,7 @@ OP_DATA = (
         "desc": "Compare M from B",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1732,6 +1868,7 @@ OP_DATA = (
         "desc": "B = B - M - C",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SBC,
     },
@@ -1740,6 +1877,7 @@ OP_DATA = (
         "desc": "B = B && M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": AND,
     },
@@ -1748,6 +1886,7 @@ OP_DATA = (
         "desc": "Bit Test B (M&&B)",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": BIT,
     },
@@ -1756,6 +1895,7 @@ OP_DATA = (
         "desc": "B = M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": LD8,
     },
@@ -1764,6 +1904,7 @@ OP_DATA = (
         "desc": "M = B",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # M' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ST8,
     },
@@ -1772,6 +1913,7 @@ OP_DATA = (
         "desc": "B = M XOR B",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": EOR,
     },
@@ -1780,6 +1922,7 @@ OP_DATA = (
         "desc": "B = B+M+C",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADC,
     },
@@ -1788,6 +1931,7 @@ OP_DATA = (
         "desc": "B = B || M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": OR,
     },
@@ -1796,6 +1940,7 @@ OP_DATA = (
         "desc": "B = B+M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
+        "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1806,6 +1951,7 @@ OP_DATA = (
         "opcode": 0x1d, "instruction": "SEX", "mnemonic": "SEX",
         "desc": "Sign extend B into A",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "category": 1, "instr_info_key": SEX,
     },
     {
@@ -1813,6 +1959,7 @@ OP_DATA = (
         "desc": "D = D - M:M+1",
         "addr_mode": IMMEDIATE, "cycles": 4, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": SUB16,
     },
@@ -1821,6 +1968,7 @@ OP_DATA = (
         "desc": "D = D - M:M+1",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": SUB16,
     },
@@ -1829,6 +1977,7 @@ OP_DATA = (
         "desc": "D = D - M:M+1",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": SUB16,
     },
@@ -1837,6 +1986,7 @@ OP_DATA = (
         "desc": "D = D - M:M+1",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": SUB16,
     },
@@ -1845,6 +1995,7 @@ OP_DATA = (
         "desc": "D = D+M:M+1",
         "addr_mode": IMMEDIATE, "cycles": 4, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R + M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ADD16,
     },
@@ -1853,6 +2004,7 @@ OP_DATA = (
         "desc": "D = M:M+1",
         "addr_mode": IMMEDIATE, "cycles": 3, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": LD16,
     },
@@ -1861,6 +2013,7 @@ OP_DATA = (
         "desc": "D = D+M:M+1",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = R + M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ADD16,
     },
@@ -1869,6 +2022,7 @@ OP_DATA = (
         "desc": "D = M:M+1",
         "addr_mode": DIRECT, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": LD16,
     },
@@ -1877,6 +2031,7 @@ OP_DATA = (
         "desc": "M:M+1 = D",
         "addr_mode": DIRECT, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ST16,
     },
@@ -1885,6 +2040,7 @@ OP_DATA = (
         "desc": "D = D+M:M+1",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = R + M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ADD16,
     },
@@ -1893,6 +2049,7 @@ OP_DATA = (
         "desc": "D = M:M+1",
         "addr_mode": INDEXED, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": LD16,
     },
@@ -1901,6 +2058,7 @@ OP_DATA = (
         "desc": "M:M+1 = D",
         "addr_mode": INDEXED, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ST16,
     },
@@ -1909,6 +2067,7 @@ OP_DATA = (
         "desc": "D = D+M:M+1",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R + M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ADD16,
     },
@@ -1917,6 +2076,7 @@ OP_DATA = (
         "desc": "D = M:M+1",
         "addr_mode": EXTENDED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": LD16,
     },
@@ -1925,6 +2085,7 @@ OP_DATA = (
         "desc": "M:M+1 = D",
         "addr_mode": EXTENDED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ST16,
     },
@@ -1933,6 +2094,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from D",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": CMP16,
     },
@@ -1941,6 +2103,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from D",
         "addr_mode": DIRECT, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": CMP16,
     },
@@ -1949,6 +2112,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from D",
         "addr_mode": INDEXED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": CMP16,
     },
@@ -1957,6 +2121,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from D",
         "addr_mode": EXTENDED, "cycles": 8, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": CMP16,
     },
@@ -1967,6 +2132,7 @@ OP_DATA = (
         "opcode": 0x30, "instruction": "LEA", "mnemonic": "LEAX",
         "desc": "X = EA",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
+        "mem_read": False, "mem_write": False,
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": LEA_register,
     },
@@ -1974,6 +2140,7 @@ OP_DATA = (
         "opcode": 0x31, "instruction": "LEA", "mnemonic": "LEAY",
         "desc": "Y = EA",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
+        "mem_read": False, "mem_write": False,
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": LEA_register,
     },
@@ -1981,6 +2148,7 @@ OP_DATA = (
         "opcode": 0x32, "instruction": "LEA", "mnemonic": "LEAS",
         "desc": "S = EA",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
+        "mem_read": False, "mem_write": False,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": LEA_pointer,
     },
@@ -1988,6 +2156,7 @@ OP_DATA = (
         "opcode": 0x33, "instruction": "LEA", "mnemonic": "LEAU",
         "desc": "U = EA",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
+        "mem_read": False, "mem_write": False,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": LEA_pointer,
     },
@@ -1996,6 +2165,7 @@ OP_DATA = (
         "desc": "S -= 1: MEM(S) = R; Push Register on S Stack",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # Push Registers on S Stack: S -= 1: MEM(S) = Reg.
+        "mem_read": True, "mem_write": False,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": PSHS,
     },
@@ -2004,6 +2174,7 @@ OP_DATA = (
         "desc": "R=MEM(S) : S += 1; Pull register from S Stack",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # Pull Registers from S Stack: Reg. = MEM(S): S += 1
+        "mem_read": True, "mem_write": False,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": PULS,
     },
@@ -2012,6 +2183,7 @@ OP_DATA = (
         "desc": "U -= 1: MEM(U) = R; Push Register on U Stack",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # Push Registers on U Stack: U -= 1: MEM(U) = Reg.
+        "mem_read": True, "mem_write": False,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": PSHU,
     },
@@ -2020,6 +2192,7 @@ OP_DATA = (
         "desc": "R=MEM(U) : U += 1; Pull register from U Stack",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # Pull Registers from U Stack: Reg. = MEM(U): U += 1
+        "mem_read": True, "mem_write": False,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": PULU,
     },
@@ -2027,6 +2200,7 @@ OP_DATA = (
         "opcode": 0x3a, "instruction": "ABX", "mnemonic": "ABX",
         "desc": "X = B+X (Unsigned)",
         "addr_mode": INHERENT, "cycles": 3, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "category": 2, "instr_info_key": ABX,
     },
     {
@@ -2034,6 +2208,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from X",
         "addr_mode": IMMEDIATE, "cycles": 4, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2042,6 +2217,7 @@ OP_DATA = (
         "desc": "X = M:M+1",
         "addr_mode": IMMEDIATE, "cycles": 3, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": LD16,
     },
@@ -2050,6 +2226,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from X",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2058,6 +2235,7 @@ OP_DATA = (
         "desc": "X = M:M+1",
         "addr_mode": DIRECT, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": LD16,
     },
@@ -2066,6 +2244,7 @@ OP_DATA = (
         "desc": "M:M+1 = X",
         "addr_mode": DIRECT, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": ST16,
     },
@@ -2074,6 +2253,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from X",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2082,6 +2262,7 @@ OP_DATA = (
         "desc": "X = M:M+1",
         "addr_mode": INDEXED, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": LD16,
     },
@@ -2090,6 +2271,7 @@ OP_DATA = (
         "desc": "M:M+1 = X",
         "addr_mode": INDEXED, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": ST16,
     },
@@ -2098,6 +2280,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from X",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2106,6 +2289,7 @@ OP_DATA = (
         "desc": "X = M:M+1",
         "addr_mode": EXTENDED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": LD16,
     },
@@ -2114,6 +2298,7 @@ OP_DATA = (
         "desc": "M:M+1 = X",
         "addr_mode": EXTENDED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": ST16,
     },
@@ -2122,6 +2307,7 @@ OP_DATA = (
         "desc": "U = M:M+1",
         "addr_mode": IMMEDIATE, "cycles": 3, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": LD16,
     },
@@ -2130,6 +2316,7 @@ OP_DATA = (
         "desc": "U = M:M+1",
         "addr_mode": DIRECT, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": LD16,
     },
@@ -2138,6 +2325,7 @@ OP_DATA = (
         "desc": "M:M+1 = U",
         "addr_mode": DIRECT, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": ST16,
     },
@@ -2146,6 +2334,7 @@ OP_DATA = (
         "desc": "U = M:M+1",
         "addr_mode": INDEXED, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": LD16,
     },
@@ -2154,6 +2343,7 @@ OP_DATA = (
         "desc": "M:M+1 = U",
         "addr_mode": INDEXED, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": ST16,
     },
@@ -2162,6 +2352,7 @@ OP_DATA = (
         "desc": "U = M:M+1",
         "addr_mode": EXTENDED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": LD16,
     },
@@ -2170,6 +2361,7 @@ OP_DATA = (
         "desc": "M:M+1 = U",
         "addr_mode": EXTENDED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": ST16,
     },
@@ -2178,6 +2370,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from Y",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2186,6 +2379,7 @@ OP_DATA = (
         "desc": "Y = M:M+1",
         "addr_mode": IMMEDIATE, "cycles": 4, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": LD16,
     },
@@ -2194,6 +2388,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from Y",
         "addr_mode": DIRECT, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2202,6 +2397,7 @@ OP_DATA = (
         "desc": "Y = M:M+1",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": LD16,
     },
@@ -2210,6 +2406,7 @@ OP_DATA = (
         "desc": "M:M+1 = Y",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": ST16,
     },
@@ -2218,6 +2415,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from Y",
         "addr_mode": INDEXED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2226,6 +2424,7 @@ OP_DATA = (
         "desc": "Y = M:M+1",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": LD16,
     },
@@ -2234,6 +2433,7 @@ OP_DATA = (
         "desc": "M:M+1 = Y",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": ST16,
     },
@@ -2242,6 +2442,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from Y",
         "addr_mode": EXTENDED, "cycles": 8, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2250,6 +2451,7 @@ OP_DATA = (
         "desc": "Y = M:M+1",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": LD16,
     },
@@ -2258,6 +2460,7 @@ OP_DATA = (
         "desc": "M:M+1 = Y",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": ST16,
     },
@@ -2266,6 +2469,7 @@ OP_DATA = (
         "desc": "S = M:M+1",
         "addr_mode": IMMEDIATE, "cycles": 4, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": LD16,
     },
@@ -2274,6 +2478,7 @@ OP_DATA = (
         "desc": "S = M:M+1",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": LD16,
     },
@@ -2282,6 +2487,7 @@ OP_DATA = (
         "desc": "M:M+1 = S",
         "addr_mode": DIRECT, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": ST16,
     },
@@ -2290,6 +2496,7 @@ OP_DATA = (
         "desc": "S = M:M+1",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": LD16,
     },
@@ -2298,6 +2505,7 @@ OP_DATA = (
         "desc": "M:M+1 = S",
         "addr_mode": INDEXED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": ST16,
     },
@@ -2306,6 +2514,7 @@ OP_DATA = (
         "desc": "S = M:M+1",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": LD16,
     },
@@ -2314,6 +2523,7 @@ OP_DATA = (
         "desc": "M:M+1 = S",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
+        "mem_read": False, "mem_write": True,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": ST16,
     },
@@ -2322,6 +2532,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from U",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2330,6 +2541,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from S",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2338,6 +2550,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from U",
         "addr_mode": DIRECT, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2346,6 +2559,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from S",
         "addr_mode": DIRECT, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2354,6 +2568,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from U",
         "addr_mode": INDEXED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2362,6 +2577,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from S",
         "addr_mode": INDEXED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2370,6 +2586,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from U",
         "addr_mode": EXTENDED, "cycles": 8, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2378,6 +2595,7 @@ OP_DATA = (
         "desc": "Compare M:M+1 from S",
         "addr_mode": EXTENDED, "cycles": 8, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
+        "mem_read": True, "mem_write": False,
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2389,6 +2607,7 @@ OP_DATA = (
         "desc": "Branch if plus",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF N = 0 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 3, "instr_info_key": BPL,
     },
     {
@@ -2396,6 +2615,7 @@ OP_DATA = (
         "desc": "Branch if minus",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF N = 1 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 3, "instr_info_key": BMI,
     },
     {
@@ -2403,6 +2623,7 @@ OP_DATA = (
         "desc": "Branch if plus",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF N = 0 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 3, "instr_info_key": BPL,
     },
     {
@@ -2410,6 +2631,7 @@ OP_DATA = (
         "desc": "Branch if minus",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF N = 1 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 3, "instr_info_key": BMI,
     },
 
@@ -2420,6 +2642,7 @@ OP_DATA = (
         "desc": "Branch if valid twos complement result",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF V = 0 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BVC,
     },
     {
@@ -2427,6 +2650,7 @@ OP_DATA = (
         "desc": "Branch if invalid twos complement result",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP' = MI IFF V = 1 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BVS,
     },
     {
@@ -2434,6 +2658,7 @@ OP_DATA = (
         "desc": "Branch if greater than or equal (signed)",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF [N XOR V] = 0 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BGE,
     },
     {
@@ -2441,6 +2666,7 @@ OP_DATA = (
         "desc": "Branch if less than (signed)",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF [ N XOR V ] = 1 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BLT,
     },
     {
@@ -2448,6 +2674,7 @@ OP_DATA = (
         "desc": "Branch if greater (signed)",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z AND [N XOR V] = 0 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BGT,
     },
     {
@@ -2455,6 +2682,7 @@ OP_DATA = (
         "desc": "Branch if less than or equal (signed)",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z OR [ N XOR V ] = 1 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BLE,
     },
     {
@@ -2462,6 +2690,7 @@ OP_DATA = (
         "desc": "Branch if valid twos complement result",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF V = 0 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BVC,
     },
     {
@@ -2469,6 +2698,7 @@ OP_DATA = (
         "desc": "Branch if invalid twos complement result",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_BYTE, # TEMP' = MI IFF V = 1 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BVS,
     },
     {
@@ -2476,6 +2706,7 @@ OP_DATA = (
         "desc": "Branch if greater than or equal (signed)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF [N XOR V] = 0 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BGE,
     },
     {
@@ -2483,6 +2714,7 @@ OP_DATA = (
         "desc": "Branch if less than (signed)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF [ N XOR V ] = 1 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BLT,
     },
     {
@@ -2490,6 +2722,7 @@ OP_DATA = (
         "desc": "Branch if greater (signed)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z AND [N XOR V] = 0 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BGT,
     },
     {
@@ -2497,6 +2730,7 @@ OP_DATA = (
         "desc": "Branch if less than or equal (signed)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z OR [ N XOR V ] = 1 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BLE,
     },
 
@@ -2507,6 +2741,7 @@ OP_DATA = (
         "desc": "Branch if higher (unsigned)",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF [ C OR Z ] = 0 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": BHI,
     },
     {
@@ -2514,18 +2749,21 @@ OP_DATA = (
         "desc": "Branch if lower or same (unsigned)",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF (C OR Z) = 1 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": BLS,
     },
     {
         "opcode": 0x24, "instruction": "BHS/BCC", "mnemonic": "BHS/BCC",
         "desc": "Branch if higher or same (unsigned)",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
+        "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
     },
     {
         "opcode": 0x25, "instruction": "BLO/BCS", "mnemonic": "BLO/BCS",
         "desc": "Branch if lower (unsigned)",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
+        "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
     },
     {
@@ -2533,6 +2771,7 @@ OP_DATA = (
         "desc": "Branch if not equal",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z = 0 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": BNE,
     },
     {
@@ -2540,6 +2779,7 @@ OP_DATA = (
         "desc": "Branch if equal",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z = 1 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": BEQ,
     },
     {
@@ -2547,6 +2787,7 @@ OP_DATA = (
         "desc": "Branch if higher (unsigned)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF [ C OR Z ] = 0 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": BHI,
     },
     {
@@ -2554,18 +2795,21 @@ OP_DATA = (
         "desc": "Branch if lower or same (unsigned)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF (C OR Z) = 1 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": BLS,
     },
     {
         "opcode": 0x1024, "instruction": "LBHS/LBCC", "mnemonic": "LBHS/LBCC",
         "desc": "Branch if higher or same (unsigned)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
+        "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
     },
     {
         "opcode": 0x1025, "instruction": "LBLO/LBCS", "mnemonic": "LBLO/LBCS",
         "desc": "Branch if lower (unsigned)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
+        "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
     },
     {
@@ -2573,6 +2817,7 @@ OP_DATA = (
         "desc": "Branch if not equal",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z = 0 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": BNE,
     },
     {
@@ -2580,6 +2825,7 @@ OP_DATA = (
         "desc": "Branch if equal",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z = 1 then PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": BEQ,
     },
 
@@ -2590,6 +2836,7 @@ OP_DATA = (
         "desc": "Branch always",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 6, "instr_info_key": BRA,
     },
     {
@@ -2597,6 +2844,7 @@ OP_DATA = (
         "desc": "Branch to subroutine",
         "addr_mode": RELATIVE, "cycles": 9, "bytes": 3,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 6, "instr_info_key": BSR,
     },
     {
@@ -2604,6 +2852,7 @@ OP_DATA = (
         "desc": "Branch always",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 6, "instr_info_key": BRA,
     },
     {
@@ -2611,6 +2860,7 @@ OP_DATA = (
         "desc": "Branch never",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI
+        "mem_read": False, "mem_write": False,
         "category": 6, "instr_info_key": BRN,
     },
     {
@@ -2618,6 +2868,7 @@ OP_DATA = (
         "desc": "Branch to subroutine",
         "addr_mode": RELATIVE, "cycles": 7, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' = PC + TEMP
+        "mem_read": False, "mem_write": False,
         "category": 6, "instr_info_key": BSR,
     },
     {
@@ -2625,6 +2876,7 @@ OP_DATA = (
         "desc": "Branch never",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI
+        "mem_read": False, "mem_write": False,
         "category": 6, "instr_info_key": BRN,
     },
 
@@ -2634,18 +2886,21 @@ OP_DATA = (
         "opcode": 0xe, "instruction": "JMP", "mnemonic": "JMP",
         "desc": "pc = EA",
         "addr_mode": DIRECT, "cycles": 3, "bytes": 2,
+        "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": JMP,
     },
     {
         "opcode": 0x12, "instruction": "NOP", "mnemonic": "NOP",
         "desc": "No Operation",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": NOP,
     },
     {
         "opcode": 0x13, "instruction": "SYNC", "mnemonic": "SYNC",
         "desc": "Synchronize to Interrupt",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": SYNC,
     },
     {
@@ -2653,6 +2908,7 @@ OP_DATA = (
         "desc": "C = CC || IMM",
         "addr_mode": IMMEDIATE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR MI
+        "mem_read": True, "mem_write": False,
         "register": REG_CC, # 8 Bit condition code register as flags CC
         "category": 7, "instr_info_key": ORCC,
     },
@@ -2661,6 +2917,7 @@ OP_DATA = (
         "desc": "C = CC && IMM",
         "addr_mode": IMMEDIATE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND MI
+        "mem_read": True, "mem_write": False,
         "register": REG_CC, # 8 Bit condition code register as flags CC
         "category": 7, "instr_info_key": ANDCC,
     },
@@ -2668,12 +2925,14 @@ OP_DATA = (
         "opcode": 0x39, "instruction": "RTS", "mnemonic": "RTS",
         "desc": "Return from subroutine",
         "addr_mode": INHERENT, "cycles": 5, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": RTS,
     },
     {
         "opcode": 0x3b, "instruction": "RTI", "mnemonic": "RTI",
         "desc": "Return from Interrupt",
         "addr_mode": INHERENT, "cycles": 6, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": RTI,
     },
     {
@@ -2681,54 +2940,63 @@ OP_DATA = (
         "desc": "CC = CC ^ IMM; (Wait for Interrupt)",
         "addr_mode": IMMEDIATE, "cycles": 21, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # CCR = CCR AND MI (Possibly clear masks) Set E (entire state saved) SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH SP' = SP-1, (SP) = USL SP' = SP-1, (SP) = USH SP' = SP-1, (SP) = IYL SP' = SP-1, (SP) = IYH SP' = SP-1, (SP) = IXL SP' = SP-1, (SP) = IXH SP' = SP-1, (SP) = DPR SP' = SP-1, (SP) = ACCB SP' = SP-1, (SP) = ACCA SP' = SP-1, (SP) = CCR
+        "mem_read": True, "mem_write": False,
         "category": 7, "instr_info_key": CWAI,
     },
     {
         "opcode": 0x3f, "instruction": "SWI", "mnemonic": "SWI",
         "desc": "Software interrupt 1",
         "addr_mode": INHERENT, "cycles": 19, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": SWI,
     },
     {
         "opcode": 0x6e, "instruction": "JMP", "mnemonic": "JMP",
         "desc": "pc = EA",
         "addr_mode": INDEXED, "cycles": 3, "bytes": 2,
+        "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": JMP,
     },
     {
         "opcode": 0x7e, "instruction": "JMP", "mnemonic": "JMP",
         "desc": "pc = EA",
         "addr_mode": EXTENDED, "cycles": 3, "bytes": 3,
+        "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": JMP,
     },
     {
         "opcode": 0x9d, "instruction": "JSR", "mnemonic": "JSR",
         "desc": "jump to subroutine",
         "addr_mode": DIRECT, "cycles": 7, "bytes": 2,
+        "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": JSR,
     },
     {
         "opcode": 0xad, "instruction": "JSR", "mnemonic": "JSR",
         "desc": "jump to subroutine",
         "addr_mode": INDEXED, "cycles": 7, "bytes": 2,
+        "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": JSR,
     },
     {
         "opcode": 0xbd, "instruction": "JSR", "mnemonic": "JSR",
         "desc": "jump to subroutine",
         "addr_mode": EXTENDED, "cycles": 8, "bytes": 3,
+        "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": JSR,
     },
     {
         "opcode": 0x103f, "instruction": "SWI", "mnemonic": "SWI2",
         "desc": "Software interrupt 2",
         "addr_mode": INHERENT, "cycles": 20, "bytes": 2,
+        "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": SWI2,
     },
     {
         "opcode": 0x113f, "instruction": "SWI", "mnemonic": "SWI3",
         "desc": "Software interrupt 3",
         "addr_mode": INHERENT, "cycles": 20, "bytes": 2,
+        "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": SWI3,
     },
 
@@ -2738,18 +3006,21 @@ OP_DATA = (
         "opcode": 0x10, "instruction": "PAGE", "mnemonic": "PAGE1+",
         "desc": "Page 1 Instructions prefix",
         "addr_mode": VARIANT, "cycles": 1, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "category": 8, "instr_info_key": PAGE,
     },
     {
         "opcode": 0x11, "instruction": "PAGE", "mnemonic": "PAGE2+",
         "desc": "Page 2 Instructions prefix",
         "addr_mode": VARIANT, "cycles": 1, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "category": 8, "instr_info_key": PAGE,
     },
     {
         "opcode": 0x3e, "instruction": "RESET", "mnemonic": "RESET",
         "desc": "",
         "addr_mode": INHERENT, "cycles": -1, "bytes": 1,
+        "mem_read": False, "mem_write": False,
         "category": 8, "instr_info_key": RESET,
     },
 )
