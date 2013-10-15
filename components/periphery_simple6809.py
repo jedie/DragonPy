@@ -16,12 +16,37 @@ import sys
 
 log = logging.getLogger("DragonPy.Periphery")
 
+import os, pty, serial
+
+
 class Simple6809Periphery(object):
     def __init__(self, cfg):
         self.cfg = cfg
         self.address2func_map = {
             0xbffe: self.reset_vector,
         }
+
+        self.master, slave = pty.openpty()
+        s_name = os.ttyname(slave)
+
+        log.log(100, "Serial name: %s" % s_name)
+
+        # http://pyserial.sourceforge.net/pyserial_api.html
+        self.serial = serial.Serial(
+            port=s_name, # Device name or port number number or None.
+            baudrate=115200, # Baud rate such as 9600 or 115200 etc.
+            bytesize=serial.SEVENBITS, # Number of data bits. Possible values: FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS
+#             parity= ... #Enable parity checking. Possible values: PARITY_NONE, PARITY_EVEN, PARITY_ODD PARITY_MARK, PARITY_SPACE
+#             stopbits= ... #Number of stop bits. Possible values: STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO
+             timeout=0, # non-blocking mode (return immediately on read)
+#             xonxoff= ... #Enable software flow control.
+            rtscts=True, # Enable hardware (RTS/CTS) flow control.
+#             dsrdtr= ... #Enable hardware (DSR/DTR) flow control.
+#             writeTimeout= ... #Set a write timeout value.
+#             interCharTimeout= ... #Inter-character timeout, None to disable (default).
+        )
+        log.log(100, repr(self.serial.getSettingsDict()))
+#         self.serial.setRTS()
 
     def read_byte(self, cpu_cycles, op_address, address):
         log.debug(
@@ -96,9 +121,80 @@ class Simple6809Periphery(object):
         log.error("%04x| (%i) read from RS232 address: $%x",
             op_address, cpu_cycles, address,
         )
+        if address == 0xa000:
+            return 0x02
+
+
+#         char = self.serial.read()
+        char = os.read(self.master, 1) # read from pty
+        if char == "":
+            value = 0x0
+        else:
+            value = ord(char)
+
+        log.error("%04x| (%i) get from RS232 (address: $%x): %r ($%x)",
+            op_address, cpu_cycles, address, char, value
+        )
         return value
 
     def write_rs232_interface(self, cpu_cycles, op_address, address, value):
+        """
+                        * CONSOLE OUT
+db14 8d 24              PUTCHR    BSR  WAITACIA
+db16 34 02                        PSHS A
+db18 81 0d                        CMPA #000d(CR)                  IS IT CARRIAGE RETURN?
+db1a 27 0b                        BEQ  NEWLINE                    YES
+db1c b7 a0 01                     STA  a001(TRANS)
+db1f 0c 79                        INC  0079(LPTPOS)               INCREMENT CHARACTER COUNTER
+db21 96 79                        LDA  0079(LPTPOS)               CHECK FOR END OF LINE PRINTER LINE
+db23 91 78                        CMPA 0078(LPTWID)               AT END OF LINE PRINTER LINE?
+db25 25 10                        BLO  PUTEND                     NO
+db27 0f 79              NEWLINE   CLR  0079(LPTPOS)               RESET CHARACTER COUNTER
+db29 8d 0f                        BSR  WAITACIA
+db2b 86 0d                        LDA  #13
+db2d b7 a0 01                     STA  a001(TRANS)
+db30 8d 08                        BSR  WAITACIA
+db32 86 0a                        LDA  #10                        DO LINEFEED AFTER CR
+db34 b7 a0 01                     STA  a001(TRANS)
+db37 35 02              PUTEND    PULS A
+db39 39                           RTS
+
+db3a 34 02              WAITACIA  PSHS A
+db3c b6 a0 00           WRWAIT    LDA  a000(USTAT)
+db3f 85 02                        BITA #2
+db41 27 f9                        BEQ  db3c(WRWAIT)
+db43 35 02                        PULS A
+db45 39                           RTS
+
+                        * INITIALISE ACIA
+dbb0 86 95                        LDA  #0095(RTS_LOW)             DIV16 CLOCK -> 7372800 / 4 / 16 = 115200
+dbb2 b7 a0 00                     STA  a000(UCTRL)
+dbb5 8e dc 03                     LDX  #LA147-1                   POINT X TO COLOR BASIC COPYRIGHT MESSAGE
+dbb8 bd eb e5                     JSR  LB99C                      PRINT 'COLOR BASIC'
+dbbb 8e db c6                     LDX  #BAWMST                    WARM START ADDRESS
+dbbe 9f 6f                        STX  006f(RSTVEC)               SAVE IT
+dbc0 86 55                        LDA  #$55                       WARM START FLAG
+dbc2 97 6e                        STA  006e(RSTFLG)               SAVE IT
+dbc4 20 04                        BRA  LA0F3                      GO TO BASIC'S MAIN LOOP
+        """
+        if address == 0xa000:
+            return 0xff
+        
+        if value == 0x95:
+            # RTS low:
+            log.error("%04x| (%i) set RTS low",
+                op_address, cpu_cycles
+            )
+            try:
+                self.serial.setRTS(True)
+            except Exception, err:
+                log.error("Error while serial.setRTS: %s" % err)
+            return
+
+        log.error("%04x| (%i) write to RS232 address: $%x value: $%x (dez.: %i) ASCII: %r" % (
+            op_address, cpu_cycles, address, value, value, chr(value)
+        ))
+        self.serial.write(chr(value)) # write to pty
 
     def reset_vector(self, address):
         return 0xdb46
