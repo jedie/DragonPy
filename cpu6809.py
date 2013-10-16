@@ -442,10 +442,12 @@ class CPU(object):
         self.index_y = ValueStorage16Bit(REG_Y, 0) # Y - 16 bit index register
 
         self.user_stack_pointer = ValueStorage16Bit(REG_U, 0) # U - 16 bit user-stack pointer
+        self.user_stack_pointer.counter = 0
 
         # S - 16 bit system-stack pointer:
         # Position will be set by ROM code after detection of total installed RAM
         self._system_stack_pointer = ValueStorage16Bit(REG_S, 0)
+        self._system_stack_pointer.counter = 0
 
         # PC - 16 bit program counter register
         self._program_counter = ValueStorage16Bit(REG_PC, self.cfg.RESET_VECTOR)
@@ -716,22 +718,26 @@ class CPU(object):
     system_stack_pointer = property(_get_system_stack_pointer)
 
     def push_byte(self, stack_pointer, byte):
-        # FIXME: What's about a min. limit?
+        """ pushed a byte onto stack """
+        stack_pointer.counter += 1 # for internal check
 
         # FIXME: self._system_stack_pointer -= 1
         stack_pointer.decrement(1)
         addr = stack_pointer.get()
 
-        log.debug("\tpush $%x to %s stack at $%x",
+        log.info("\tpush $%x to %s stack at $%x",
             byte, stack_pointer.name, addr
         )
         self.memory.write_byte(addr, byte)
 
     def pull_byte(self, stack_pointer):
-        # FIXME: Max limit to self.cfg.STACK_PAGE ???
+        """ pulled a byte from stack """
+        stack_pointer.counter -= 1 # for internal check
+        assert stack_pointer.counter >= 0, "pulled more than pushed from stack %s" % stack_pointer.name
+
         addr = stack_pointer.get()
         byte = self.memory.read_byte(addr)
-        log.debug("\tpull $%x from %s stack at $%x",
+        log.info("\tpull $%x from %s stack at $%x",
             byte, stack_pointer.name, addr
         )
 
@@ -747,7 +753,7 @@ class CPU(object):
         stack_pointer.decrement(2)
 
         addr = stack_pointer.get()
-        log.debug("\tpush word $%x to %s stack at $%x",
+        log.info("\tpush word $%x to %s stack at $%x",
             word, stack_pointer.name, addr
         )
 
@@ -761,7 +767,7 @@ class CPU(object):
         # FIXME: hi/lo in the correct order?
         addr = stack_pointer.get()
         word = self.memory.read_word(addr)
-        log.debug("\tpull word $%x from %s stack at $%x",
+        log.info("\tpull word $%x from %s stack at $%x",
             word, stack_pointer.name, addr
         )
         # FIXME: self._system_stack_pointer += 2
