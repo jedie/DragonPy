@@ -1102,11 +1102,9 @@ class CPU(object):
         r = a & m
         register.set(r)
         self.cc.update_NZ0_8(r)
-        log.debug("$%x %02x AND %s: %i & %i = %i" % (
-            self.program_counter, opcode,
-            register.name,
-            a, m, r
-        ))
+        log.debug("\tAND %s: %i & %i = %i",
+            register.name, a, m, r
+        )
 
     @opcode(# AND condition code register
         0x1c, # ANDCC (immediate)
@@ -1794,7 +1792,7 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        log.debug("$%x JMP to $%x \t| %s" % (
+        log.info("$%x JMP to $%x \t| %s" % (
             self.program_counter,
             ea,
             self.cfg.mem_info.get_shortest(ea)
@@ -2137,15 +2135,6 @@ class CPU(object):
         source code forms: ORCC #XX
 
         CC bits "HNZVC": ddddd
-
-            // 0x1a ORCC immediate
-            case 0x1a: {
-                unsigned data;
-                data = byte_immediate(cpu);
-                REG_CC |= data;
-                peek_byte(cpu, REG_PC);
-            } break;
-
         """
         old_cc_info = self.cc.get_info
         cc = old_cc = register.get()
