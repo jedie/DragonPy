@@ -306,10 +306,18 @@ class Instruction(object):
 
         try:
             self.instr_func(**op_kwargs)
-        except TypeError, err:
-            print >> sys.stderr, "kwargs:"
-            print >> sys.stderr, hex_repr(op_kwargs)
-            raise
+        except Exception, err:
+            # Display the op information log messages
+            handler = logging.StreamHandler()
+            handler.level = logging.DEBUG
+            log.handlers = (handler,)
+            log.info("Activate debug at $%x", self.cpu.last_op_address)
+            
+            # raise the error later, after op information log messages
+            etype, evalue, etb = sys.exc_info()
+            evalue = etype("%s\n   kwargs: %s" % (evalue, hex_repr(op_kwargs)))
+        else:
+            etype = None
 
         self.cpu.cycles += self.data["cycles"]
 
@@ -336,7 +344,9 @@ class Instruction(object):
                 # Add CC register info, e.g.: .F.IN..C
                 xroar_cc = int(ref_line[49:51], 16)
                 xroar_cc = cc_value2txt(xroar_cc)
-                log.info("%s | %s", ref_line, xroar_cc)
+                ref_line = "%s | %s" % (ref_line, xroar_cc)
+#                 log.info("%s | %s", ref_line, xroar_cc)
+                log.info(ref_line)
 
                 addr1 = msg.split("|", 1)[0]
                 addr2 = ref_line.split("|", 1)[0]
@@ -379,6 +389,10 @@ class Instruction(object):
 
                 log.debug("\t%s", repr(self.data))
             log.debug("-"*79)
+
+        if etype is not None:
+            # raise the error while calling instruction, above.
+            raise etype, evalue, etb
 
 
 class IllegalInstruction(object):
