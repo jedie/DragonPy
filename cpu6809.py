@@ -2143,7 +2143,6 @@ class CPU(object):
             self.program_counter,
             old_cc, m, cc, old_cc_info, self.cc.get_info
         ))
-        raise
 
     @opcode(# Branch if lower (unsigned)
         0x25, # BLO/BCS (relative)
