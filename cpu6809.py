@@ -2150,10 +2150,9 @@ class CPU(object):
         cc = old_cc = register.get()
         cc |= m
         register.set(cc)
-        log.error("$%x ORCC: $%x |= $%x ; set CC to $%x (from %r to %r)" % (
-            self.program_counter,
+        log.debug("\tORCC: $%x |= $%x ; set CC to $%x (from %r to %r)",
             old_cc, m, cc, old_cc_info, self.cc.get_info
-        ))
+        )
 
     @opcode(# Branch if lower (unsigned)
         0x25, # BLO/BCS (relative)
@@ -2329,7 +2328,7 @@ class CPU(object):
         self.memory.write_byte(ea, r)
 
     @opcode(0x49, 0x59) # ROLA / ROLB (inherent)
-    def instruction_ROL_register(self, opcode, ea, register):
+    def instruction_ROL_register(self, opcode, register):
         """ Rotate accumulator left """
         a = register.get()
         r = self.ROL(a)
