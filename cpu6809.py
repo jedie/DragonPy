@@ -1424,28 +1424,6 @@ class CPU(object):
         """
         raise NotImplementedError("$%x BRN" % opcode)
 
-    @opcode(# Branch to subroutine
-        0x8d, # BSR (relative)
-        0x17, # LBSR (relative)
-    )
-    def instruction_BSR(self, opcode, ea):
-        """
-        The program counter is pushed onto the stack. The program counter is
-        then loaded with the sum of the program counter and the offset.
-
-        A return from subroutine (RTS) instruction is used to reverse this
-        process and must be the last instruction executed in a subroutine.
-
-        source code forms: BSR dd; LBSR DDDD
-
-        CC bits "HNZVC": -----
-        """
-        log.debug("$%x BSR push $%x to S and branch to $%x" % (
-            self.program_counter, self.program_counter, ea
-        ))
-        self.push_word(self._system_stack_pointer, self.program_counter)
-        self.program_counter = ea
-
     @opcode(# Branch if valid twos complement result
         0x28, # BVC (relative)
         0x1028, # LBVC (relative)
@@ -1800,20 +1778,26 @@ class CPU(object):
         ))
         self.program_counter = ea
 
-    @opcode(# Jump to subroutine
+    @opcode(
+        # Branch to subroutine:
+        0x8d, # BSR (relative)
+        0x17, # LBSR (relative)
+        # Jump to subroutine:
         0x9d, 0xad, 0xbd, # JSR (direct, indexed, extended)
     )
-    def instruction_JSR(self, opcode, ea):
+    def instruction_BSR_JSR(self, opcode, ea):
         """
         Program control is transferred to the effective address after storing
-        the return address on the hardware stack. A RTS instruction should be
-        the last executed instruction of the subroutine.
+        the return address on the hardware stack.
 
-        source code forms: JSR EA
+        A return from subroutine (RTS) instruction is used to reverse this
+        process and must be the last instruction executed in a subroutine.
+
+        source code forms: BSR dd; LBSR DDDD; JSR EA
 
         CC bits "HNZVC": -----
         """
-        log.debug("$%x JSR to $%x \t| %s" % (
+        log.info("$%x JSR to $%x \t| %s" % (
             self.program_counter,
             ea,
             self.cfg.mem_info.get_shortest(ea)
