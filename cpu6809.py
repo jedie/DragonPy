@@ -254,7 +254,7 @@ class Instruction(object):
             # instruction need no register access
             pass
         else:
-            self.static_kwargs["register"] = cpu.register2func_map[register_txt]
+            self.static_kwargs["register"] = cpu.register_str2object[register_txt]
 
         self.get_m_func = None
         self.get_ea_func = None
@@ -312,7 +312,7 @@ class Instruction(object):
             handler.level = logging.DEBUG
             log.handlers = (handler,)
             log.info("Activate debug at $%x", self.cpu.last_op_address)
-            
+
             # raise the error later, after op information log messages
             etype, evalue, etb = sys.exc_info()
             evalue = etype("%s\n   kwargs: %s" % (evalue, hex_repr(op_kwargs)))
@@ -462,7 +462,7 @@ class CPU(object):
         # 8 bit condition code register bits: E F H I N Z V C
         self.cc = ConditionCodeRegister()
 
-        self.register2func_map = {
+        self.register_str2object = {
             REG_X: self.index_x,
             REG_Y: self.index_y,
 
@@ -553,11 +553,11 @@ class CPU(object):
 
     def _get_register_obj(self, addr):
         addr_str = self.REGISTER_BIT2STR[addr]
-        reg_obj = self.register2func_map[addr_str]
+        reg_obj = self.register_str2object[addr_str]
 #         log.debug("get register obj: addr: $%x addr_str: %s -> register: %s" % (
 #             addr, addr_str, reg_obj.name
 #         ))
-#         log.debug(repr(self.register2func_map))
+#         log.debug(repr(self.register_str2object))
         return reg_obj
 
     def get_register(self, addr):
@@ -715,43 +715,57 @@ class CPU(object):
         return self._system_stack_pointer.get()
     system_stack_pointer = property(_get_system_stack_pointer)
 
-    def push_byte(self, byte):
+    def push_byte(self, stack_pointer, byte):
         # FIXME: What's about a min. limit?
 
         # FIXME: self._system_stack_pointer -= 1
-        self._system_stack_pointer.decrement(1)
+        stack_pointer.decrement(1)
+        addr = stack_pointer.get()
 
-        log.debug("push $%x to stack at $%x" % (byte, self.system_stack_pointer))
-        self.memory.write_byte(self.system_stack_pointer, byte)
+        log.debug("\tpush $%x to %s stack at $%x",
+            byte, stack_pointer.name, addr
+        )
+        self.memory.write_byte(addr, byte)
 
-    def pull_byte(self):
+    def pull_byte(self, stack_pointer):
         # FIXME: Max limit to self.cfg.STACK_PAGE ???
-        byte = self.memory.read_byte(self.system_stack_pointer)
-        log.debug("pull $%x from stack at $%x" % (byte, self.system_stack_pointer))
+        addr = stack_pointer.get()
+        byte = self.memory.read_byte(addr)
+        log.debug("\tpull $%x from %s stack at $%x",
+            byte, stack_pointer.name, addr
+        )
 
         # FIXME: self._system_stack_pointer += 1
-        self._system_stack_pointer.increment(1)
+        stack_pointer.increment(1)
 
         return byte
 
-    def push_word(self, word):
+    def push_word(self, stack_pointer, word):
         # FIXME: hi/lo in the correct order?
-        log.debug("push word $%x to stack" % word)
 
         # FIXME: self._system_stack_pointer -= 2
-        self._system_stack_pointer.decrement(2)
-        self.memory.write_word(self.system_stack_pointer, word)
+        stack_pointer.decrement(2)
+
+        addr = stack_pointer.get()
+        log.debug("\tpush word $%x to %s stack at $%x",
+            word, stack_pointer.name, addr
+        )
+
+        self.memory.write_word(addr, word)
 
 #         hi, lo = divmod(word, 0x100)
 #         self.push_byte(hi)
 #         self.push_byte(lo)
 
-    def pull_word(self):
+    def pull_word(self, stack_pointer):
         # FIXME: hi/lo in the correct order?
-        word = self.memory.read_word(self.system_stack_pointer)
-        log.debug("pull word $%x from stack at $%x" % (word, self.system_stack_pointer))
+        addr = stack_pointer.get()
+        word = self.memory.read_word(addr)
+        log.debug("\tpull word $%x from %s stack at $%x",
+            word, stack_pointer.name, addr
+        )
         # FIXME: self._system_stack_pointer += 2
-        self._system_stack_pointer.increment(2)
+        stack_pointer.increment(2)
         return word
 
     ####
@@ -849,7 +863,7 @@ class CPU(object):
         except KeyError:
             raise RuntimeError("Register $%x doesn't exists! (postbyte: $%x)" % (rr, postbyte))
 
-        register_obj = self.register2func_map[register_str]
+        register_obj = self.register_str2object[register_str]
         register_value = register_obj.get()
 
         if (postbyte & 0x80) == 0: # bit 7 == 0
@@ -1429,7 +1443,7 @@ class CPU(object):
         log.debug("$%x BSR push $%x to S and branch to $%x" % (
             self.program_counter, self.program_counter, ea
         ))
-        self.push_word(self.program_counter)
+        self.push_word(self._system_stack_pointer, self.program_counter)
         self.program_counter = ea
 
     @opcode(# Branch if valid twos complement result
@@ -1804,7 +1818,7 @@ class CPU(object):
             ea,
             self.cfg.mem_info.get_shortest(ea)
         ))
-        self.push_word(self.program_counter)
+        self.push_word(self._system_stack_pointer, self.program_counter)
         self.program_counter = ea
 
     @opcode(# Load register from memory
@@ -2169,14 +2183,14 @@ class CPU(object):
                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
             ))
 
-    @opcode(# Push A, B, CC, DP, D, X, Y, U, or PC onto hardware stack
+    @opcode(# Push A, B, CC, DP, D, X, Y, U, or PC onto stack
+        0x36, # PSHU (immediate)
         0x34, # PSHS (immediate)
     )
-    def instruction_PSHS(self, opcode, ea, m, register):
+    def instruction_PSH(self, opcode, ea, m, register):
         """
-        All, some, or none of the processor registers are pushed onto the
-        hardware stack (with the exception of the hardware stack pointer
-        itself).
+        All, some, or none of the processor registers are pushed onto stack
+        (with the exception of stack pointer itself).
 
         A single register may be placed on the stack with the condition codes
         set by doing an autodecrement store onto the stack (example: STX ,--S).
@@ -2185,50 +2199,40 @@ class CPU(object):
         ->
 
         CC bits "HNZVC": -----
-
-        TODO:
-        if (postbyte & 0x80) { push_word(cpu, s, REG_PC); }
-        if (postbyte & 0x40) { push_word(cpu, s, as); }
-        if (postbyte & 0x20) { push_word(cpu, s, REG_Y); }
-        if (postbyte & 0x10) { push_word(cpu, s, REG_X); }
-        if (postbyte & 0x08) { push_byte(cpu, s, REG_DP); }
-        if (postbyte & 0x04) { push_byte(cpu, s, RREG_B); }
-        if (postbyte & 0x02) { push_byte(cpu, s, RREG_A); }
-        if (postbyte & 0x01) { push_byte(cpu, s, REG_CC); }
         """
-        value = register.get()
-        log.debug("$%x PSHS: Push $%x from %s onto hardware stack" % (
-            self.program_counter,
-            value, register.name
-        ))
-        self.push_word(value)
+        assert register in (self._system_stack_pointer, self.user_stack_pointer)
 
-    @opcode(# Push A, B, CC, DP, D, X, Y, S, or PC onto user stack
-        0x36, # PSHU (immediate)
-    )
-    def instruction_PSHU(self, opcode, ea, register):
-        """
-        All, some, or none of the processor registers are pushed onto the user
-        stack (with the exception of the user stack pointer itself).
+        def push(register_str, stack_pointer):
+            register_obj = self.register_str2object[register_str]
+            data = register_obj.get()
 
-        A single register may be placed on the stack with the condition codes
-        set by doing an autodecrement store onto the stack (example: STX ,--U).
+            if register_obj.WIDTH == 8:
+                self.push_byte(register, data)
+            else:
+                assert register_obj.WIDTH == 16
+                self.push_word(register, data)
 
-        source code forms: b7 b6 b5 b4 b3 b2 b1 b0 PC S Y X DP B A CC push order
-        ->
+        log.debug("$%x PSH%s:", self.program_counter, register.name)
 
-        CC bits "HNZVC": -----
-        """
-        raise NotImplementedError("$%x PSHU" % opcode)
+        # m = postbyte
+        if m & 0x80: push(REG_PC, register) # 16 bit program counter register
+        if m & 0x40: push(REG_U, register) # 16 bit user-stack pointer
+        if m & 0x20: push(REG_Y, register) # 16 bit index register
+        if m & 0x10: push(REG_X, register) # 16 bit index register
+        if m & 0x08: push(REG_DP, register) # 8 bit direct page register
+        if m & 0x04: push(REG_B, register) # 8 bit accumulator
+        if m & 0x02: push(REG_A, register) # 8 bit accumulator
+        if m & 0x01: push(REG_CC, register) # 8 bit condition code register
 
-    @opcode(# Pull A, B, CC, DP, D, X, Y, U, or PC from hardware stack
+
+    @opcode(# Pull A, B, CC, DP, D, X, Y, U, or PC from stack
+        0x37, # PULU (immediate)
         0x35, # PULS (immediate)
     )
-    def instruction_PULS(self, opcode, ea, register):
+    def instruction_PUL(self, opcode, ea, m, register):
         """
-        All, some, or none of the processor registers are pulled from the
-        hardware stack (with the exception of the hardware stack pointer
-        itself).
+        All, some, or none of the processor registers are pulled from stack
+        (with the exception of stack pointer itself).
 
         A single register may be pulled from the stack with condition codes set
         by doing an autoincrement load from the stack (example: LDX ,S++).
@@ -2238,31 +2242,32 @@ class CPU(object):
 
         CC bits "HNZVC": ccccc
         """
-        value = register.get()
-        log.debug("$%x PULS: Pull $%x to %s onto hardware stack" % (
-            self.program_counter,
-            value, register.name
-        ))
-        self.pull_word()
+        assert register in (self._system_stack_pointer, self.user_stack_pointer)
 
-    @opcode(# Pull A, B, CC, DP, D, X, Y, S, or PC from hardware stack
-        0x37, # PULU (immediate)
-    )
-    def instruction_PULU(self, opcode, ea, register):
-        """
-        All, some, or none of the processor registers are pulled from the user
-        stack (with the exception of the user stack pointer itself).
+        def pull(register_str, stack_pointer):
+            reg_obj = self.register_str2object[register_str]
 
-        A single register may be pulled from the stack with condition codes set
-        by doing an autoincrement load from the stack (example: LDX ,U++).
+            reg_width = reg_obj.WIDTH # 8 / 16
+            if reg_width == 8:
+                data = self.pull_byte(stack_pointer)
+            else:
+                assert reg_width == 16
+                data = self.pull_word(stack_pointer)
 
-        source code forms: b7 b6 b5 b4 b3 b2 b1 b0 PC S Y X DP B A CC = pull
-        order
+            reg_obj.set(data)
 
-        CC bits "HNZVC": ccccc
-        """
-        raise NotImplementedError("$%x PULU" % opcode)
-        # Update CC bits: ccccc
+        log.debug("$%x PUL%s:", self.program_counter, register.name)
+
+        # m = postbyte
+        if m & 0x01: pull(REG_CC, register) # 8 bit condition code register
+        if m & 0x02: pull(REG_A, register) # 8 bit accumulator
+        if m & 0x04: pull(REG_B, register) # 8 bit accumulator
+        if m & 0x08: pull(REG_DP, register) # 8 bit direct page register
+        if m & 0x10: pull(REG_X, register) # 16 bit index register
+        if m & 0x20: pull(REG_Y, register) # 16 bit index register
+        if m & 0x40: pull(REG_U, register) # 16 bit user-stack pointer
+        if m & 0x80: pull(REG_PC, register) # 16 bit program counter register
+
 
     @opcode(#
         0x3e, # RESET* (inherent)
@@ -2369,7 +2374,7 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        ea = self.pull_word()
+        ea = self.pull_word(self._system_stack_pointer)
         log.debug("$%x RTS to $%x \t| %s" % (
             self.program_counter,
             ea,
@@ -2636,14 +2641,15 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-#         "--verbosity=5",
+        "--verbosity=5",
 #         "--verbosity=20",
-        "--verbosity=30",
+#         "--verbosity=30",
 #         "--verbosity=50",
 #         "--area_debug_active=5:bb79-ffff",
 #         "--cfg=Simple6809Cfg",
         "--cfg=Dragon32Cfg",
 #         "--max=1",
+        "--max=46041",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args).wait()
