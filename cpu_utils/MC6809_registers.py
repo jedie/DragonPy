@@ -154,7 +154,7 @@ class ConditionCodeRegister(object):
 
     ####
 
-    def set_H8(self, a, b, r):
+    def set_H(self, a, b, r):
         self.H = 1 if (a ^ b ^ r) & 0x10 else 0
         log.debug("\tSet H half-carry flag to %i: (%i ^ %i ^ %i) & 16 = %i" % (
             self.H, a, b, r, (a ^ b ^ r) & 0x10
@@ -271,7 +271,7 @@ class ConditionCodeRegister(object):
         self.set_C16(r)
 
     def update_HNZVC_8(self, a, b, r):
-        self.set_H8(a, b, r)
+        self.set_H(a, b, r)
         self.set_N8(r)
         self.set_Z8(r)
         self.set_V8(a, b, r)
@@ -299,6 +299,7 @@ class ConcatenatedAccumulator(object):
     def __str__(self):
         return "%s=%04x" % (self.name, self.get())
 
-# def get_6809_registers():
-#
-#     return d
+
+if __name__ == "__main__":
+    import doctest
+    print doctest.testmod()
