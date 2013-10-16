@@ -1070,6 +1070,7 @@ class CPU(object):
 
         CC bits "HNZVC": aaaaa
         """
+        assert register.WIDTH == 8
         x1 = register.get()
 #         x2 = signed8(x1)
         r1 = x1 + m
