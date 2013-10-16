@@ -23,6 +23,20 @@ class CCTestCase(BaseTestCase):
             status_byte = self.cpu.cc.get()
             self.assertEqual(status_byte, i)
 
+    def test_HalfCarry(self):
+        half_carry_must_set = range(0, 255, 16)
+        for i in xrange(256):
+            self.cpu.cc.set(0x00)
+            self.cpu.cc.update_HNZVC_8(a=0, b=i, r=i) # e.g.: 0+2=2
+            a = 0
+            b = i
+            r = i
+            print i, self.cpu.cc.H, (0b00010000 & i) >> 5
+#             if i in half_carry_must_set:
+#                 self.assertEqual(self.cpu.cc.H, 1, "Error in %i" % i)
+#             else:
+#                 self.assertEqual(self.cpu.cc.H, 0, "Error in %i" % i)
+
     def test_update_NZ_8(self):
         self.cpu.cc.update_NZ_8(r=0x12)
         self.assertEqual(self.cpu.cc.N, 0)
