@@ -2012,11 +2012,16 @@ class CPU(object):
         self.cc.clear_NZVC()
         self.cc.update_NZVC_8(0, x1, r2)
 
+    _wrong_NEG = 0
     @opcode(0x0, 0x60, 0x70) # NEG (direct, indexed, extended)
     def instruction_NEG_memory(self, opcode, ea, m):
         """ Negate memory """
-#         if opcode == 0x0 and ea == 0x0 and m == 0x0:
-#             raise RuntimeError
+        if opcode == 0x0 and ea == 0x0 and m == 0x0:
+            self._wrong_NEG += 1
+            if self._wrong_NEG > 10:
+                raise RuntimeError
+        else:
+            self._wrong_NEG = 0
         m2 = signed8(m)
         r1 = m2 * -1
         r2 = unsigned8(r1)
