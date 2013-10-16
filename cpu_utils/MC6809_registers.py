@@ -60,7 +60,7 @@ class ValueStorage(object):
 
 
 class ValueStorage8Bit(ValueStorage):
-    WIDTH = 8
+    WIDTH = 8 # 8 Bit
 
     def set(self, v):
         if v > 0xff:
@@ -78,7 +78,7 @@ class ValueStorage8Bit(ValueStorage):
 
 
 class ValueStorage16Bit(ValueStorage):
-    WIDTH = 16
+    WIDTH = 16 # 16 Bit
 
     def set(self, v):
         if v > 0xffff:
@@ -122,6 +122,8 @@ def cc_value2txt(status):
 class ConditionCodeRegister(object):
     """ CC - 8 bit condition code register bits """
 
+    WIDTH = 8 # 8 Bit
+
     def __init__(self, *cmd_args, **kwargs):
         self.name = "CC"
         self._register = {}
@@ -155,6 +157,9 @@ class ConditionCodeRegister(object):
     @property
     def get_info(self):
         return cc_value2txt(self.get())
+
+    def __str__(self):
+        return "%s=%s" % (self.name, self.get_info)
 
     ####
 
