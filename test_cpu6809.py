@@ -237,15 +237,11 @@ class Test6809_Ops(BaseTestCase):
         self.assertEqual(self.cpu.cc.get(), 0x55) # destination
 
     def test_TFR03(self):
-        self.cpu.index_y = 0x12 # source
-        self.cpu.program_counter = 0 # destination
-
-        self.cpu_test_run(start=0x1000, end=0x12, mem=[
-            0x9E, 0x12, # LDX $12 (direct)
-            0x1f, # TFR
-            0x15, # from X (0x1) to PC (0x5)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x10, 0x8e, 0x12, 0x34, # LDY Y=$1234
+            0x1f, 0x20, # TFR  Y,D
         ])
-        self.assertEqual(self.cpu.program_counter, 0x12) # destination
+        self.assertEqualHex(self.cpu.accu_d.get(), 0x1234) # destination
 
     def test_ADDA_extended01(self):
         self.cpu_test_run(start=0x1000, end=0x1003, mem=[
