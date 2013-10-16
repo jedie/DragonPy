@@ -62,13 +62,13 @@ class ValueStorage(object):
 class ValueStorage8Bit(ValueStorage):
     def set(self, v):
         if v > 0xff:
-            log.warning(" **** Value $%x is to big for %s (8-bit)" % (v, self.name))
+            log.info(" **** Value $%x is to big for %s (8-bit)" % (v, self.name))
             v = v & 0xff
-            log.warning(" ^^^^ Value %s (8-bit) wrap around to $%x" % (self.name, v))
+            log.info(" ^^^^ Value %s (8-bit) wrap around to $%x" % (self.name, v))
         elif v < 0:
-            log.warning(" **** %s value $%x is negative" % (self.name, v))
+            log.info(" **** %s value $%x is negative" % (self.name, v))
             v = 0x100 + v
-            log.warning(" **** Value %s (8-bit) wrap around to $%x" % (self.name, v))
+            log.info(" **** Value %s (8-bit) wrap around to $%x" % (self.name, v))
         self.value = v
         return self.value # e.g.: r = operand.set(a + 1)
     def __str__(self):
@@ -78,13 +78,13 @@ class ValueStorage8Bit(ValueStorage):
 class ValueStorage16Bit(ValueStorage):
     def set(self, v):
         if v > 0xffff:
-            log.warning(" **** Value $%x is to big for %s (16-bit)" % (v, self.name))
+            log.info(" **** Value $%x is to big for %s (16-bit)" % (v, self.name))
             v = v & 0xffff
-            log.warning(" ^^^^ Value %s (16-bit) wrap around to $%x" % (self.name, v))
+            log.info(" ^^^^ Value %s (16-bit) wrap around to $%x" % (self.name, v))
         elif v < 0:
-            log.warning(" **** %s value $%x is negative" % (self.name, v))
+            log.info(" **** %s value $%x is negative" % (self.name, v))
             v = 0x10000 + v
-            log.warning(" **** Value %s (16-bit) wrap around to $%x" % (self.name, v))
+            log.info(" **** Value %s (16-bit) wrap around to $%x" % (self.name, v))
         self.value = v
         return self.value # e.g.: r = operand.set(a + 1)
     def __str__(self):
