@@ -56,7 +56,18 @@ class FileContent(object):
 
     def create_from_bas(self, file_content):
         for line in file_content.splitlines():
-            line_number, code = line.split(" ", 1)
+            if not line:
+                # Skip empty lines (e.g. XRoar need a empty line at the end)
+                continue
+
+            try:
+                line_number, code = line.split(" ", 1)
+            except ValueError:
+                etype, evalue, etb = sys.exc_info()
+                evalue = etype(
+                    "Error split line: %s (line: %s)" % (evalue, repr(line))
+                )
+                raise etype, evalue, etb
             line_number = int(line_number)
 
             if self.cfg.case_convert:
