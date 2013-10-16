@@ -232,6 +232,7 @@ try:
     trace_file = open(os.path.expanduser(r"~/xroar_trace.txt"), "r")
 except IOError, err:
     log.error("No trace file: %s" % err)
+    sys.exc_clear() # clears all information relating this exception
     trace_file = None
 else:
     trace_file.readline() # Skip reset line
