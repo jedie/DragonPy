@@ -20,6 +20,7 @@ from MC6809data.MC6809_data_raw import MEM_ACCESS_BYTE, MEM_ACCESS_WORD
 
 keys = OP_DATA[0].keys()
 keys.insert(3, "opcode_hex")
+keys.sort()
 
 FROM_INSTRUCTION_INFO = ['HNZVC', 'instr_desc']
 

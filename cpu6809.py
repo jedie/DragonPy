@@ -24,11 +24,11 @@ import BaseHTTPServer
 import inspect
 import json
 import logging
-import pprint
 import re
 import select
 import socket
 import sys
+import time
 
 from DragonPy_CLI import DragonPyCLI
 from MC6809data import MC6809_data_raw as MC6809data
@@ -232,6 +232,7 @@ try:
     trace_file = open(os.path.expanduser(r"~/xroar_trace.txt"), "r")
 except IOError, err:
     log.error("No trace file: %s" % err)
+    sys.exc_clear() # clears all information relating this exception
     trace_file = None
 else:
     trace_file.readline() # Skip reset line
@@ -253,7 +254,7 @@ class Instruction(object):
             # instruction need no register access
             pass
         else:
-            self.static_kwargs["register"] = cpu.register2func_map[register_txt]
+            self.static_kwargs["register"] = cpu.register_str2object[register_txt]
 
         self.get_m_func = None
         self.get_ea_func = None
@@ -261,9 +262,10 @@ class Instruction(object):
         addr_mode = opcode_data["addr_mode"]
         if addr_mode not in (MC6809data.INHERENT, MC6809data.VARIANT):
             func_name = "get_%s" % opcode_data["addr_mode"].lower()
-            mem_access = opcode_data.get("mem_access")
-            if mem_access is not None:
+            mem_read = opcode_data["mem_read"]
+            if mem_read:
                 # instruction used the memory content
+                mem_access = opcode_data["mem_access"]
                 if mem_access == MEM_ACCESS_BYTE:
                     func_name += "_byte"
                 elif mem_access == MEM_ACCESS_WORD:
@@ -282,7 +284,7 @@ class Instruction(object):
 #         log.debug(pprint.pformat(instr_kwargs))
 #         log.debug("-"*79)
 
-    def call_instr_func(self, op_attr):
+    def call_instr_func(self):
         op_kwargs = self.static_kwargs.copy()
         if self.get_ea_func is not None:
             op_kwargs["ea"] = self.get_ea_func()
@@ -304,16 +306,26 @@ class Instruction(object):
 
         try:
             self.instr_func(**op_kwargs)
-        except TypeError, err:
-            print >> sys.stderr, "kwargs:"
-            print >> sys.stderr, pprint.pformat(op_kwargs)
-            raise
+        except Exception, err:
+            # Display the op information log messages
+            handler = logging.StreamHandler()
+            handler.level = logging.DEBUG
+            log.handlers = (handler,)
+            log.info("Activate debug at $%x", self.cpu.last_op_address)
+
+            # raise the error later, after op information log messages
+            etype, evalue, etb = sys.exc_info()
+            evalue = etype("%s\n   kwargs: %s" % (evalue, hex_repr(op_kwargs)))
+        else:
+            etype = None
 
         self.cpu.cycles += self.data["cycles"]
 
         if log.level <= logging.INFO:
-            msg = "%(op_attr)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | %(cc)s" % {
-                "op_attr": op_attr,
+            op_address = self.cpu.last_op_address
+
+            msg = "%(op_address)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | %(cc)s" % {
+                "op_address": op_address,
                 "opcode": "%02x" % self.opcode,
                 "mnemonic": self.data["mnemonic"],
                 "kwargs": " ".join(kwargs_info),
@@ -322,62 +334,65 @@ class Instruction(object):
             }
             log.info(msg)
 
-            if trace_file is None:
-                return
+            if trace_file: # Hacked bugtracking...
 
-            # Hacked bugtracking...
+                if self.opcode in (0x10, 0x11): # PAGE 1/2 instructions
+                    return
 
-            if self.opcode in (0x10, 0x11): # PAGE 1/2 instructions
-                return
+                ref_line = trace_file.readline().strip()
 
-            ref_line = trace_file.readline().strip()
+                # Add CC register info, e.g.: .F.IN..C
+                xroar_cc = int(ref_line[49:51], 16)
+                xroar_cc = cc_value2txt(xroar_cc)
+                ref_line = "%s | %s" % (ref_line, xroar_cc)
+#                 log.info("%s | %s", ref_line, xroar_cc)
+                log.info(ref_line)
 
-            # Add CC register info, e.g.: .F.IN..C
-            xroar_cc = int(ref_line[49:51], 16)
-            xroar_cc = cc_value2txt(xroar_cc)
-            log.info("%s | %s", ref_line, xroar_cc)
+                addr1 = msg.split("|", 1)[0]
+                addr2 = ref_line.split("|", 1)[0]
+                if addr1 != addr2:
+                    log.info("trace: %s", ref_line)
+                    log.info("own..: %s", msg)
+                    log.error("Error in CPU cycles: %i", self.cpu.cycles)
+                    log.error("address (%r != %r) not the same as trace reference!\n" % (
+                        addr1, addr2
+                    ))
 
-            addr1 = msg.split("|", 1)[0]
-            addr2 = ref_line.split("|", 1)[0]
-            if addr1 != addr2:
-                log.info("trace: %s", ref_line)
-                log.info("own..: %s", msg)
-                log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                log.error("address (%r != %r) not the same as trace reference!\n" % (
-                    addr1, addr2
-                ))
+                mnemonic1 = msg[11:18].strip()
+                mnemonic2 = ref_line[18:24].strip()
+                if mnemonic1 != mnemonic2:
+                    log.info("trace: %s", ref_line)
+                    log.info("own..: %s" , msg)
+                    log.error("Error in CPU cycles: %i", self.cpu.cycles)
+                    log.error("mnemonic (%r != %r) not the same as trace reference!\n" % (
+                        mnemonic1, mnemonic2
+                    ))
 
-            mnemonic1 = msg[11:18].strip()
-            mnemonic2 = ref_line[18:24].strip()
-            if mnemonic1 != mnemonic2:
-                log.info("trace: %s", ref_line)
-                log.info("own..: %s" , msg)
-                log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                log.error("mnemonic (%r != %r) not the same as trace reference!\n" % (
-                    mnemonic1, mnemonic2
-                ))
-
-            registers1 = msg[52:95]
-            registers2 = ref_line[52:95]
-            if registers1 != registers2:
-                log.info("trace: %s" , ref_line)
-                log.info("own..: %s" , msg)
-                log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                log.error("registers (%r != %r) not the same as trace reference!\n" % (
-                    registers1, registers2
-                ))
-            else:
-                cc1 = msg[98:106]
-                if cc1 != xroar_cc:
+                registers1 = msg[52:95]
+                registers2 = ref_line[52:95]
+                if registers1 != registers2:
                     log.info("trace: %s" , ref_line)
                     log.info("own..: %s" , msg)
                     log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                    log.error("CC (%r != %r) not the same as trace reference!\n" % (
-                        cc1, xroar_cc
+                    log.error("registers (%r != %r) not the same as trace reference!\n" % (
+                        registers1, registers2
                     ))
+                else:
+                    cc1 = msg[98:106]
+                    if cc1 != xroar_cc:
+                        log.info("trace: %s" , ref_line)
+                        log.info("own..: %s" , msg)
+                        log.error("Error in CPU cycles: %i", self.cpu.cycles)
+                        log.error("CC (%r != %r) not the same as trace reference!\n" % (
+                            cc1, xroar_cc
+                        ))
 
-            log.debug("\t%s", repr(self.data))
+                log.debug("\t%s", repr(self.data))
             log.debug("-"*79)
+
+        if etype is not None:
+            # raise the error while calling instruction, above.
+            raise etype, evalue, etb
 
 
 class IllegalInstruction(object):
@@ -385,8 +400,9 @@ class IllegalInstruction(object):
         self.cpu = cpu
         self.opcode = opcode
 
-    def call_instr_func(self, op_attr):
-        log.error("$%x +++ Illegal op code: $%x", op_attr, self.opcode)
+    def call_instr_func(self):
+        op_address = self.cpu.last_op_address
+        log.error("$%x +++ Illegal op code: $%x", op_address, self.opcode)
 
 
 class CPU(object):
@@ -446,7 +462,7 @@ class CPU(object):
         # 8 bit condition code register bits: E F H I N Z V C
         self.cc = ConditionCodeRegister()
 
-        self.register2func_map = {
+        self.register_str2object = {
             REG_X: self.index_x,
             REG_Y: self.index_y,
 
@@ -464,6 +480,7 @@ class CPU(object):
         }
 
         self.cycles = 0
+        self.last_op_address = 0 # Store the current run opcode memory address
 
 #         log.debug("Add opcode functions:")
         self.opcode_dict = {}
@@ -509,7 +526,15 @@ class CPU(object):
                 log.error("ERROR: no OP_DATA entry for $%x" % opcode)
                 continue
 
-            self.opcode_dict[opcode] = Instruction(self, opcode, opcode_data, instr_func)
+            try:
+                instruction = Instruction(self, opcode, opcode_data, instr_func)
+            except Exception, err:
+                print >> sys.stderr, "Error init instruction for $%x" % opcode
+                print >> sys.stderr, "opcode data: %s" % repr(opcode_data)
+                print >> sys.stderr, "instr_func: %s" % instr_func.__name__
+                raise
+
+            self.opcode_dict[opcode] = instruction
 
     ####
 
@@ -528,11 +553,11 @@ class CPU(object):
 
     def _get_register_obj(self, addr):
         addr_str = self.REGISTER_BIT2STR[addr]
-        reg_obj = self.register2func_map[addr_str]
+        reg_obj = self.register_str2object[addr_str]
 #         log.debug("get register obj: addr: $%x addr_str: %s -> register: %s" % (
 #             addr, addr_str, reg_obj.name
 #         ))
-#         log.debug(repr(self.register2func_map))
+#         log.debug(repr(self.register_str2object))
         return reg_obj
 
     def get_register(self, addr):
@@ -551,6 +576,8 @@ class CPU(object):
     def reset(self):
         log.debug("$%x CPU reset:" % self.program_counter)
 
+        self.last_op_address = 0
+
         log.debug("\tset cc.F=1: FIRQ interrupt masked")
         self.cc.F = 1
 
@@ -567,20 +594,21 @@ class CPU(object):
 
 
     def get_and_call_next_op(self):
-        op_attr, opcode = self.read_pc_byte()
-        self.call_instruction_func(op_attr, opcode)
+        op_address, opcode = self.read_pc_byte()
+        self.call_instruction_func(op_address, opcode)
 
     same_op_count = 0
     last_op_code = None
-    def call_instruction_func(self, op_attr, opcode):
+    def call_instruction_func(self, op_address, opcode):
+        self.last_op_address = op_address
         try:
             instruction = self.opcode_dict[opcode]
         except KeyError:
-            msg = "$%x *** UNKNOWN OP $%x" % (op_attr, opcode)
+            msg = "$%x *** UNKNOWN OP $%x" % (op_address, opcode)
             log.error(msg)
             sys.exit(msg)
 
-        instruction.call_instr_func(op_attr)
+        instruction.call_instr_func()
 
     @opcode(
         0x10, # PAGE1+ instructions
@@ -588,16 +616,18 @@ class CPU(object):
     )
     def instruction_PAGE(self, opcode):
         """ call op from page 1 or 2 """
-        op_attr, opcode2 = self.read_pc_byte()
+        op_address, opcode2 = self.read_pc_byte()
         paged_opcode = opcode * 256 + opcode2
         log.debug("$%x *** call paged opcode $%x" % (
             self.program_counter, paged_opcode
         ))
-        self.call_instruction_func(op_attr - 1, paged_opcode)
+        self.call_instruction_func(op_address - 1, paged_opcode)
 
     def run(self):
         log.debug("-"*79)
 
+        last_update = time.time()
+        last_cycles = 0
         while not self.quit:
             timeout = 0
             if not self.running:
@@ -620,6 +650,13 @@ class CPU(object):
                 if not self.running:
                     break
                 self.get_and_call_next_op()
+
+            duration = time.time() - last_update
+            if duration >= 1:
+                count = self.cycles - last_cycles
+                log.error("%.2f cycles/sec.", float(count / duration))
+                last_cycles = self.cycles
+                last_update = time.time()
 
             if self.cfg.max_cpu_cycles is not None \
                 and self.cycles >= self.cfg.max_cpu_cycles:
@@ -678,43 +715,57 @@ class CPU(object):
         return self._system_stack_pointer.get()
     system_stack_pointer = property(_get_system_stack_pointer)
 
-    def push_byte(self, byte):
+    def push_byte(self, stack_pointer, byte):
         # FIXME: What's about a min. limit?
 
         # FIXME: self._system_stack_pointer -= 1
-        self._system_stack_pointer.decrement(1)
+        stack_pointer.decrement(1)
+        addr = stack_pointer.get()
 
-        log.debug("push $%x to stack at $%x" % (byte, self.system_stack_pointer))
-        self.memory.write_byte(self.system_stack_pointer, byte)
+        log.debug("\tpush $%x to %s stack at $%x",
+            byte, stack_pointer.name, addr
+        )
+        self.memory.write_byte(addr, byte)
 
-    def pull_byte(self):
+    def pull_byte(self, stack_pointer):
         # FIXME: Max limit to self.cfg.STACK_PAGE ???
-        byte = self.memory.read_byte(self.system_stack_pointer)
-        log.debug("pull $%x from stack at $%x" % (byte, self.system_stack_pointer))
+        addr = stack_pointer.get()
+        byte = self.memory.read_byte(addr)
+        log.debug("\tpull $%x from %s stack at $%x",
+            byte, stack_pointer.name, addr
+        )
 
         # FIXME: self._system_stack_pointer += 1
-        self._system_stack_pointer.increment(1)
+        stack_pointer.increment(1)
 
         return byte
 
-    def push_word(self, word):
+    def push_word(self, stack_pointer, word):
         # FIXME: hi/lo in the correct order?
-        log.debug("push word $%x to stack" % word)
 
         # FIXME: self._system_stack_pointer -= 2
-        self._system_stack_pointer.decrement(2)
-        self.memory.write_word(self.system_stack_pointer, word)
+        stack_pointer.decrement(2)
+
+        addr = stack_pointer.get()
+        log.debug("\tpush word $%x to %s stack at $%x",
+            word, stack_pointer.name, addr
+        )
+
+        self.memory.write_word(addr, word)
 
 #         hi, lo = divmod(word, 0x100)
 #         self.push_byte(hi)
 #         self.push_byte(lo)
 
-    def pull_word(self):
+    def pull_word(self, stack_pointer):
         # FIXME: hi/lo in the correct order?
-        word = self.memory.read_word(self.system_stack_pointer)
-        log.debug("pull word $%x from stack at $%x" % (word, self.system_stack_pointer))
+        addr = stack_pointer.get()
+        word = self.memory.read_word(addr)
+        log.debug("\tpull word $%x from %s stack at $%x",
+            word, stack_pointer.name, addr
+        )
         # FIXME: self._system_stack_pointer += 2
-        self._system_stack_pointer.increment(2)
+        stack_pointer.increment(2)
         return word
 
     ####
@@ -812,7 +863,7 @@ class CPU(object):
         except KeyError:
             raise RuntimeError("Register $%x doesn't exists! (postbyte: $%x)" % (rr, postbyte))
 
-        register_obj = self.register2func_map[register_str]
+        register_obj = self.register_str2object[register_str]
         register_value = register_obj.get()
 
         if (postbyte & 0x80) == 0: # bit 7 == 0
@@ -1071,7 +1122,7 @@ class CPU(object):
         0x27, # BEQ (relative)
         0x1027, # LBEQ (relative)
     )
-    def instruction_BEQ(self, opcode, ea, m):
+    def instruction_BEQ(self, opcode, ea):
         """
         Tests the state of the Z (zero) bit and causes a branch if it is set.
         When used after a subtract or compare operation, this instruction will
@@ -1134,7 +1185,7 @@ class CPU(object):
         0x22, # BHI (relative)
         0x1022, # LBHI (relative)
     )
-    def instruction_BHI(self, opcode, ea, m):
+    def instruction_BHI(self, opcode, ea):
         """
         Causes a branch if the previous operation caused neither a carry nor a
         zero result. When used after a subtract or compare operation on unsigned
@@ -1204,7 +1255,7 @@ class CPU(object):
         0x23, # BLS (relative)
         0x1023, # LBLS (relative)
     )
-    def instruction_BLS(self, opcode, ea, m):
+    def instruction_BLS(self, opcode, ea):
         """
         Causes a branch if the previous operation caused either a carry or a
         zero result. When used after a subtract or compare operation on unsigned
@@ -1250,7 +1301,7 @@ class CPU(object):
         0x2b, # BMI (relative)
         0x102b, # LBMI (relative)
     )
-    def instruction_BMI(self, opcode, ea, m):
+    def instruction_BMI(self, opcode, ea):
         """
         Tests the state of the N (negative) bit and causes a branch if set. That
         is, branch if the sign of the twos complement result is negative.
@@ -1277,7 +1328,7 @@ class CPU(object):
         0x26, # BNE (relative)
         0x1026, # LBNE (relative)
     )
-    def instruction_BNE(self, opcode, ea, m):
+    def instruction_BNE(self, opcode, ea):
         """
         Tests the state of the Z (zero) bit and causes a branch if it is clear.
         When used after a subtract or compare operation on any binary values,
@@ -1302,7 +1353,7 @@ class CPU(object):
         0x2a, # BPL (relative)
         0x102a, # LBPL (relative)
     )
-    def instruction_BPL(self, opcode, ea, m):
+    def instruction_BPL(self, opcode, ea):
         """
         Tests the state of the N (negative) bit and causes a branch if it is
         clear. That is, branch if the sign of the twos complement result is
@@ -1330,7 +1381,7 @@ class CPU(object):
         0x20, # BRA (relative)
         0x16, # LBRA (relative)
     )
-    def instruction_BRA(self, opcode, ea, m):
+    def instruction_BRA(self, opcode, ea):
         """
         Causes an unconditional branch.
 
@@ -1377,7 +1428,7 @@ class CPU(object):
         0x8d, # BSR (relative)
         0x17, # LBSR (relative)
     )
-    def instruction_BSR(self, opcode, ea, m):
+    def instruction_BSR(self, opcode, ea):
         """
         The program counter is pushed onto the stack. The program counter is
         then loaded with the sum of the program counter and the offset.
@@ -1392,7 +1443,7 @@ class CPU(object):
         log.debug("$%x BSR push $%x to S and branch to $%x" % (
             self.program_counter, self.program_counter, ea
         ))
-        self.push_word(self.program_counter)
+        self.push_word(self._system_stack_pointer, self.program_counter)
         self.program_counter = ea
 
     @opcode(# Branch if valid twos complement result
@@ -1430,7 +1481,7 @@ class CPU(object):
         raise NotImplementedError("$%x BVS" % opcode)
 
     @opcode(0xf, 0x6f, 0x7f) # CLR (direct, indexed, extended)
-    def instruction_CLR(self, opcode, ea, m):
+    def instruction_CLR(self, opcode, ea):
         """
         Clear memory location
         source code forms: CLR
@@ -1767,7 +1818,7 @@ class CPU(object):
             ea,
             self.cfg.mem_info.get_shortest(ea)
         ))
-        self.push_word(self.program_counter)
+        self.push_word(self._system_stack_pointer, self.program_counter)
         self.program_counter = ea
 
     @opcode(# Load register from memory
@@ -1818,7 +1869,7 @@ class CPU(object):
         0x32, # LEAS (indexed)
         0x33, # LEAU (indexed)
     )
-    def instruction_LEA_pointer(self, opcode, ea, m, register):
+    def instruction_LEA_pointer(self, opcode, ea, register):
         """
         Calculates the effective address from the indexed addressing mode and
         places the address in an indexable register.
@@ -1898,7 +1949,7 @@ class CPU(object):
         self.memory.write_byte(ea, r)
 
     @opcode(0x48, 0x58) # LSLA/ASLA / LSLB/ASLB (inherent)
-    def instruction_LSL_register(self, opcode, ea, register):
+    def instruction_LSL_register(self, opcode, register):
         """
         Logical shift left accumulator / Arithmetic shift of accumulator
         """
@@ -1975,11 +2026,16 @@ class CPU(object):
         self.cc.clear_NZVC()
         self.cc.update_NZVC_8(0, x1, r2)
 
+    _wrong_NEG = 0
     @opcode(0x0, 0x60, 0x70) # NEG (direct, indexed, extended)
     def instruction_NEG_memory(self, opcode, ea, m):
         """ Negate memory """
-#         if opcode == 0x0 and ea == 0x0 and m == 0x0:
-#             raise RuntimeError
+        if opcode == 0x0 and ea == 0x0 and m == 0x0:
+            self._wrong_NEG += 1
+            if self._wrong_NEG > 10:
+                raise RuntimeError
+        else:
+            self._wrong_NEG = 0
         m2 = signed8(m)
         r1 = m2 * -1
         r2 = unsigned8(r1)
@@ -2087,7 +2143,6 @@ class CPU(object):
             self.program_counter,
             old_cc, m, cc, old_cc_info, self.cc.get_info
         ))
-        raise
 
     @opcode(# Branch if lower (unsigned)
         0x25, # BLO/BCS (relative)
@@ -2127,14 +2182,14 @@ class CPU(object):
                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
             ))
 
-    @opcode(# Push A, B, CC, DP, D, X, Y, U, or PC onto hardware stack
+    @opcode(# Push A, B, CC, DP, D, X, Y, U, or PC onto stack
+        0x36, # PSHU (immediate)
         0x34, # PSHS (immediate)
     )
-    def instruction_PSHS(self, opcode, ea, m, register):
+    def instruction_PSH(self, opcode, ea, m, register):
         """
-        All, some, or none of the processor registers are pushed onto the
-        hardware stack (with the exception of the hardware stack pointer
-        itself).
+        All, some, or none of the processor registers are pushed onto stack
+        (with the exception of stack pointer itself).
 
         A single register may be placed on the stack with the condition codes
         set by doing an autodecrement store onto the stack (example: STX ,--S).
@@ -2144,39 +2199,39 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        value = register.get()
-        log.debug("$%x PSHS: Push $%x from %s onto hardware stack" % (
-            self.program_counter,
-            value, register.name
-        ))
-        self.push_word(value)
+        assert register in (self._system_stack_pointer, self.user_stack_pointer)
 
-    @opcode(# Push A, B, CC, DP, D, X, Y, S, or PC onto user stack
-        0x36, # PSHU (immediate)
-    )
-    def instruction_PSHU(self, opcode, ea, register):
-        """
-        All, some, or none of the processor registers are pushed onto the user
-        stack (with the exception of the user stack pointer itself).
+        def push(register_str, stack_pointer):
+            register_obj = self.register_str2object[register_str]
+            data = register_obj.get()
 
-        A single register may be placed on the stack with the condition codes
-        set by doing an autodecrement store onto the stack (example: STX ,--U).
+            if register_obj.WIDTH == 8:
+                self.push_byte(register, data)
+            else:
+                assert register_obj.WIDTH == 16
+                self.push_word(register, data)
 
-        source code forms: b7 b6 b5 b4 b3 b2 b1 b0 PC S Y X DP B A CC push order
-        ->
+        log.debug("$%x PSH%s:", self.program_counter, register.name)
 
-        CC bits "HNZVC": -----
-        """
-        raise NotImplementedError("$%x PSHU" % opcode)
+        # m = postbyte
+        if m & 0x80: push(REG_PC, register) # 16 bit program counter register
+        if m & 0x40: push(REG_U, register) # 16 bit user-stack pointer
+        if m & 0x20: push(REG_Y, register) # 16 bit index register
+        if m & 0x10: push(REG_X, register) # 16 bit index register
+        if m & 0x08: push(REG_DP, register) # 8 bit direct page register
+        if m & 0x04: push(REG_B, register) # 8 bit accumulator
+        if m & 0x02: push(REG_A, register) # 8 bit accumulator
+        if m & 0x01: push(REG_CC, register) # 8 bit condition code register
 
-    @opcode(# Pull A, B, CC, DP, D, X, Y, U, or PC from hardware stack
+
+    @opcode(# Pull A, B, CC, DP, D, X, Y, U, or PC from stack
+        0x37, # PULU (immediate)
         0x35, # PULS (immediate)
     )
-    def instruction_PULS(self, opcode, ea, m, register):
+    def instruction_PUL(self, opcode, ea, m, register):
         """
-        All, some, or none of the processor registers are pulled from the
-        hardware stack (with the exception of the hardware stack pointer
-        itself).
+        All, some, or none of the processor registers are pulled from stack
+        (with the exception of stack pointer itself).
 
         A single register may be pulled from the stack with condition codes set
         by doing an autoincrement load from the stack (example: LDX ,S++).
@@ -2186,31 +2241,32 @@ class CPU(object):
 
         CC bits "HNZVC": ccccc
         """
-        value = register.get()
-        log.debug("$%x PULS: Pull $%x to %s onto hardware stack" % (
-            self.program_counter,
-            value, register.name
-        ))
-        self.pull_word()
+        assert register in (self._system_stack_pointer, self.user_stack_pointer)
 
-    @opcode(# Pull A, B, CC, DP, D, X, Y, S, or PC from hardware stack
-        0x37, # PULU (immediate)
-    )
-    def instruction_PULU(self, opcode, ea, register):
-        """
-        All, some, or none of the processor registers are pulled from the user
-        stack (with the exception of the user stack pointer itself).
+        def pull(register_str, stack_pointer):
+            reg_obj = self.register_str2object[register_str]
 
-        A single register may be pulled from the stack with condition codes set
-        by doing an autoincrement load from the stack (example: LDX ,U++).
+            reg_width = reg_obj.WIDTH # 8 / 16
+            if reg_width == 8:
+                data = self.pull_byte(stack_pointer)
+            else:
+                assert reg_width == 16
+                data = self.pull_word(stack_pointer)
 
-        source code forms: b7 b6 b5 b4 b3 b2 b1 b0 PC S Y X DP B A CC = pull
-        order
+            reg_obj.set(data)
 
-        CC bits "HNZVC": ccccc
-        """
-        raise NotImplementedError("$%x PULU" % opcode)
-        # Update CC bits: ccccc
+        log.debug("$%x PUL%s:", self.program_counter, register.name)
+
+        # m = postbyte
+        if m & 0x01: pull(REG_CC, register) # 8 bit condition code register
+        if m & 0x02: pull(REG_A, register) # 8 bit accumulator
+        if m & 0x04: pull(REG_B, register) # 8 bit accumulator
+        if m & 0x08: pull(REG_DP, register) # 8 bit direct page register
+        if m & 0x10: pull(REG_X, register) # 16 bit index register
+        if m & 0x20: pull(REG_Y, register) # 16 bit index register
+        if m & 0x40: pull(REG_U, register) # 16 bit user-stack pointer
+        if m & 0x80: pull(REG_PC, register) # 16 bit program counter register
+
 
     @opcode(#
         0x3e, # RESET* (inherent)
@@ -2317,7 +2373,7 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        ea = self.pull_word()
+        ea = self.pull_word(self._system_stack_pointer)
         log.debug("$%x RTS to $%x \t| %s" % (
             self.program_counter,
             ea,
@@ -2365,7 +2421,7 @@ class CPU(object):
         0x9f, 0xaf, 0xbf, # STX (direct, indexed, extended)
         0x109f, 0x10af, 0x10bf, # STY (direct, indexed, extended)
     )
-    def instruction_ST16(self, opcode, ea, m, register):
+    def instruction_ST16(self, opcode, ea, register):
         """
         Writes the contents of a 16-bit register into two consecutive memory
         locations.
@@ -2387,7 +2443,7 @@ class CPU(object):
         0x97, 0xa7, 0xb7, # STA (direct, indexed, extended)
         0xd7, 0xe7, 0xf7, # STB (direct, indexed, extended)
     )
-    def instruction_ST8(self, opcode, ea, m, register):
+    def instruction_ST8(self, opcode, ea, register):
         """
         Writes the contents of an 8-bit register into a memory location.
 
@@ -2584,13 +2640,15 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-#         "--verbosity=5",
-        "--verbosity=20",
+        "--verbosity=5",
+#         "--verbosity=20",
+#         "--verbosity=30",
 #         "--verbosity=50",
 #         "--area_debug_active=5:bb79-ffff",
 #         "--cfg=Simple6809Cfg",
         "--cfg=Dragon32Cfg",
-        "--max=1",
+#         "--max=1",
+        "--max=46041",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args).wait()

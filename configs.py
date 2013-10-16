@@ -13,8 +13,8 @@ import os
 import struct
 
 from Dragon32_mem_info import get_dragon_meminfo
-from components.periphery_dragon import get_dragon_periphery
-from components.periphery_simple6809 import get_simple6809_periphery
+from components.periphery_dragon import Dragon32Periphery
+from components.periphery_simple6809 import Simple6809Periphery
 from Simple6809.mem_info import get_simple6809_meminfo
 
 
@@ -50,6 +50,7 @@ class BaseConfig(object):
     STRUCT_TO_PERIPHERY_FORMAT = (# For sending data to periphery
         "<" # little-endian byte order
         "I" # CPU cycles - unsigned int (integer with size: 4)
+        "I" # op code address - unsigned int (integer with size: 4)
         "B" # action: 0 = read, 1 = write - unsigned char (integer with size: 1)
         "B" # structure: 0 = byte, 1 = word - unsigned char (integer with size: 1)
         "H" # Address - unsigned short (integer with size: 2)
@@ -181,7 +182,7 @@ class Dragon32Cfg(BaseConfig):
         if self.verbosity <= logging.INFO:
             self.mem_info = get_dragon_meminfo()
 
-        self.periphery = get_dragon_periphery(self)
+        self.periphery_class = Dragon32Periphery
 
     def get_initial_RAM(self):
         """
@@ -229,7 +230,7 @@ class Simple6809Cfg(BaseConfig):
             self.mem_info = get_simple6809_meminfo()
 
 
-        self.periphery = get_simple6809_periphery(self)
+        self.periphery_class = Simple6809Periphery
 
 
 DEFAULT_CFG = Dragon32Cfg.__name__

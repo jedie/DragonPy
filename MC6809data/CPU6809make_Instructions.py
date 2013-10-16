@@ -144,12 +144,12 @@ SHORT_DESC = {
     "ANDA":"A = A && M",
     "ANDB":"B = B && M",
     "ANDCC":"C = CC && IMM",
-    "ASLA":"Arithmetic shift A left",
-    "ASLB":"Arithmetic shift B left",
-    "ASL":"Arithmetic shift M left",
-    "ASRA":"Arithmetic shift A right",
-    "ASRB":"Arithmetic shift B right",
-    "ASR":"Arithmetic shift M right",
+    "ASLA":"A = Arithmetic shift A left",
+    "ASLB":"B = Arithmetic shift B left",
+    "ASL":"M = Arithmetic shift M left",
+    "ASRA":"A = Arithmetic shift A right",
+    "ASRB":"B = Arithmetic shift B right",
+    "ASR":"M = Arithmetic shift M right",
     "BITA":"Bit Test A (M&&A)",
     "BITB":"Bit Test B (M&&B)",
     "CLRA":"A = 0",
@@ -189,12 +189,12 @@ SHORT_DESC = {
     "LEAU":"U = EA",
     "LEAX":"X = EA",
     "LEAY":"Y = EA",
-    "LSLA":"Logical shift A left",
-    "LSLB":"Logical shift B left",
-    "LSL":"Logical shift M left",
-    "LSRA":"Logical shift A right",
-    "LSRB":"Logical shift B right",
-    "LSR":"Logical shift M right",
+    "LSLA":"A = Logical shift A left",
+    "LSLB":"B = Logical shift B left",
+    "LSL":"M = Logical shift M left",
+    "LSRA":"A = Logical shift A right",
+    "LSRB":"B = Logical shift B right",
+    "LSR":"M = Logical shift M right",
     "MUL":"D = A*B (Unsigned)",
     "NEGA":"A = !A + 1",
     "NEGB":"B = !B + 1",
@@ -207,12 +207,12 @@ SHORT_DESC = {
     "PSHU":"U -= 1: MEM(U) = R; Push Register on U Stack",
     "PULS":"R=MEM(S) : S += 1; Pull register from S Stack",
     "PULU":"R=MEM(U) : U += 1; Pull register from U Stack",
-    "ROLA":"Rotate A left thru carry",
-    "ROLB":"Rotate B left thru carry",
-    "ROL":"Rotate M left thru carry",
-    "RORA":"Rotate A Right thru carry",
-    "RORB":"Rotate B Right thru carry",
-    "ROR":"Rotate M Right thru carry",
+    "ROLA":"A = Rotate A left thru carry",
+    "ROLB":"B = Rotate B left thru carry",
+    "ROL":"M = Rotate M left thru carry",
+    "RORA":"A = Rotate A Right thru carry",
+    "RORB":"B = Rotate B Right thru carry",
+    "ROR":"M = Rotate M Right thru carry",
     "RTI":"Return from Interrupt",
     "RTS":"Return from subroutine",
     "SBCA":"A = A - M - C",
@@ -240,6 +240,10 @@ SHORT_DESC = {
     "PAGE1+":"Page 1 Instructions prefix",
     "PAGE2+":"Page 2 Instructions prefix",
 }
+
+NO_MEM_READ = (
+    "PSHS", "PSHU", "PULS", "PULU",
+)
 
 #------------------------------------------------------------------------------
 
@@ -829,6 +833,23 @@ for line in txt.splitlines():
     except KeyError:
         mnemonic_desc = instr_desc
 
+
+    write = read = False
+    try:
+        before, after = mnemonic_desc.split("=", 1)
+    except ValueError:
+        if "M" in mnemonic_desc:
+            read = True
+    else:
+        if "M" in before:
+            write = True
+
+        if "M" in after and instruction not in NO_MEM_READ:
+            read = True
+
+    print mnemonic_desc, "read: %s - write: %s" % (read, write)
+
+
     raw_cycles = sections[3]
     try:
         cycles = int(raw_cycles)
@@ -858,6 +879,7 @@ for line in txt.splitlines():
     addr_mode = ADDRES_MODE_DICT[sections[2].upper()]
 
     if addr_mode == IMMEDIATE:
+        read = True
         mem_access = MEM_ACCESS_BYTE
 
     if opcode in OVERWRITE_DATA:
@@ -893,6 +915,8 @@ for line in txt.splitlines():
         "register": register,
         "addr_mode": addr_mode,
         "mem_access": mem_access,
+        "mem_read": read,
+        "mem_write": write,
         "example": operation_example,
         "cycles": cycles,
         "bytes": bytes,
@@ -903,6 +927,10 @@ for line in txt.splitlines():
     pprint.pprint(instr_info)
     if bytes == 1:
         assert mem_access == False
+
+    if mem_access == False:
+        assert read == False
+
     print "-"*79
     opcodes.append(opcode_data)
     categoriesed_opcodes.setdefault(category_id, []).append(opcode_data)
@@ -964,6 +992,7 @@ for key, data in sorted(INSTRUCTION_INFO.items()):
     if "addressing mode" in data:
         del(data["addressing mode"])
 
+# sys.exit()
 
 def pformat(item):
     txt = pprint.pformat(item, indent=4, width=80)
@@ -1066,6 +1095,7 @@ for category_id, category in categories.items():
             ADDRES_MODE_DICT[opcode["addr_mode"]], opcode["cycles"], opcode["bytes"]
         )
 
+
         mem_access = opcode["mem_access"]
         if mem_access != False:
             operation_example = opcode["example"]
@@ -1076,6 +1106,11 @@ for category_id, category in categories.items():
             print '        "mem_access": %s,%s' % (
                 mem_access, example,
             )
+
+        print '        "mem_read": %s, "mem_write": %s,' % (
+            opcode["mem_read"], opcode["mem_write"]
+        )
+
 
         register = opcode["register"]
         if register:

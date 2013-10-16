@@ -24,15 +24,24 @@ class UnittestCmdArgs(object):
     verbosity = None
     max = None
     area_debug_active = None
-    
+
 
 class BaseTestCase(unittest.TestCase):
+    # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4462
+    INITIAL_SYSTEM_STACK_ADDR = 0x7f36
+    INITIAL_USER_STACK_ADDR = 0x82ec
+
     def setUp(self):
         cmd_args = UnittestCmdArgs
         cfg = Dragon32Cfg(cmd_args)
         self.assertFalse(cfg.use_bus)
         cfg.mem_info = DragonMemInfo(log.debug)
         self.cpu = CPU(cfg)
+
+
+        self.cpu._system_stack_pointer.set(self.INITIAL_SYSTEM_STACK_ADDR)
+        self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
+
 
     def cpu_test_run(self, start, end, mem):
         for cell in mem:
@@ -237,15 +246,11 @@ class Test6809_Ops(BaseTestCase):
         self.assertEqual(self.cpu.cc.get(), 0x55) # destination
 
     def test_TFR03(self):
-        self.cpu.index_y = 0x12 # source
-        self.cpu.program_counter = 0 # destination
-
-        self.cpu_test_run(start=0x1000, end=0x12, mem=[
-            0x9E, 0x12, # LDX $12 (direct)
-            0x1f, # TFR
-            0x15, # from X (0x1) to PC (0x5)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x10, 0x8e, 0x12, 0x34, # LDY Y=$1234
+            0x1f, 0x20, # TFR  Y,D
         ])
-        self.assertEqual(self.cpu.program_counter, 0x12) # destination
+        self.assertEqualHex(self.cpu.accu_d.get(), 0x1234) # destination
 
     def test_ADDA_extended01(self):
         self.cpu_test_run(start=0x1000, end=0x1003, mem=[
@@ -353,6 +358,102 @@ class Test6809_Ops2(BaseTestCase):
         self.cpu_test_run(start=0x4000, end=None, mem=[0xFC, 0x50, 0x00]) # LDD $5000 (Extended)
         self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
 
+class Test6809_Stack(BaseTestCase):
+    def test_PushPullSytemStack_01(self):
+        self.assertEqualHex(
+            self.cpu.system_stack_pointer,
+            self.INITIAL_SYSTEM_STACK_ADDR
+        )
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0x1a, # LDA A=$1a
+            0x34, 0x02, # PSHS A
+        ])
+
+        self.assertEqualHex(
+            self.cpu.system_stack_pointer,
+            self.INITIAL_SYSTEM_STACK_ADDR - 1 # Byte added
+        )
+
+        self.assertEqualHex(self.cpu.accu_a.get(), 0x1a)
+
+        self.cpu.accu_a.set(0xee)
+
+        self.assertEqualHex(self.cpu.accu_b.get(), 0x00)
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x35, 0x04, # PULS B  ;  B gets the value from A = 1a
+        ])
+
+        self.assertEqualHex(
+            self.cpu.system_stack_pointer,
+            self.INITIAL_SYSTEM_STACK_ADDR # Byte removed
+        )
+
+        self.assertEqualHex(self.cpu.accu_a.get(), 0xee)
+        self.assertEqualHex(self.cpu.accu_b.get(), 0x1a)
+
+    def test_PushPullSystemStack_02(self):
+        self.assertEqualHex(
+            self.cpu.system_stack_pointer,
+            self.INITIAL_SYSTEM_STACK_ADDR
+        )
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0xab, # LDA A=$ab
+            0x34, 0x02, # PSHS A
+            0x86, 0x02, # LDA A=$02
+            0x34, 0x02, # PSHS A
+            0x86, 0xef, # LDA A=$ef
+        ])
+        self.assertEqualHex(self.cpu.accu_a.get(), 0xef)
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x35, 0x04, # PULS B
+        ])
+        self.assertEqualHex(self.cpu.accu_a.get(), 0xef)
+        self.assertEqualHex(self.cpu.accu_b.get(), 0x02)
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x35, 0x02, # PULS A
+        ])
+        self.assertEqualHex(self.cpu.accu_a.get(), 0xab)
+        self.assertEqualHex(self.cpu.accu_b.get(), 0x02)
+
+        self.assertEqualHex(
+            self.cpu.system_stack_pointer,
+            self.INITIAL_SYSTEM_STACK_ADDR
+        )
+
+    def test_PushPullSystemStack_03(self):
+        self.assertEqualHex(
+            self.cpu.system_stack_pointer,
+            self.INITIAL_SYSTEM_STACK_ADDR
+        )
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0xcc, 0x12, 0x34, # LDD D=$1234
+            0x34, 0x06, # PSHS B,A
+            0xcc, 0xab, 0xcd, # LDD D=$abcd
+            0x34, 0x06, # PSHS B,A
+            0xcc, 0x54, 0x32, # LDD D=$5432
+        ])
+        self.assertEqualHex(self.cpu.accu_d.get(), 0x5432)
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x35, 0x06, # PULS B,A
+        ])
+        self.assertEqualHex(self.cpu.accu_d.get(), 0xabcd)
+        self.assertEqualHex(self.cpu.accu_a.get(), 0xab)
+        self.assertEqualHex(self.cpu.accu_b.get(), 0xcd)
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x35, 0x06, # PULS B,A
+        ])
+        self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
+
+
+
 class TestDragon32ROM(BaseTestCase):
     """
     use routines from Dragon 32 ROM
@@ -389,13 +490,14 @@ if __name__ == '__main__':
     log = logging.getLogger("DragonPy")
     log.setLevel(
 #         logging.ERROR
-        logging.INFO
-#         logging.WARNING
+        logging.WARNING
+#         logging.INFO
 #         logging.DEBUG
     )
     log.addHandler(logging.StreamHandler())
 
-
+    # XXX: Disable hacked XRoar trace
+    import cpu6809; cpu6809.trace_file = None
 
     unittest.main(
         argv=(
@@ -410,9 +512,11 @@ if __name__ == '__main__':
 #             "Test6809_AddressModes",
 #             "Test6809_Ops2",
 #             "Test6809_Ops2.test_TFR_CC_B",
+#              "Test6809_Stack",
+#              "Test6809_Stack.test_PushPullSystemStack_03",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
         verbosity=2,
-        failfast=True,
+#         failfast=True,
     )

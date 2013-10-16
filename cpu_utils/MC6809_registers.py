@@ -60,6 +60,8 @@ class ValueStorage(object):
 
 
 class ValueStorage8Bit(ValueStorage):
+    WIDTH = 8
+
     def set(self, v):
         if v > 0xff:
             log.info(" **** Value $%x is to big for %s (8-bit)" % (v, self.name))
@@ -76,6 +78,8 @@ class ValueStorage8Bit(ValueStorage):
 
 
 class ValueStorage16Bit(ValueStorage):
+    WIDTH = 16
+
     def set(self, v):
         if v > 0xffff:
             log.info(" **** Value $%x is to big for %s (16-bit)" % (v, self.name))

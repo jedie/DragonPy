@@ -108,6 +108,9 @@ class Memory(object):
             self.ram.load(address, data)
 
     def read_byte(self, address):
+        log.debug("%04x| (%i) read byte from $%x",
+            self.cpu.last_op_address, self.cpu.cycles, address
+        )
         self.cpu.cycles += 1
 
         if address in self.cfg.bus_addr_areas:
@@ -141,6 +144,9 @@ class Memory(object):
         return self.read_byte(address + 1) + (self.read_byte(address) << 8)
 
     def write_byte(self, address, value):
+        log.debug("%04x| (%i) write byte $%x from $%x",
+            self.cpu.last_op_address, self.cpu.cycles, value, address
+        )
         self.cpu.cycles += 1
         
         assert 0x0 <= value <= 0xff, "Write out of range value $%x to $%x" % (value, address)
@@ -184,6 +190,7 @@ class Memory(object):
 
         args = (
             self.cpu.cycles,
+            self.cpu.last_op_address,
             action, # 0 = read, 1 = write
             structure, # 0 = byte, 1 = word
             address,
