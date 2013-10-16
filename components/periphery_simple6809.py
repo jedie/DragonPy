@@ -13,40 +13,25 @@
 
 import logging
 import sys
+import Tkinter
+import os
+import pty
+import serial
 
 log = logging.getLogger("DragonPy.Periphery")
 
-import os, pty, serial
+handler = logging.StreamHandler()
+handler.level = logging.DEBUG
+log.handlers = (handler,)
 
 
-class Simple6809Periphery(object):
+
+class Simple6809PeripheryBase(object):
     def __init__(self, cfg):
         self.cfg = cfg
         self.address2func_map = {
             0xbffe: self.reset_vector,
         }
-
-        self.master, slave = pty.openpty()
-        s_name = os.ttyname(slave)
-
-        log.log(100, "Serial name: %s" % s_name)
-
-        # http://pyserial.sourceforge.net/pyserial_api.html
-        self.serial = serial.Serial(
-            port=s_name, # Device name or port number number or None.
-            baudrate=115200, # Baud rate such as 9600 or 115200 etc.
-            bytesize=serial.SEVENBITS, # Number of data bits. Possible values: FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS
-#             parity= ... #Enable parity checking. Possible values: PARITY_NONE, PARITY_EVEN, PARITY_ODD PARITY_MARK, PARITY_SPACE
-#             stopbits= ... #Number of stop bits. Possible values: STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO
-             timeout=0, # non-blocking mode (return immediately on read)
-#             xonxoff= ... #Enable software flow control.
-            rtscts=True, # Enable hardware (RTS/CTS) flow control.
-#             dsrdtr= ... #Enable hardware (DSR/DTR) flow control.
-#             writeTimeout= ... #Set a write timeout value.
-#             interCharTimeout= ... #Inter-character timeout, None to disable (default).
-        )
-        log.log(100, repr(self.serial.getSettingsDict()))
-#         self.serial.setRTS()
 
     def read_byte(self, cpu_cycles, op_address, address):
         log.debug(
@@ -80,6 +65,50 @@ class Simple6809Periphery(object):
 
     def cycle(self, cpu_cycles, op_address):
         log.debug("TODO: Simple6809Periphery.cycle")
+
+
+    def read_rs232_interface(self, cpu_cycles, op_address, address):
+        raise NotImplementedError
+
+    def write_rs232_interface(self, cpu_cycles, op_address, address, value):
+        raise NotImplementedError
+
+    def reset_vector(self, address):
+        return 0xdb46
+
+
+class Simple6809PeripherySerial(Simple6809PeripheryBase):
+    def __init__(self, cfg):
+        super(Simple6809PeripherySerial, self).__init__(cfg)
+
+        self.master, slave = pty.openpty()
+        s_name = os.ttyname(slave)
+
+        print "Serial name: %s" % s_name
+
+        # http://pyserial.sourceforge.net/pyserial_api.html
+        self.serial = serial.Serial(
+            port=s_name, # Device name or port number number or None.
+            baudrate=115200, # Baud rate such as 9600 or 115200 etc.
+#             bytesize=serial.SEVENBITS, # Number of data bits. Possible values: FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS
+#             parity= ... #Enable parity checking. Possible values: PARITY_NONE, PARITY_EVEN, PARITY_ODD PARITY_MARK, PARITY_SPACE
+#             stopbits= ... #Number of stop bits. Possible values: STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO
+#              timeout=0, # non-blocking mode (return immediately on read)
+#              timeout=None, # wait forever
+#             xonxoff= ... #Enable software flow control.
+#             rtscts=True, # Enable hardware (RTS/CTS) flow control.
+#             dsrdtr= ... #Enable hardware (DSR/DTR) flow control.
+#             writeTimeout= ... #Set a write timeout value.
+#             interCharTimeout= ... #Inter-character timeout, None to disable (default).
+        )
+        log.log(100, repr(self.serial.getSettingsDict()))
+        print "Please connect, e.g.: 'screen %s'" % s_name
+        print "(ENTER to continue!)"
+        sys.stdout.flush() # for eclipse :(
+        raw_input()
+
+        self.serial.write("Welcome to DragonPy") # write to pty
+        self.serial.flush() # wait until all data is written
 
 
     def read_rs232_interface(self, cpu_cycles, op_address, address):
@@ -195,10 +224,104 @@ dbc4 20 04                        BRA  LA0F3                      GO TO BASIC'S 
             op_address, cpu_cycles, address, value, value, chr(value)
         ))
         self.serial.write(chr(value)) # write to pty
+        self.serial.flush() # wait until all data is written
 
-    def reset_vector(self, address):
-        return 0xdb46
 
+class Simple6809PeripheryTk(Simple6809PeripheryBase):
+    def __init__(self, cfg):
+        super(Simple6809PeripheryTk, self).__init__(cfg)
+        self.root = Tkinter.Tk()
+        self.root.title("DragonPy - Simple 6809")
+
+        # http://www.tutorialspoint.com/python/tk_text.htm
+        self.text = Tkinter.Text(self.root)
+
+        self.text.pack()
+        self.text.bind("<Return>", self.from_console)
+        self.root.update()
+
+        self.last_line = None
+
+    def from_console(self, event):
+        cursor = self.text.index("insert")
+        line, pos = cursor.split(".")
+        line = self.text.get("%s.0" % line, "%s.end" % line)
+        self.last_line = list(line)
+        log.error("Set last line to: %s", repr(self.last_line))
+
+    def cycle(self, cpu_cycles, op_address):
+        self.root.update()
+
+    def read_rs232_interface(self, cpu_cycles, op_address, address):
+        """
+                        *
+                        * THIS ROUTINE GETS A KEYSTROKE FROM THE KEYBOARD IF A KEY
+                        * IS DOWN. IT RETURNS ZERO TRUE IF THERE WAS NO KEY DOWN.
+                        *
+                        *
+                        LA1C1
+db05 b6 a0 00           KEYIN     LDA  a000(USTAT)
+db08 85 01                        BITA #1
+db0a 27 06                        BEQ  NOCHAR
+db0c b6 a0 01                     LDA  a001(RECEV)
+db0f 84 7f                        ANDA #$7F
+db11 39                           RTS
+db12 4f                 NOCHAR    CLRA
+db13 39                           RTS
+        """
+        log.debug(
+#         log.error(
+            "%04x| (%i) read from RS232 address: $%x",
+            op_address, cpu_cycles, address,
+        )
+
+        if address == 0xa000:
+            return 0xff
+#             if self.last_line is None:
+#                 self.last_line = []
+#                 log.error("RS232: init")
+#                 return 0xff
+#
+#             if self.last_line:
+#                 log.info(
+# #                 log.error(
+#                     "RS232: chars in buffer: %s", repr(self.last_line)
+#                 )
+#                 return 0xff
+#             else:
+#                 log.debug(
+# #                 log.error(
+#                     "RS232: no char to send."
+#                 )
+#                 # no char to send
+#                 return 0x0
+
+        if self.last_line:
+            char = self.last_line.pop(0)
+            value = ord(char)
+            log.error("%04x| (%i) read from RS232 address: $%x, send back %r $%x",
+                op_address, cpu_cycles, address, char, value
+            )
+            return value
+
+        return 0x0
+        
+    def write_rs232_interface(self, cpu_cycles, op_address, address, value):
+        log.error("%04x| (%i) write to RS232 address: $%x value: $%x (dez.: %i) ASCII: %r" % (
+            op_address, cpu_cycles, address, value, value, chr(value)
+        ))
+        if address == 0xa000:
+            return 0xff
+
+        char = chr(value)
+        if char == "\r": # ignore
+            return
+
+        self.text.insert("end", char)
+
+
+# Simple6809Periphery = Simple6809PeripherySerial
+Simple6809Periphery = Simple6809PeripheryTk
 
 
 def test_run():
@@ -206,11 +329,15 @@ def test_run():
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
 #         "--verbosity=5",
+#         "--verbosity=10",
 #         "--verbosity=20",
         "--verbosity=30",
+#         "--verbosity=40",
+#         "--verbosity=50",
         "--cfg=Simple6809Cfg",
-#         "--max=50000",
-        "--max=20000",
+#         "--max=100000",
+#         "--max=30000",
+#         "--max=20000",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()
