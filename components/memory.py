@@ -27,7 +27,9 @@ import socket
 import struct
 
 log = logging.getLogger("DragonPy.memory")
-
+handler = logging.StreamHandler()
+handler.level = logging.DEBUG
+log.handlers = (handler,)
 
 class ROM(object):
 
@@ -144,9 +146,13 @@ class Memory(object):
         return self.read_byte(address + 1) + (self.read_byte(address) << 8)
 
     def write_byte(self, address, value):
-        log.debug("%04x| (%i) write byte $%x from $%x",
+        log.debug("%04x| (%i) write byte $%x at $%x",
             self.cpu.last_op_address, self.cpu.cycles, value, address
         )
+        if 32 <= value <= 126:
+            log.info("%04x| (%i) write char %r ($%x) at $%x",
+                self.cpu.last_op_address, self.cpu.cycles, chr(value), value, address
+            )
         self.cpu.cycles += 1
         
         assert 0x0 <= value <= 0xff, "Write out of range value $%x to $%x" % (value, address)
@@ -232,19 +238,19 @@ class Memory(object):
         self._bus_communication(structure, address, value)
 
     def bus_read_byte(self, address):
-        log.info(" **** bus read byte from $%x" % (address))
+        log.debug(" **** bus read byte from $%x" % (address))
         return self._bus_read(self.cfg.BUS_STRUCTURE_BYTE, address)
 
     def bus_read_word(self, address):
-        log.info(" **** bus read word from $%x" % (address))
+        log.debug(" **** bus read word from $%x" % (address))
         return self._bus_read(self.cfg.BUS_STRUCTURE_WORD, address)
 
     def bus_write_byte(self, address, value):
-        log.info(" **** bus write byte $%x to $%x" % (value, address))
+        log.debug(" **** bus write byte $%x to $%x" % (value, address))
         return self._bus_write(self.cfg.BUS_STRUCTURE_BYTE, address, value)
 
     def bus_write_word(self, address, value):
-        log.info(" **** bus write word $%x to $%x" % (value, address))
+        log.debug(" **** bus write word $%x to $%x" % (value, address))
         return self._bus_write(self.cfg.BUS_STRUCTURE_WORD, address, value)
 
 
