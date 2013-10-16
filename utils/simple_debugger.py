@@ -19,6 +19,9 @@ def print_exc_plus():
     Print the usual traceback information, followed by a listing of all the
     local variables in each frame.
     """
+    sys.stderr.flush() # for eclipse
+    sys.stdout.flush() # for eclipse
+
     tb = sys.exc_info()[2]
     while 1:
         if not tb.tb_next:
