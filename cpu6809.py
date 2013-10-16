@@ -1031,7 +1031,7 @@ class CPU(object):
     @opcode(# Add memory to D accumulator
         0xc3, 0xd3, 0xe3, 0xf3, # ADDD (immediate, direct, indexed, extended)
     )
-    def instruction_ADD16(self, opcode, ea, register):
+    def instruction_ADD16(self, opcode, ea, m, register):
         """
         Adds the 16-bit memory value into the 16-bit accumulator
 
@@ -1039,8 +1039,19 @@ class CPU(object):
 
         CC bits "HNZVC": -aaaa
         """
-        raise NotImplementedError("$%x ADD16" % opcode)
-        # self.cc.update_NZVC_16(a, b, r)
+        assert register.WIDTH == 16
+        x1 = register.get()
+#         x2 = signed8(x1)
+        r1 = x1 + m
+        r2 = unsigned8(r1)
+        register.set(r2)
+        log.debug("$%x %02x %02x ADD16 %s: %i + %i = %i (signed: %i)" % (
+            self.program_counter, opcode, m,
+            register.name,
+            x1, m, r2, r1,
+        ))
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_16(x1, m, r1)
 
     @opcode(# Add memory to accumulator
         0x8b, 0x9b, 0xab, 0xbb, # ADDA (immediate, direct, indexed, extended)
