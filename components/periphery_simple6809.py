@@ -208,7 +208,7 @@ dbc4 20 04                        BRA  LA0F3                      GO TO BASIC'S 
         """
         if address == 0xa000:
             return 0xff
-        
+
         if value == 0x95:
             # RTS low:
             log.error("%04x| (%i) set RTS low",
@@ -234,22 +234,39 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
         self.root.title("DragonPy - Simple 6809")
 
         # http://www.tutorialspoint.com/python/tk_text.htm
-        self.text = Tkinter.Text(self.root)
+        self.text = Tkinter.Text(
+            self.root, # state=Tkinter.DISABLED
+        )
 
         self.text.pack()
-        self.text.bind("<Return>", self.from_console)
+        self.root.bind("<Return>", self.event_return)
+        self.root.bind("<Escape>", self.from_console_break)
+        self.root.bind("<Key>", self.event_key_pressed)
+
         self.root.update()
 
-        self.last_line = None
+        self.line_buffer = []
 
-    def from_console(self, event):
-        cursor = self.text.index("insert")
-        line, pos = cursor.split(".")
-        line = self.text.get("%s.0" % line, "%s.end" % line)
-        self.last_line = list(line)
-        log.error("Set last line to: %s", repr(self.last_line))
+    def event_return(self, event):
+        log.error("ENTER: add \\r")
+        self.line_buffer.append("\r")
+
+    def from_console_break(self, event):
+        log.error("BREAK: add 0x03")
+        # dc61 81 03              LA3C2     CMPA #3             BREAK KEY?
+        self.line_buffer.append("\x03")
+
+    def event_key_pressed(self, event):
+        log.error("keycode %s", repr(event.keycode))
+        char = event.char
+        log.error("char %s", repr(char))
+        if char:
+            char = char.upper()
+            log.error("Send %s", repr(char))
+            self.line_buffer.append(char)
 
     def cycle(self, cpu_cycles, op_address):
+        self.root.focus_set() # FIXME: make textbox "read-only"
         self.root.update()
 
     def read_rs232_interface(self, cpu_cycles, op_address, address):
@@ -276,28 +293,15 @@ db13 39                           RTS
         )
 
         if address == 0xa000:
-            return 0xff
-#             if self.last_line is None:
-#                 self.last_line = []
-#                 log.error("RS232: init")
-#                 return 0xff
-#
-#             if self.last_line:
-#                 log.info(
-# #                 log.error(
-#                     "RS232: chars in buffer: %s", repr(self.last_line)
-#                 )
-#                 return 0xff
+#             if self.line_buffer:
+#                 value = 0x00
 #             else:
-#                 log.debug(
-# #                 log.error(
-#                     "RS232: no char to send."
-#                 )
-#                 # no char to send
-#                 return 0x0
+            value = 0xff
+#             log.error("read 0xa000, send $%x", value)
+            return value
 
-        if self.last_line:
-            char = self.last_line.pop(0)
+        if self.line_buffer:
+            char = self.line_buffer.pop(0)
             value = ord(char)
             log.error("%04x| (%i) read from RS232 address: $%x, send back %r $%x",
                 op_address, cpu_cycles, address, char, value
@@ -305,18 +309,21 @@ db13 39                           RTS
             return value
 
         return 0x0
-        
+
     def write_rs232_interface(self, cpu_cycles, op_address, address, value):
         log.error("%04x| (%i) write to RS232 address: $%x value: $%x (dez.: %i) ASCII: %r" % (
             op_address, cpu_cycles, address, value, value, chr(value)
         ))
         if address == 0xa000:
-            return 0xff
+            value = 0xff
+            log.error("write 0xa000, send $%x", value)
+            return value
 
         char = chr(value)
         if char == "\r": # ignore
             return
 
+        log.error("add %r" % char)
         self.text.insert("end", char)
 
 
