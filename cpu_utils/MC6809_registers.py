@@ -291,6 +291,8 @@ class ConcatenatedAccumulator(object):
     """
     6809 has register D - 16 bit concatenated reg. (A + B)
     """
+    WIDTH = 16 # 16 Bit
+
     def __init__(self, name, a, b):
         self.name = name
         self._a = a
