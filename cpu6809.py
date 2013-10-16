@@ -2105,7 +2105,7 @@ class CPU(object):
         0x8a, 0x9a, 0xaa, 0xba, # ORA (immediate, direct, indexed, extended)
         0xca, 0xda, 0xea, 0xfa, # ORB (immediate, direct, indexed, extended)
     )
-    def instruction_OR(self, opcode, ea, register):
+    def instruction_OR(self, opcode, ea, m, register):
         """
         Performs an inclusive OR operation between the contents of accumulator A
         or B and the contents of memory location M and the result is stored in
@@ -2115,8 +2115,13 @@ class CPU(object):
 
         CC bits "HNZVC": -aa0-
         """
-        raise NotImplementedError("$%x OR" % opcode)
-        # self.cc.update_NZ0()
+        a = register.get()
+        r = a | m
+        register.set(r)
+        self.cc.update_NZ0_8(r)
+        log.debug("\tOR %s: %i | %i = %i",
+            register.name, a, m, r
+        )
 
     @opcode(# OR condition code register
         0x1a, # ORCC (immediate)
