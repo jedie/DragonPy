@@ -2610,14 +2610,14 @@ class CPU(object):
         self.cc.update_NZ0_8(x)
 
     @opcode(0xd, 0x6d) # TST (direct, indexed)
-    def instruction_TST_memory_8(self, opcode, ea):
+    def instruction_TST_memory_8(self, opcode, ea, m):
         """ Test memory location 8-Bit """
-        self.cc.update_NZ0_8(ea)
+        self.cc.update_NZ0_8(m)
 
     @opcode(0x7d) # TST extended
-    def instruction_TST_memory_16(self, opcode, ea):
+    def instruction_TST_memory_16(self, opcode, ea, m):
         """ Test memory location 16-Bit """
-        self.cc.update_NZ0_16(ea)
+        self.cc.update_NZ0_16(m)
 
 
 def test_run():
