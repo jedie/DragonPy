@@ -339,7 +339,12 @@ class Instruction(object):
                 if self.opcode in (0x10, 0x11): # PAGE 1/2 instructions
                     return
 
-                ref_line = trace_file.readline().strip()
+                ref_line = trace_file.readline()
+                if ref_line == "":
+                    log.error("no XRoar log line (CPU cycles: %i)", self.cpu.cycles)
+                    return
+
+                ref_line = ref_line.strip()
 
                 # Add CC register info, e.g.: .F.IN..C
                 xroar_cc = int(ref_line[49:51], 16)
