@@ -47,6 +47,12 @@ MC6809OP_DATA_DICT = dict(
     [(op["opcode"], op)for op in MC6809data.OP_DATA]
 )
 
+def activate_full_debug_logging():
+    log2 = logging.getLogger("DragonPy")
+    handler = logging.StreamHandler()
+    handler.level = 5
+    log2.handlers = (handler,)
+
 
 def signed5(x):
     """ convert to signed 5-bit """
@@ -318,9 +324,7 @@ class Instruction(object):
             self.instr_func(**op_kwargs)
         except Exception, err:
             # Display the op information log messages
-            handler = logging.StreamHandler()
-            handler.level = logging.DEBUG
-            log.handlers = (handler,)
+            activate_full_debug_logging()
             log.info("Activate debug at $%x", self.cpu.last_op_address)
 
             # raise the error later, after op information log messages
@@ -329,14 +333,11 @@ class Instruction(object):
         else:
             etype = None
 
-        # XXX: remove this temp hack
-        if self.cpu.cfg.__class__.__name__ == "Simple6809Cfg":
-            if self.data["mnemonic"] == "BEQ":
-                if op_kwargs["ea"] == 0xeb10:
-                    log2 = logging.getLogger("DragonPy")
-                    handler = logging.StreamHandler()
-                    handler.level = 5
-                    log2.handlers = (handler,)
+#         # XXX: remove this temp hack
+#         if self.cpu.cfg.__class__.__name__ == "Simple6809Cfg":
+#             if self.data["mnemonic"] == "BEQ":
+#                 if op_kwargs["ea"] == 0xeb10:
+#                     activate_full_debug_logging()
 
         self.cpu.cycles += self.data["cycles"]
 
@@ -647,6 +648,12 @@ class CPU(object):
     same_op_count = 0
     last_op_code = None
     def call_instruction_func(self, op_address, opcode):
+
+        if self.last_op_address == op_address:
+            # endless loop?
+            activate_full_debug_logging()
+
+        old_op_address = self.last_op_address
         self.last_op_address = op_address
         try:
             instruction = self.opcode_dict[opcode]
@@ -656,6 +663,8 @@ class CPU(object):
             sys.exit(msg)
 
         instruction.call_instr_func()
+
+        assert op_address != old_op_address, "Endless loop!"
 
     @opcode(
         0x10, # PAGE1+ instructions
