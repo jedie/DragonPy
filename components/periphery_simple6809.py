@@ -319,16 +319,21 @@ db13 39                           RTS
             log.error("write 0xa000, send $%x", value)
             return value
 
-        char = chr(value)
-        if char == "\r": # ignore
+        if value == 0xd: # == \r
             log.error("ignore insert \\r")
             return
+        elif value == 0x8: # Backspace
+            self.text.config(state=Tkinter.NORMAL)
+            # delete last character
+            self.text.delete("%s - 1 chars" % Tkinter.INSERT, Tkinter.INSERT)
+            self.text.config(state=Tkinter.DISABLED) # FIXME: make textbox "read-only"
+            return
 
-        log.error("add %r" % char)
+        char = chr(value)
 
         self.text.config(state=Tkinter.NORMAL)
         self.text.insert("end", char)
-        self.text.config(state=Tkinter.DISABLED) # # FIXME: make textbox "read-only"
+        self.text.config(state=Tkinter.DISABLED) # FIXME: make textbox "read-only"
 
 
 # Simple6809Periphery = Simple6809PeripherySerial
