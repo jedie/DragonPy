@@ -330,7 +330,7 @@ class Instruction(object):
             etype = None
 
         # XXX: remove this temp hack
-        if self.cfg.__class__.__name__ == "Simple6809Cfg":
+        if self.cpu.cfg.__class__.__name__ == "Simple6809Cfg":
             if self.data["mnemonic"] == "BEQ":
                 if op_kwargs["ea"] == 0xeb10:
                     log2 = logging.getLogger("DragonPy")
