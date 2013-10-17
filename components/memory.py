@@ -27,9 +27,7 @@ import socket
 import struct
 
 log = logging.getLogger("DragonPy.memory")
-handler = logging.StreamHandler()
-handler.level = logging.DEBUG
-log.handlers = (handler,)
+
 
 class ROM(object):
 
@@ -110,15 +108,15 @@ class Memory(object):
             self.ram.load(address, data)
 
     def read_byte(self, address):
-        log.debug("%04x| (%i) read byte from $%x",
-            self.cpu.last_op_address, self.cpu.cycles, address
-        )
         self.cpu.cycles += 1
 
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
             byte = self.bus_read_byte(address)
-            log.debug("\tread byte $%x from address $%x from bus: %s", byte, address, info)
+            log.debug("%04x| (%i) read byte $%x from address $%x from bus: %s",
+                self.cpu.last_op_address, self.cpu.cycles,
+                byte, address, info
+            )
             return byte
 
         if address < self.cfg.RAM_END:
@@ -133,7 +131,10 @@ class Memory(object):
 #             raise RuntimeError(msg2)
             byte = 0x0
 
-        log.debug("\tread byte $%x from $%x", byte, address)
+        log.debug("%04x| (%i) read byte $%x from $%x",
+            self.cpu.last_op_address, self.cpu.cycles,
+            byte, address
+        )
         return byte
 
     def read_word(self, address):
@@ -239,7 +240,13 @@ class Memory(object):
 
     def bus_read_byte(self, address):
         log.debug(" **** bus read byte from $%x" % (address))
-        return self._bus_read(self.cfg.BUS_STRUCTURE_BYTE, address)
+        value = self._bus_read(self.cfg.BUS_STRUCTURE_BYTE, address)
+#         if address == 0xa001 and value == 0xd: # 0xd == \r
+#             log2 = logging.getLogger("DragonPy")
+#             handler = logging.StreamHandler()
+#             handler.level = logging.DEBUG
+#             log2.handlers = (handler,)
+        return value
 
     def bus_read_word(self, address):
         log.debug(" **** bus read word from $%x" % (address))
@@ -258,8 +265,16 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-        "--verbosity=5",
+#         "--verbosity=5",
+#         "--verbosity=10",
+#         "--verbosity=20",
+#         "--verbosity=30",
+#         "--verbosity=40",
+        "--verbosity=50",
         "--cfg=Simple6809Cfg",
+#         "--max=100000",
+#         "--max=30000",
+#         "--max=20000",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()

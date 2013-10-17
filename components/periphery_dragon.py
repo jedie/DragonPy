@@ -118,7 +118,7 @@ class Dragon32Periphery(object):
             address, cpu_cycles,
             self.cfg.mem_info.get_shortest(address)
         )
-        log.debug(msg)
+        log.error(msg)
 #         raise NotImplementedError(msg)
         return 0x00
 

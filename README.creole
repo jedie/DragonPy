@@ -2,8 +2,8 @@
 
 A Open source (GPL v3 or later) emulator for the 30years old homecomputer {{{Dragon 32}}}...
 
-It's in a eary developement state and not useable, yet.
-A useable Dragon / CoCo emulator is [[http://www.6809.org.uk/dragon/xroar.shtml|XRoar]].
+It's in a eary development state and not usable, yet.
+A usable Dragon / CoCo emulator is [[http://www.6809.org.uk/dragon/xroar.shtml|XRoar]].
 
 DragonPy will not be a second XRoar written in Python.
 This project is primarily to lean and understand.
@@ -59,6 +59,45 @@ optional arguments:
 }}}
 
 
+== current status
+
+The Simple6809 config works a little bit. First GUI used a simple Tkinter windows.
+Looks like this:
+{{http://www.pylucid.org/media/jensdiemer.de/screenshots/Simple6809_TK_01.PNG}}
+
+Try to enter a BASIC command ends with a jump into the ROM command table.
+e.g. a {{{PRINT}}} jumps to **de38** here:
+{{{
+                        *
+                        * DISPATCH TABLE FOR COMMANDS TOKEN #
+                        CMD_TAB
+...
+0085                    TOK_IF    EQU  *-CMD_TAB/2+$7F
+de36 e1 8d                        FDB  DATA                        86
+0086                    TOK_DATA  EQU  *-CMD_TAB/2+$7F
+de38 eb 6a                        FDB  PRINT                       87
+0087                    TOK_PRINT EQU  *-CMD_TAB/2+$7F
+de3a e1 ef                        FDB  ON                          88
+}}}
+see: https://github.com/jedie/DragonPy/blob/master/Simple6809/ExBasROM.LST#L708
+
+The jumps comes from:
+{{{
+                        * HERE IS WHERE WE BRANCH TO DO A 'COMMAND'
+e08f 6e 94                        JMP  [,X]                       GO DO A COMMAND
+}}}
+see: https://github.com/jedie/DragonPy/blob/master/Simple6809/ExBasROM.LST#L1060
+
+debug output at this steps looks like this:
+{{{
+e08f| 6e   JMP    ea:de38                     cc=57 a=00 b=0e dp=00 x=de38 y=dd35 u=00f7 s=7f32 | .F.I.ZVC
+de38| eb   ADDB   B=0e ea:7f3c m:0            cc=50 a=00 b=0e dp=00 x=de38 y=dd35 u=00f7 s=7f32 | .F.I....
+de3a| e1   CMPB   B=0e ea:e29c m:c6           cc=53 a=00 b=0e dp=00 x=de38 y=dd35 u=00f7 s=7f32 | .F.I..VC
+de3e| e0   SUBB   B=0e ea:deff m:25           cc=53 a=00 b=e9 dp=00 x=de38 y=dd35 u=00f7 s=7f32 | .F.I..VC
+...
+}}}
+
+
 == Links
 
 Some links:
@@ -99,16 +138,10 @@ Some code based on "Xroar" by Ciaran Anscomb:
 XRoar is free software, licensed under GNU GPL v2 or above
 
 
-== Status
-
-Can't do anything, yet ;)
-
-Dragon 32 Emulator that works can you find here:
-
- * http://archive.worldofdragon.org/index.php?title=Emulation
 
 == Links:
 
 | Forum               | [[http://forum.pylucid.org/]]
 | IRC                 | [[http://www.pylucid.org/permalink/304/irc-channel|#pylucid on freenode.net]]
+| Jabber              | [[xmpp://pylucid@conference.jabber.org|pylucid@conference.jabber.org]]
 | Github              | [[https://github.com/jedie/DragonPy]]
