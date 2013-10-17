@@ -235,7 +235,8 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
 
         # http://www.tutorialspoint.com/python/tk_text.htm
         self.text = Tkinter.Text(
-            self.root, # state=Tkinter.DISABLED
+            self.root,
+            state=Tkinter.DISABLED # FIXME: make textbox "read-only"
         )
 
         self.text.pack()
@@ -266,7 +267,6 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
             self.line_buffer.append(char)
 
     def cycle(self, cpu_cycles, op_address):
-        self.root.focus_set() # FIXME: make textbox "read-only"
         self.root.update()
 
     def read_rs232_interface(self, cpu_cycles, op_address, address):
@@ -325,7 +325,10 @@ db13 39                           RTS
             return
 
         log.error("add %r" % char)
+
+        self.text.config(state=Tkinter.NORMAL)
         self.text.insert("end", char)
+        self.text.config(state=Tkinter.DISABLED) # # FIXME: make textbox "read-only"
 
 
 # Simple6809Periphery = Simple6809PeripherySerial
