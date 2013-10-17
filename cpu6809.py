@@ -39,6 +39,7 @@ from components.memory import Memory
 from cpu_utils.MC6809_registers import ValueStorage8Bit, ConcatenatedAccumulator, \
     ValueStorage16Bit, ConditionCodeRegister, unsigned8, cc_value2txt
 from utils.simple_debugger import print_exc_plus
+import pprint
 
 
 log = logging.getLogger("DragonPy")
@@ -275,30 +276,38 @@ class Instruction(object):
 
         self.OLD_EA = 0
 
+        log.debug("op code $%x data: %s" % (opcode, instr_func.__name__))
+        log.debug("\topcode data: %s", pprint.pformat(opcode_data))
+        log.debug("\tstatic_kwargs: %s", pprint.pformat(self.static_kwargs))
+
         addr_mode = opcode_data["addr_mode"]
         if addr_mode not in (MC6809data.INHERENT, MC6809data.VARIANT):
             func_name = "get_%s" % opcode_data["addr_mode"].lower()
-            mem_read = opcode_data["mem_read"]
-            if mem_read:
-                # instruction used the memory content
+
+            try:
                 mem_access = opcode_data["mem_access"]
+            except KeyError:
+                func_name += "_byte"
+            else:
                 if mem_access == MEM_ACCESS_BYTE:
                     func_name += "_byte"
                 elif mem_access == MEM_ACCESS_WORD:
                     func_name += "_word"
                 else:
                     raise ValueError(repr(mem_access))
+
+            mem_read = opcode_data["mem_read"]
+            if mem_read:
+                # instruction used the memory content
                 self.get_m_func = getattr(cpu, func_name)
             else:
                 # instruction don't used the memory content
                 func_name += "_ea"
                 self.get_ea_func = getattr(cpu, func_name)
 
-#         log.debug("op code $%x data: %s" % (opcode, repr(instr_kwargs)))
-#         log.debug(pprint.pformat(opcode_data))
-#         log.debug(repr(opcode_data))
-#         log.debug(pprint.pformat(instr_kwargs))
-#         log.debug("-"*79)
+        log.debug("\tmem func: %s", repr(self.get_m_func))
+        log.debug("\tea func: %s", repr(self.get_ea_func))
+        log.debug("-"*79)
 
     def call_instr_func(self):
         op_kwargs = self.static_kwargs.copy()
@@ -446,9 +455,12 @@ class IllegalInstruction(object):
 
     def call_instr_func(self):
         op_address = self.cpu.last_op_address
-        msg = "%x +++ Illegal op code: $%x" % (op_address, self.opcode)
-        log.error(msg)
-        raise RuntimeError(msg)
+        msg = "%x| *** ERROR: Illegal op code: $%x \t|%s" % (
+            op_address, self.opcode,
+            self.cpu.cfg.mem_info.get_shortest(op_address)
+        )
+        log.critical(msg)
+#         raise RuntimeError(msg)
 
 
 class CPU(object):
@@ -677,7 +689,7 @@ class CPU(object):
         log.debug("$%x *** call paged opcode $%x" % (
             self.program_counter, paged_opcode
         ))
-        self.call_instruction_func(op_address - 1, paged_opcode)
+        self.call_instruction_func(op_address, paged_opcode)
 
     def run(self):
         log.debug("-"*79)
@@ -905,7 +917,7 @@ class CPU(object):
         log.debug("\tget_immediate_word(): ea=$%x m=$%x", ea, m)
         return ea, m
 
-    def get_direct_ea(self):
+    def get_direct_byte_ea(self):
         op_addr, m = self.read_pc_byte()
         dp = self.direct_page.get()
         ea = dp << 8 | m
@@ -930,7 +942,7 @@ class CPU(object):
         0x02: REG_U, # 16 bit user-stack pointer
         0x03: REG_S, # 16 bit system-stack pointer
     }
-    def get_indexed_ea(self):
+    def get_indexed_byte_ea(self):
         """
         Calculate the address for all indexed addressing modes
         """
@@ -1025,7 +1037,7 @@ class CPU(object):
         log.debug("\tget_indexed_word(): ea=$%x m=$%x", ea, m)
         return ea, m
 
-    def get_extended_ea(self):
+    def get_extended_word_ea(self):
         """
         extended indirect addressing mode takes a 2-byte value from post-bytes
         """
@@ -1045,12 +1057,20 @@ class CPU(object):
         log.debug("\tget 'extended' word: ea = $%x m = $%x", ea, m)
         return ea, m
 
-    def get_relative_ea(self):
+    def get_relative_byte_ea(self):
         addr, x = self.read_pc_byte()
         x = signed8(x)
         ea = self.program_counter + x
-        log.debug("\taddressing 'relative' ea = $%x + %i = $%x \t| %s",
+        log.debug("\taddressing 'relative' byte ea = $%x + %i = $%x \t| %s",
             self.program_counter, x, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        )
+        return ea
+
+    def get_relative_word_ea(self):
+        addr, ea = self.read_pc_word()()
+        log.debug("\taddressing 'relative' byte ea = $%x \t| %s",
+            self.program_counter, ea,
             self.cfg.mem_info.get_shortest(ea)
         )
         return ea
@@ -2814,11 +2834,11 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-#         "--verbosity=5",
+        "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
 #         "--verbosity=30", # WARNING
-        "--verbosity=40", # ERROR
+#         "--verbosity=40", # ERROR
 #         "--verbosity=50", # CRITICAL/FATAL
 #         "--area_debug_active=5:bb79-ffff",
         "--cfg=Simple6809Cfg",
