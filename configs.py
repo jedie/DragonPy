@@ -21,9 +21,9 @@ from Simple6809.mem_info import get_simple6809_meminfo
 
 class DummyMemInfo(object):
     def get_shortest(self, *args):
-        pass
+        return ">>mem info not active<<"
     def __call__(self, *args):
-        pass
+        return ">>mem info not active<<"
 
 
 class AddressAreas(dict):
@@ -226,9 +226,8 @@ class Simple6809Cfg(BaseConfig):
         self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
         super(Simple6809Cfg, self).__init__(cmd_args)
 
-        if self.verbosity <= logging.INFO:
-            self.mem_info = get_simple6809_meminfo()
-
+#         if self.verbosity <= logging.INFO:
+        self.mem_info = get_simple6809_meminfo()
 
         self.periphery_class = Simple6809Periphery
 
