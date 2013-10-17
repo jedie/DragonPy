@@ -237,6 +237,14 @@ except IOError, err:
 else:
     trace_file.readline() # Skip reset line
 
+
+DEBUG_INSTR = ("BCC", "BCS", "BEQ", "BGE", "BGT", "BHI", "BHS", "BLE", "BLO",
+    "BLS", "BLT", "BMI", "BNE", "BPL", "BRA", "BRN", "BSR", "BVC", "BVS", "JMP",
+    "JSR", "LBCC", "LBCS", "LBEQ", "LBGE", "LBGT", "LBHI", "LBHS", "LBLE", "LBLO",
+    "LBLS", "LBLT", "LBMI", "LBNE", "LBPL", "LBRA", "LBRN", "LBSR", "LBVC", "LBVS",
+    "PSHS", "PSHU", "PULS", "PULU", "RTI", "RTS", "SWI", "SWI2", "SWI3", "SYNC"
+)
+
 class Instruction(object):
     def __init__(self, cpu, opcode, opcode_data, instr_func):
         self.cpu = cpu
@@ -258,6 +266,8 @@ class Instruction(object):
 
         self.get_m_func = None
         self.get_ea_func = None
+
+        self.OLD_EA = 0
 
         addr_mode = opcode_data["addr_mode"]
         if addr_mode not in (MC6809data.INHERENT, MC6809data.VARIANT):
@@ -323,15 +333,26 @@ class Instruction(object):
 
         if log.level <= logging.INFO:
             op_address = self.cpu.last_op_address
+            mnemonic = self.data["mnemonic"]
 
             msg = "%(op_address)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | %(cc)s" % {
                 "op_address": op_address,
                 "opcode": "%02x" % self.opcode,
-                "mnemonic": self.data["mnemonic"],
+                "mnemonic": mnemonic,
                 "kwargs": " ".join(kwargs_info),
                 "cpu": self.cpu.get_info,
                 "cc": self.cpu.cc.get_info,
             }
+#             if mnemonic in DEBUG_INSTR:
+#                 if "ea" in op_kwargs:
+#                     if self.OLD_EA != op_kwargs["ea"]:
+#                         self.OLD_EA = op_kwargs["ea"]
+#                         log.error(msg)
+#                     else:
+#                         log.info(msg)
+#                 else:
+#                     log.error(msg)
+#             else:
             log.info(msg)
 
             if trace_file: # Hacked bugtracking...
@@ -358,7 +379,7 @@ class Instruction(object):
                 if addr1 != addr2:
                     log.info("trace: %s", ref_line)
                     log.info("own..: %s", msg)
-                    log.error("Error in CPU cycles: %i", self.cpu.cycles)
+                    log.error("%04x|Error in CPU cycles: %i", op_address, self.cpu.cycles)
                     log.error("address (%r != %r) not the same as trace reference!\n" % (
                         addr1, addr2
                     ))
@@ -368,7 +389,7 @@ class Instruction(object):
                 if mnemonic1 != mnemonic2:
                     log.info("trace: %s", ref_line)
                     log.info("own..: %s" , msg)
-                    log.error("Error in CPU cycles: %i", self.cpu.cycles)
+                    log.error("%04x|Error in CPU cycles: %i", op_address, self.cpu.cycles)
                     log.error("mnemonic (%r != %r) not the same as trace reference!\n" % (
                         mnemonic1, mnemonic2
                     ))
@@ -814,14 +835,14 @@ class CPU(object):
         op_addr = self.program_counter
         m = self.memory.read_byte(op_addr)
         self.program_counter += 1
-        log.debug("\tread pc byte: $%02x from $%04x", m, op_addr)
+        log.log(5, "\tread pc byte: $%02x from $%04x", m, op_addr)
         return op_addr, m
 
     def read_pc_word(self):
         op_addr = self.program_counter
         m = self.memory.read_word(op_addr)
         self.program_counter += 2
-        log.debug("\tread pc word: $%04x from $%04x", m, op_addr)
+        log.log(5, "\tread pc word: $%04x from $%04x", m, op_addr)
         return op_addr, m
 
     ####
@@ -966,43 +987,35 @@ class CPU(object):
     def get_extended_byte(self):
         ea = self.get_extended_ea()
         m = self.memory.read_byte(ea)
-        log.debug("$%x get 'extended' byte: ea = $%x m = $%x" % (
-            self.program_counter, ea, m,
-        ))
+        log.debug("\tget 'extended' byte: ea = $%x m = $%x", ea, m)
         return ea, m
 
     def get_extended_word(self):
         ea = self.get_extended_ea()
         m = self.memory.read_word(ea)
-        log.debug("$%x get 'extended' word: ea = $%x m = $%x" % (
-            self.program_counter, ea, m,
-        ))
+        log.debug("\tget 'extended' word: ea = $%x m = $%x", ea, m)
         return ea, m
 
     def get_relative_ea(self):
         addr, x = self.read_pc_byte()
         x = signed8(x)
         ea = self.program_counter + x
-        log.debug("$%x addressing 'relative' ea = $%x + %i = $%x \t| %s" % (
-            self.program_counter, self.program_counter, x, ea,
+        log.debug("\taddressing 'relative' ea = $%x + %i = $%x \t| %s",
+            self.program_counter, x, ea,
             self.cfg.mem_info.get_shortest(ea)
-        ))
+        )
         return ea
 
     def get_relative_byte(self):
         ea = self.get_relative_ea()
         m = self.memory.read_byte(ea)
-        log.debug("$%x get 'relative' byte: ea = $%x m = $%x" % (
-            self.program_counter, ea, m,
-        ))
+        log.debug("\tget 'relative' byte: ea = $%x m = $%x", ea, m)
         return ea, m
 
     def get_relative_word(self):
         ea = self.get_relative_ea()
         m = self.memory.read_word(ea)
-        log.debug("$%x get 'relative' word: ea = $%x m = $%x" % (
-            self.program_counter, ea, m,
-        ))
+        log.debug("\tget 'relative' word: ea = $%x m = $%x", ea, m)
         return ea, m
 
     #### Op methods:
@@ -2746,15 +2759,16 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-        "--verbosity=5",
+#         "--verbosity=5",
+        "--verbosity=10",
 #         "--verbosity=20",
 #         "--verbosity=30",
 #         "--verbosity=50",
 #         "--area_debug_active=5:bb79-ffff",
-#         "--cfg=Simple6809Cfg",
-        "--cfg=Dragon32Cfg",
+        "--cfg=Simple6809Cfg",
+#         "--cfg=Dragon32Cfg",
 #         "--max=1",
-        "--max=46041",
+#         "--max=46041",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args).wait()

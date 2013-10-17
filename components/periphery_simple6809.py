@@ -321,6 +321,7 @@ db13 39                           RTS
 
         char = chr(value)
         if char == "\r": # ignore
+            log.error("ignore insert \\r")
             return
 
         log.error("add %r" % char)
@@ -342,7 +343,7 @@ def test_run():
 #         "--verbosity=40",
 #         "--verbosity=50",
         "--cfg=Simple6809Cfg",
-#         "--max=100000",
+        "--max=500000",
 #         "--max=30000",
 #         "--max=20000",
     ]
