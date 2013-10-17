@@ -407,7 +407,9 @@ class IllegalInstruction(object):
 
     def call_instr_func(self):
         op_address = self.cpu.last_op_address
-        log.error("$%x +++ Illegal op code: $%x", op_address, self.opcode)
+        msg = "%x +++ Illegal op code: $%x" % (op_address, self.opcode)
+        log.error(msg)
+        raise RuntimeError(msg)
 
 
 class CPU(object):
@@ -878,8 +880,15 @@ class CPU(object):
         register_value = register_obj.get()
 
         if (postbyte & 0x80) == 0: # bit 7 == 0
+            # FIXME: cutout only the 5bits from post byte?
             # EA = n, R - use 5-bit offset from post-byte
-            return register_value + signed5(postbyte) # FIXME: cutout only the 5bits from post byte?
+            offset = signed5(postbyte & 0x1f)
+            ea = register_value + offset
+            log.debug(
+                "\tget_indexed_ea(): bit 7 == 0: reg.value: $%x -> ea=%i + %i = $%x",
+                register_value, register_value, offset, ea
+            )
+            return ea
 
         indirect = postbyte & 0x10 == 1 # bit 4 is 1 -> Indirect
 
@@ -900,28 +909,28 @@ class CPU(object):
         elif addr_mode == 0x4: # 0100 0x4 | ,R | No offset
             ea = register_value
         elif addr_mode == 0x5: # 0101 0x5 | B, R | B register offset
-            ea = register_value + signed8(self.accu.B)
+            ea = register_value + signed8(self.accu_b.get())
         elif addr_mode == 0x6: # 0110 0x6 | A, R | A register offset
-            ea = register_value + signed8(self.accu.A)
+            ea = register_value + signed8(self.accu_a.get())
         elif addr_mode == 0x8: # 1000 0x8 | n, R | 8 bit offset
             ea = register_value + signed8(self.read_pc_byte()[1])
         elif addr_mode == 0x9: # 1001 0x9 | n, R | 16 bit offset
             ea = register_value + signed16(self.read_pc_word()[1]) # FIXME: signed16() ok?
             self.cycles += 1
-
-#         elif addr_mode == 0xa: # 1010 0xa | FIXME: illegal???
-#             ea = self.program_counter | 0xff
-
+        elif addr_mode == 0xa: # 1010 0xa | FIXME: illegal???
+            ea = self.program_counter | 0xff
         elif addr_mode == 0xb: # 1011 0xb | D, R | D register offset
             # D - 16 bit concatenated reg. (A + B)
-            ea = register_value + signed16(self.accu.D) # FIXME: signed16() ok?
+            ea = register_value + signed16(self.accu_d.get()) # FIXME: signed16() ok?
             self.cycles += 1
         elif addr_mode == 0xc: # 1100 0xc | n, PCR | 8 bit offset from program counter
             ea = signed8(self.read_pc_byte()[1]) + self.program_counter
         elif addr_mode == 0xd: # 1101 0xd | n, PCR | 16 bit offset from program counter
             ea = self.read_pc_word()[1] + self.program_counter # FIXME: use signed16() here?
             self.cycles += 1
-        elif addr_mode == 0xf and indirect: # 1111 0xf | [n] | 16 bit address - extended indirect
+        elif addr_mode == 0xf: # 1111 0xf | [n] | 16 bit address - extended indirect
+            if not indirect:
+                log.error("\tget_indexed_ea(): addr_mode==0xf and not indirect???")
             ea = self.read_pc_word()[1]
         else:
             raise RuntimeError("Illegal indexed addressing mode: $%x" % addr_mode)
@@ -1009,7 +1018,13 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x ABX" % opcode)
+        old = self.index_x.get()
+        b = self.accu_b.get()
+        new = self.index_x.increment(b)
+        log.debug("%x %02x ABX: X($%x) += B($%x) = $%x" % (
+            self.program_counter, opcode,
+            old, b, new
+        ))
 
     @opcode(# Add memory to accumulator with carry
         0x89, 0x99, 0xa9, 0xb9, # ADCA (immediate, direct, indexed, extended)
@@ -1122,12 +1137,7 @@ class CPU(object):
         raise NotImplementedError("$%x ANDCC" % opcode)
         # Update CC bits: ddddd
 
-    @opcode(# Arithmetic shift of accumulator or memory right
-        0x7, 0x67, 0x77, # ASR (direct, indexed, extended)
-        0x47, # ASRA (inherent)
-        0x57, # ASRB (inherent)
-    )
-    def instruction_ASR(self, opcode, ea, register):
+    def ASR(self, a):
         """
         Shifts all bits of the register one place to the right. Bit seven is held
         constant. Bit zero is shifted into the C (carry) bit.
@@ -1136,8 +1146,33 @@ class CPU(object):
 
         CC bits "HNZVC": uaa-s
         """
-        raise NotImplementedError("$%x ASR" % opcode)
-        # self.cc.update_NZC()
+        r = (a >> 1) | (a & 0x80)
+        self.cc.clear_NZC()
+        self.cc.C |= (a & 1) # XXX: ok?
+        self.cc.update_NZ_8(r)
+        return r
+
+    @opcode(0x7, 0x67, 0x77) # ASR (direct, indexed, extended)
+    def instruction_ASR_memory(self, opcode, ea, m):
+        """ Arithmetic shift memory right """
+        r = self.ASR(m)
+        log.debug("$%x ASR memory value $%x >> 1 | Carry = $%x and write it to $%x \t| %s" % (
+            self.program_counter,
+            m, r, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.memory.write_byte(ea, r)
+
+    @opcode(0x47, 0x57) # ASRA/ASRB (inherent)
+    def instruction_ASR_register(self, opcode, register):
+        """ Arithmetic shift accumulator right """
+        a = register.get()
+        r = self.ASR(a)
+        log.debug("$%x ASR %s value $%x >> 1 | Carry = $%x" % (
+            self.program_counter,
+            register.name, a, r
+        ))
+        register.set(r)
 
     @opcode(# Branch if equal
         0x27, # BEQ (relative)
@@ -1257,7 +1292,7 @@ class CPU(object):
         0x2f, # BLE (relative)
         0x102f, # LBLE (relative)
     )
-    def instruction_BLE(self, opcode, ea, m):
+    def instruction_BLE(self, opcode, ea):
         """
         Causes a branch if the exclusive OR of the N (negative) and V (overflow)
         bits is 1 or if the Z (zero) bit is set. That is, branch if the sign of
@@ -1270,7 +1305,15 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BLE" % opcode)
+        if (self.cc.N ^ self.cc.V) == 1 or self.cc.Z == 1:
+            log.debug("$%x BLE branch to $%x, because N^V==1 or Z==1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BLE: don't branch to $%x, because N^V!=1 and Z!=1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
 
     @opcode(# Branch if lower or same (unsigned)
         0x23, # BLS (relative)
@@ -1708,7 +1751,7 @@ class CPU(object):
         0x88, 0x98, 0xa8, 0xb8, # EORA (immediate, direct, indexed, extended)
         0xc8, 0xd8, 0xe8, 0xf8, # EORB (immediate, direct, indexed, extended)
     )
-    def instruction_EOR(self, opcode, ea, register):
+    def instruction_EOR(self, opcode, ea, m, register):
         """
         The contents of memory location M is exclusive ORed into an 8-bit
         register.
@@ -1717,7 +1760,13 @@ class CPU(object):
 
         CC bits "HNZVC": -aa0-
         """
-        raise NotImplementedError("$%x EOR" % opcode)
+        a = register.get()
+        r = a ^ m
+        register.set(r)
+        self.cc.update_NZ0_8(r)
+        log.debug("\tEOR %s: %i ^ %i = %i",
+            register.name, a, m, r
+        )
         # self.cc.update_NZ0()
 
     @opcode(# Exchange Rl with R2
@@ -1966,12 +2015,7 @@ class CPU(object):
         ))
         register.set(r)
 
-    @opcode(# Logical shift right accumulator or memory location
-        0x4, 0x64, 0x74, # LSR (direct, indexed, extended)
-        0x44, # LSRA (inherent)
-        0x54, # LSRB (inherent)
-    )
-    def instruction_LSR(self, opcode, ea, register):
+    def LSR(self, a):
         """
         Performs a logical shift right on the register. Shifts a zero into bit
         seven and bit zero into the C (carry) bit.
@@ -1980,8 +2024,33 @@ class CPU(object):
 
         CC bits "HNZVC": -0a-s
         """
-        raise NotImplementedError("$%x LSR" % opcode)
-        # self.cc.update_0ZC()
+        r = a >> 1
+        self.cc.clear_NZC() # XXX:
+        self.cc.C |= (a & 1) # XXX: ok?
+        self.cc.set_Z8(r)
+        return r
+
+    @opcode(0x4, 0x64, 0x74) # LSR (direct, indexed, extended)
+    def instruction_LSR_memory(self, opcode, ea, m):
+        """ Logical shift right memory location """
+        r = self.LSR(m)
+        log.debug("$%x LSR memory value $%x >> 1 = $%x and write it to $%x \t| %s" % (
+            self.program_counter,
+            m, r, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.memory.write_byte(ea, r)
+
+    @opcode(0x44, 0x54) # LSRA / LSRB (inherent)
+    def instruction_LSR_register(self, opcode, register):
+        """ Logical shift right accumulator """
+        a = register.get()
+        r = self.LSR(a)
+        log.debug("$%x LSR %s value $%x >> 1 = $%x" % (
+            self.program_counter,
+            register.name, a, r
+        ))
+        register.set(r)
 
     @opcode(# Unsigned multiply (A * B ? D)
         0x3d, # MUL (inherent)
@@ -2089,16 +2158,16 @@ class CPU(object):
 #         else:
 #             self.memory.write_byte(ea, value)
 
-    @opcode(# No operation
-        0x12, # NOP (inherent)
-    )
+    @opcode(0x12) # NOP (inherent)
     def instruction_NOP(self, opcode):
         """
+        No operation
+
         source code forms: NOP
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x NOP" % opcode)
+        log.debug("\tNOP")
 
     @opcode(# OR memory with accumulator
         0x8a, 0x9a, 0xaa, 0xba, # ORA (immediate, direct, indexed, extended)
@@ -2328,12 +2397,7 @@ class CPU(object):
         ))
         register.set(r)
 
-    @opcode(# Rotate accumulator or memory right
-        0x6, 0x66, 0x76, # ROR (direct, indexed, extended)
-        0x46, # RORA (inherent)
-        0x56, # RORB (inherent)
-    )
-    def instruction_ROR(self, opcode, ea, register):
+    def ROR(self, a):
         """
         Rotates all bits of the register one place right through the C (carry)
         bit. This is a 9-bit rotation.
@@ -2342,8 +2406,32 @@ class CPU(object):
 
         CC bits "HNZVC": -aa-s
         """
-        raise NotImplementedError("$%x ROR" % opcode)
-        # self.cc.update_NZC()
+        r = (a >> 1) | self.cc.C
+        self.cc.clear_NZC()
+        self.cc.update_NZ_8(r)
+        return r
+
+    @opcode(0x6, 0x66, 0x76) # ROR (direct, indexed, extended)
+    def instruction_ROR_memory(self, opcode, ea, m):
+        """ Rotate memory right """
+        r = self.ROR(m)
+        log.debug("$%x ROR memory value $%x >> 1 | Carry = $%x and write it to $%x \t| %s" % (
+            self.program_counter,
+            m, r, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.memory.write_byte(ea, r)
+
+    @opcode(0x46, 0x56) # RORA/RORB (inherent)
+    def instruction_ROR_register(self, opcode, register):
+        """ Rotate accumulator right """
+        a = register.get()
+        r = self.ROR(a)
+        log.debug("$%x ROR %s value $%x >> 1 | Carry = $%x" % (
+            self.program_counter,
+            register.name, a, r
+        ))
+        register.set(r)
 
     @opcode(# Return from interrupt
         0x3b, # RTI (inherent)
@@ -2385,7 +2473,7 @@ class CPU(object):
         0x82, 0x92, 0xa2, 0xb2, # SBCA (immediate, direct, indexed, extended)
         0xc2, 0xd2, 0xe2, 0xf2, # SBCB (immediate, direct, indexed, extended)
     )
-    def instruction_SBC(self, opcode, ea, register):
+    def instruction_SBC(self, opcode, ea, m, register):
         """
         Subtracts the contents of memory location M and the borrow (in the C
         (carry) bit) from the contents of the designated 8-bit register, and
@@ -2396,8 +2484,14 @@ class CPU(object):
 
         CC bits "HNZVC": uaaaa
         """
-        raise NotImplementedError("$%x SBC" % opcode)
-        # self.cc.update_NZVC(a, b, r)
+        a = register.get()
+        r = a - m - self.cc.C
+        log.debug("$%x %02x SBC %s: %i - %i - %i = %i (=$%x)" % (
+            self.program_counter, opcode, register.name,
+            a, m, self.cc.C, r, r
+        ))
+        self.cc.clear_HNZVC()
+        self.cc.update_HNZVC_8(a, m, r) # FIXME: or NZVC instead of HNZVC ?
 
     @opcode(# Sign Extend B accumulator into A accumulator
         0x1d, # SEX (inherent)
@@ -2463,7 +2557,7 @@ class CPU(object):
     @opcode(# Subtract memory from D accumulator
         0x83, 0x93, 0xa3, 0xb3, # SUBD (immediate, direct, indexed, extended)
     )
-    def instruction_SUB16(self, opcode, ea, register):
+    def instruction_SUB16(self, opcode, ea, m, register):
         """
         Subtracts the value in memory location M:M+1 from the contents of a
         designated 16-bit register. The C (carry) bit represents a borrow and is
@@ -2473,8 +2567,19 @@ class CPU(object):
 
         CC bits "HNZVC": -aaaa
         """
-        raise NotImplementedError("$%x SUB16" % opcode)
-        # self.cc.update_NZVC_16(a, b, r)
+        assert register.WIDTH == 16
+        x1 = register.get()
+        x2 = signed8(x1)
+        r1 = x2 - m
+        r2 = unsigned8(r1)
+        register.set(r2)
+        log.debug("$%x SUB16 %s: %i - %i = %i (unsigned: %i)" % (
+            self.program_counter,
+            register.name,
+            x2, m, r1, r2,
+        ))
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_16(x1, m, r1)
 
     @opcode(# Subtract memory from accumulator
         0x80, 0x90, 0xa0, 0xb0, # SUBA (immediate, direct, indexed, extended)
@@ -2490,6 +2595,7 @@ class CPU(object):
 
         CC bits "HNZVC": uaaaa
         """
+        assert register.WIDTH == 8
         x1 = register.get()
         x2 = signed8(x1)
         r1 = x2 - m

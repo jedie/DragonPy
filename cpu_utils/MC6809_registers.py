@@ -220,6 +220,11 @@ class ConditionCodeRegister(object):
 
     ####
 
+    def clear_NZC(self):
+        self.N = 0
+        self.Z = 0
+        self.C = 0
+
     def clear_NZVC(self):
         self.N = 0
         self.Z = 0
