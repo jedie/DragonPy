@@ -944,8 +944,6 @@ class CPU(object):
             )
             return ea
 
-        indirect = postbyte & 0x10 == 1 # bit 4 is 1 -> Indirect
-
         addr_mode = postbyte & 0x0f
         self.cycles += 1
         if addr_mode == 0x0: # 0000 0x0 | ,R+ | increment by 1
@@ -982,17 +980,20 @@ class CPU(object):
         elif addr_mode == 0xd: # 1101 0xd | n, PCR | 16 bit offset from program counter
             ea = self.read_pc_word()[1] + self.program_counter # FIXME: use signed16() here?
             self.cycles += 1
+        elif addr_mode == 0xe:
+            log.error("\tget_indexed_ea(): illegal address mode, use 0xffff")
+            ea = 0xffff # illegal
         elif addr_mode == 0xf: # 1111 0xf | [n] | 16 bit address - extended indirect
-            if not indirect:
-                log.error("\tget_indexed_ea(): addr_mode==0xf and not indirect???")
             ea = self.read_pc_word()[1]
         else:
             raise RuntimeError("Illegal indexed addressing mode: $%x" % addr_mode)
 
-        if indirect: # bit 4 is 1 -> Indirect
-            tmp_ea = self.read_pc_byte()[1]
+        if postbyte & 0x10 != 0: # bit 4 is 1 -> Indirect
+            log.error("\tget_indexed_ea(): bit 4 is 1 -> Indirect")
+            tmp_ea = self.memory.read_byte(ea)
             tmp_ea = tmp_ea << 8
-            ea = tmp_ea | self.read_byte(ea + 1)
+            m = self.memory.read_byte(ea + 1)
+            ea = tmp_ea | m
 
         log.debug("\tget_indexed_ea(): ea=$%x", ea)
         return ea
