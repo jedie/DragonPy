@@ -27,6 +27,17 @@ log.handlers = (handler,)
 
 
 class Simple6809PeripheryBase(object):
+    """
+    5390 fff0                              ORG  $FFF0
+    5391 fff0 00 00              LBFF0     FDB  $0000          RESERVED
+    5392 fff2 00 9b              LBFF2     FDB  SW3VEC         SWI3
+    5393 fff4 00 9e              LBFF4     FDB  SW2VEC         SWI2
+    5394 fff6 00 aa              LBFF6     FDB  FRQVEC         FIRQ
+    5395 fff8 00 a7              LBFF8     FDB  IRQVEC         IRQ
+    5396 fffa 00 a1              LBFFA     FDB  SWIVEC         SWI
+    5397 fffc 00 a4              LBFFC     FDB  NMIVEC         NMI
+    5398 fffe db 46              LBFFE     FDB  RESVEC         RESET
+    """
     def __init__(self, cfg):
         self.cfg = cfg
         self.address2func_map = {
