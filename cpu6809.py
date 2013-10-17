@@ -770,20 +770,27 @@ class CPU(object):
         stack_pointer.decrement(1)
         addr = stack_pointer.get()
 
-        log.info("%x|\tpush $%x to %s stack at $%x",
-            self.last_op_address, byte, stack_pointer.name, addr
+#         log.info(
+        log.error(
+            "%x|\tpush $%x to %s stack at $%x (count: %i)",
+            self.last_op_address, byte, stack_pointer.name, addr, stack_pointer.counter
         )
         self.memory.write_byte(addr, byte)
 
     def pull_byte(self, stack_pointer):
         """ pulled a byte from stack """
         stack_pointer.counter -= 1 # for internal check
-        assert stack_pointer.counter >= 0, "pulled more than pushed from stack %s" % stack_pointer.name
+        assert stack_pointer.counter >= 0, \
+            "pulled more than pushed from stack %s (count: %i)" % (
+                stack_pointer.name, stack_pointer.counter
+        )
 
         addr = stack_pointer.get()
         byte = self.memory.read_byte(addr)
-        log.info("%x|\tpull $%x from %s stack at $%x",
-            self.last_op_address, byte, stack_pointer.name, addr
+#         log.info(
+        log.error(
+            "%x|\tpull $%x from %s stack at $%x (count: %i)",
+            self.last_op_address, byte, stack_pointer.name, addr, stack_pointer.counter
         )
 
         # FIXME: self._system_stack_pointer += 1
@@ -792,14 +799,16 @@ class CPU(object):
         return byte
 
     def push_word(self, stack_pointer, word):
-        # FIXME: hi/lo in the correct order?
+        stack_pointer.counter += 2 # for internal check
 
         # FIXME: self._system_stack_pointer -= 2
         stack_pointer.decrement(2)
 
         addr = stack_pointer.get()
-        log.info("%x|\tpush word $%x to %s stack at $%x",
-            self.last_op_address, word, stack_pointer.name, addr
+#         log.info(
+        log.error(
+            "%x|\tpush word $%x to %s stack at $%x (count: %i)",
+            self.last_op_address, word, stack_pointer.name, addr, stack_pointer.counter
         )
 
         self.memory.write_word(addr, word)
@@ -809,11 +818,18 @@ class CPU(object):
 #         self.push_byte(lo)
 
     def pull_word(self, stack_pointer):
-        # FIXME: hi/lo in the correct order?
+        stack_pointer.counter -= 2 # for internal check
+        assert stack_pointer.counter >= 0, \
+            "pulled more than pushed from stack %s (count: %i)" % (
+                stack_pointer.name, stack_pointer.counter
+        )
+
         addr = stack_pointer.get()
         word = self.memory.read_word(addr)
-        log.info("%x|\tpull word $%x from %s stack at $%x",
-            self.last_op_address, word, stack_pointer.name, addr
+#         log.info(
+        log.error(
+            "%x|\tpull word $%x from %s stack at $%x (count: %i)",
+            self.last_op_address, word, stack_pointer.name, addr, stack_pointer.counter
         )
         # FIXME: self._system_stack_pointer += 2
         stack_pointer.increment(2)
@@ -2775,10 +2791,11 @@ def test_run():
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
 #         "--verbosity=5",
-        "--verbosity=10",
-#         "--verbosity=20",
-#         "--verbosity=30",
-#         "--verbosity=50",
+#         "--verbosity=10", # DEBUG
+#         "--verbosity=20", # INFO
+#         "--verbosity=30", # WARNING
+        "--verbosity=40", # ERROR
+#         "--verbosity=50", # CRITICAL/FATAL
 #         "--area_debug_active=5:bb79-ffff",
         "--cfg=Simple6809Cfg",
 #         "--cfg=Dragon32Cfg",
