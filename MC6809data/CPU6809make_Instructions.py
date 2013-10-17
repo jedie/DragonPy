@@ -905,6 +905,12 @@ for line in txt.splitlines():
             else:
                 raise ValueError
 
+    if mnemonic.startswith("LB"):
+        # long branches
+        assert "Branch" in mnemonic_desc
+        mnemonic_desc = mnemonic_desc.replace("Branch", "Long branch")
+        mem_access = MEM_ACCESS_WORD
+
     assert mem_access in (False, MEM_ACCESS_BYTE, MEM_ACCESS_WORD)
 
     opcode_data = {

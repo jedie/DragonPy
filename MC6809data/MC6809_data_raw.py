@@ -2620,17 +2620,17 @@ OP_DATA = (
     },
     {
         "opcode": 0x102a, "instruction": "LBPL", "mnemonic": "LBPL",
-        "desc": "Branch if plus",
+        "desc": "Long branch if plus",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF N = 0 then PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF N = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 3, "instr_info_key": BPL,
     },
     {
         "opcode": 0x102b, "instruction": "LBMI", "mnemonic": "LBMI",
-        "desc": "Branch if minus",
+        "desc": "Long branch if minus",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF N = 1 then PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF N = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 3, "instr_info_key": BMI,
     },
@@ -2687,49 +2687,49 @@ OP_DATA = (
     },
     {
         "opcode": 0x1028, "instruction": "LBVC", "mnemonic": "LBVC",
-        "desc": "Branch if valid twos complement result",
+        "desc": "Long branch if valid twos complement result",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF V = 0 then PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF V = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BVC,
     },
     {
         "opcode": 0x1029, "instruction": "LBVS", "mnemonic": "LBVS",
-        "desc": "Branch if invalid twos complement result",
+        "desc": "Long branch if invalid twos complement result",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP' = MI IFF V = 1 then PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP' = MI IFF V = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BVS,
     },
     {
         "opcode": 0x102c, "instruction": "LBGE", "mnemonic": "LBGE",
-        "desc": "Branch if greater than or equal (signed)",
+        "desc": "Long branch if greater than or equal (signed)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF [N XOR V] = 0 then PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF [N XOR V] = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BGE,
     },
     {
         "opcode": 0x102d, "instruction": "LBLT", "mnemonic": "LBLT",
-        "desc": "Branch if less than (signed)",
+        "desc": "Long branch if less than (signed)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF [ N XOR V ] = 1 then PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF [ N XOR V ] = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BLT,
     },
     {
         "opcode": 0x102e, "instruction": "LBGT", "mnemonic": "LBGT",
-        "desc": "Branch if greater (signed)",
+        "desc": "Long branch if greater (signed)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z AND [N XOR V] = 0 then PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF Z AND [N XOR V] = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BGT,
     },
     {
         "opcode": 0x102f, "instruction": "LBLE", "mnemonic": "LBLE",
-        "desc": "Branch if less than or equal (signed)",
+        "desc": "Long branch if less than or equal (signed)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z OR [ N XOR V ] = 1 then PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF Z OR [ N XOR V ] = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 4, "instr_info_key": BLE,
     },
@@ -2784,47 +2784,49 @@ OP_DATA = (
     },
     {
         "opcode": 0x1022, "instruction": "LBHI", "mnemonic": "LBHI",
-        "desc": "Branch if higher (unsigned)",
+        "desc": "Long branch if higher (unsigned)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF [ C OR Z ] = 0 then PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF [ C OR Z ] = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": BHI,
     },
     {
         "opcode": 0x1023, "instruction": "LBLS", "mnemonic": "LBLS",
-        "desc": "Branch if lower or same (unsigned)",
+        "desc": "Long branch if lower or same (unsigned)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF (C OR Z) = 1 then PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF (C OR Z) = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": BLS,
     },
     {
         "opcode": 0x1024, "instruction": "LBHS/LBCC", "mnemonic": "LBHS/LBCC",
-        "desc": "Branch if higher or same (unsigned)",
+        "desc": "Long branch if higher or same (unsigned)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
+        "mem_access": MEM_ACCESS_WORD,
         "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
     },
     {
         "opcode": 0x1025, "instruction": "LBLO/LBCS", "mnemonic": "LBLO/LBCS",
-        "desc": "Branch if lower (unsigned)",
+        "desc": "Long branch if lower (unsigned)",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
+        "mem_access": MEM_ACCESS_WORD,
         "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
     },
     {
         "opcode": 0x1026, "instruction": "LBNE", "mnemonic": "LBNE",
-        "desc": "Branch if not equal",
+        "desc": "Long branch if not equal",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z = 0 then PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF Z = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": BNE,
     },
     {
         "opcode": 0x1027, "instruction": "LBEQ", "mnemonic": "LBEQ",
-        "desc": "Branch if equal",
+        "desc": "Long branch if equal",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z = 1 then PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF Z = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 5, "instr_info_key": BEQ,
     },
@@ -2833,17 +2835,17 @@ OP_DATA = (
 
     {
         "opcode": 0x16, "instruction": "LBRA", "mnemonic": "LBRA",
-        "desc": "Branch always",
+        "desc": "Long branch always",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 6, "instr_info_key": BRA,
     },
     {
         "opcode": 0x17, "instruction": "LBSR", "mnemonic": "LBSR",
-        "desc": "Branch to subroutine",
+        "desc": "Long branch to subroutine",
         "addr_mode": RELATIVE, "cycles": 9, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' = PC + TEMP
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
         "category": 6, "instr_info_key": BSR,
     },
@@ -2873,9 +2875,9 @@ OP_DATA = (
     },
     {
         "opcode": 0x1021, "instruction": "LBRN", "mnemonic": "LBRN",
-        "desc": "Branch never",
+        "desc": "Long branch never",
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI
+        "mem_access": MEM_ACCESS_WORD, # TEMP = MI
         "mem_read": False, "mem_write": False,
         "category": 6, "instr_info_key": BRN,
     },
