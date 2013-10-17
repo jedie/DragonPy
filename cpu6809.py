@@ -1278,7 +1278,7 @@ class CPU(object):
         0x2e, # BGT (relative)
         0x102e, # LBGT (relative)
     )
-    def instruction_BGT(self, opcode, ea, m):
+    def instruction_BGT(self, opcode, ea):
         """
         Causes a branch if the N (negative) bit and V (overflow) bit are either
         both set or both clear and the Z (zero) bit is clear. In other words,
@@ -1291,7 +1291,15 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BGT" % opcode)
+        if not ((self.cc.N ^ self.cc.V) == 1 or self.cc.Z == 1):
+            log.debug("$%x BGT branch to $%x, because not (N^V==1 or Z==1) \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BGT: don't branch to $%x, because N^V==1 or Z==1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
 
     @opcode(# Branch if higher (unsigned)
         0x22, # BHI (relative)
