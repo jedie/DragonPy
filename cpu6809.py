@@ -329,6 +329,15 @@ class Instruction(object):
         else:
             etype = None
 
+        # XXX: remove this temp hack
+        if self.cfg.__class__.__name__ == "Simple6809Cfg":
+            if self.data["mnemonic"] == "BEQ":
+                if op_kwargs["ea"] == 0xeb10:
+                    log2 = logging.getLogger("DragonPy")
+                    handler = logging.StreamHandler()
+                    handler.level = 5
+                    log2.handlers = (handler,)
+
         self.cpu.cycles += self.data["cycles"]
 
         if log.level <= logging.INFO:
@@ -414,6 +423,14 @@ class Instruction(object):
                         ))
 
                 log.debug("\t%s", repr(self.data))
+
+            if mnemonic in DEBUG_INSTR:
+                pc = self.cpu.program_counter
+                log.info(
+                    "\t new PC: %x -> $%x\t| %s",
+                    op_address, pc, self.cpu.cfg.mem_info.get_shortest(pc)
+                )
+
             log.debug("-"*79)
 
         if etype is not None:
@@ -753,8 +770,8 @@ class CPU(object):
         stack_pointer.decrement(1)
         addr = stack_pointer.get()
 
-        log.info("\tpush $%x to %s stack at $%x",
-            byte, stack_pointer.name, addr
+        log.info("%x|\tpush $%x to %s stack at $%x",
+            self.last_op_address, byte, stack_pointer.name, addr
         )
         self.memory.write_byte(addr, byte)
 
@@ -765,8 +782,8 @@ class CPU(object):
 
         addr = stack_pointer.get()
         byte = self.memory.read_byte(addr)
-        log.info("\tpull $%x from %s stack at $%x",
-            byte, stack_pointer.name, addr
+        log.info("%x|\tpull $%x from %s stack at $%x",
+            self.last_op_address, byte, stack_pointer.name, addr
         )
 
         # FIXME: self._system_stack_pointer += 1
@@ -781,8 +798,8 @@ class CPU(object):
         stack_pointer.decrement(2)
 
         addr = stack_pointer.get()
-        log.info("\tpush word $%x to %s stack at $%x",
-            word, stack_pointer.name, addr
+        log.info("%x|\tpush word $%x to %s stack at $%x",
+            self.last_op_address, word, stack_pointer.name, addr
         )
 
         self.memory.write_word(addr, word)
@@ -795,8 +812,8 @@ class CPU(object):
         # FIXME: hi/lo in the correct order?
         addr = stack_pointer.get()
         word = self.memory.read_word(addr)
-        log.info("\tpull word $%x from %s stack at $%x",
-            word, stack_pointer.name, addr
+        log.info("%x|\tpull word $%x from %s stack at $%x",
+            self.last_op_address, word, stack_pointer.name, addr
         )
         # FIXME: self._system_stack_pointer += 2
         stack_pointer.increment(2)
@@ -835,7 +852,7 @@ class CPU(object):
         op_addr = self.program_counter
         m = self.memory.read_byte(op_addr)
         self.program_counter += 1
-        log.log(5, "\tread pc byte: $%02x from $%04x", m, op_addr)
+        log.log(5, "read pc byte: $%02x from $%04x", m, op_addr)
         return op_addr, m
 
     def read_pc_word(self):
@@ -1854,10 +1871,9 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        log.info("$%x JMP to $%x \t| %s" % (
-            self.program_counter,
-            ea,
-            self.cfg.mem_info.get_shortest(ea)
+        log.info("%x|\tJMP to $%x \t| %s" % (
+            self.last_op_address,
+            ea, self.cfg.mem_info.get_shortest(ea)
         ))
         self.program_counter = ea
 
@@ -1880,10 +1896,9 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        log.info("$%x JSR to $%x \t| %s" % (
-            self.program_counter,
-            ea,
-            self.cfg.mem_info.get_shortest(ea)
+        log.info("%x|\tJSR/BSR to $%x \t| %s" % (
+            self.last_op_address,
+            ea, self.cfg.mem_info.get_shortest(ea)
         ))
         self.push_word(self._system_stack_pointer, self.program_counter)
         self.program_counter = ea
@@ -2475,8 +2490,8 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         ea = self.pull_word(self._system_stack_pointer)
-        log.debug("$%x RTS to $%x \t| %s" % (
-            self.program_counter,
+        log.info("%x|\tRTS to $%x \t| %s" % (
+            self.last_op_address,
             ea,
             self.cfg.mem_info.get_shortest(ea)
         ))
