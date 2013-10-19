@@ -37,10 +37,10 @@ REG_S = "S"
 REG_B = "B"
 REG_U = "U"
 REG_D = "D"
-REG_DP = "DP"
 REG_Y = "Y"
 REG_X = "X"
 REG_CC = "CC"
+REG_DP = "DP"
 
 
 REGISTER_INFO = {
@@ -50,10 +50,10 @@ REGISTER_INFO = {
     REG_B: (8, '1001', 'accumulator'),
     REG_U: (16, '0011', 'user-stack pointer'),
     REG_D: (16, '0000', 'concatenated register (A+B)'),
-    REG_DP: (8, '1011', 'direct page register'),
     REG_Y: (16, '0010', 'index register'),
     REG_X: (16, '0001', 'index register'),
     REG_CC: (8, '1010', 'condition code register as flags'),
+    REG_DP: (8, '1011', 'direct page register'),
 }
 
 MEM_ACCESS_BYTE = 8
@@ -78,8 +78,10 @@ BEQ="BEQ"
 BGE="BGE"
 BGT="BGT"
 BHI="BHI"
+BHS="BHS"
 BIT="BIT"
 BLE="BLE"
+BLO="BLO"
 BLS="BLS"
 BLT="BLT"
 BMI="BMI"
@@ -104,8 +106,7 @@ JMP="JMP"
 JSR="JSR"
 LD16="LD16"
 LD8="LD8"
-LEA_pointer="LEA_pointer"
-LEA_register="LEA_register"
+LEA="LEA"
 LSL="LSL"
 LSR="LSR"
 MUL="MUL"
@@ -227,13 +228,22 @@ INSTRUCTION_INFO = {
         'operation': "TEMP = MI IFF [ C OR Z ] = 0 then PC' = PC + TEMP",
         'source form': 'BHI dd; LBHI DDDD'
     },
+    BHS: {
+        'HNZVC': '-----',
+        'comment': 'This is a duplicate assembly-language mnemonic for the single machine instruction BCC.\nGenerally not useful after INC/DEC, LD/ST, and TST/CLR/COM instructions.',
+        'condition code': 'Not affected.',
+        'description': 'Tests the state of the C (carry) bit and causes a branch if it is clear.\nWhen used after a subtract or compare on unsigned binary values, this instruction will branch if the register was higher than or the same as the memory operand.',
+        'instr_desc': 'Branch if higher or same (unsigned)',
+        'operation': "TEMP = MI IFF C = 0 then PC' = PC + MI",
+        'source form': 'BHS dd; LBHS DDDD'
+    },
     BIT: {
         'HNZVC': '-aa0-',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Always cleared.\nC - Not affected.',
         'description': 'Performs the logical AND of the contents of accumulator A or B and the contents of memory location M and modifies the condition codes accordingly.\nThe contents of accumulator A or B and memory location M are not affected.',
         'instr_desc': 'Bit test memory with accumulator',
         'operation': 'TEMP = R AND M',
-        'source form': 'BITA P; BITB P'
+        'source form': 'Bit P'
     },
     BLE: {
         'HNZVC': '-----',
@@ -242,6 +252,15 @@ INSTRUCTION_INFO = {
         'instr_desc': 'Branch if less than or equal (signed)',
         'operation': "TEMP = MI IFF Z OR [ N XOR V ] = 1 then PC' = PC + TEMP",
         'source form': 'BLE dd; LBLE DDDD'
+    },
+    BLO: {
+        'HNZVC': '-----',
+        'comment': 'This is a duplicate assembly-language mnemonic for the single machine instruction BCS.\nGenerally not useful after INC/DEC, LD/ST, and TST/CLR/COM instructions.',
+        'condition code': 'Not affected.',
+        'description': 'Tests the state of the C (carry) bit and causes a branch if it is set.\nWhen used after a subtract or compare on unsigned binary values, this instruction will branch if the register was lower than the memory operand.',
+        'instr_desc': 'Branch if lower (unsigned)',
+        'operation': "TEMP = MI IFF C = 1 then PC' = PC + TEMP",
+        'source form': 'BLO dd; LBLO DDDD'
     },
     BLS: {
         'HNZVC': '-----',
@@ -440,16 +459,7 @@ INSTRUCTION_INFO = {
         'operation': "R' = M",
         'source form': 'LDA P; LDB P'
     },
-    LEA_pointer: {
-        'HNZVC': '-----',
-        'comment': "Instruction Operation Comment\nInstruction\n\nOperation\n\nComment\nLEAX 10,X X+10 -> X Adds 5-bit constant 10 to X\nLEAX 500,X X+500 -> X Adds 16-bit constant 500 to X\nLEAY A,Y Y+A -> Y Adds 8-bit accumulator to Y\nLEAY D,Y Y+D -> Y Adds 16-bit D accumulator to Y\nLEAU -10,U U-10 -> U Subtracts 10 from U\nLEAS -10,S S-10 -> S Used to reserve area on stack\nLEAS 10,S S+10 -> S Used to 'clean up' stack\nLEAX 5,S S+5 -> X Transfers as well as adds",
-        'condition code': 'H - Not affected.\nN - Not affected.\nZ - LEAX, LEAY: Set if the result is zero; cleared otherwise. LEAS, LEAU: Not affected.\nV - Not affected.\nC - Not affected.',
-        'description': 'Calculates the effective address from the indexed addressing mode and places the address in an indexable register. LEAX and LEAY affect the Z (zero) bit to allow use of these registers as counters and for MC6800 INX/DEX compatibility. LEAU and LEAS do not affect the Z bit to allow cleaning up the stack while returning the Z bit as a parameter to a calling routine, and also for MC6800 INS/DES compatibility.',
-        'instr_desc': 'Load effective address into stack pointer',
-        'operation': "R' = EA",
-        'source form': 'LEAX, LEAY, LEAS, LEAU'
-    },
-    LEA_register: {
+    LEA: {
         'HNZVC': '-----',
         'comment': "Instruction Operation Comment\nInstruction\n\nOperation\n\nComment\nLEAX 10,X X+10 -> X Adds 5-bit constant 10 to X\nLEAX 500,X X+500 -> X Adds 16-bit constant 500 to X\nLEAY A,Y Y+A -> Y Adds 8-bit accumulator to Y\nLEAY D,Y Y+D -> Y Adds 16-bit D accumulator to Y\nLEAU -10,U U-10 -> U Subtracts 10 from U\nLEAS -10,S S-10 -> S Used to reserve area on stack\nLEAS 10,S S+10 -> S Used to 'clean up' stack\nLEAX 5,S S+5 -> X Transfers as well as adds",
         'condition code': 'H - Not affected.\nN - Not affected.\nZ - LEAX, LEAY: Set if the result is zero; cleared otherwise. LEAS, LEAU: Not affected.\nV - Not affected.\nC - Not affected.',
@@ -2134,7 +2144,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_read": False, "mem_write": False,
         "register": REG_X, # 16 Bit index register X
-        "category": 2, "instr_info_key": LEA_register,
+        "category": 2, "instr_info_key": LEA,
     },
     {
         "opcode": 0x31, "instruction": "LEA", "mnemonic": "LEAY",
@@ -2142,7 +2152,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_read": False, "mem_write": False,
         "register": REG_Y, # 16 Bit index register Y
-        "category": 2, "instr_info_key": LEA_register,
+        "category": 2, "instr_info_key": LEA,
     },
     {
         "opcode": 0x32, "instruction": "LEA", "mnemonic": "LEAS",
@@ -2150,7 +2160,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_read": False, "mem_write": False,
         "register": REG_S, # 16 Bit system-stack pointer S
-        "category": 2, "instr_info_key": LEA_pointer,
+        "category": 2, "instr_info_key": LEA,
     },
     {
         "opcode": 0x33, "instruction": "LEA", "mnemonic": "LEAU",
@@ -2158,42 +2168,38 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_read": False, "mem_write": False,
         "register": REG_U, # 16 Bit user-stack pointer U
-        "category": 2, "instr_info_key": LEA_pointer,
+        "category": 2, "instr_info_key": LEA,
     },
     {
-        "opcode": 0x34, "instruction": "PSH", "mnemonic": "PSHS",
+        "opcode": 0x34, "instruction": "PSHS", "mnemonic": "PSHS",
         "desc": "S -= 1: MEM(S) = R; Push Register on S Stack",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # Push Registers on S Stack: S -= 1: MEM(S) = Reg.
         "mem_read": True, "mem_write": False,
-        "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": PSHS,
     },
     {
-        "opcode": 0x35, "instruction": "PUL", "mnemonic": "PULS",
+        "opcode": 0x35, "instruction": "PULS", "mnemonic": "PULS",
         "desc": "R=MEM(S) : S += 1; Pull register from S Stack",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # Pull Registers from S Stack: Reg. = MEM(S): S += 1
         "mem_read": True, "mem_write": False,
-        "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": PULS,
     },
     {
-        "opcode": 0x36, "instruction": "PSH", "mnemonic": "PSHU",
+        "opcode": 0x36, "instruction": "PSHU", "mnemonic": "PSHU",
         "desc": "U -= 1: MEM(U) = R; Push Register on U Stack",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # Push Registers on U Stack: U -= 1: MEM(U) = Reg.
         "mem_read": True, "mem_write": False,
-        "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": PSHU,
     },
     {
-        "opcode": 0x37, "instruction": "PUL", "mnemonic": "PULU",
+        "opcode": 0x37, "instruction": "PULU", "mnemonic": "PULU",
         "desc": "R=MEM(U) : U += 1; Pull register from U Stack",
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # Pull Registers from U Stack: Reg. = MEM(U): U += 1
         "mem_read": True, "mem_write": False,
-        "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": PULU,
     },
     {
@@ -2753,18 +2759,20 @@ OP_DATA = (
         "category": 5, "instr_info_key": BLS,
     },
     {
-        "opcode": 0x24, "instruction": "BHS/BCC", "mnemonic": "BHS/BCC",
+        "opcode": 0x24, "instruction": "BHS", "mnemonic": "BHS/BCC",
         "desc": "Branch if higher or same (unsigned)",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
+        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF C = 0 then PC' = PC + MI
         "mem_read": False, "mem_write": False,
-        "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 5, "instr_info_key": BHS,
     },
     {
-        "opcode": 0x25, "instruction": "BLO/BCS", "mnemonic": "BLO/BCS",
+        "opcode": 0x25, "instruction": "BLO", "mnemonic": "BLO/BCS",
         "desc": "Branch if lower (unsigned)",
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
+        "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF C = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
-        "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
+        "category": 5, "instr_info_key": BLO,
     },
     {
         "opcode": 0x26, "instruction": "BNE", "mnemonic": "BNE",

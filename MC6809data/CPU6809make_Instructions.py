@@ -56,13 +56,6 @@ CHANGE_INSTRUCTIONS = {
 }
 CHANGED_INSTRUCTIONS = tuple(CHANGE_INSTRUCTIONS.values())
 
-SPLIT_MNEMONIC = {
-    "LEAS": "LEA_pointer",
-    "LEAU": "LEA_pointer",
-    "LEAX": "LEA_register",
-    "LEAY": "LEA_register",
-}
-
 EXTENDED = "EXTENDED"
 VARIANT = "VARIANT"
 DIRECT = "DIRECT"
@@ -78,11 +71,12 @@ MEM_ACCESS_BYTE = "MEM_ACCESS_BYTE"
 MEM_ACCESS_WORD = "MEM_ACCESS_WORD"
 
 INSTRUCTIONS = (
-    "ABX", "ADC", "ADD", "AND", "ASL", "ASR", "BIT", "CLR", "CMP", "COM", "CWAI",
-    "DAA", "DEC", "EOR", "EXG", "INC", "JMP", "JSR", "LD", "LEA", "LSL", "LSR",
-    "MUL", "NEG", "NOP", "OR", "PSH", "PUL", "ROL", "ROR", "RTI", "RTS",
-    "SBC", "SEX", "ST", "SUB", "SWI", "SYNC", "TFR", "TST",
-    "PAGE"
+    "ABX", "ADC", "ADD", "AND", "ASL", "ASR", "BCC", "BCS", "BEQ", "BGE", "BGT", "BHI", "BHS",
+    "BIT", "BLE", "BLO", "BLS", "BLT", "BMI", "BNE", "BPL", "BRA", "BRN", "BSR", "BVC", "BVS",
+    "CLR", "CMP", "COM", "CWAI", "DAA", "DEC", "EOR", "EXG", "INC", "JMP", "JSR", "LD", "LEA",
+    "LSL", "LSR", "MUL", "NEG", "NOP", "OR", "PSHS", "PSHU", "PULS", "PULU", "ROL", "ROR",
+    "RTI", "RTS", "SBC", "SEX", "ST", "SUB", "SWI", "SWI2", "SWI3", "SYNC", "TFR", "TST",
+    "FIRQ", "IRQ", "NMI", "RESET"
 )
 REG_A = "A"
 REG_PC = "PC"
@@ -812,11 +806,6 @@ for line in txt.splitlines():
         pprint.pprint(instr_info)
         print "%r - $%x - %r - %s" % (instr_info_key, opcode, instruction, mnemonic)
         raise AssertionError
-
-    if mnemonic in SPLIT_MNEMONIC:
-        instr_info_key = SPLIT_MNEMONIC[mnemonic]
-        INSTRUCTION_INFO.setdefault(instr_info_key, instr_info)
-        print "Change instr_info_key for %s to %s" % (mnemonic, instr_info_key)
 
     instr_info["instr_desc"] = instr_desc
 
