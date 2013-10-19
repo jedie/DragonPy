@@ -88,7 +88,7 @@ INSTRUCTIONS = (
     "ABX", "ADC", "ADD", "AND", "ASR", "BEQ", "BGE", "BGT", "BHI", "BHS",
     "BIT", "BLE", "BLO", "BLS", "BLT", "BMI", "BNE", "BPL", "BRA", "BRN", "BSR", "BVC", "BVS",
     "CLR", "CMP", "COM", "CWAI", "DAA", "DEC", "EOR", "EXG", "INC", "JMP", "JSR", "LD", "LEA",
-    "LSL", "LSR", "MUL", "NEG", "NOP", "OR", "PSHS", "PSHU", "PULS", "PULU", "ROL", "ROR",
+    "LSL", "LSR", "MUL", "NEG", "NOP", "OR", "PSH", "PUL", "ROL", "ROR",
     "RTI", "RTS", "SBC", "SEX", "ST", "SUB", "SWI", "SWI2", "SWI3", "SYNC", "TFR", "TST",
     "FIRQ", "IRQ", "NMI", "RESET",
     "PAGE",
@@ -573,7 +573,7 @@ def add_the_same(d, key, value):
         d[key] = value
 
 
-MC6809_DATA = collections.defaultdict(dict)
+MC6809_DATA = {}
 for op_code, op_info in sorted(op_info_dict.items()):
     mnemonic, addr_mode = op_info
 
@@ -594,42 +594,49 @@ for op_code, op_info in sorted(op_info_dict.items()):
     if "=" in desc:
         right = desc.split("=")[1]
         if "M:M" in right:
-            read_from_memory = 16
+            read_from_memory = "WORD"
         elif "M" in right:
-            read_from_memory = 8
+            read_from_memory = "BYTE"
 
     write_to_memory = "-"
     if desc.startswith("M:M"):
-        write_to_memory = 16
+        write_to_memory = "WORD"
     elif desc.startswith("M ="):
-        write_to_memory = 8
-
-
+        write_to_memory = "BYTE"
 
     print "\t".join([repr(i).strip("'") for i in
         (instruction, hex(op_code), mnemonic, operand, read_from_memory, write_to_memory, addr_mode, desc)
     ])
 
-#     if instruction not in MC6809_DATA:
-#     instr_dict = MC6809_DATA[instruction]
-#
-#     mnemonic_dict = instr_dict.setdefault(mnemonic, {})
-#
-#     add_the_same(mnemonic_dict, "desc", desc)
-#     add_the_same(mnemonic_dict, "operand", operand)
-#
-#     mnemonic_dict.setdefault("addr_mode", {})
-#
-#     mnemonic_dict[op_code]
-#     .append(
-#         addr_mode
-#     )
+    instr_dict = MC6809_DATA.setdefault(instruction, {})
+    mnemonic_dict = instr_dict.setdefault(mnemonic, {})
 
-#     mnemonic_list.append()
+    add_the_same(mnemonic_dict, "desc", desc)
+    add_the_same(mnemonic_dict, "operand", operand)
+
+    add_the_same(mnemonic_dict, "read_from_memory", read_from_memory)
+    add_the_same(mnemonic_dict, "write_to_memory", write_to_memory)
+
+    ops_dict = mnemonic_dict.setdefault("ops", {})
+
+    ops_dict[op_code] = addr_mode
 
 
-# pprint.pprint(mnemonic_dict)
+class HexPrettyPrinter(pprint.PrettyPrinter, object):
+    """ print values in hex """
+    def format(self, obj, context, maxlevels, level):
+        if isinstance(obj, int):
+            return hex(obj), True, False
+        return super(HexPrettyPrinter, self).format(obj, context, maxlevels, level)
 
+
+print
+print "-"*79
+print
+
+
+printer = HexPrettyPrinter(indent=0, width=1)
+printer.pprint(MC6809_DATA)
 
 
 print " -- END -- "
