@@ -1,10 +1,44 @@
 #!/usr/bin/env python
 
+"""
+    6809 instruction set data
+    ~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    merged data from:
+        * http://www.maddes.net/m6809pm/sections.htm#sec4_4
+        * http://www.burgins.com/m6809.html
+        * http://www.maddes.net/m6809pm/appendix_a.htm#appA
+
+    :copyleft: 2013 by Jens Diemer
+    :license: GNU GPL v3 or above, see LICENSE for more details.
+"""
+
 import pprint
 import collections
 from MC6809_data_raw import INSTRUCTION_INFO, OP_DATA
+import sys
+import os
 
 
+def get_global_keys(ignore_keys):
+    # Hack:
+    d = dict(globals()) # a copy!
+    for key in ignore_keys:
+        del(d[key])
+    if "ignore_keys" in d:
+        del(d["ignore_keys"])
+    return d
+
+ignore_keys = globals().keys() # hack
+
+BYTE = 8
+WORD = 16
+
+WIDTH_DICT = get_global_keys(ignore_keys)
+WIDTHS = WIDTH_DICT.keys()
+
+
+ignore_keys = globals().keys() # hack
 
 
 IMMEDIATE = "IMMEDIATE"
@@ -17,6 +51,12 @@ DIRECT = "DIRECT"
 INDEXED = "INDEXED"
 INHERENT = "INHERENT"
 STACK = "STACK"
+
+ADDR_MODE_DICT = get_global_keys(ignore_keys)
+ADDR_MODES = ADDR_MODE_DICT.keys()
+ADDR_MODES.sort()
+
+ignore_keys = globals().keys() # hack
 
 ABX = "ABX"
 ADC = "ADC"
@@ -85,15 +125,44 @@ RESET = "RESET"
 
 PAGE = "PAGE"
 
-INSTRUCTIONS = (
-    "ABX", "ADC", "ADD", "AND", "ASR", "BEQ", "BGE", "BGT", "BHI", "BHS",
-    "BIT", "BLE", "BLO", "BLS", "BLT", "BMI", "BNE", "BPL", "BRA", "BRN", "BSR", "BVC", "BVS",
-    "CLR", "CMP", "COM", "CWAI", "DAA", "DEC", "EOR", "EXG", "INC", "JMP", "JSR", "LD", "LEA",
-    "LSL", "LSR", "MUL", "NEG", "NOP", "OR", "PSH", "PUL", "ROL", "ROR",
-    "RTI", "RTS", "SBC", "SEX", "ST", "SUB", "SWI", "SWI2", "SWI3", "SYNC", "TFR", "TST",
-    "FIRQ", "IRQ", "NMI", "RESET",
-    "PAGE",
-)
+INSTRUCTION_DICT = get_global_keys(ignore_keys)
+INSTRUCTIONS = INSTRUCTION_DICT.keys()
+INSTRUCTIONS.sort()
+
+
+ignore_keys = globals().keys() # hack
+
+# operands:
+REG_A = "A"
+REG_PC = "PC"
+REG_S = "S"
+REG_B = "B"
+REG_U = "U"
+REG_D = "D"
+REG_Y = "Y"
+REG_X = "X"
+REG_CC = "CC"
+REG_DP = "DP"
+
+REGISTER_DICT = get_global_keys(ignore_keys)
+REGISTERS = REGISTER_DICT.keys()
+REGISTERS.sort()
+
+REGISTER_DICT2 = dict((v, k) for k, v in REGISTER_DICT.items())
+
+
+REGISTER_INFO = {
+    REG_D: (16, "0000", "concatenated register (A+B)"),
+    REG_X: (16, "0001", "index register"),
+    REG_Y: (16, "0010", "index register"),
+    REG_U: (16, "0011", "user-stack pointer"),
+    REG_S: (16, "0100", "system-stack pointer"),
+    REG_PC: (16, "0101", "program counter register"),
+    REG_A: (8, "1000", "accumulator"),
+    REG_B: (8, "1001", "accumulator"),
+    REG_CC: (8, "1010", "condition code register as flags"),
+    REG_DP: (8, "1011", "direct page register"),
+}
 
 
 op_info_dict = {
@@ -592,11 +661,14 @@ for op_code, op_info in sorted(op_info_dict.items()):
     instruction = get_instruction(mnemonic)
     if not instruction:
         print "ERROR:", mnemonic
+        raise
 
     if mnemonic.startswith(instruction):
         operand = mnemonic[len(instruction):].strip()
-        if operand.isdigit():
+        if operand.isdigit() or operand == "":
             operand = "-"
+        else:
+            operand = REGISTER_DICT2[operand.upper()]
     else:
         operand = "-"
 
@@ -634,7 +706,8 @@ for op_code, op_info in sorted(op_info_dict.items()):
         MC6809_DATA[instruction] = inst_info
 
     instr_dict = MC6809_DATA[instruction]
-    mnemonic_dict = instr_dict.setdefault(mnemonic, {})
+    mnemonic_dict1 = instr_dict.setdefault("mnemonic", {})
+    mnemonic_dict = mnemonic_dict1.setdefault(mnemonic, {})
 
     add_the_same(mnemonic_dict, "desc", desc)
     add_the_same(mnemonic_dict, "operand", operand)
@@ -653,23 +726,92 @@ for op_code, op_info in sorted(op_info_dict.items()):
         ops_dict[op_code][key] = old_info[key]
 
 
+
+class Tee(object):
+    def __init__(self, filepath, origin_out, to_stdout):
+        self.filepath = filepath
+        self.origin_out = origin_out
+        self.to_stdout = to_stdout
+        self.f = file(filepath, "w")
+
+    def write(self, *args):
+        txt = " ".join(args)
+        if self.to_stdout:
+            self.origin_out.write(txt)
+        self.f.write(txt)
+
+    def close(self):
+        self.f.close()
+        sys.stdout = self.origin_out
+
+
+sys.stdout = Tee("MC6809_data_raw2.py", sys.stdout,
+    to_stdout=True
+#     to_stdout=False
+)
+
+
+def print_constants(keys, d):
+    for k in keys:
+        print '%s = "%s"' % (k, d[k])
+    print
+
+print "#!/usr/bin/env python"
+print
+print '"""%s"""' % __doc__
+
+print
+print "# this file was generated with %s" % os.path.split(__file__)[1]
+print
+
+print_constants(WIDTHS, WIDTH_DICT)
+
+print "\n# Address modes:"
+print_constants(ADDR_MODES, ADDR_MODE_DICT)
+
+print "\n# Registers:"
+print_constants(REGISTERS, REGISTER_DICT)
+
+print "\n# Instructions:"
+print_constants(INSTRUCTIONS, INSTRUCTION_DICT)
+
+
+
+print "\n"*2
+
+CONSTANTS = ADDR_MODES[:]
+CONSTANTS += INSTRUCTIONS
+CONSTANTS += REGISTERS
+CONSTANTS += WIDTHS
+
 class HexPrettyPrinter(pprint.PrettyPrinter, object):
     """ print values in hex """
     def format(self, obj, context, maxlevels, level):
         if isinstance(obj, int):
-            if level < 5: # XXX: Only opcode should be hex()
+            if level < 6: # XXX: Only opcode should be hex()
                 return hex(obj), True, False
+
+        if obj in CONSTANTS:
+            return obj, True, False
         return super(HexPrettyPrinter, self).format(obj, context, maxlevels, level)
 
-
-print
-print "-"*79
-print
-
-
 printer = HexPrettyPrinter(indent=0, width=1)
-printer.pprint(MC6809_DATA)
+print "OP_DATA = %s" % printer.pformat(MC6809_DATA)
 
+
+# pprint.pprint(CONSTANTS_DICT)
+
+
+
+
+# for instruction, inst_data in sorted(MC6809_DATA.items()):
+#     print "%s: {" % instruction
+#     for inst_info_key, inst_info_data in sorted(inst_data.items()):
+#         spaces = " "*4
+#         if inst_info_key != "mnemonic":
+#             print '%s"%s": {' % (spaces, inst_info_key)
+#     print "}"
+#     break
 
 print " -- END -- "
 
