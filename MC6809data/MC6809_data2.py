@@ -814,5 +814,4 @@ print "OP_DATA = %s" % printer.pformat(MC6809_DATA)
 #     print "}"
 #     break
 
-print " -- END -- "
 

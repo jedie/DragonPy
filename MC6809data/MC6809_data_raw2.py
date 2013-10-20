@@ -1827,4 +1827,3 @@ TST: {'HNZVC': '-aa0-',
                          'write_to_memory': None}},
      'operation': 'TEMP = M - 0',
      'source form': 'TST Q; TSTA; TSTB'}}
- -- END -- 

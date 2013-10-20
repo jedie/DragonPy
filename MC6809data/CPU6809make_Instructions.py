@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 """
     6809 instruction set data
