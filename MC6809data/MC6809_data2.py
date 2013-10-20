@@ -666,27 +666,28 @@ for op_code, op_info in sorted(op_info_dict.items()):
     if mnemonic.startswith(instruction):
         operand = mnemonic[len(instruction):].strip()
         if operand.isdigit() or operand == "":
-            operand = "-"
+            operand = None
         else:
             operand = REGISTER_DICT2[operand.upper()]
     else:
-        operand = "-"
+        operand = None
 
-    desc = SHORT_DESC.get(mnemonic, "-")
+    desc = SHORT_DESC.get(mnemonic, None)
 
-    read_from_memory = "-"
-    if "=" in desc:
-        right = desc.split("=")[1]
-        if "M:M" in right:
-            read_from_memory = "WORD"
-        elif "M" in right:
-            read_from_memory = "BYTE"
+    read_from_memory = None
+    write_to_memory = None
+    if desc is not None:
+        if "=" in desc:
+            right = desc.split("=")[1]
+            if "M:M" in right:
+                read_from_memory = "WORD"
+            elif "M" in right:
+                read_from_memory = "BYTE"
 
-    write_to_memory = "-"
-    if desc.startswith("M:M"):
-        write_to_memory = "WORD"
-    elif desc.startswith("M ="):
-        write_to_memory = "BYTE"
+        if desc.startswith("M:M"):
+            write_to_memory = "WORD"
+        elif desc.startswith("M ="):
+            write_to_memory = "BYTE"
 
     print "\t".join([repr(i).strip("'") for i in
         (instruction, hex(op_code), mnemonic, operand, read_from_memory, write_to_memory, addr_mode, desc)
