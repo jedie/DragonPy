@@ -2,8 +2,9 @@
 
 import pprint
 import collections
+from MC6809_data_raw import INSTRUCTION_INFO, OP_DATA
 
-from MC6809data.MC6809_data_raw import OP_DATA
+
 
 
 IMMEDIATE = "IMMEDIATE"
@@ -493,6 +494,12 @@ NO_MEM_READ = (
     "PSHS", "PSHU", "PULS", "PULU",
 )
 
+INST_INFO_MERGE = {
+    "PSHS": "PSH",
+    "PSHU": "PSH",
+    "PULS": "PUL",
+    "PULU": "PUL",
+}
 
 
 # op_types = {
@@ -573,6 +580,11 @@ def add_the_same(d, key, value):
         d[key] = value
 
 
+
+OP_DATA_DICT = dict([(op["opcode"], op) for op in OP_DATA])
+
+
+
 MC6809_DATA = {}
 for op_code, op_info in sorted(op_info_dict.items()):
     mnemonic, addr_mode = op_info
@@ -608,7 +620,20 @@ for op_code, op_info in sorted(op_info_dict.items()):
         (instruction, hex(op_code), mnemonic, operand, read_from_memory, write_to_memory, addr_mode, desc)
     ])
 
-    instr_dict = MC6809_DATA.setdefault(instruction, {})
+    if instruction not in MC6809_DATA:
+        try:
+            inst_info = INSTRUCTION_INFO[instruction]
+        except KeyError:
+            try:
+                # Was splitted into byte/word
+                inst_info = INSTRUCTION_INFO[instruction + "8"]
+            except KeyError:
+                # e.g.: PULS, PULU -> merge together
+                inst_info = INSTRUCTION_INFO[mnemonic]
+
+        MC6809_DATA[instruction] = inst_info
+
+    instr_dict = MC6809_DATA[instruction]
     mnemonic_dict = instr_dict.setdefault(mnemonic, {})
 
     add_the_same(mnemonic_dict, "desc", desc)
@@ -619,14 +644,21 @@ for op_code, op_info in sorted(op_info_dict.items()):
 
     ops_dict = mnemonic_dict.setdefault("ops", {})
 
-    ops_dict[op_code] = addr_mode
+    old_info = OP_DATA_DICT[op_code]
+
+    ops_dict[op_code] = {
+        "addr_mode": addr_mode,
+    }
+    for key in ("cycles", "bytes"):
+        ops_dict[op_code][key] = old_info[key]
 
 
 class HexPrettyPrinter(pprint.PrettyPrinter, object):
     """ print values in hex """
     def format(self, obj, context, maxlevels, level):
         if isinstance(obj, int):
-            return hex(obj), True, False
+            if level < 5: # XXX: Only opcode should be hex()
+                return hex(obj), True, False
         return super(HexPrettyPrinter, self).format(obj, context, maxlevels, level)
 
 
