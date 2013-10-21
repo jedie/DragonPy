@@ -612,37 +612,6 @@ def get_instruction(mnemonic):
         mnemonic = mnemonic[1:]
         return get_instruction(mnemonic)
 
-"""
-ST - Store Register into Memory
-    ST (8-Bit)
-        STA - M = A
-            -Extended
-            -Direct
-            -Indexed
-        STB - M = B
-            -Extended
-            -Direct
-            -Indexed
-    ST (16-Bit)
-        STD - M:M+1 = D
-            -Extended
-            -Direct
-            -Indexed
-        STS - M:M+1 = S
-            -Extended
-            -Direct
-            -Indexed
-        STU - M:M+1 = U
-            -Extended
-            -Direct
-            -Indexed
-        STX - M:M+1 = X
-            -Extended
-            -Direct
-            -Indexed
-        STY - M:M+1 = Y
-"""
-
 print "\t".join((
     "instr.", "opcode", "mnemonic", "operand", "read", "write", "addr.mode", "desc"
 ))
@@ -722,9 +691,11 @@ for op_code, op_info in sorted(op_info_dict.items()):
     add_the_same(mnemonic_dict, "read_from_memory", read_from_memory)
     add_the_same(mnemonic_dict, "write_to_memory", write_to_memory)
 
-    ops_dict = mnemonic_dict.setdefault("ops", {})
-
     old_info = OP_DATA_DICT[op_code]
+
+    add_the_same(mnemonic_dict, "HNZVC", old_info["HNZVC"])
+
+    ops_dict = mnemonic_dict.setdefault("ops", {})
 
     ops_dict[op_code] = {
         "addr_mode": addr_mode,
