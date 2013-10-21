@@ -821,8 +821,6 @@ class CPU(object):
 
     def push_byte(self, stack_pointer, byte):
         """ pushed a byte onto stack """
-        stack_pointer.counter += 1 # for internal check
-
         # FIXME: self._system_stack_pointer -= 1
         stack_pointer.decrement(1)
         addr = stack_pointer.get()
@@ -837,13 +835,6 @@ class CPU(object):
 
     def pull_byte(self, stack_pointer):
         """ pulled a byte from stack """
-        stack_pointer.counter -= 1 # for internal check
-        if stack_pointer.counter < 0:
-            log.critical(" *** ERROR: pulled more than pushed from stack %s (count: %i)\t|%s",
-                stack_pointer.name, stack_pointer.counter,
-                self.cfg.mem_info.get_shortest(self.last_op_address)
-            )
-
         addr = stack_pointer.get()
         byte = self.memory.read_byte(addr)
 #         log.info(
@@ -859,8 +850,6 @@ class CPU(object):
         return byte
 
     def push_word(self, stack_pointer, word):
-        stack_pointer.counter += 2 # for internal check
-
         # FIXME: self._system_stack_pointer -= 2
         stack_pointer.decrement(2)
 
@@ -879,13 +868,6 @@ class CPU(object):
 #         self.push_byte(lo)
 
     def pull_word(self, stack_pointer):
-        stack_pointer.counter -= 2 # for internal check
-        if stack_pointer.counter < 0:
-            log.critical(" *** ERROR: pulled more than pushed from stack %s (count: %i)\t|%s",
-                stack_pointer.name, stack_pointer.counter,
-                self.cfg.mem_info.get_shortest(self.last_op_address)
-            )
-
         addr = stack_pointer.get()
         word = self.memory.read_word(addr)
 #         log.info(
