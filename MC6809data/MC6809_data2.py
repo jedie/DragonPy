@@ -41,6 +41,7 @@ BYTE = 8
 WORD = 16
 
 WIDTH_DICT = get_global_keys(ignore_keys)
+WIDTH_DICT2 = dict((v, k) for k, v in WIDTH_DICT.items())
 WIDTHS = WIDTH_DICT.keys()
 
 
@@ -569,6 +570,19 @@ NO_MEM_READ = (
     "PSHS", "PSHU", "PULS", "PULU",
 )
 
+MEM_READ = {
+    "BITA":8,
+    "BITB":8,
+
+    "CMPA":8,
+    "CMPB":8,
+    "CMPD":16,
+    "CMPS":16,
+    "CMPU":16,
+    "CMPX":16,
+    "CMPY":16,
+}
+
 INST_INFO_MERGE = {
     "PSHS": "PSH",
     "PSHU": "PSH",
@@ -663,6 +677,10 @@ for op_code, op_info in sorted(op_info_dict.items()):
             write_to_memory = "WORD"
         elif desc.startswith("M ="):
             write_to_memory = "BYTE"
+
+    if mnemonic in MEM_READ:
+        width = MEM_READ[mnemonic]
+        read_from_memory = WIDTH_DICT2[width]
 
     print "\t".join([repr(i).strip("'") for i in
         (instruction, hex(op_code), mnemonic, operand, read_from_memory, write_to_memory, addr_mode, desc)
