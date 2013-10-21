@@ -736,6 +736,9 @@ for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
         width = MEM_READ[mnemonic]
         read_from_memory = WIDTH_DICT2[width]
 
+    if write_to_memory is not None:
+        needs_ea = True
+
     print "\t".join([repr(i).strip("'") for i in
         (instruction, hex(op_code), mnemonic, register, read_from_memory, write_to_memory, addr_mode, desc)
     ])
