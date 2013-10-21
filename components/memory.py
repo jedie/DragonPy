@@ -159,7 +159,12 @@ class Memory(object):
             )
         self.cpu.cycles += 1
         
-        assert 0x0 <= value <= 0xff, "Write out of range value $%x to $%x" % (value, address)
+#         assert 0x0 <= value <= 0xff, "Write out of range value $%x to $%x" % (value, address)
+        if not (0x0 <= value <= 0xff):
+            log.error("Write out of range value $%x to $%x", value, address)
+            value = value & 0xff
+            log.error(" ^^^^ wrap around to $%x", value)
+
 
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
