@@ -1260,7 +1260,7 @@ class CPU(object):
     @opcode(# AND condition code register
         0x1c, # ANDCC (immediate)
     )
-    def instruction_ANDCC(self, opcode, ea, register):
+    def instruction_ANDCC(self, opcode, m, register):
         """
         Performs a logical AND between the condition code register and the
         immediate byte specified in the instruction and places the result in the
@@ -1270,8 +1270,7 @@ class CPU(object):
 
         CC bits "HNZVC": ddddd
         """
-        raise NotImplementedError("$%x ANDCC" % opcode)
-        # Update CC bits: ddddd
+        register.logical_and(m)
 
     def ASR(self, a):
         """
@@ -2885,12 +2884,12 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-        "--verbosity=5",
+#         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
 #         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
+        "--verbosity=50", # CRITICAL/FATAL
 
 #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
 
