@@ -1096,7 +1096,7 @@ OP_DATA = (
         "opcode": 0x70, "instruction": "NEG", "mnemonic": "NEG",
         "desc": "M = !M + 1",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # M' = 0 - M
+        "mem_access": MEM_ACCESS_WORD, # M' = 0 - M
         "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": NEG,
     },
@@ -1104,7 +1104,7 @@ OP_DATA = (
         "opcode": 0x73, "instruction": "COM", "mnemonic": "COM",
         "desc": "M = complement(M)",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # M' = 0 + M
+        "mem_access": MEM_ACCESS_WORD, # M' = 0 + M
         "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": COM,
     },
@@ -1112,7 +1112,7 @@ OP_DATA = (
         "opcode": 0x74, "instruction": "LSR", "mnemonic": "LSR",
         "desc": "M = Logical shift M right",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # 0 -> -> C;b7 -> b0
+        "mem_access": MEM_ACCESS_WORD, # 0 -> -> C;b7 -> b0
         "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": LSR,
     },
@@ -1120,7 +1120,7 @@ OP_DATA = (
         "opcode": 0x76, "instruction": "ROR", "mnemonic": "ROR",
         "desc": "M = Rotate M Right thru carry",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # C -> -> C;b7 -> b0
+        "mem_access": MEM_ACCESS_WORD, # C -> -> C;b7 -> b0
         "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": ROR,
     },
@@ -1128,7 +1128,7 @@ OP_DATA = (
         "opcode": 0x77, "instruction": "ASR", "mnemonic": "ASR",
         "desc": "M = Arithmetic shift M right",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # b7 -> -> C;b7 -> b0
+        "mem_access": MEM_ACCESS_WORD, # b7 -> -> C;b7 -> b0
         "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": ASR,
     },
@@ -1136,7 +1136,7 @@ OP_DATA = (
         "opcode": 0x78, "instruction": "LSL", "mnemonic": "LSL/ASL",
         "desc": "M = Logical shift M left",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # C = = 0;b7 = b0
+        "mem_access": MEM_ACCESS_WORD, # C = = 0;b7 = b0
         "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": LSL,
     },
@@ -1144,7 +1144,7 @@ OP_DATA = (
         "opcode": 0x79, "instruction": "ROL", "mnemonic": "ROL",
         "desc": "M = Rotate M left thru carry",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # C = = C;b7 = b0
+        "mem_access": MEM_ACCESS_WORD, # C = = C;b7 = b0
         "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": ROL,
     },
@@ -1152,7 +1152,7 @@ OP_DATA = (
         "opcode": 0x7a, "instruction": "DEC", "mnemonic": "DEC",
         "desc": "M = M  1",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # M' = M - 1
+        "mem_access": MEM_ACCESS_WORD, # M' = M - 1
         "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": DEC,
     },
@@ -1160,7 +1160,7 @@ OP_DATA = (
         "opcode": 0x7c, "instruction": "INC", "mnemonic": "INC",
         "desc": "M = M + 1",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # M' = M + 1
+        "mem_access": MEM_ACCESS_WORD, # M' = M + 1
         "mem_read": True, "mem_write": True,
         "category": 0, "instr_info_key": INC,
     },
@@ -1168,7 +1168,7 @@ OP_DATA = (
         "opcode": 0x7d, "instruction": "TST", "mnemonic": "TST",
         "desc": "Test M",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = M - 0
+        "mem_access": MEM_ACCESS_WORD, # TEMP = M - 0
         "mem_read": True, "mem_write": False,
         "category": 0, "instr_info_key": TST,
     },
@@ -1176,7 +1176,7 @@ OP_DATA = (
         "opcode": 0x7f, "instruction": "CLR", "mnemonic": "CLR",
         "desc": "M = 0",
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = M M = 00 16
+        "mem_access": MEM_ACCESS_WORD, # TEMP = M M = 00 16
         "mem_read": False, "mem_write": True,
         "category": 0, "instr_info_key": CLR,
     },
@@ -1472,7 +1472,7 @@ OP_DATA = (
         "opcode": 0xb0, "instruction": "SUB", "mnemonic": "SUBA",
         "desc": "A = A - M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R - M
+        "mem_access": MEM_ACCESS_WORD, # R' = R - M
         "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SUB8,
@@ -1481,7 +1481,7 @@ OP_DATA = (
         "opcode": 0xb1, "instruction": "CMP", "mnemonic": "CMPA",
         "desc": "Compare M from A",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
+        "mem_access": MEM_ACCESS_WORD, # TEMP = R - M
         "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": CMP8,
@@ -1490,7 +1490,7 @@ OP_DATA = (
         "opcode": 0xb2, "instruction": "SBC", "mnemonic": "SBCA",
         "desc": "A = A - M - C",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
+        "mem_access": MEM_ACCESS_WORD, # R' = R - M - C
         "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SBC,
@@ -1499,7 +1499,7 @@ OP_DATA = (
         "opcode": 0xb4, "instruction": "AND", "mnemonic": "ANDA",
         "desc": "A = A && M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
+        "mem_access": MEM_ACCESS_WORD, # R' = R AND M
         "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": AND,
@@ -1508,7 +1508,7 @@ OP_DATA = (
         "opcode": 0xb5, "instruction": "BIT", "mnemonic": "BITA",
         "desc": "Bit Test A (M&&A)",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
+        "mem_access": MEM_ACCESS_WORD, # TEMP = R AND M
         "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": BIT,
@@ -1517,7 +1517,7 @@ OP_DATA = (
         "opcode": 0xb6, "instruction": "LD", "mnemonic": "LDA",
         "desc": "A = M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = M
+        "mem_access": MEM_ACCESS_WORD, # R' = M
         "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": LD8,
@@ -1526,7 +1526,7 @@ OP_DATA = (
         "opcode": 0xb7, "instruction": "ST", "mnemonic": "STA",
         "desc": "M = A",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # M' = R
+        "mem_access": MEM_ACCESS_WORD, # M' = R
         "mem_read": False, "mem_write": True,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ST8,
@@ -1535,7 +1535,7 @@ OP_DATA = (
         "opcode": 0xb8, "instruction": "EOR", "mnemonic": "EORA",
         "desc": "A = A XOR M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
+        "mem_access": MEM_ACCESS_WORD, # R' = R XOR M
         "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": EOR,
@@ -1544,7 +1544,7 @@ OP_DATA = (
         "opcode": 0xb9, "instruction": "ADC", "mnemonic": "ADCA",
         "desc": "A = A+M+C",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
+        "mem_access": MEM_ACCESS_WORD, # R' = R + M + C
         "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADC,
@@ -1553,7 +1553,7 @@ OP_DATA = (
         "opcode": 0xba, "instruction": "OR", "mnemonic": "ORA",
         "desc": "A = A || M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
+        "mem_access": MEM_ACCESS_WORD, # R' = R OR M
         "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": OR,
@@ -1562,7 +1562,7 @@ OP_DATA = (
         "opcode": 0xbb, "instruction": "ADD", "mnemonic": "ADDA",
         "desc": "A = A+M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R + M
+        "mem_access": MEM_ACCESS_WORD, # R' = R + M
         "mem_read": True, "mem_write": False,
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADD8,
@@ -1859,7 +1859,7 @@ OP_DATA = (
         "opcode": 0xf0, "instruction": "SUB", "mnemonic": "SUBB",
         "desc": "B = B - M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R - M
+        "mem_access": MEM_ACCESS_WORD, # R' = R - M
         "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SUB8,
@@ -1868,7 +1868,7 @@ OP_DATA = (
         "opcode": 0xf1, "instruction": "CMP", "mnemonic": "CMPB",
         "desc": "Compare M from B",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
+        "mem_access": MEM_ACCESS_WORD, # TEMP = R - M
         "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": CMP8,
@@ -1877,7 +1877,7 @@ OP_DATA = (
         "opcode": 0xf2, "instruction": "SBC", "mnemonic": "SBCB",
         "desc": "B = B - M - C",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
+        "mem_access": MEM_ACCESS_WORD, # R' = R - M - C
         "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SBC,
@@ -1886,7 +1886,7 @@ OP_DATA = (
         "opcode": 0xf4, "instruction": "AND", "mnemonic": "ANDB",
         "desc": "B = B && M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
+        "mem_access": MEM_ACCESS_WORD, # R' = R AND M
         "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": AND,
@@ -1895,7 +1895,7 @@ OP_DATA = (
         "opcode": 0xf5, "instruction": "BIT", "mnemonic": "BITB",
         "desc": "Bit Test B (M&&B)",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
+        "mem_access": MEM_ACCESS_WORD, # TEMP = R AND M
         "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": BIT,
@@ -1904,7 +1904,7 @@ OP_DATA = (
         "opcode": 0xf6, "instruction": "LD", "mnemonic": "LDB",
         "desc": "B = M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = M
+        "mem_access": MEM_ACCESS_WORD, # R' = M
         "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": LD8,
@@ -1913,7 +1913,7 @@ OP_DATA = (
         "opcode": 0xf7, "instruction": "ST", "mnemonic": "STB",
         "desc": "M = B",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # M' = R
+        "mem_access": MEM_ACCESS_WORD, # M' = R
         "mem_read": False, "mem_write": True,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ST8,
@@ -1922,7 +1922,7 @@ OP_DATA = (
         "opcode": 0xf8, "instruction": "EOR", "mnemonic": "EORB",
         "desc": "B = M XOR B",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
+        "mem_access": MEM_ACCESS_WORD, # R' = R XOR M
         "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": EOR,
@@ -1931,7 +1931,7 @@ OP_DATA = (
         "opcode": 0xf9, "instruction": "ADC", "mnemonic": "ADCB",
         "desc": "B = B+M+C",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
+        "mem_access": MEM_ACCESS_WORD, # R' = R + M + C
         "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADC,
@@ -1940,7 +1940,7 @@ OP_DATA = (
         "opcode": 0xfa, "instruction": "OR", "mnemonic": "ORB",
         "desc": "B = B || M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
+        "mem_access": MEM_ACCESS_WORD, # R' = R OR M
         "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": OR,
@@ -1949,7 +1949,7 @@ OP_DATA = (
         "opcode": 0xfb, "instruction": "ADD", "mnemonic": "ADDB",
         "desc": "B = B+M",
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
-        "mem_access": MEM_ACCESS_BYTE, # R' = R + M
+        "mem_access": MEM_ACCESS_WORD, # R' = R + M
         "mem_read": True, "mem_write": False,
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADD8,
@@ -2971,6 +2971,7 @@ OP_DATA = (
         "opcode": 0x7e, "instruction": "JMP", "mnemonic": "JMP",
         "desc": "pc = EA",
         "addr_mode": EXTENDED, "cycles": 3, "bytes": 3,
+        "mem_access": MEM_ACCESS_WORD, # PC' = EA
         "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": JMP,
     },
@@ -2992,6 +2993,7 @@ OP_DATA = (
         "opcode": 0xbd, "instruction": "JSR", "mnemonic": "JSR",
         "desc": "jump to subroutine",
         "addr_mode": EXTENDED, "cycles": 8, "bytes": 3,
+        "mem_access": MEM_ACCESS_WORD, # SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' =EA
         "mem_read": False, "mem_write": False,
         "category": 7, "instr_info_key": JSR,
     },

@@ -893,6 +893,16 @@ for line in txt.splitlines():
                 mem_access = MEM_ACCESS_WORD
             else:
                 raise ValueError
+            
+    raise TODO:
+        e.g.: STD:
+         'addr_mode': 'DIRECT',
+         'ea_width': 8, # add: width of addr_mode function
+         'mem_read': 0, # change: doesn't read memory
+         'mem_write': 16, # change: write a word
+
+    if addr_mode == EXTENDED:
+        mem_access = MEM_ACCESS_WORD
 
     if mnemonic.startswith("LB"):
         # long branches
