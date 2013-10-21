@@ -27,7 +27,10 @@ import socket
 import struct
 
 log = logging.getLogger("DragonPy.memory")
-
+# handler = logging.StreamHandler()
+# handler.level = 5
+# log.handlers = (handler,)
+# log.error("Memory debug on.")
 
 class ROM(object):
 

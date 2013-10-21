@@ -67,7 +67,7 @@ def activate_full_debug_logging():
     handler = logging.StreamHandler()
     handler.level = 5
     log2.handlers = (handler,)
-    log.error("Activate full debug logging!")
+    log.critical("Activate full debug logging in %s!", __file__)
 
 
 def signed5(x):
@@ -328,6 +328,9 @@ class Instruction(object):
 #         log.debug(pprint.pformat(instr_kwargs))
 #         log.debug("-"*79)
 
+    def __repr__(self):
+        return "<Instruction $%x %s>" % (self.opcode, repr(self.data))
+
     def call_instr_func(self):
         op_kwargs = self.static_kwargs.copy()
 
@@ -437,7 +440,26 @@ class Instruction(object):
                 xroar_cc = cc_value2txt(xroar_cc)
                 ref_line = "%s | %s" % (ref_line, xroar_cc)
 #                 log.info("%s | %s", ref_line, xroar_cc)
-                log.info(ref_line)
+                log.info("%s <<< XRoar", ref_line)
+
+                registers1 = msg[52:95]
+                registers2 = ref_line[52:95]
+                if registers1 != registers2:
+                    log.info("trace: %s" , ref_line)
+                    log.info("own..: %s" , msg)
+                    log.error("Error in CPU cycles: %i", self.cpu.cycles)
+                    log.error("registers (%r != %r) not the same as trace reference!\n" % (
+                        registers1, registers2
+                    ))
+                else:
+                    cc1 = msg[98:106]
+                    if cc1 != xroar_cc:
+                        log.info("trace: %s" , ref_line)
+                        log.info("own..: %s" , msg)
+                        log.error("Error in CPU cycles: %i", self.cpu.cycles)
+                        log.error("CC (%r != %r) not the same as trace reference!\n" % (
+                            cc1, xroar_cc
+                        ))
 
                 addr1 = msg.split("|", 1)[0]
                 addr2 = ref_line.split("|", 1)[0]
@@ -460,25 +482,6 @@ class Instruction(object):
                     )
                     log.error(msg)
                     raise RuntimeError(msg)
-
-                registers1 = msg[52:95]
-                registers2 = ref_line[52:95]
-                if registers1 != registers2:
-                    log.info("trace: %s" , ref_line)
-                    log.info("own..: %s" , msg)
-                    log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                    log.error("registers (%r != %r) not the same as trace reference!\n" % (
-                        registers1, registers2
-                    ))
-                else:
-                    cc1 = msg[98:106]
-                    if cc1 != xroar_cc:
-                        log.info("trace: %s" , ref_line)
-                        log.info("own..: %s" , msg)
-                        log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                        log.error("CC (%r != %r) not the same as trace reference!\n" % (
-                            cc1, xroar_cc
-                        ))
 
                 log.debug("\t%s", repr(self.data))
 
@@ -526,8 +529,8 @@ class CPU(object):
             )
 
         if self.cfg.area_debug_cycles is not None:
-            log.critical(
-                "Activate debug after CPU cycle %i" % self.cfg.area_debug_cycles
+            log.critical("Activate debug after CPU cycle %i (%s)",
+                self.cfg.area_debug_cycles, __file__
             )
 
         if self.cfg.max_cpu_cycles is not None:

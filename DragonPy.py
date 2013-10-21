@@ -25,8 +25,14 @@ import logging
 from utils.simple_debugger import print_exc_plus
 
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("DragonPy")
 
+def activate_full_debug_logging():
+    log2 = logging.getLogger("DragonPy")
+    handler = logging.StreamHandler()
+    handler.level = 5
+    log2.handlers = (handler,)
+    log.critical("Activate full debug logging in %s!", __file__)
 
 
 class Dragon(object):
@@ -34,6 +40,11 @@ class Dragon(object):
     def __init__(self, cfg):
         self.cfg = cfg
         self.periphery = cfg.periphery_class(cfg)
+
+        if self.cfg.area_debug_cycles is not None:
+            log.critical("Activate debug after CPU cycle %i (%s)",
+                self.cfg.area_debug_cycles, __file__
+            )
 
         listener = socket.socket()
         listener.bind(("127.0.0.1", 0))
@@ -107,6 +118,11 @@ class Dragon(object):
 
             quit_cpu = self.periphery.cycle(cpu_cycles, op_address)
 
+            if self.cfg.area_debug_cycles is not None:
+                if cpu_cycles >= self.cfg.area_debug_cycles:
+                    activate_full_debug_logging()
+                    log.debug("area debug activated after CPU cycle %i" % cpu_cycles)
+                    self.cfg.area_debug_cycles = None
 
 
 
