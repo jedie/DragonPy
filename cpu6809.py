@@ -67,6 +67,7 @@ def activate_full_debug_logging():
     handler = logging.StreamHandler()
     handler.level = 5
     log2.handlers = (handler,)
+    log.error("Activate full debug logging!")
 
 
 def signed5(x):
@@ -288,7 +289,7 @@ class Instruction(object):
 
         self.OLD_EA = 0
 
-        print opcode_data
+#         print opcode_data
         addr_mode = opcode_data["addr_mode"]
         if addr_mode is not None and addr_mode not in MC6809_data.INHERENT:
 
@@ -296,14 +297,14 @@ class Instruction(object):
             if needs_ea:
                 # Instruction needs the ea (effective address)
                 ea_func_name = "get_ea_%s" % addr_mode.lower()
-                print ea_func_name
+#                 print ea_func_name
                 self.get_ea_func = getattr(cpu, ea_func_name)
 
             read_from_memory = opcode_data["read_from_memory"]
             if read_from_memory is not None:
                 # Instruction read data from memory
                 m_func_name = "get_%s" % addr_mode.lower()
-                print m_func_name
+#                 print m_func_name
                 self.get_m_func = getattr(cpu, m_func_name)
 
         _width2name = {MC6809_data.BYTE:"byte", MC6809_data.WORD:"word"}
@@ -313,7 +314,7 @@ class Instruction(object):
             write_func_name = "write_%s" % (
                 _width2name[write_to_memory]
             )
-            print write_func_name
+#             print write_func_name
             self.write_func = getattr(memory, write_func_name)
             assert needs_ea == True
 
@@ -447,9 +448,11 @@ class Instruction(object):
                     log.info("trace: %s", ref_line)
                     log.info("own..: %s" , msg)
                     log.error("%04x|Error in CPU cycles: %i", op_address, self.cpu.cycles)
-                    log.error("mnemonic (%r != %r) not the same as trace reference!\n" % (
+                    msg = "mnemonic (%r != %r) not the same as trace reference!\n" % (
                         mnemonic1, mnemonic2
-                    ))
+                    )
+                    log.error(msg)
+                    raise RuntimeError(msg)
 
                 registers1 = msg[52:95]
                 registers2 = ref_line[52:95]
@@ -617,7 +620,9 @@ class CPU(object):
             try:
                 opcode_data = MC6809OP_DATA_DICT[opcode]
             except KeyError:
-                log.error("ERROR: no OP_DATA entry for $%x" % opcode)
+                msg = "ERROR: no OP_DATA entry for $%x" % opcode
+                log.error(msg)
+                raise RuntimeError(msg)
                 continue
 
             try:
@@ -695,9 +700,10 @@ class CPU(object):
     last_op_code = None
     def call_instruction_func(self, op_address, opcode):
 
-        if self.last_op_address == op_address:
-            # endless loop?
-            activate_full_debug_logging()
+#         if self.last_op_address == op_address:
+#             # endless loop?
+#             activate_full_debug_logging()
+#             log.error("Endless loop???")
 
         old_op_address = self.last_op_address
         self.last_op_address = op_address
@@ -824,8 +830,8 @@ class CPU(object):
         stack_pointer.decrement(1)
         addr = stack_pointer.get()
 
-#         log.info(
-        log.error(
+        log.info(
+#         log.error(
             "%x|\tpush $%x to %s stack at $%x\t|%s",
             self.last_op_address, byte, stack_pointer.name, addr,
             self.cfg.mem_info.get_shortest(self.last_op_address)
@@ -836,8 +842,8 @@ class CPU(object):
         """ pulled a byte from stack """
         addr = stack_pointer.get()
         byte = self.memory.read_byte(addr)
-#         log.info(
-        log.error(
+        log.info(
+#         log.error(
             "%x|\tpull $%x from %s stack at $%x\t|%s",
             self.last_op_address, byte, stack_pointer.name, addr,
             self.cfg.mem_info.get_shortest(self.last_op_address)
@@ -853,8 +859,8 @@ class CPU(object):
         stack_pointer.decrement(2)
 
         addr = stack_pointer.get()
-#         log.info(
-        log.error(
+        log.info(
+#         log.error(
             "%x|\tpush word $%x to %s stack at $%x\t|%s",
             self.last_op_address, word, stack_pointer.name, addr,
             self.cfg.mem_info.get_shortest(self.last_op_address)
@@ -869,8 +875,8 @@ class CPU(object):
     def pull_word(self, stack_pointer):
         addr = stack_pointer.get()
         word = self.memory.read_word(addr)
-#         log.info(
-        log.error(
+        log.info(
+#         log.error(
             "%x|\tpull word $%x from %s stack at $%x\t|%s",
             self.last_op_address, word, stack_pointer.name, addr,
             self.cfg.mem_info.get_shortest(self.last_op_address)
@@ -1050,13 +1056,13 @@ class CPU(object):
             raise RuntimeError("Illegal indexed addressing mode: $%x" % addr_mode)
 
         if postbyte & 0x10 != 0: # bit 4 is 1 -> Indirect
-            log.error("\tget_ea_indexed(): bit 4 is 1 -> Indirect")
+            log.debug("\tget_ea_indexed(): bit 4 is 1 -> Indirect")
             tmp_ea = self.memory.read_byte(ea)
             tmp_ea = tmp_ea << 8
             m = self.memory.read_byte(ea + 1)
             ea = tmp_ea | m
 
-        log.debug("\tget_ea_indexed(): ea=$%x", ea)
+        log.debug("\tget_ea_indexed(): return ea=$%x", ea)
         return ea
 
     def get_indexed(self):
@@ -2457,12 +2463,12 @@ class CPU(object):
         if m & 0x80: pull(REG_PC, register) # 16 bit program counter register
 
 
-    @opcode(#
-        0x3e, # RESET* (inherent)
+    @opcode(# Undocumented opcode!
+        0x3e, # RESET (inherent)
     )
     def instruction_RESET(self, opcode):
         """
-         Build the ASSIST09 vector table and setup monitor defaults, then invoke
+        Build the ASSIST09 vector table and setup monitor defaults, then invoke
         the monitor startup routine.
 
         source code forms:
@@ -2866,16 +2872,19 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-#         "--verbosity=5",
+        "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
 #         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-        "--verbosity=50", # CRITICAL/FATAL
+#         "--verbosity=50", # CRITICAL/FATAL
+
+#         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
+
 #         "--area_debug_active=5:bb79-ffff",
 #         "--cfg=Simple6809Cfg",
         "--cfg=Dragon32Cfg",
-#         "--max=1",
+#         "--max=15000",
 #         "--max=46041",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
