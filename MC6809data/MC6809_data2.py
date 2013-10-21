@@ -723,8 +723,8 @@ def verbose(value):
 
 with open("MC6809_data_raw2.csv", 'wb') as csvfile:
     w = csv.writer(csvfile,
-        delimiter='\t',
-        quotechar='|', quoting=csv.QUOTE_MINIMAL
+        delimiter=';',
+        quotechar='"', quoting=csv.QUOTE_MINIMAL
     )
 
     w.writerow([
