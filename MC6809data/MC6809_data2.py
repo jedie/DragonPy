@@ -137,7 +137,7 @@ INSTRUCTIONS.sort()
 
 ignore_keys = globals().keys() # hack
 
-# operands:
+# registers:
 REG_A = "A"
 REG_PC = "PC"
 REG_S = "S"
@@ -625,7 +625,7 @@ def get_instruction(mnemonic):
         return get_instruction(mnemonic)
 
 print "\t".join((
-    "instr.", "opcode", "mnemonic", "operand", "read", "write", "addr.mode", "desc"
+    "instr.", "opcode", "mnemonic", "register", "read", "write", "addr.mode", "desc"
 ))
 
 
@@ -651,13 +651,13 @@ for op_code, op_info in sorted(op_info_dict.items()):
         raise
 
     if mnemonic.startswith(instruction):
-        operand = mnemonic[len(instruction):].strip()
-        if operand.isdigit() or operand == "":
-            operand = None
+        register = mnemonic[len(instruction):].strip()
+        if register.isdigit() or register == "":
+            register = None
         else:
-            operand = REGISTER_DICT2[operand.upper()]
+            register = REGISTER_DICT2[register.upper()]
     else:
-        operand = None
+        register = None
 
     desc = SHORT_DESC.get(mnemonic, None)
 
@@ -681,7 +681,7 @@ for op_code, op_info in sorted(op_info_dict.items()):
         read_from_memory = WIDTH_DICT2[width]
 
     print "\t".join([repr(i).strip("'") for i in
-        (instruction, hex(op_code), mnemonic, operand, read_from_memory, write_to_memory, addr_mode, desc)
+        (instruction, hex(op_code), mnemonic, register, read_from_memory, write_to_memory, addr_mode, desc)
     ])
 
     if instruction not in MC6809_DATA:
@@ -702,7 +702,7 @@ for op_code, op_info in sorted(op_info_dict.items()):
     mnemonic_dict = mnemonic_dict1.setdefault(mnemonic, {})
 
     add_the_same(mnemonic_dict, "desc", desc)
-    add_the_same(mnemonic_dict, "operand", operand)
+    add_the_same(mnemonic_dict, "register", register)
 
     add_the_same(mnemonic_dict, "read_from_memory", read_from_memory)
     add_the_same(mnemonic_dict, "write_to_memory", write_to_memory)
