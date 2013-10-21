@@ -2720,48 +2720,21 @@ class CPU(object):
         self.cc.update_NZ0_8(value)
         return ea, value
 
-    @opcode(# Subtract memory from D accumulator
-        0x83, 0x93, 0xa3, 0xb3, # SUBD (immediate, direct, indexed, extended)
-    )
-    def instruction_SUB16(self, opcode, m, register):
-        """
-        Subtracts the value in memory location M:M+1 from the contents of a
-        designated 16-bit register. The C (carry) bit represents a borrow and is
-        set to the inverse of the resulting binary carry.
-
-        source code forms: SUBD P
-
-        CC bits "HNZVC": -aaaa
-        """
-        assert register.WIDTH == 16
-        x1 = register.get()
-        x2 = signed8(x1)
-        r1 = x2 - m
-        r2 = unsigned8(r1)
-        register.set(r2)
-        log.debug("$%x SUB16 %s: %i - %i = %i (unsigned: %i)" % (
-            self.program_counter,
-            register.name,
-            x2, m, r1, r2,
-        ))
-        self.cc.clear_NZVC()
-        self.cc.update_NZVC_16(x1, m, r1)
-
     @opcode(# Subtract memory from accumulator
         0x80, 0x90, 0xa0, 0xb0, # SUBA (immediate, direct, indexed, extended)
         0xc0, 0xd0, 0xe0, 0xf0, # SUBB (immediate, direct, indexed, extended)
+        0x83, 0x93, 0xa3, 0xb3, # SUBD (immediate, direct, indexed, extended)
     )
-    def instruction_SUB8(self, opcode, m, register):
+    def instruction_SUB(self, opcode, m, register):
         """
         Subtracts the value in memory location M from the contents of a
-        designated 8-bit register. The C (carry) bit represents a borrow and is
-        set to the inverse of the resulting binary carry.
+        register. The C (carry) bit represents a borrow and is set to the
+        inverse of the resulting binary carry.
 
-        source code forms: SUBA P; SUBB P
+        source code forms: SUBA P; SUBB P; SUBD P
 
         CC bits "HNZVC": uaaaa
         """
-        assert register.WIDTH == 8
         x1 = register.get()
         x2 = signed8(x1)
         r1 = x2 - m
@@ -2773,8 +2746,12 @@ class CPU(object):
             x2, m, r1, r2,
         ))
         self.cc.clear_NZVC()
-#         self.cc.update_NZVC_8(x1, m, r2)
-        self.cc.update_NZVC_8(x1, m, r1)
+        if register.WIDTH == 8:
+#             self.cc.update_NZVC_8(x1, m, r2)
+            self.cc.update_NZVC_8(x1, m, r1)
+        else:
+            assert register.WIDTH == 16
+            self.cc.update_NZVC_16(x1, m, r1)
 
     @opcode(# Software interrupt (absolute indirect)
         0x3f, # SWI (inherent)
