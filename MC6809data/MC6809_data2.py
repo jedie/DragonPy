@@ -9,15 +9,40 @@
         * http://www.burgins.com/m6809.html
         * http://www.maddes.net/m6809pm/appendix_a.htm#appA
 
+    Note:
+    * read_from_memory: it's "excluded" the address modes routines.
+        So if the address mode will fetch the memory to get the
+        effective address, but the content of the memory is not needed in
+        the instruction them self, the read_from_memory must be set to False.
+
     :copyleft: 2013 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 import pprint
-import collections
-from MC6809_data_raw import INSTRUCTION_INFO, OP_DATA
 import sys
 import os
+
+# old data
+from MC6809_data_raw import INSTRUCTION_INFO, OP_DATA
+
+
+class Tee(object):
+    def __init__(self, filepath, origin_out, to_stdout):
+        self.filepath = filepath
+        self.origin_out = origin_out
+        self.to_stdout = to_stdout
+        self.f = file(filepath, "w")
+
+    def write(self, *args):
+        txt = " ".join(args)
+        if self.to_stdout:
+            self.origin_out.write(txt)
+        self.f.write(txt)
+
+    def close(self):
+        self.f.close()
+        sys.stdout = self.origin_out
 
 
 def get_global_keys(ignore_keys):
@@ -35,6 +60,7 @@ BYTE = 8
 WORD = 16
 
 WIDTH_DICT = get_global_keys(ignore_keys)
+WIDTH_DICT2 = dict((v, k) for k, v in WIDTH_DICT.items())
 WIDTHS = WIDTH_DICT.keys()
 
 
@@ -46,11 +72,9 @@ IMMEDIATE_WORD = "IMMEDIATE_WORD"
 RELATIVE = "RELATIVE"
 RELATIVE_WORD = "RELATIVE_WORD"
 EXTENDED = "EXTENDED"
-REGISTER = "REGISTER"
 DIRECT = "DIRECT"
 INDEXED = "INDEXED"
 INHERENT = "INHERENT"
-STACK = "STACK"
 
 ADDR_MODE_DICT = get_global_keys(ignore_keys)
 ADDR_MODES = ADDR_MODE_DICT.keys()
@@ -132,7 +156,7 @@ INSTRUCTIONS.sort()
 
 ignore_keys = globals().keys() # hack
 
-# operands:
+# registers:
 REG_A = "A"
 REG_PC = "PC"
 REG_S = "S"
@@ -190,8 +214,8 @@ op_info_dict = {
     0x1a: ("ORCC", IMMEDIATE),
     0x1c: ("ANDCC", IMMEDIATE),
     0x1d: ("SEX", INHERENT),
-    0x1e: ("EXG", REGISTER),
-    0x1f: ("TFR", REGISTER),
+    0x1e: ("EXG", None),
+    0x1f: ("TFR", IMMEDIATE),
     0x20: ("BRA", RELATIVE),
     0x21: ("BRN", RELATIVE),
     0x22: ("BHI", RELATIVE),
@@ -212,15 +236,16 @@ op_info_dict = {
     0x31: ("LEAY", INDEXED),
     0x32: ("LEAS", INDEXED),
     0x33: ("LEAU", INDEXED),
-    0x34: ("PSHS", STACK),
-    0x35: ("PULS", STACK),
-    0x36: ("PSHU", STACK),
-    0x37: ("PULU", STACK),
+    0x34: ("PSHS", IMMEDIATE),
+    0x35: ("PULS", IMMEDIATE),
+    0x36: ("PSHU", IMMEDIATE),
+    0x37: ("PULU", IMMEDIATE),
     0x39: ("RTS", INHERENT),
     0x3a: ("ABX", INHERENT),
     0x3b: ("RTI", INHERENT),
     0x3c: ("CWAI", IMMEDIATE),
     0x3d: ("MUL", INHERENT),
+    0x3e: ("RESET", None), # undocumented opcode
     0x3f: ("SWI", INHERENT),
     0x40: ("NEGA", INHERENT),
     0x43: ("COMA", INHERENT),
@@ -555,12 +580,77 @@ SHORT_DESC = {
     "TSTB":"Test B",
     "TST":"Test M",
 
+    "RESET":"Undocumented opcode",
+
     "PAGE 1":"Page 1 Instructions prefix",
     "PAGE 2":"Page 2 Instructions prefix",
 }
 
 NO_MEM_READ = (
     "PSHS", "PSHU", "PULS", "PULU",
+)
+
+MEM_READ = {
+    "BITA":8,
+    "BITB":8,
+
+    "TFR":8,
+
+    "CMPA":8,
+    "CMPB":8,
+    "CMPD":16,
+    "CMPS":16,
+    "CMPU":16,
+    "CMPX":16,
+    "CMPY":16,
+}
+
+NEEDS_EA = (
+    "CLR",
+    "STA",
+    "STB",
+    "STD",
+    "STS",
+    "STU",
+    "STX",
+    "STY",
+
+    # Branch ops:
+    "BCC", "BHS",
+    "BCS", "BLO",
+    "BHI",
+    "BLS",
+    "BNE",
+    "BEQ",
+    "BGE",
+    "BLT",
+    "BGT",
+    "BLE",
+    "BPL",
+    "BMI",
+    "BVC",
+    "BVS",
+    "BRA",
+    "BRN",
+    "BSR",
+    "JSR",
+    "LBCC",
+    "LBCS",
+    "LBEQ",
+    "LBGE",
+    "LBGT",
+    "LBHI",
+    "LBLE",
+    "LBLS",
+    "LBLT",
+    "LBMI",
+    "LBNE",
+    "LBPL",
+    "LBRA",
+    "LBRN",
+    "LBSR",
+    "LBVC",
+    "LBVS",
 )
 
 INST_INFO_MERGE = {
@@ -606,45 +696,12 @@ def get_instruction(mnemonic):
         mnemonic = mnemonic[1:]
         return get_instruction(mnemonic)
 
-"""
-ST - Store Register into Memory
-    ST (8-Bit)
-        STA - M = A
-            -Extended
-            -Direct
-            -Indexed
-        STB - M = B
-            -Extended
-            -Direct
-            -Indexed
-    ST (16-Bit)
-        STD - M:M+1 = D
-            -Extended
-            -Direct
-            -Indexed
-        STS - M:M+1 = S
-            -Extended
-            -Direct
-            -Indexed
-        STU - M:M+1 = U
-            -Extended
-            -Direct
-            -Indexed
-        STX - M:M+1 = X
-            -Extended
-            -Direct
-            -Indexed
-        STY - M:M+1 = Y
-"""
 
-print "\t".join((
-    "instr.", "opcode", "mnemonic", "operand", "read", "write", "addr.mode", "desc"
-))
 
 
 def add_the_same(d, key, value):
     if key in d:
-        assert d[key] == value
+        assert d[key] == value, "key: %s - value: %s - d:%s" % (key, value, repr(d))
     else:
         d[key] = value
 
@@ -652,27 +709,53 @@ def add_the_same(d, key, value):
 
 OP_DATA_DICT = dict([(op["opcode"], op) for op in OP_DATA])
 
+def verbose(value):
+    if value is None:
+        return ""
+    if value is True:
+        return "yes"
+    if value is False:
+        return ""
+    return value
+
+sys.stdout = Tee("MC6809_data_raw2.csv", sys.stdout,
+    to_stdout=True
+#     to_stdout=False
+)
+print "\t".join((
+    "instr.", "opcode", "mnemonic", "register", "needs ea", "read", "write", "addr.mode", "desc"
+))
 
 
 MC6809_DATA = {}
-for op_code, op_info in sorted(op_info_dict.items()):
+for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
     mnemonic, addr_mode = op_info
+#     if mnemonic.startswith("LB"):
+#         print '"%s",' % mnemonic
+#     continue
 
     instruction = get_instruction(mnemonic)
     if not instruction:
-        print "ERROR:", mnemonic
-        raise
+        raise KeyError("Error with %s" % mnemonic)
+
+    if instruction in INST_INFO_MERGE:
+        instruction = INST_INFO_MERGE[instruction]
 
     if mnemonic.startswith(instruction):
-        operand = mnemonic[len(instruction):].strip()
-        if operand.isdigit() or operand == "":
-            operand = None
+        register = mnemonic[len(instruction):].strip()
+#         print mnemonic, register
+        if register.isdigit() or register == "":
+            register = None
         else:
-            operand = REGISTER_DICT2[operand.upper()]
+            register = REGISTER_DICT2[register.upper()]
     else:
-        operand = None
+        register = None
 
     desc = SHORT_DESC.get(mnemonic, None)
+
+    needs_ea = False
+    if mnemonic in NEEDS_EA:
+        needs_ea = True
 
     read_from_memory = None
     write_to_memory = None
@@ -683,15 +766,33 @@ for op_code, op_info in sorted(op_info_dict.items()):
                 read_from_memory = "WORD"
             elif "M" in right:
                 read_from_memory = "BYTE"
+            elif "EA" in right:
+                needs_ea = True
 
         if desc.startswith("M:M"):
             write_to_memory = "WORD"
         elif desc.startswith("M ="):
             write_to_memory = "BYTE"
 
-    print "\t".join([repr(i).strip("'") for i in
-        (instruction, hex(op_code), mnemonic, operand, read_from_memory, write_to_memory, addr_mode, desc)
-    ])
+    if write_to_memory is not None:
+        needs_ea = True
+
+    if mnemonic in MEM_READ:
+        width = MEM_READ[mnemonic]
+        read_from_memory = WIDTH_DICT2[width]
+
+    if read_from_memory is not None:
+        if read_from_memory == "WORD":
+            if not addr_mode.endswith("WORD"):
+                addr_mode += "_WORD" # XXX: really?
+
+
+    print "\t".join([repr(i).strip("'") for i in (
+        instruction, hex(op_code), mnemonic,
+        verbose(register), verbose(needs_ea),
+        verbose(read_from_memory), verbose(write_to_memory), verbose(addr_mode),
+        desc
+    )])
 
     if instruction not in MC6809_DATA:
         try:
@@ -707,18 +808,23 @@ for op_code, op_info in sorted(op_info_dict.items()):
         MC6809_DATA[instruction] = inst_info
 
     instr_dict = MC6809_DATA[instruction]
+    instr_dict['description'] = instr_dict.get('description', "").strip()
+
     mnemonic_dict1 = instr_dict.setdefault("mnemonic", {})
     mnemonic_dict = mnemonic_dict1.setdefault(mnemonic, {})
 
     add_the_same(mnemonic_dict, "desc", desc)
-    add_the_same(mnemonic_dict, "operand", operand)
+    add_the_same(mnemonic_dict, "register", register)
+    add_the_same(mnemonic_dict, "needs_ea", needs_ea)
 
     add_the_same(mnemonic_dict, "read_from_memory", read_from_memory)
     add_the_same(mnemonic_dict, "write_to_memory", write_to_memory)
 
-    ops_dict = mnemonic_dict.setdefault("ops", {})
-
     old_info = OP_DATA_DICT[op_code]
+
+    add_the_same(mnemonic_dict, "HNZVC", old_info["HNZVC"])
+
+    ops_dict = mnemonic_dict.setdefault("ops", {})
 
     ops_dict[op_code] = {
         "addr_mode": addr_mode,
@@ -727,24 +833,8 @@ for op_code, op_info in sorted(op_info_dict.items()):
         ops_dict[op_code][key] = old_info[key]
 
 
-
-class Tee(object):
-    def __init__(self, filepath, origin_out, to_stdout):
-        self.filepath = filepath
-        self.origin_out = origin_out
-        self.to_stdout = to_stdout
-        self.f = file(filepath, "w")
-
-    def write(self, *args):
-        txt = " ".join(args)
-        if self.to_stdout:
-            self.origin_out.write(txt)
-        self.f.write(txt)
-
-    def close(self):
-        self.f.close()
-        sys.stdout = self.origin_out
-
+sys.stdout.close() # close .cvs write
+# sys.exit()
 
 sys.stdout = Tee("MC6809_data_raw2.py", sys.stdout,
     to_stdout=True
@@ -789,7 +879,7 @@ class HexPrettyPrinter(pprint.PrettyPrinter, object):
     """ print values in hex """
     def format(self, obj, context, maxlevels, level):
         if isinstance(obj, int):
-            if level < 6: # XXX: Only opcode should be hex()
+            if level == 5: # XXX: Only opcode should be hex()
                 return hex(obj), True, False
 
         if obj in CONSTANTS:
@@ -814,5 +904,6 @@ print "OP_DATA = %s" % printer.pformat(MC6809_DATA)
 #     print "}"
 #     break
 
-print " -- END -- "
 
+sys.stdout.close()
+print " -- END -- "

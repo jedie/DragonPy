@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 
 """
     6809 instruction set data
@@ -812,10 +813,6 @@ for line in txt.splitlines():
     print mnemonic, "%02x" % opcode
 
     cc_HNZVC = sections[5]
-    if instr_info_key not in HNZVC_dict:
-        instr_info["HNZVC"] = cc_HNZVC
-    elif instr_info["HNZVC"] != cc_HNZVC:
-        raise AssertionError("Diffrerent cc bits?")
 
     try:
         mnemonic_desc = SHORT_DESC[mnemonic_single]
@@ -925,6 +922,7 @@ for line in txt.splitlines():
         "example": operation_example,
         "cycles": cycles,
         "bytes": bytes,
+        "HNZVC":cc_HNZVC,
         "desc":mnemonic_desc,
         "instr_info_key": instr_info_key,
     }
@@ -1114,6 +1112,9 @@ for category_id, category in categories.items():
 
         print '        "mem_read": %s, "mem_write": %s,' % (
             opcode["mem_read"], opcode["mem_write"]
+        )
+        print '        "HNZVC": "%s",' % (
+            opcode["HNZVC"],
         )
 
 

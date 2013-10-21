@@ -37,10 +37,10 @@ REG_S = "S"
 REG_B = "B"
 REG_U = "U"
 REG_D = "D"
+REG_DP = "DP"
 REG_Y = "Y"
 REG_X = "X"
 REG_CC = "CC"
-REG_DP = "DP"
 
 
 REGISTER_INFO = {
@@ -50,10 +50,10 @@ REGISTER_INFO = {
     REG_B: (8, '1001', 'accumulator'),
     REG_U: (16, '0011', 'user-stack pointer'),
     REG_D: (16, '0000', 'concatenated register (A+B)'),
+    REG_DP: (8, '1011', 'direct page register'),
     REG_Y: (16, '0010', 'index register'),
     REG_X: (16, '0001', 'index register'),
     REG_CC: (8, '1010', 'condition code register as flags'),
-    REG_DP: (8, '1011', 'direct page register'),
 }
 
 MEM_ACCESS_BYTE = 8
@@ -140,7 +140,6 @@ TST="TST"
 
 INSTRUCTION_INFO = {
     ABX: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Add the 8-bit unsigned value in accumulator B into index register X.',
         'instr_desc': 'Add B accumulator to X (unsigned)',
@@ -148,7 +147,6 @@ INSTRUCTION_INFO = {
         'source form': 'ABX'
     },
     ADC: {
-        'HNZVC': 'aaaaa',
         'condition code': 'H - Set if a half-carry is generated; cleared otherwise.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Set if an overflow is generated; cleared otherwise.\nC - Set if a carry is generated; cleared otherwise.',
         'description': 'Adds the contents of the C (carry) bit and the memory byte into an 8-bit accumulator.',
         'instr_desc': 'Add memory to accumulator with carry',
@@ -156,7 +154,6 @@ INSTRUCTION_INFO = {
         'source form': 'ADCA P; ADCB P'
     },
     ADD16: {
-        'HNZVC': '-aaaa',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Set if an overflow is generated; cleared otherwise.\nC - Set if a carry is generated; cleared otherwise.',
         'description': 'Adds the 16-bit memory value into the 16-bit accumulator',
         'instr_desc': 'Add memory to D accumulator',
@@ -164,7 +161,6 @@ INSTRUCTION_INFO = {
         'source form': 'ADDD P'
     },
     ADD8: {
-        'HNZVC': 'aaaaa',
         'condition code': 'H - Set if a half-carry is generated; cleared otherwise.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Set if an overflow is generated; cleared otherwise.\nC - Set if a carry is generated; cleared otherwise.',
         'description': 'Adds the memory byte into an 8-bit accumulator.',
         'instr_desc': 'Add memory to accumulator',
@@ -172,7 +168,6 @@ INSTRUCTION_INFO = {
         'source form': 'ADDA P; ADDB P'
     },
     AND: {
-        'HNZVC': '-aa0-',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Always cleared.\nC - Not affected.',
         'description': 'Performs the logical AND operation between the contents of an accumulator and the contents of memory location M and the result is stored in the accumulator.',
         'instr_desc': 'AND memory with accumulator',
@@ -180,7 +175,6 @@ INSTRUCTION_INFO = {
         'source form': 'ANDA P; ANDB P'
     },
     ANDCC: {
-        'HNZVC': 'ddddd',
         'condition code': 'Affected according to the operation.',
         'description': 'Performs a logical AND between the condition code register and the immediate byte specified in the instruction and places the result in the condition code register.',
         'instr_desc': 'AND condition code register',
@@ -188,7 +182,6 @@ INSTRUCTION_INFO = {
         'source form': 'ANDCC #xx'
     },
     ASR: {
-        'HNZVC': 'uaa-s',
         'condition code': 'H - Undefined.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Not affected.\nC - Loaded with bit zero of the original operand.',
         'description': 'Shifts all bits of the operand one place to the right. Bit seven is held constant. Bit zero is shifted into the C (carry) bit.',
         'instr_desc': 'Arithmetic shift of accumulator or memory right',
@@ -196,7 +189,6 @@ INSTRUCTION_INFO = {
         'source form': 'ASR Q; ASRA; ASRB'
     },
     BEQ: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Tests the state of the Z (zero) bit and causes a branch if it is set.\nWhen used after a subtract or compare operation, this instruction will branch if the compared values, signed or unsigned, were exactly the same.',
         'instr_desc': 'Branch if equal',
@@ -204,7 +196,6 @@ INSTRUCTION_INFO = {
         'source form': 'BEQ dd; LBEQ DDDD'
     },
     BGE: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Causes a branch if the N (negative) bit and the V (overflow) bit are either both set or both clear.\nThat is, branch if the sign of a valid twos complement result is, or would be, positive.\nWhen used after a subtract or compare operation on twos complement values, this instruction will branch if the register was greater than or equal to the memory operand.',
         'instr_desc': 'Branch if greater than or equal (signed)',
@@ -212,7 +203,6 @@ INSTRUCTION_INFO = {
         'source form': 'BGE dd; LBGE DDDD'
     },
     BGT: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Causes a branch if the N (negative) bit and V (overflow) bit are either both set or both clear and the Z (zero) bit is clear.\nIn other words, branch if the sign of a valid twos complement result is, or would be, positive and not zero.\nWhen used after a subtract or compare operation on twos complement values, this instruction will branch if the register was greater than the memory operand.',
         'instr_desc': 'Branch if greater (signed)',
@@ -220,7 +210,6 @@ INSTRUCTION_INFO = {
         'source form': 'BGT dd; LBGT DDDD'
     },
     BHI: {
-        'HNZVC': '-----',
         'comment': 'Generally not useful after INC/DEC, LD/TST, and TST/CLR/COM instructions.',
         'condition code': 'Not affected.',
         'description': 'Causes a branch if the previous operation caused neither a carry nor a zero result.\nWhen used after a subtract or compare operation on unsigned binary values, this instruction will branch if the register was higher than the memory operand.',
@@ -229,7 +218,6 @@ INSTRUCTION_INFO = {
         'source form': 'BHI dd; LBHI DDDD'
     },
     BHS: {
-        'HNZVC': '-----',
         'comment': 'This is a duplicate assembly-language mnemonic for the single machine instruction BCC.\nGenerally not useful after INC/DEC, LD/ST, and TST/CLR/COM instructions.',
         'condition code': 'Not affected.',
         'description': 'Tests the state of the C (carry) bit and causes a branch if it is clear.\nWhen used after a subtract or compare on unsigned binary values, this instruction will branch if the register was higher than or the same as the memory operand.',
@@ -238,15 +226,13 @@ INSTRUCTION_INFO = {
         'source form': 'BHS dd; LBHS DDDD'
     },
     BIT: {
-        'HNZVC': '-aa0-',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Always cleared.\nC - Not affected.',
         'description': 'Performs the logical AND of the contents of accumulator A or B and the contents of memory location M and modifies the condition codes accordingly.\nThe contents of accumulator A or B and memory location M are not affected.',
         'instr_desc': 'Bit test memory with accumulator',
         'operation': 'TEMP = R AND M',
-        'source form': 'Bit P'
+        'source form': 'BITA P; BITB P'
     },
     BLE: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Causes a branch if the exclusive OR of the N (negative) and V (overflow) bits is 1 or if the Z (zero) bit is set.\nThat is, branch if the sign of a valid twos complement result is, or would be, negative.\nWhen used after a subtract or compare operation on twos complement values, this instruction will branch if the register was less than or equal to the memory operand.',
         'instr_desc': 'Branch if less than or equal (signed)',
@@ -254,7 +240,6 @@ INSTRUCTION_INFO = {
         'source form': 'BLE dd; LBLE DDDD'
     },
     BLO: {
-        'HNZVC': '-----',
         'comment': 'This is a duplicate assembly-language mnemonic for the single machine instruction BCS.\nGenerally not useful after INC/DEC, LD/ST, and TST/CLR/COM instructions.',
         'condition code': 'Not affected.',
         'description': 'Tests the state of the C (carry) bit and causes a branch if it is set.\nWhen used after a subtract or compare on unsigned binary values, this instruction will branch if the register was lower than the memory operand.',
@@ -263,7 +248,6 @@ INSTRUCTION_INFO = {
         'source form': 'BLO dd; LBLO DDDD'
     },
     BLS: {
-        'HNZVC': '-----',
         'comment': 'Generally not useful after INC/DEC, LD/ST, and TST/CLR/COM instructions.',
         'condition code': 'Not affected.',
         'description': 'Causes a branch if the previous operation caused either a carry or a zero result.\nWhen used after a subtract or compare operation on unsigned binary values, this instruction will branch if the register was lower than or the same as the memory operand.',
@@ -272,7 +256,6 @@ INSTRUCTION_INFO = {
         'source form': 'BLS dd; LBLS DDDD'
     },
     BLT: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Causes a branch if either, but not both, of the N (negative) or V (overflow) bits is set.\nThat is, branch if the sign of a valid twos complement result is, or would be, negative.\nWhen used after a subtract or compare operation on twos complement binary values, this instruction will branch if the register was less than the memory operand.',
         'instr_desc': 'Branch if less than (signed)',
@@ -280,7 +263,6 @@ INSTRUCTION_INFO = {
         'source form': 'BLT dd; LBLT DDDD'
     },
     BMI: {
-        'HNZVC': '-----',
         'comment': 'When used after an operation on signed binary values, this instruction will branch if the result is minus.\nIt is generally preferred to use the LBLT instruction after signed operations.',
         'condition code': 'Not affected.',
         'description': 'Tests the state of the N (negative) bit and causes a branch if set.\nThat is, branch if the sign of the twos complement result is negative.',
@@ -289,7 +271,6 @@ INSTRUCTION_INFO = {
         'source form': 'BMI dd; LBMI DDDD'
     },
     BNE: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Tests the state of the Z (zero) bit and causes a branch if it is clear.\nWhen used after a subtract or compare operation on any binary values, this instruction will branch if the register is, or would be, not equal to the memory operand.',
         'instr_desc': 'Branch if not equal',
@@ -297,7 +278,6 @@ INSTRUCTION_INFO = {
         'source form': 'BNE dd; LBNE DDDD'
     },
     BPL: {
-        'HNZVC': '-----',
         'comment': 'When used after an operation on signed binary values, this instruction will branch if the result (possibly invalid) is positive.\nIt is generally preferred to use the BGE instruction after signed operations.',
         'condition code': 'Not affected.',
         'description': 'Tests the state of the N (negative) bit and causes a branch if it is clear.\nThat is, branch if the sign of the twos complement result is positive.',
@@ -306,7 +286,6 @@ INSTRUCTION_INFO = {
         'source form': 'BPL dd; LBPL DDDD'
     },
     BRA: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Causes an unconditional branch.',
         'instr_desc': 'Branch always',
@@ -314,7 +293,6 @@ INSTRUCTION_INFO = {
         'source form': 'BRA dd; LBRA DDDD'
     },
     BRN: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Does not cause a branch.\nThis instruction is essentially a no operation, but has a bit pattern logically related to branch always.',
         'instr_desc': 'Branch never',
@@ -322,7 +300,6 @@ INSTRUCTION_INFO = {
         'source form': 'BRN dd; LBRN DDDD'
     },
     BSR: {
-        'HNZVC': '-----',
         'comment': 'A return from subroutine (RTS) instruction is used to reverse this process and must be the last instruction executed in a subroutine.',
         'condition code': 'Not affected.',
         'description': 'The program counter is pushed onto the stack.\nThe program counter is then loaded with the sum of the program counter and the offset.',
@@ -331,7 +308,6 @@ INSTRUCTION_INFO = {
         'source form': 'BSR dd; LBSR DDDD'
     },
     BVC: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Tests the state of the V (overflow) bit and causes a branch if it is clear.\nThat is, branch if the twos complement result was valid.\nWhen used after an operation on twos complement binary values, this instruction will branch if there was no overflow.',
         'instr_desc': 'Branch if valid twos complement result',
@@ -339,7 +315,6 @@ INSTRUCTION_INFO = {
         'source form': 'BVC dd; LBVC DDDD'
     },
     BVS: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Tests the state of the V (overflow) bit and causes a branch if it is set.\nThat is, branch if the twos complement result was invalid.\nWhen used after an operation on twos complement binary values, this instruction will branch if there was an overflow.',
         'instr_desc': 'Branch if invalid twos complement result',
@@ -347,7 +322,6 @@ INSTRUCTION_INFO = {
         'source form': 'BVS dd; LBVS DDDD'
     },
     CLR: {
-        'HNZVC': '-0100',
         'condition code': 'H - Not affected.\nN - Always cleared.\nZ - Always set.\nV - Always cleared.\nC - Always cleared.',
         'description': 'Accumulator A or B or memory location M is loaded with 00000000 2 .\nNote that the EA is read during this operation.',
         'instr_desc': 'Clear accumulator or memory location',
@@ -355,7 +329,6 @@ INSTRUCTION_INFO = {
         'source form': 'CLR Q'
     },
     CMP16: {
-        'HNZVC': '-aaaa',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Set if an overflow is generated; cleared otherwise.\nC - Set if a borrow is generated; cleared otherwise.',
         'description': 'Compares the 16-bit contents of the concatenated memory locations M:M+1 to the contents of the specified register and sets the appropriate condition codes.\nNeither the memory locations nor the specified register is modified unless autoincrement or autodecrement are used.\nThe carry flag represents a borrow and is set to the inverse of the resulting binary carry.',
         'instr_desc': 'Compare memory from stack pointer',
@@ -363,7 +336,6 @@ INSTRUCTION_INFO = {
         'source form': 'CMPD P; CMPX P; CMPY P; CMPU P; CMPS P'
     },
     CMP8: {
-        'HNZVC': 'uaaaa',
         'condition code': 'H - Undefined.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Set if an overflow is generated; cleared otherwise.\nC - Set if a borrow is generated; cleared otherwise.',
         'description': 'Compares the contents of memory location to the contents of the specified register and sets the appropriate condition codes.\nNeither memory location M nor the specified register is modified.\nThe carry flag represents a borrow and is set to the inverse of the resulting binary carry.',
         'instr_desc': 'Compare memory from accumulator',
@@ -371,7 +343,6 @@ INSTRUCTION_INFO = {
         'source form': 'CMPA P; CMPB P'
     },
     COM: {
-        'HNZVC': '-aa01',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Always cleared.\nC - Always set.',
         'description': 'Replaces the contents of memory location M or accumulator A or B with its logical complement.\nWhen operating on unsigned values, only BEQ and BNE branches can be expected to behave properly following a COM instruction.\nWhen operating on twos complement values, all signed branches are available.',
         'instr_desc': 'Complement accumulator or memory location',
@@ -379,7 +350,6 @@ INSTRUCTION_INFO = {
         'source form': 'COM Q; COMA; COMB'
     },
     CWAI: {
-        'HNZVC': 'ddddd',
         'comment': 'The following immediate values will have the following results: FF = enable neither EF = enable IRQ BF = enable FIRQ AF = enable both',
         'condition code': 'Affected according to the operation.',
         'description': 'This instruction ANDs an immediate byte with the condition code register which may clear the interrupt mask bits I and F, stacks the entire machine state on the hardware stack and then looks for an interrupt.\nWhen a non-masked interrupt occurs, no further machine state information need be saved before vectoring to the interrupt handling routine.\nThis instruction replaced the MC6800 CLI WAI sequence, but does not place the buses in a high-impedance state.\nA FIRQ (fast interrupt request) may enter its interrupt handler with its entire machine state saved.\nThe RTI (return from interrupt) instruction will automatically return the entire machine state after testing the E (entire) bit of the recovered condition code register.',
@@ -388,7 +358,6 @@ INSTRUCTION_INFO = {
         'source form': 'CWAI #$XX E F H I N Z V C'
     },
     DAA: {
-        'HNZVC': '-aa0a',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Undefined.\nC - Set if a carry is generated or if the carry bit was set before the operation; cleared otherwise.',
         'description': 'The sequence of a single-byte add instruction on accumulator A (either ADDA or ADCA) and a following decimal addition adjust instruction results in a BCD addition with an appropriate carry bit.\nBoth values to be added must be in proper BCD form (each nibble such that: 0 <= nibble <= 9).\nMultiple-precision addition must add the carry generated by this decimal addition adjust into the next higher digit during the add operation (ADCA) immediately prior to the next decimal addition adjust.',
         'instr_desc': 'Decimal adjust A accumulator',
@@ -396,7 +365,6 @@ INSTRUCTION_INFO = {
         'source form': 'DAA'
     },
     DEC: {
-        'HNZVC': '-aaa-',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Set if the original operand was 10000000 2 ; cleared otherwise.\nC - Not affected.',
         'description': 'Subtract one from the operand.\nThe carry bit is not affected, thus allowing this instruction to be used as a loop counter in multiple-precision computations.\nWhen operating on unsigned values, only BEQ and BNE branches can be expected to behave consistently.\nWhen operating on twos complement values, all signed branches are available.',
         'instr_desc': 'Decrement accumulator or memory location',
@@ -404,7 +372,6 @@ INSTRUCTION_INFO = {
         'source form': 'DEC Q; DECA; DECB'
     },
     EOR: {
-        'HNZVC': '-aa0-',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Always cleared.\nC - Not affected.',
         'description': 'The contents of memory location M is exclusive ORed into an 8-bit register.',
         'instr_desc': 'Exclusive OR memory with accumulator',
@@ -412,7 +379,6 @@ INSTRUCTION_INFO = {
         'source form': 'EORA P; EORB P'
     },
     EXG: {
-        'HNZVC': 'ccccc',
         'condition code': 'Not affected (unless one of the registers is the condition code\nregister).',
         'description': '0000 = A:B 1000 = A\n0001 = X 1001 = B\n0010 = Y 1010 = CCR\n0011 = US 1011 = DPR\n0100 = SP 1100 = Undefined\n0101 = PC 1101 = Undefined\n0110 = Undefined 1110 = Undefined\n0111 = Undefined 1111 = Undefined',
         'instr_desc': 'Exchange Rl with R2',
@@ -420,7 +386,6 @@ INSTRUCTION_INFO = {
         'source form': 'EXG R1,R2'
     },
     INC: {
-        'HNZVC': '-aaa-',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Set if the original operand was 01111111 2 ; cleared otherwise.\nC - Not affected.',
         'description': 'Adds to the operand.\nThe carry bit is not affected, thus allowing this instruction to be used as a loop counter in multiple-precision computations.\nWhen operating on unsigned values, only the BEQ and BNE branches can be expected to behave consistently.\nWhen operating on twos complement values, all signed branches are correctly available.',
         'instr_desc': 'Increment accumulator or memory location',
@@ -428,7 +393,6 @@ INSTRUCTION_INFO = {
         'source form': 'INC Q; INCA; INCB'
     },
     JMP: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Program control is transferred to the effective address.',
         'instr_desc': 'Jump',
@@ -436,7 +400,6 @@ INSTRUCTION_INFO = {
         'source form': 'JMP EA'
     },
     JSR: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Program control is transferred to the effective address after storing the return address on the hardware stack.\nA RTS instruction should be the last executed instruction of the subroutine.',
         'instr_desc': 'Jump to subroutine',
@@ -444,7 +407,6 @@ INSTRUCTION_INFO = {
         'source form': 'JSR EA'
     },
     LD16: {
-        'HNZVC': '-aa0-',
         'condition code': 'H - Not affected.\nN - Set if the loaded data is negative; cleared otherwise.\nZ - Set if the loaded data is zero; cleared otherwise.\nV - Always cleared.\nC - Not affected.',
         'description': 'Load the contents of the memory location M:M+1 into the designated 16-bit register.',
         'instr_desc': 'Load stack pointer from memory',
@@ -452,7 +414,6 @@ INSTRUCTION_INFO = {
         'source form': 'LDD P; LDX P; LDY P; LDS P; LDU P'
     },
     LD8: {
-        'HNZVC': '-aa0-',
         'condition code': 'H - Not affected.\nN - Set if the loaded data is negative; cleared otherwise.\nZ - Set if the loaded data is zero; cleared otherwise.\nV - Always cleared.\nC - Not affected.',
         'description': 'Loads the contents of memory location M into the designated register.',
         'instr_desc': 'Load accumulator from memory',
@@ -460,7 +421,6 @@ INSTRUCTION_INFO = {
         'source form': 'LDA P; LDB P'
     },
     LEA: {
-        'HNZVC': '-----',
         'comment': "Instruction Operation Comment\nInstruction\n\nOperation\n\nComment\nLEAX 10,X X+10 -> X Adds 5-bit constant 10 to X\nLEAX 500,X X+500 -> X Adds 16-bit constant 500 to X\nLEAY A,Y Y+A -> Y Adds 8-bit accumulator to Y\nLEAY D,Y Y+D -> Y Adds 16-bit D accumulator to Y\nLEAU -10,U U-10 -> U Subtracts 10 from U\nLEAS -10,S S-10 -> S Used to reserve area on stack\nLEAS 10,S S+10 -> S Used to 'clean up' stack\nLEAX 5,S S+5 -> X Transfers as well as adds",
         'condition code': 'H - Not affected.\nN - Not affected.\nZ - LEAX, LEAY: Set if the result is zero; cleared otherwise. LEAS, LEAU: Not affected.\nV - Not affected.\nC - Not affected.',
         'description': 'Calculates the effective address from the indexed addressing mode and places the address in an indexable register. LEAX and LEAY affect the Z (zero) bit to allow use of these registers as counters and for MC6800 INX/DEX compatibility. LEAU and LEAS do not affect the Z bit to allow cleaning up the stack while returning the Z bit as a parameter to a calling routine, and also for MC6800 INS/DES compatibility.',
@@ -469,7 +429,6 @@ INSTRUCTION_INFO = {
         'source form': 'LEAX, LEAY, LEAS, LEAU'
     },
     LSL: {
-        'HNZVC': 'naaas',
         'comment': 'This is a duplicate assembly-language mnemonic for the single machine instruction ASL.',
         'condition code': 'H - Undefined.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Loaded with the result of the exclusive OR of bits six and seven of the original operand.\nC - Loaded with bit seven of the original operand.',
         'description': 'Shifts all bits of accumulator A or B or memory location M one place to the left.\nBit zero is loaded with a zero.\nBit seven of accumulator A or B or memory location M is shifted into the C (carry) bit.',
@@ -478,7 +437,6 @@ INSTRUCTION_INFO = {
         'source form': 'LSL Q; LSLA; LSLB'
     },
     LSR: {
-        'HNZVC': '-0a-s',
         'condition code': 'H - Not affected.\nN - Always cleared.\nZ - Set if the result is zero; cleared otherwise.\nV - Not affected.\nC - Loaded with bit zero of the original operand.',
         'description': 'Performs a logical shift right on the operand.\nShifts a zero into bit seven and bit zero into the C (carry) bit.',
         'instr_desc': 'Logical shift right accumulator or memory location',
@@ -486,7 +444,6 @@ INSTRUCTION_INFO = {
         'source form': 'LSR Q; LSRA; LSRB'
     },
     MUL: {
-        'HNZVC': '--a-a',
         'comment': 'The C (carry) bit allows rounding the most-significant byte through the sequence: MUL, ADCA #0.',
         'condition code': 'H - Not affected.\nN - Not affected.\nZ - Set if the result is zero; cleared otherwise.\nV - Not affected.\nC - Set if ACCB bit 7 of result is set; cleared otherwise.',
         'description': 'Multiply the unsigned binary numbers in the accumulators and place the result in both accumulators (ACCA contains the most-significant byte of the result).\nUnsigned multiply allows multiple-precision operations.',
@@ -495,7 +452,6 @@ INSTRUCTION_INFO = {
         'source form': 'MUL'
     },
     NEG: {
-        'HNZVC': 'uaaaa',
         'condition code': 'H - Undefined.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Set if the original operand was 10000000 2 .\nC - Set if a borrow is generated; cleared otherwise.',
         'description': 'Replaces the operand with its twos complement.\nThe C (carry) bit represents a borrow and is set to the inverse of the resulting binary carry.\nNote that 80 16 is replaced by itself and only in this case is the V (overflow) bit set.\nThe value 00 16 is also replaced by itself, and only in this case is the C (carry) bit cleared.',
         'instr_desc': 'Negate accumulator or memory',
@@ -503,14 +459,12 @@ INSTRUCTION_INFO = {
         'source form': 'NEG Q; NEGA; NEG B'
     },
     NOP: {
-        'HNZVC': '-----',
         'condition code': 'This instruction causes only the program counter to be incremented.\nNo other registers or memory locations are affected.',
         'instr_desc': 'No operation',
         'operation': 'Not affected.',
         'source form': 'NOP'
     },
     OR: {
-        'HNZVC': '-aa0-',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Always cleared.\nC - Not affected.',
         'description': 'Performs an inclusive OR operation between the contents of accumulator A or B and the contents of memory location M and the result is stored in accumulator A or B.',
         'instr_desc': 'OR memory with accumulator',
@@ -518,7 +472,6 @@ INSTRUCTION_INFO = {
         'source form': 'ORA P; ORB P'
     },
     ORCC: {
-        'HNZVC': 'ddddd',
         'condition code': 'Affected according to the operation.',
         'description': 'Performs an inclusive OR operation between the contents of the condition code registers and the immediate value, and the result is placed in the condition code register.\nThis instruction may be used to set interrupt masks (disable interrupts) or any other bit(s).',
         'instr_desc': 'OR condition code register',
@@ -526,15 +479,13 @@ INSTRUCTION_INFO = {
         'source form': 'ORCC #XX'
     },
     OTHER_INSTRUCTIONS: {
-        'HNZVC': '-----', 'instr_desc': 'Branch if lower (unsigned)'
+        'instr_desc': 'Branch if lower (unsigned)'
     },
     PAGE: {
-        'HNZVC': '+++++',
         'description': 'Page 1/2 instructions',
         'instr_desc': 'Page 2 Instructions prefix'
     },
     PSHS: {
-        'HNZVC': '-----',
         'comment': 'A single register may be placed on the stack with the condition codes set by doing an autodecrement store onto the stack (example: STX ,--S).',
         'condition code': 'Not affected.',
         'description': 'All, some, or none of the processor registers are pushed onto the hardware stack (with the exception of the hardware stack pointer itself).',
@@ -543,7 +494,6 @@ INSTRUCTION_INFO = {
         'source form': 'b7 b6 b5 b4 b3 b2 b1 b0\nPC U Y X DP B A CC\npush order ->'
     },
     PSHU: {
-        'HNZVC': '-----',
         'comment': 'A single register may be placed on the stack with the condition codes set by doing an autodecrement store onto the stack (example: STX ,--U).',
         'condition code': 'Not affected.',
         'description': 'All, some, or none of the processor registers are pushed onto the user stack (with the exception of the user stack pointer itself).',
@@ -552,7 +502,6 @@ INSTRUCTION_INFO = {
         'source form': 'b7 b6 b5 b4 b3 b2 b1 b0\nPC S Y X DP B A CC\npush order ->'
     },
     PULS: {
-        'HNZVC': 'ccccc',
         'comment': 'A single register may be pulled from the stack with condition codes set by doing an autoincrement load from the stack (example: LDX ,S++).',
         'condition code': 'May be pulled from stack; not affected otherwise.',
         'description': 'All, some, or none of the processor registers are pulled from the hardware stack (with the exception of the hardware stack pointer itself).',
@@ -561,7 +510,6 @@ INSTRUCTION_INFO = {
         'source form': 'b7 b6 b5 b4 b3 b2 b1 b0\nPC U Y X DP B A CC\n= pull order'
     },
     PULU: {
-        'HNZVC': 'ccccc',
         'comment': 'A single register may be pulled from the stack with condition codes set by doing an autoincrement load from the stack (example: LDX ,U++).',
         'condition code': 'May be pulled from stack; not affected otherwise.',
         'description': 'All, some, or none of the processor registers are pulled from the user stack (with the exception of the user stack pointer itself).',
@@ -570,12 +518,10 @@ INSTRUCTION_INFO = {
         'source form': 'b7 b6 b5 b4 b3 b2 b1 b0\nPC S Y X DP B A CC\n= pull order'
     },
     RESET: {
-        'HNZVC': '*****',
         'description': ' Build the ASSIST09 vector table and setup monitor defaults, then invoke the monitor startup routine.',
         'instr_desc': ''
     },
     ROL: {
-        'HNZVC': '-aaas',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Loaded with the result of the exclusive OR of bits six and seven of the original operand.\nC - Loaded with bit seven of the original operand.',
         'description': 'Rotates all bits of the operand one place left through the C (carry) bit.\nThis is a 9-bit rotation.',
         'instr_desc': 'Rotate accumulator or memory left',
@@ -583,7 +529,6 @@ INSTRUCTION_INFO = {
         'source form': 'ROL Q; ROLA; ROLB'
     },
     ROR: {
-        'HNZVC': '-aa-s',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Not affected.\nC - Loaded with bit zero of the previous operand.',
         'description': 'Rotates all bits of the operand one place right through the C (carry) bit.\nThis is a 9-bit rotation.',
         'instr_desc': 'Rotate accumulator or memory right',
@@ -591,7 +536,6 @@ INSTRUCTION_INFO = {
         'source form': 'ROR Q; RORA; RORB'
     },
     RTI: {
-        'HNZVC': '-----',
         'condition code': 'Recovered from the stack.',
         'description': 'The saved machine state is recovered from the hardware stack and control is returned to the interrupted program.\nIf the recovered E (entire) bit is clear, it indicates that only a subset of the machine state was saved (return address and condition codes) and only that subset is recovered.',
         'instr_desc': 'Return from interrupt',
@@ -599,7 +543,6 @@ INSTRUCTION_INFO = {
         'source form': 'RTI'
     },
     RTS: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'Program control is returned from the subroutine to the calling program.\nThe return address is pulled from the stack.',
         'instr_desc': 'Return from subroutine',
@@ -607,7 +550,6 @@ INSTRUCTION_INFO = {
         'source form': 'RTS'
     },
     SBC: {
-        'HNZVC': 'uaaaa',
         'condition code': 'H - Undefined.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Set if an overflow is generated; cleared otherwise.\nC - Set if a borrow is generated; cleared otherwise.',
         'description': 'Subtracts the contents of memory location M and the borrow (in the C (carry) bit) from the contents of the designated 8-bit register, and places the result in that register.\nThe C bit represents a borrow and is set to the inverse of the resulting binary carry.',
         'instr_desc': 'Subtract memory from accumulator with borrow',
@@ -615,7 +557,6 @@ INSTRUCTION_INFO = {
         'source form': 'SBCA P; SBCB P'
     },
     SEX: {
-        'HNZVC': '-aa0-',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Not affected.\nC - Not affected.',
         'description': 'This instruction transforms a twos complement 8-bit value in accumulator B into a twos complement 16-bit value in the D accumulator.',
         'instr_desc': 'Sign Extend B accumulator into A accumulator',
@@ -623,7 +564,6 @@ INSTRUCTION_INFO = {
         'source form': 'SEX'
     },
     ST16: {
-        'HNZVC': '-aa0-',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Always cleared.\nC - Not affected.',
         'description': 'Writes the contents of a 16-bit register into two consecutive memory locations.',
         'instr_desc': 'Store stack pointer to memory',
@@ -631,7 +571,6 @@ INSTRUCTION_INFO = {
         'source form': 'STD P; STX P; STY P; STS P; STU P'
     },
     ST8: {
-        'HNZVC': '-aa0-',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Always cleared.\nC - Not affected.',
         'description': 'Writes the contents of an 8-bit register into a memory location.',
         'instr_desc': 'Store accumulator to memroy',
@@ -639,7 +578,6 @@ INSTRUCTION_INFO = {
         'source form': 'STA P; STB P'
     },
     SUB16: {
-        'HNZVC': '-aaaa',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Set if the overflow is generated; cleared otherwise.\nC - Set if a borrow is generated; cleared otherwise.',
         'description': 'Subtracts the value in memory location M:M+1 from the contents of a designated 16-bit register.\nThe C (carry) bit represents a borrow and is set to the inverse of the resulting binary carry.',
         'instr_desc': 'Subtract memory from D accumulator',
@@ -647,7 +585,6 @@ INSTRUCTION_INFO = {
         'source form': 'SUBD P'
     },
     SUB8: {
-        'HNZVC': 'uaaaa',
         'condition code': 'H - Undefined.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Set if the overflow is generated; cleared otherwise.\nC - Set if a borrow is generated; cleared otherwise.',
         'description': 'Subtracts the value in memory location M from the contents of a designated 8-bit register.\nThe C (carry) bit represents a borrow and is set to the inverse of the resulting binary carry.',
         'instr_desc': 'Subtract memory from accumulator',
@@ -655,7 +592,6 @@ INSTRUCTION_INFO = {
         'source form': 'SUBA P; SUBB P'
     },
     SWI: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'All of the processor registers are pushed onto the hardware stack (with the exception of the hardware stack pointer itself), and control is transferred through the software interrupt vector.\nBoth the normal and fast interrupts are masked (disabled).',
         'instr_desc': 'Software interrupt (absolute indirect)',
@@ -663,7 +599,6 @@ INSTRUCTION_INFO = {
         'source form': 'SWI'
     },
     SWI2: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'All of the processor registers are pushed onto the hardware stack (with the exception of the hardware stack pointer itself), and control is transferred through the software interrupt 2 vector.\nThis interrupt is available to the end user and must not be used in packaged software.\nThis interrupt does not mask (disable) the normal and fast interrupts.',
         'instr_desc': 'Software interrupt (absolute indirect)',
@@ -671,7 +606,6 @@ INSTRUCTION_INFO = {
         'source form': 'SWI2'
     },
     SWI3: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'All of the processor registers are pushed onto the hardware stack (with the exception of the hardware stack pointer itself), and control is transferred through the software interrupt 3 vector.\nThis interrupt does not mask (disable) the normal and fast interrupts.',
         'instr_desc': 'Software interrupt (absolute indirect)',
@@ -679,7 +613,6 @@ INSTRUCTION_INFO = {
         'source form': 'SWI3'
     },
     SYNC: {
-        'HNZVC': '-----',
         'condition code': 'Not affected.',
         'description': 'FAST SYNC WAIT FOR DATA\nInterrupt!\nLDA DISC DATA FROM DISC AND CLEAR INTERRUPT\nSTA ,X+ PUT IN BUFFER\nDECB COUNT IT, DONE?\nBNE FAST GO AGAIN IF NOT.',
         'instr_desc': 'Synchronize with interrupt line',
@@ -687,7 +620,6 @@ INSTRUCTION_INFO = {
         'source form': 'SYNC'
     },
     TFR: {
-        'HNZVC': 'ccccc',
         'condition code': 'Not affected unless R2 is the condition code register.',
         'description': '0000 = A:B 1000 = A\n0001 = X 1001 = B\n0010 = Y 1010 = CCR\n0011 = US 1011 = DPR\n0100 = SP 1100 = Undefined\n0101 = PC 1101 = Undefined\n0110 = Undefined 1110 = Undefined\n0111 = Undefined 1111 = Undefined',
         'instr_desc': 'Transfer R1 to R2',
@@ -695,7 +627,6 @@ INSTRUCTION_INFO = {
         'source form': 'TFR R1, R2'
     },
     TST: {
-        'HNZVC': '-aa0-',
         'comment': 'The MC6800 processor clears the C (carry) bit.',
         'condition code': 'H - Not affected.\nN - Set if the result is negative; cleared otherwise.\nZ - Set if the result is zero; cleared otherwise.\nV - Always cleared.\nC - Not affected.',
         'description': 'Set the N (negative) and Z (zero) bits according to the contents of memory location M, and clear the V (overflow) bit.\nThe TST instruction provides only minimum information when testing unsigned values; since no unsigned value is less than zero, BLO and BLS have no utility.\nWhile BHI could be used after TST, it provides exactly the same control as BNE, which is preferred.\nThe signed branches are available.',
@@ -716,6 +647,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = 0 - M
         "mem_read": True, "mem_write": True,
+        "HNZVC": "uaaaa",
         "category": 0, "instr_info_key": NEG,
     },
     {
@@ -724,6 +656,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = 0 + M
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aa01",
         "category": 0, "instr_info_key": COM,
     },
     {
@@ -732,6 +665,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # 0 -> -> C;b7 -> b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-0a-s",
         "category": 0, "instr_info_key": LSR,
     },
     {
@@ -740,6 +674,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # C -> -> C;b7 -> b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aa-s",
         "category": 0, "instr_info_key": ROR,
     },
     {
@@ -748,6 +683,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # b7 -> -> C;b7 -> b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "uaa-s",
         "category": 0, "instr_info_key": ASR,
     },
     {
@@ -756,6 +692,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # C = = 0;b7 = b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "naaas",
         "category": 0, "instr_info_key": LSL,
     },
     {
@@ -764,6 +701,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # C = = C;b7 = b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aaas",
         "category": 0, "instr_info_key": ROL,
     },
     {
@@ -772,6 +710,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = M - 1
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aaa-",
         "category": 0, "instr_info_key": DEC,
     },
     {
@@ -780,6 +719,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = M + 1
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aaa-",
         "category": 0, "instr_info_key": INC,
     },
     {
@@ -788,6 +728,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = M - 0
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "category": 0, "instr_info_key": TST,
     },
     {
@@ -796,6 +737,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = M M = 00 16
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-0100",
         "category": 0, "instr_info_key": CLR,
     },
     {
@@ -803,6 +745,7 @@ OP_DATA = (
         "desc": "Decimal Adjust A",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aa0a",
         "category": 0, "instr_info_key": DAA,
     },
     {
@@ -811,6 +754,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 8, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R1 <-> R2
         "mem_read": True, "mem_write": False,
+        "HNZVC": "ccccc",
         "category": 0, "instr_info_key": EXG,
     },
     {
@@ -819,6 +763,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 7, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R1 -> R2
         "mem_read": True, "mem_write": False,
+        "HNZVC": "ccccc",
         "category": 0, "instr_info_key": TFR,
     },
     {
@@ -826,6 +771,7 @@ OP_DATA = (
         "desc": "D = A*B (Unsigned)",
         "addr_mode": INHERENT, "cycles": 11, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "--a-a",
         "category": 0, "instr_info_key": MUL,
     },
     {
@@ -833,6 +779,7 @@ OP_DATA = (
         "desc": "A = !A + 1",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": NEG,
     },
@@ -841,6 +788,7 @@ OP_DATA = (
         "desc": "A = complement(A)",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aa01",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": COM,
     },
@@ -849,6 +797,7 @@ OP_DATA = (
         "desc": "A = Logical shift A right",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-0a-s",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": LSR,
     },
@@ -857,6 +806,7 @@ OP_DATA = (
         "desc": "A = Rotate A Right thru carry",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aa-s",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ROR,
     },
@@ -865,6 +815,7 @@ OP_DATA = (
         "desc": "A = Arithmetic shift A right",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "uaa-s",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ASR,
     },
@@ -873,6 +824,7 @@ OP_DATA = (
         "desc": "A = Logical shift A left",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "naaas",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": LSL,
     },
@@ -881,6 +833,7 @@ OP_DATA = (
         "desc": "A = Rotate A left thru carry",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aaas",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ROL,
     },
@@ -889,6 +842,7 @@ OP_DATA = (
         "desc": "A = A  1",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aaa-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": DEC,
     },
@@ -897,6 +851,7 @@ OP_DATA = (
         "desc": "A = A + 1",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aaa-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": INC,
     },
@@ -905,6 +860,7 @@ OP_DATA = (
         "desc": "Test A",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": TST,
     },
@@ -913,6 +869,7 @@ OP_DATA = (
         "desc": "A = 0",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-0100",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": CLR,
     },
@@ -921,6 +878,7 @@ OP_DATA = (
         "desc": "B = !B + 1",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": NEG,
     },
@@ -929,6 +887,7 @@ OP_DATA = (
         "desc": "B = complement(B)",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aa01",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": COM,
     },
@@ -937,6 +896,7 @@ OP_DATA = (
         "desc": "B = Logical shift B right",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-0a-s",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": LSR,
     },
@@ -945,6 +905,7 @@ OP_DATA = (
         "desc": "B = Rotate B Right thru carry",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aa-s",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ROR,
     },
@@ -953,6 +914,7 @@ OP_DATA = (
         "desc": "B = Arithmetic shift B right",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "uaa-s",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ASR,
     },
@@ -961,6 +923,7 @@ OP_DATA = (
         "desc": "B = Logical shift B left",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "naaas",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": LSL,
     },
@@ -969,6 +932,7 @@ OP_DATA = (
         "desc": "B = Rotate B left thru carry",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aaas",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ROL,
     },
@@ -977,6 +941,7 @@ OP_DATA = (
         "desc": "B = B  1",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aaa-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": DEC,
     },
@@ -985,6 +950,7 @@ OP_DATA = (
         "desc": "B = B + 1",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aaa-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": INC,
     },
@@ -993,6 +959,7 @@ OP_DATA = (
         "desc": "Test B",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": TST,
     },
@@ -1001,6 +968,7 @@ OP_DATA = (
         "desc": "B = 0",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-0100",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": CLR,
     },
@@ -1010,6 +978,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = 0 - M
         "mem_read": True, "mem_write": True,
+        "HNZVC": "uaaaa",
         "category": 0, "instr_info_key": NEG,
     },
     {
@@ -1018,6 +987,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = 0 + M
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aa01",
         "category": 0, "instr_info_key": COM,
     },
     {
@@ -1026,6 +996,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # 0 -> -> C;b7 -> b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-0a-s",
         "category": 0, "instr_info_key": LSR,
     },
     {
@@ -1034,6 +1005,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # C -> -> C;b7 -> b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aa-s",
         "category": 0, "instr_info_key": ROR,
     },
     {
@@ -1042,6 +1014,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # b7 -> -> C;b7 -> b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "uaa-s",
         "category": 0, "instr_info_key": ASR,
     },
     {
@@ -1050,6 +1023,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # C = = 0;b7 = b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "naaas",
         "category": 0, "instr_info_key": LSL,
     },
     {
@@ -1058,6 +1032,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # C = = C;b7 = b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aaas",
         "category": 0, "instr_info_key": ROL,
     },
     {
@@ -1066,6 +1041,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = M - 1
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aaa-",
         "category": 0, "instr_info_key": DEC,
     },
     {
@@ -1074,6 +1050,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = M + 1
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aaa-",
         "category": 0, "instr_info_key": INC,
     },
     {
@@ -1082,6 +1059,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = M - 0
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "category": 0, "instr_info_key": TST,
     },
     {
@@ -1090,6 +1068,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = M M = 00 16
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-0100",
         "category": 0, "instr_info_key": CLR,
     },
     {
@@ -1098,6 +1077,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M' = 0 - M
         "mem_read": True, "mem_write": True,
+        "HNZVC": "uaaaa",
         "category": 0, "instr_info_key": NEG,
     },
     {
@@ -1106,6 +1086,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M' = 0 + M
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aa01",
         "category": 0, "instr_info_key": COM,
     },
     {
@@ -1114,6 +1095,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # 0 -> -> C;b7 -> b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-0a-s",
         "category": 0, "instr_info_key": LSR,
     },
     {
@@ -1122,6 +1104,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # C -> -> C;b7 -> b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aa-s",
         "category": 0, "instr_info_key": ROR,
     },
     {
@@ -1130,6 +1113,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # b7 -> -> C;b7 -> b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "uaa-s",
         "category": 0, "instr_info_key": ASR,
     },
     {
@@ -1138,6 +1122,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # C = = 0;b7 = b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "naaas",
         "category": 0, "instr_info_key": LSL,
     },
     {
@@ -1146,6 +1131,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # C = = C;b7 = b0
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aaas",
         "category": 0, "instr_info_key": ROL,
     },
     {
@@ -1154,6 +1140,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M' = M - 1
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aaa-",
         "category": 0, "instr_info_key": DEC,
     },
     {
@@ -1162,6 +1149,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M' = M + 1
         "mem_read": True, "mem_write": True,
+        "HNZVC": "-aaa-",
         "category": 0, "instr_info_key": INC,
     },
     {
@@ -1170,6 +1158,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = M - 0
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "category": 0, "instr_info_key": TST,
     },
     {
@@ -1178,6 +1167,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = M M = 00 16
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-0100",
         "category": 0, "instr_info_key": CLR,
     },
     {
@@ -1186,6 +1176,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1195,6 +1186,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1204,6 +1196,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SBC,
     },
@@ -1213,6 +1206,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": AND,
     },
@@ -1222,6 +1216,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": BIT,
     },
@@ -1231,6 +1226,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": LD8,
     },
@@ -1240,6 +1236,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": EOR,
     },
@@ -1249,6 +1246,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADC,
     },
@@ -1258,6 +1256,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": OR,
     },
@@ -1267,6 +1266,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1276,6 +1276,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1285,6 +1286,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1294,6 +1296,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SBC,
     },
@@ -1303,6 +1306,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": AND,
     },
@@ -1312,6 +1316,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": BIT,
     },
@@ -1321,6 +1326,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": LD8,
     },
@@ -1330,6 +1336,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ST8,
     },
@@ -1339,6 +1346,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": EOR,
     },
@@ -1348,6 +1356,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADC,
     },
@@ -1357,6 +1366,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": OR,
     },
@@ -1366,6 +1376,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1375,6 +1386,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1384,6 +1396,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1393,6 +1406,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SBC,
     },
@@ -1402,6 +1416,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": AND,
     },
@@ -1411,6 +1426,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": BIT,
     },
@@ -1420,6 +1436,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": LD8,
     },
@@ -1429,6 +1446,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ST8,
     },
@@ -1438,6 +1456,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": EOR,
     },
@@ -1447,6 +1466,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADC,
     },
@@ -1456,6 +1476,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": OR,
     },
@@ -1465,6 +1486,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1474,6 +1496,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1483,6 +1506,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1492,6 +1516,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R - M - C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": SBC,
     },
@@ -1501,6 +1526,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": AND,
     },
@@ -1510,6 +1536,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": BIT,
     },
@@ -1519,6 +1546,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": LD8,
     },
@@ -1528,6 +1556,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ST8,
     },
@@ -1537,6 +1566,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R XOR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": EOR,
     },
@@ -1546,6 +1576,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R + M + C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADC,
     },
@@ -1555,6 +1586,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R OR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": OR,
     },
@@ -1564,6 +1596,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R + M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_A, # 8 Bit accumulator A
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1573,6 +1606,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1582,6 +1616,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1591,6 +1626,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SBC,
     },
@@ -1600,6 +1636,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": AND,
     },
@@ -1609,6 +1646,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": BIT,
     },
@@ -1618,6 +1656,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": LD8,
     },
@@ -1627,6 +1666,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": EOR,
     },
@@ -1636,6 +1676,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADC,
     },
@@ -1645,6 +1686,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": OR,
     },
@@ -1654,6 +1696,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 2, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1663,6 +1706,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1672,6 +1716,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1681,6 +1726,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SBC,
     },
@@ -1690,6 +1736,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": AND,
     },
@@ -1699,6 +1746,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": BIT,
     },
@@ -1708,6 +1756,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": LD8,
     },
@@ -1717,6 +1766,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ST8,
     },
@@ -1726,6 +1776,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": EOR,
     },
@@ -1735,6 +1786,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADC,
     },
@@ -1744,6 +1796,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": OR,
     },
@@ -1753,6 +1806,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1762,6 +1816,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1771,6 +1826,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1780,6 +1836,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R - M - C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SBC,
     },
@@ -1789,6 +1846,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": AND,
     },
@@ -1798,6 +1856,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": BIT,
     },
@@ -1807,6 +1866,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": LD8,
     },
@@ -1816,6 +1876,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # M' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ST8,
     },
@@ -1825,6 +1886,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R XOR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": EOR,
     },
@@ -1834,6 +1896,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M + C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADC,
     },
@@ -1843,6 +1906,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": OR,
     },
@@ -1852,6 +1916,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R + M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1861,6 +1926,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SUB8,
     },
@@ -1870,6 +1936,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": CMP8,
     },
@@ -1879,6 +1946,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R - M - C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "uaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": SBC,
     },
@@ -1888,6 +1956,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": AND,
     },
@@ -1897,6 +1966,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R AND M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": BIT,
     },
@@ -1906,6 +1976,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": LD8,
     },
@@ -1915,6 +1986,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ST8,
     },
@@ -1924,6 +1996,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R XOR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": EOR,
     },
@@ -1933,6 +2006,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R + M + C
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADC,
     },
@@ -1942,6 +2016,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R OR M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": OR,
     },
@@ -1951,6 +2026,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R + M
         "mem_read": True, "mem_write": False,
+        "HNZVC": "aaaaa",
         "register": REG_B, # 8 Bit accumulator B
         "category": 0, "instr_info_key": ADD8,
     },
@@ -1962,6 +2038,7 @@ OP_DATA = (
         "desc": "Sign extend B into A",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-aa0-",
         "category": 1, "instr_info_key": SEX,
     },
     {
@@ -1970,6 +2047,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 4, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": SUB16,
     },
@@ -1979,6 +2057,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": SUB16,
     },
@@ -1988,6 +2067,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": SUB16,
     },
@@ -1997,6 +2077,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": SUB16,
     },
@@ -2006,6 +2087,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 4, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R + M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ADD16,
     },
@@ -2015,6 +2097,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 3, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": LD16,
     },
@@ -2024,6 +2107,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = R + M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ADD16,
     },
@@ -2033,6 +2117,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": LD16,
     },
@@ -2042,6 +2127,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ST16,
     },
@@ -2051,6 +2137,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = R + M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ADD16,
     },
@@ -2060,6 +2147,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": LD16,
     },
@@ -2069,6 +2157,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ST16,
     },
@@ -2078,6 +2167,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = R + M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ADD16,
     },
@@ -2087,6 +2177,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": LD16,
     },
@@ -2096,6 +2187,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": ST16,
     },
@@ -2105,6 +2197,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": CMP16,
     },
@@ -2114,6 +2207,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": CMP16,
     },
@@ -2123,6 +2217,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": CMP16,
     },
@@ -2132,6 +2227,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 8, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_D, # 16 Bit concatenated register (A+B) D
         "category": 1, "instr_info_key": CMP16,
     },
@@ -2143,6 +2239,7 @@ OP_DATA = (
         "desc": "X = EA",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "--a--",
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": LEA,
     },
@@ -2151,6 +2248,7 @@ OP_DATA = (
         "desc": "Y = EA",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "--a--",
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": LEA,
     },
@@ -2159,6 +2257,7 @@ OP_DATA = (
         "desc": "S = EA",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": LEA,
     },
@@ -2167,6 +2266,7 @@ OP_DATA = (
         "desc": "U = EA",
         "addr_mode": INDEXED, "cycles": 4, "bytes": 2,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": LEA,
     },
@@ -2176,6 +2276,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # Push Registers on S Stack: S -= 1: MEM(S) = Reg.
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-----",
         "category": 2, "instr_info_key": PSHS,
     },
     {
@@ -2184,6 +2285,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # Pull Registers from S Stack: Reg. = MEM(S): S += 1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "ccccc",
         "category": 2, "instr_info_key": PULS,
     },
     {
@@ -2192,6 +2294,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # Push Registers on U Stack: U -= 1: MEM(U) = Reg.
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-----",
         "category": 2, "instr_info_key": PSHU,
     },
     {
@@ -2200,6 +2303,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # Pull Registers from U Stack: Reg. = MEM(U): U += 1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "ccccc",
         "category": 2, "instr_info_key": PULU,
     },
     {
@@ -2207,6 +2311,7 @@ OP_DATA = (
         "desc": "X = B+X (Unsigned)",
         "addr_mode": INHERENT, "cycles": 3, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 2, "instr_info_key": ABX,
     },
     {
@@ -2215,6 +2320,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 4, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2224,6 +2330,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 3, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": LD16,
     },
@@ -2233,6 +2340,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2242,6 +2350,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": LD16,
     },
@@ -2251,6 +2360,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": ST16,
     },
@@ -2260,6 +2370,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2269,6 +2380,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": LD16,
     },
@@ -2278,6 +2390,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": ST16,
     },
@@ -2287,6 +2400,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2296,6 +2410,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": LD16,
     },
@@ -2305,6 +2420,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_X, # 16 Bit index register X
         "category": 2, "instr_info_key": ST16,
     },
@@ -2314,6 +2430,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 3, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": LD16,
     },
@@ -2323,6 +2440,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": LD16,
     },
@@ -2332,6 +2450,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": ST16,
     },
@@ -2341,6 +2460,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": LD16,
     },
@@ -2350,6 +2470,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 5, "bytes": 2,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": ST16,
     },
@@ -2359,6 +2480,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": LD16,
     },
@@ -2368,6 +2490,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": ST16,
     },
@@ -2377,6 +2500,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2386,6 +2510,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 4, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": LD16,
     },
@@ -2395,6 +2520,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2404,6 +2530,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": LD16,
     },
@@ -2413,6 +2540,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": ST16,
     },
@@ -2422,6 +2550,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2431,6 +2560,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": LD16,
     },
@@ -2440,6 +2570,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": ST16,
     },
@@ -2449,6 +2580,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 8, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2458,6 +2590,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": LD16,
     },
@@ -2467,6 +2600,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_Y, # 16 Bit index register Y
         "category": 2, "instr_info_key": ST16,
     },
@@ -2476,6 +2610,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 4, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": LD16,
     },
@@ -2485,6 +2620,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": LD16,
     },
@@ -2494,6 +2630,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": ST16,
     },
@@ -2503,6 +2640,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": LD16,
     },
@@ -2512,6 +2650,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 6, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": ST16,
     },
@@ -2521,6 +2660,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # R' = M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aa0-",
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": LD16,
     },
@@ -2530,6 +2670,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 7, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # M':M+1' = R
         "mem_read": False, "mem_write": True,
+        "HNZVC": "-aa0-",
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": ST16,
     },
@@ -2539,6 +2680,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2548,6 +2690,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2557,6 +2700,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2566,6 +2710,7 @@ OP_DATA = (
         "addr_mode": DIRECT, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2575,6 +2720,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2584,6 +2730,7 @@ OP_DATA = (
         "addr_mode": INDEXED, "cycles": 7, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2593,6 +2740,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 8, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_U, # 16 Bit user-stack pointer U
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2602,6 +2750,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 8, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = R - M:M+1
         "mem_read": True, "mem_write": False,
+        "HNZVC": "-aaaa",
         "register": REG_S, # 16 Bit system-stack pointer S
         "category": 2, "instr_info_key": CMP16,
     },
@@ -2614,6 +2763,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF N = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 3, "instr_info_key": BPL,
     },
     {
@@ -2622,6 +2772,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF N = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 3, "instr_info_key": BMI,
     },
     {
@@ -2630,6 +2781,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF N = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 3, "instr_info_key": BPL,
     },
     {
@@ -2638,6 +2790,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF N = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 3, "instr_info_key": BMI,
     },
 
@@ -2649,6 +2802,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF V = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 4, "instr_info_key": BVC,
     },
     {
@@ -2657,6 +2811,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP' = MI IFF V = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 4, "instr_info_key": BVS,
     },
     {
@@ -2665,6 +2820,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF [N XOR V] = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 4, "instr_info_key": BGE,
     },
     {
@@ -2673,6 +2829,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF [ N XOR V ] = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 4, "instr_info_key": BLT,
     },
     {
@@ -2681,6 +2838,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z AND [N XOR V] = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 4, "instr_info_key": BGT,
     },
     {
@@ -2689,6 +2847,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z OR [ N XOR V ] = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 4, "instr_info_key": BLE,
     },
     {
@@ -2697,6 +2856,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF V = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 4, "instr_info_key": BVC,
     },
     {
@@ -2705,6 +2865,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP' = MI IFF V = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 4, "instr_info_key": BVS,
     },
     {
@@ -2713,6 +2874,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF [N XOR V] = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 4, "instr_info_key": BGE,
     },
     {
@@ -2721,6 +2883,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF [ N XOR V ] = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 4, "instr_info_key": BLT,
     },
     {
@@ -2729,6 +2892,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF Z AND [N XOR V] = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 4, "instr_info_key": BGT,
     },
     {
@@ -2737,6 +2901,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF Z OR [ N XOR V ] = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 4, "instr_info_key": BLE,
     },
 
@@ -2748,6 +2913,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF [ C OR Z ] = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 5, "instr_info_key": BHI,
     },
     {
@@ -2756,6 +2922,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF (C OR Z) = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 5, "instr_info_key": BLS,
     },
     {
@@ -2764,6 +2931,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF C = 0 then PC' = PC + MI
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 5, "instr_info_key": BHS,
     },
     {
@@ -2772,6 +2940,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF C = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 5, "instr_info_key": BLO,
     },
     {
@@ -2780,6 +2949,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 5, "instr_info_key": BNE,
     },
     {
@@ -2788,6 +2958,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI IFF Z = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 5, "instr_info_key": BEQ,
     },
     {
@@ -2796,6 +2967,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF [ C OR Z ] = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 5, "instr_info_key": BHI,
     },
     {
@@ -2804,6 +2976,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF (C OR Z) = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 5, "instr_info_key": BLS,
     },
     {
@@ -2812,6 +2985,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
     },
     {
@@ -2820,6 +2994,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 5, "instr_info_key": OTHER_INSTRUCTIONS,
     },
     {
@@ -2828,6 +3003,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF Z = 0 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 5, "instr_info_key": BNE,
     },
     {
@@ -2836,6 +3012,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI IFF Z = 1 then PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 5, "instr_info_key": BEQ,
     },
 
@@ -2847,6 +3024,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 6, "instr_info_key": BRA,
     },
     {
@@ -2855,6 +3033,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 9, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 6, "instr_info_key": BSR,
     },
     {
@@ -2863,6 +3042,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 6, "instr_info_key": BRA,
     },
     {
@@ -2871,6 +3051,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 6, "instr_info_key": BRN,
     },
     {
@@ -2879,6 +3060,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 7, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # TEMP = MI SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' = PC + TEMP
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 6, "instr_info_key": BSR,
     },
     {
@@ -2887,6 +3069,7 @@ OP_DATA = (
         "addr_mode": RELATIVE, "cycles": 5, "bytes": 4,
         "mem_access": MEM_ACCESS_WORD, # TEMP = MI
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 6, "instr_info_key": BRN,
     },
 
@@ -2897,6 +3080,7 @@ OP_DATA = (
         "desc": "pc = EA",
         "addr_mode": DIRECT, "cycles": 3, "bytes": 2,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 7, "instr_info_key": JMP,
     },
     {
@@ -2904,6 +3088,7 @@ OP_DATA = (
         "desc": "No Operation",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 7, "instr_info_key": NOP,
     },
     {
@@ -2911,6 +3096,7 @@ OP_DATA = (
         "desc": "Synchronize to Interrupt",
         "addr_mode": INHERENT, "cycles": 2, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 7, "instr_info_key": SYNC,
     },
     {
@@ -2919,6 +3105,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R OR MI
         "mem_read": True, "mem_write": False,
+        "HNZVC": "ddddd",
         "register": REG_CC, # 8 Bit condition code register as flags CC
         "category": 7, "instr_info_key": ORCC,
     },
@@ -2928,6 +3115,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 3, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # R' = R AND MI
         "mem_read": True, "mem_write": False,
+        "HNZVC": "ddddd",
         "register": REG_CC, # 8 Bit condition code register as flags CC
         "category": 7, "instr_info_key": ANDCC,
     },
@@ -2936,6 +3124,7 @@ OP_DATA = (
         "desc": "Return from subroutine",
         "addr_mode": INHERENT, "cycles": 5, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 7, "instr_info_key": RTS,
     },
     {
@@ -2943,6 +3132,7 @@ OP_DATA = (
         "desc": "Return from Interrupt",
         "addr_mode": INHERENT, "cycles": 6, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 7, "instr_info_key": RTI,
     },
     {
@@ -2951,6 +3141,7 @@ OP_DATA = (
         "addr_mode": IMMEDIATE, "cycles": 21, "bytes": 2,
         "mem_access": MEM_ACCESS_BYTE, # CCR = CCR AND MI (Possibly clear masks) Set E (entire state saved) SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH SP' = SP-1, (SP) = USL SP' = SP-1, (SP) = USH SP' = SP-1, (SP) = IYL SP' = SP-1, (SP) = IYH SP' = SP-1, (SP) = IXL SP' = SP-1, (SP) = IXH SP' = SP-1, (SP) = DPR SP' = SP-1, (SP) = ACCB SP' = SP-1, (SP) = ACCA SP' = SP-1, (SP) = CCR
         "mem_read": True, "mem_write": False,
+        "HNZVC": "ddddd",
         "category": 7, "instr_info_key": CWAI,
     },
     {
@@ -2958,6 +3149,7 @@ OP_DATA = (
         "desc": "Software interrupt 1",
         "addr_mode": INHERENT, "cycles": 19, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 7, "instr_info_key": SWI,
     },
     {
@@ -2965,6 +3157,7 @@ OP_DATA = (
         "desc": "pc = EA",
         "addr_mode": INDEXED, "cycles": 3, "bytes": 2,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 7, "instr_info_key": JMP,
     },
     {
@@ -2973,6 +3166,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 3, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # PC' = EA
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 7, "instr_info_key": JMP,
     },
     {
@@ -2980,6 +3174,7 @@ OP_DATA = (
         "desc": "jump to subroutine",
         "addr_mode": DIRECT, "cycles": 7, "bytes": 2,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 7, "instr_info_key": JSR,
     },
     {
@@ -2987,6 +3182,7 @@ OP_DATA = (
         "desc": "jump to subroutine",
         "addr_mode": INDEXED, "cycles": 7, "bytes": 2,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 7, "instr_info_key": JSR,
     },
     {
@@ -2995,6 +3191,7 @@ OP_DATA = (
         "addr_mode": EXTENDED, "cycles": 8, "bytes": 3,
         "mem_access": MEM_ACCESS_WORD, # SP' = SP-1, (SP) = PCL SP' = SP-1, (SP) = PCH PC' =EA
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 7, "instr_info_key": JSR,
     },
     {
@@ -3002,6 +3199,7 @@ OP_DATA = (
         "desc": "Software interrupt 2",
         "addr_mode": INHERENT, "cycles": 20, "bytes": 2,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 7, "instr_info_key": SWI2,
     },
     {
@@ -3009,6 +3207,7 @@ OP_DATA = (
         "desc": "Software interrupt 3",
         "addr_mode": INHERENT, "cycles": 20, "bytes": 2,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "-----",
         "category": 7, "instr_info_key": SWI3,
     },
 
@@ -3019,6 +3218,7 @@ OP_DATA = (
         "desc": "Page 1 Instructions prefix",
         "addr_mode": VARIANT, "cycles": 1, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "+++++",
         "category": 8, "instr_info_key": PAGE,
     },
     {
@@ -3026,6 +3226,7 @@ OP_DATA = (
         "desc": "Page 2 Instructions prefix",
         "addr_mode": VARIANT, "cycles": 1, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "+++++",
         "category": 8, "instr_info_key": PAGE,
     },
     {
@@ -3033,6 +3234,7 @@ OP_DATA = (
         "desc": "",
         "addr_mode": INHERENT, "cycles": -1, "bytes": 1,
         "mem_read": False, "mem_write": False,
+        "HNZVC": "*****",
         "category": 8, "instr_info_key": RESET,
     },
 )
