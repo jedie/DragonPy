@@ -20,11 +20,6 @@ import serial
 
 log = logging.getLogger("DragonPy.Periphery")
 
-handler = logging.StreamHandler()
-handler.level = logging.DEBUG
-log.handlers = (handler,)
-
-
 
 class Simple6809PeripheryBase(object):
     """
@@ -321,6 +316,7 @@ db13 39                           RTS
 
         return 0x0
 
+    LAST_INPUT = ""
     def write_rs232_interface(self, cpu_cycles, op_address, address, value):
         log.error("%04x| (%i) write to RS232 address: $%x value: $%x (dez.: %i) ASCII: %r" % (
             op_address, cpu_cycles, address, value, value, chr(value)
@@ -341,6 +337,14 @@ db13 39                           RTS
             return
 
         char = chr(value)
+        log.error("Write to screen: %s ($%x)" % (repr(char), value))
+
+        self.LAST_INPUT += char
+        if self.LAST_INPUT.endswith("OK\n"):
+            self.line_buffer = list('PRINT "HELLO"\r')
+            print self.line_buffer
+        elif self.LAST_INPUT.endswith("ERROR\n"):
+            sys.exit()
 
         self.text.config(state=Tkinter.NORMAL)
         self.text.insert("end", char)
@@ -355,14 +359,15 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-#         "--verbosity=5",
-#         "--verbosity=10",
-#         "--verbosity=20",
-        "--verbosity=30",
-#         "--verbosity=40",
-#         "--verbosity=50",
+        "--verbosity=5",
+#         "--verbosity=10", # DEBUG
+#         "--verbosity=20", # INFO
+#         "--verbosity=30", # WARNING
+#         "--verbosity=40", # ERROR
+#         "--verbosity=50", # CRITICAL/FATAL
+
         "--cfg=Simple6809Cfg",
-        "--max=500000",
+#         "--max=500000",
 #         "--max=30000",
 #         "--max=20000",
     ]
