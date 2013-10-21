@@ -24,6 +24,7 @@ class UnittestCmdArgs(object):
     verbosity = None
     max = None
     area_debug_active = None
+    area_debug_cycles = None
 
 
 class BaseTestCase(unittest.TestCase):
@@ -63,14 +64,14 @@ class Test6809_AddressModes(BaseTestCase):
         self.cpu.program_counter = 0x1000
         self.cpu.direct_page.set(0xab)
 
-        ea = self.cpu.get_direct_ea()
+        ea = self.cpu.get_ea_direct()
         self.assertEqualHex(ea, 0xab12)
 
-        ea = self.cpu.get_direct_ea()
+        ea = self.cpu.get_ea_direct()
         self.assertEqualHex(ea, 0xab34)
 
         self.cpu.direct_page.set(0x0)
-        ea = self.cpu.get_direct_ea()
+        ea = self.cpu.get_ea_direct()
         self.assertEqualHex(ea, 0xf)
 
 
