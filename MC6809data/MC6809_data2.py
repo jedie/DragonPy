@@ -9,6 +9,12 @@
         * http://www.burgins.com/m6809.html
         * http://www.maddes.net/m6809pm/appendix_a.htm#appA
 
+    Note:
+    * read_from_memory: it's "excluded" the address modes routines.
+        So if the address mode will fetch the memory to get the
+        effective address, but the content of the memory is not needed in
+        the instruction them self, the read_from_memory must be set to False.
+
     :copyleft: 2013 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
