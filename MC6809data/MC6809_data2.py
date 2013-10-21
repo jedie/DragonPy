@@ -196,7 +196,7 @@ op_info_dict = {
     0x1c: ("ANDCC", IMMEDIATE),
     0x1d: ("SEX", INHERENT),
     0x1e: ("EXG", None),
-    0x1f: ("TFR", None),
+    0x1f: ("TFR", IMMEDIATE),
     0x20: ("BRA", RELATIVE),
     0x21: ("BRN", RELATIVE),
     0x22: ("BHI", RELATIVE),
@@ -572,6 +572,8 @@ MEM_READ = {
     "BITA":8,
     "BITB":8,
 
+    "TFR":8,
+
     "CMPA":8,
     "CMPB":8,
     "CMPD":16,
@@ -609,6 +611,7 @@ NEEDS_EA = (
     "BRA",
     "BRN",
     "BSR",
+    "JSR",
     "LBCC",
     "LBCS",
     "LBEQ",
