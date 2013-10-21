@@ -661,6 +661,7 @@ for op_code, op_info in sorted(op_info_dict.items()):
 
     desc = SHORT_DESC.get(mnemonic, None)
 
+    needs_ea = False
     read_from_memory = None
     write_to_memory = None
     if desc is not None:
@@ -670,6 +671,8 @@ for op_code, op_info in sorted(op_info_dict.items()):
                 read_from_memory = "WORD"
             elif "M" in right:
                 read_from_memory = "BYTE"
+            elif "EA" in right:
+                needs_ea = True
 
         if desc.startswith("M:M"):
             write_to_memory = "WORD"
@@ -698,6 +701,9 @@ for op_code, op_info in sorted(op_info_dict.items()):
         MC6809_DATA[instruction] = inst_info
 
     instr_dict = MC6809_DATA[instruction]
+
+    add_the_same(instr_dict, "needs_ea", needs_ea)
+
     mnemonic_dict1 = instr_dict.setdefault("mnemonic", {})
     mnemonic_dict = mnemonic_dict1.setdefault(mnemonic, {})
 
