@@ -510,9 +510,9 @@ SHORT_DESC = {
     "COM":"M = complement(M)",
     "CWAI":"CC = CC ^ IMM; (Wait for Interrupt)",
     "DAA":"Decimal Adjust A",
-    "DECA":"A = A  1",
-    "DECB":"B = B  1",
-    "DEC":"M = M  1",
+    "DECA":"A = A - 1",
+    "DECB":"B = B - 1",
+    "DEC":"M = M - 1",
     "EORA":"A = A XOR M",
     "EORB":"B = M XOR B",
     "EXG":"exchange R1,R2",
@@ -595,6 +595,7 @@ MEM_READ = {
     "BITB":8,
 
     "TFR":8,
+    "TST":8,
 
     "CMPA":8,
     "CMPB":8,
@@ -723,7 +724,7 @@ sys.stdout = Tee("MC6809_data_raw2.csv", sys.stdout,
 #     to_stdout=False
 )
 print "\t".join((
-    "instr.", "opcode", "mnemonic", "register", "needs ea", "read", "write", "addr.mode", "desc"
+    "instr.", "opcode", "dez", "mnemonic", "register", "needs ea", "read", "write", "addr.mode", "desc"
 ))
 
 
@@ -788,7 +789,7 @@ for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
 
 
     print "\t".join([repr(i).strip("'") for i in (
-        instruction, hex(op_code), mnemonic,
+        instruction, hex(op_code), op_code, mnemonic,
         verbose(register), verbose(needs_ea),
         verbose(read_from_memory), verbose(write_to_memory), verbose(addr_mode),
         desc
