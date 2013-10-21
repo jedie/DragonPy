@@ -53,11 +53,9 @@ IMMEDIATE_WORD = "IMMEDIATE_WORD"
 RELATIVE = "RELATIVE"
 RELATIVE_WORD = "RELATIVE_WORD"
 EXTENDED = "EXTENDED"
-REGISTER = "REGISTER"
 DIRECT = "DIRECT"
 INDEXED = "INDEXED"
 INHERENT = "INHERENT"
-STACK = "STACK"
 
 ADDR_MODE_DICT = get_global_keys(ignore_keys)
 ADDR_MODES = ADDR_MODE_DICT.keys()
@@ -197,8 +195,8 @@ op_info_dict = {
     0x1a: ("ORCC", IMMEDIATE),
     0x1c: ("ANDCC", IMMEDIATE),
     0x1d: ("SEX", INHERENT),
-    0x1e: ("EXG", REGISTER),
-    0x1f: ("TFR", REGISTER),
+    0x1e: ("EXG", None),
+    0x1f: ("TFR", None),
     0x20: ("BRA", RELATIVE),
     0x21: ("BRN", RELATIVE),
     0x22: ("BHI", RELATIVE),
@@ -219,10 +217,10 @@ op_info_dict = {
     0x31: ("LEAY", INDEXED),
     0x32: ("LEAS", INDEXED),
     0x33: ("LEAU", INDEXED),
-    0x34: ("PSHS", STACK),
-    0x35: ("PULS", STACK),
-    0x36: ("PSHU", STACK),
-    0x37: ("PULU", STACK),
+    0x34: ("PSHS", None),
+    0x35: ("PULS", None),
+    0x36: ("PSHU", None),
+    0x37: ("PULU", None),
     0x39: ("RTS", INHERENT),
     0x3a: ("ABX", INHERENT),
     0x3b: ("RTI", INHERENT),

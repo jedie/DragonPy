@@ -32,10 +32,8 @@ IMMEDIATE = "IMMEDIATE"
 IMMEDIATE_WORD = "IMMEDIATE_WORD"
 INDEXED = "INDEXED"
 INHERENT = "INHERENT"
-REGISTER = "REGISTER"
 RELATIVE = "RELATIVE"
 RELATIVE_WORD = "RELATIVE_WORD"
-STACK = "STACK"
 
 
 # Registers:
@@ -1015,7 +1013,7 @@ EXG: {'condition code': 'Not affected (unless one of the registers is the condit
      'mnemonic': {EXG: {'HNZVC': 'ccccc',
                       'desc': 'exchange R1,R2',
                       'operand': None,
-                      'ops': {0x1e: {'addr_mode': REGISTER,
+                      'ops': {0x1e: {'addr_mode': None,
                                    'bytes': 2,
                                    'cycles': 8}},
                       'read_from_memory': None,
@@ -1461,7 +1459,7 @@ PSHS: {'comment': 'A single register may be placed on the stack with the conditi
       'mnemonic': {PSHS: {'HNZVC': '-----',
                         'desc': 'S -= 1: MEM(S) = R; Push Register on S Stack',
                         'operand': None,
-                        'ops': {0x34: {'addr_mode': STACK,
+                        'ops': {0x34: {'addr_mode': None,
                                      'bytes': 2,
                                      'cycles': 5}},
                         'read_from_memory': BYTE,
@@ -1475,7 +1473,7 @@ PSHU: {'comment': 'A single register may be placed on the stack with the conditi
       'mnemonic': {PSHU: {'HNZVC': '-----',
                         'desc': 'U -= 1: MEM(U) = R; Push Register on U Stack',
                         'operand': None,
-                        'ops': {0x36: {'addr_mode': STACK,
+                        'ops': {0x36: {'addr_mode': None,
                                      'bytes': 2,
                                      'cycles': 5}},
                         'read_from_memory': BYTE,
@@ -1487,9 +1485,9 @@ PULS: {'comment': 'A single register may be pulled from the stack with condition
       'description': 'All, some, or none of the processor registers are pulled from the hardware stack (with the exception of the hardware stack pointer itself).',
       'instr_desc': 'Pull A, B, CC, DP, D, X, Y, U, or PC from hardware stack',
       'mnemonic': {PULS: {'HNZVC': 'ccccc',
-                        'desc': 'R=MEM(S) : S += 1; Pull register from S Stack',
+                        'desc': 'R=MEM(S) : S += 1; Pull operand from S Stack',
                         'operand': None,
-                        'ops': {0x35: {'addr_mode': STACK,
+                        'ops': {0x35: {'addr_mode': None,
                                      'bytes': 2,
                                      'cycles': 5}},
                         'read_from_memory': BYTE,
@@ -1501,9 +1499,9 @@ PULU: {'comment': 'A single register may be pulled from the stack with condition
       'description': 'All, some, or none of the processor registers are pulled from the user stack (with the exception of the user stack pointer itself).',
       'instr_desc': 'Pull A, B, CC, DP, D, X, Y, S, or PC from hardware stack',
       'mnemonic': {PULU: {'HNZVC': 'ccccc',
-                        'desc': 'R=MEM(U) : U += 1; Pull register from U Stack',
+                        'desc': 'R=MEM(U) : U += 1; Pull operand from U Stack',
                         'operand': None,
-                        'ops': {0x37: {'addr_mode': STACK,
+                        'ops': {0x37: {'addr_mode': None,
                                      'bytes': 2,
                                      'cycles': 5}},
                         'read_from_memory': BYTE,
@@ -1865,7 +1863,7 @@ TFR: {'condition code': 'Not affected unless R2 is the condition code register.'
      'mnemonic': {TFR: {'HNZVC': 'ccccc',
                       'desc': None,
                       'operand': None,
-                      'ops': {0x1f: {'addr_mode': REGISTER,
+                      'ops': {0x1f: {'addr_mode': None,
                                    'bytes': 2,
                                    'cycles': 7}},
                       'read_from_memory': None,
