@@ -965,7 +965,7 @@ class CPU(object):
         Calculate the address for all indexed addressing modes
         """
         addr, postbyte = self.read_pc_byte()
-        log.debug("\tget_indexed_ea(): postbyte: $%x (%s) from $%x",
+        log.debug("\tget_ea_indexed(): postbyte: $%x (%s) from $%x",
             postbyte, byte2bit_string(postbyte), addr
         )
 
@@ -977,6 +977,9 @@ class CPU(object):
 
         register_obj = self.register_str2object[register_str]
         register_value = register_obj.get()
+        log.debug("\t%02x == register %s: value $%x",
+            rr, register_obj.name, register_value
+        )
 
         if (postbyte & 0x80) == 0: # bit 7 == 0
             # FIXME: cutout only the 5bits from post byte?
@@ -984,63 +987,77 @@ class CPU(object):
             offset = signed5(postbyte & 0x1f)
             ea = register_value + offset
             log.debug(
-                "\tget_indexed_ea(): bit 7 == 0: reg.value: $%x -> ea=%i + %i = $%x",
+                "\tget_ea_indexed(): bit 7 == 0: reg.value: $%x -> ea=%i + %i = $%x",
                 register_value, register_value, offset, ea
             )
             return ea
 
         addr_mode = postbyte & 0x0f
         self.cycles += 1
-        if addr_mode == 0x0: # 0000 0x0 | ,R+ | increment by 1
+        if addr_mode == 0x0:
+            log.debug("\t0000 0x0 | ,R+ | increment by 1")
             ea = register_value
             register_obj.increment(1)
-        elif addr_mode == 0x1: # 0001 0x1 | ,R++ | increment by 2
+        elif addr_mode == 0x1:
+            log.debug("\t0001 0x1 | ,R++ | increment by 2")
             ea = register_value
             register_obj.increment(2)
             self.cycles += 1
-        elif addr_mode == 0x2: # 0010 0x2 | ,R- | decrement by 1
+        elif addr_mode == 0x2:
+            log.debug("\t0010 0x2 | ,R- | decrement by 1")
             ea = register_obj.decrement(1)
-        elif addr_mode == 0x3: # 0011 0x3 | ,R-- | decrement by 2
+        elif addr_mode == 0x3:
+            log.debug("\t0011 0x3 | ,R-- | decrement by 2")
             ea = register_obj.decrement(2)
             self.cycles += 1
-        elif addr_mode == 0x4: # 0100 0x4 | ,R | No offset
+        elif addr_mode == 0x4:
+            log.debug("\t0100 0x4 | ,R | No offset")
             ea = register_value
-        elif addr_mode == 0x5: # 0101 0x5 | B, R | B register offset
+        elif addr_mode == 0x5:
+            log.debug("\t0101 0x5 | B, R | B register offset")
             ea = register_value + signed8(self.accu_b.get())
-        elif addr_mode == 0x6: # 0110 0x6 | A, R | A register offset
+        elif addr_mode == 0x6:
+            log.debug("\t0110 0x6 | A, R | A register offset")
             ea = register_value + signed8(self.accu_a.get())
-        elif addr_mode == 0x8: # 1000 0x8 | n, R | 8 bit offset
+        elif addr_mode == 0x8:
+            log.debug("\t1000 0x8 | n, R | 8 bit offset")
             ea = register_value + signed8(self.read_pc_byte()[1])
-        elif addr_mode == 0x9: # 1001 0x9 | n, R | 16 bit offset
+        elif addr_mode == 0x9:
+            log.debug("\t1001 0x9 | n, R | 16 bit offset")
             ea = register_value + signed16(self.read_pc_word()[1]) # FIXME: signed16() ok?
             self.cycles += 1
-        elif addr_mode == 0xa: # 1010 0xa | FIXME: illegal???
+        elif addr_mode == 0xa:
+            log.debug("\t1010 0xa | FIXME: illegal???")
             ea = self.program_counter | 0xff
-        elif addr_mode == 0xb: # 1011 0xb | D, R | D register offset
+        elif addr_mode == 0xb:
+            log.debug("\t1011 0xb | D, R | D register offset")
             # D - 16 bit concatenated reg. (A + B)
             ea = register_value + signed16(self.accu_d.get()) # FIXME: signed16() ok?
             self.cycles += 1
-        elif addr_mode == 0xc: # 1100 0xc | n, PCR | 8 bit offset from program counter
+        elif addr_mode == 0xc:
+            log.debug("\t1100 0xc | n, PCR | 8 bit offset from program counter")
             ea = signed8(self.read_pc_byte()[1]) + self.program_counter
-        elif addr_mode == 0xd: # 1101 0xd | n, PCR | 16 bit offset from program counter
+        elif addr_mode == 0xd:
+            log.debug("\t1101 0xd | n, PCR | 16 bit offset from program counter")
             ea = self.read_pc_word()[1] + self.program_counter # FIXME: use signed16() here?
             self.cycles += 1
         elif addr_mode == 0xe:
-            log.error("\tget_indexed_ea(): illegal address mode, use 0xffff")
+            log.error("\tget_ea_indexed(): illegal address mode, use 0xffff")
             ea = 0xffff # illegal
-        elif addr_mode == 0xf: # 1111 0xf | [n] | 16 bit address - extended indirect
+        elif addr_mode == 0xf:
+            log.debug("\t1111 0xf | [n] | 16 bit address - extended indirect")
             ea = self.read_pc_word()[1]
         else:
             raise RuntimeError("Illegal indexed addressing mode: $%x" % addr_mode)
 
         if postbyte & 0x10 != 0: # bit 4 is 1 -> Indirect
-            log.error("\tget_indexed_ea(): bit 4 is 1 -> Indirect")
+            log.error("\tget_ea_indexed(): bit 4 is 1 -> Indirect")
             tmp_ea = self.memory.read_byte(ea)
             tmp_ea = tmp_ea << 8
             m = self.memory.read_byte(ea + 1)
             ea = tmp_ea | m
 
-        log.debug("\tget_indexed_ea(): ea=$%x", ea)
+        log.debug("\tget_ea_indexed(): ea=$%x", ea)
         return ea
 
     def get_indexed(self):
