@@ -22,6 +22,7 @@
 import pprint
 import sys
 import os
+import csv
 
 # old data
 from MC6809_data_raw import INSTRUCTION_INFO, OP_DATA
@@ -719,123 +720,127 @@ def verbose(value):
         return ""
     return value
 
-sys.stdout = Tee("MC6809_data_raw2.csv", sys.stdout,
-    to_stdout=True
-#     to_stdout=False
-)
-print "\t".join((
-    "instr.", "opcode", "dez", "mnemonic", "register", "needs ea", "read", "write", "addr.mode", "desc"
-))
+
+with open("MC6809_data_raw2.csv", 'wb') as csvfile:
+    w = csv.writer(csvfile,
+        delimiter='\t',
+        quotechar='|', quoting=csv.QUOTE_MINIMAL
+    )
+
+    w.writerow([
+        "instr.", "opcode", "dez", "mnemonic", "register",
+        "needs ea", "read", "write", "addr.mode", "desc"
+    ])
 
 
-MC6809_DATA = {}
-for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
-    mnemonic, addr_mode = op_info
-#     if mnemonic.startswith("LB"):
-#         print '"%s",' % mnemonic
-#     continue
+    MC6809_DATA = {}
+    for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
+        mnemonic, addr_mode = op_info
+    #     if mnemonic.startswith("LB"):
+    #         print '"%s",' % mnemonic
+    #     continue
 
-    instruction = get_instruction(mnemonic)
-    if not instruction:
-        raise KeyError("Error with %s" % mnemonic)
+        instruction = get_instruction(mnemonic)
+        if not instruction:
+            raise KeyError("Error with %s" % mnemonic)
 
-    if instruction in INST_INFO_MERGE:
-        instruction = INST_INFO_MERGE[instruction]
+        if instruction in INST_INFO_MERGE:
+            instruction = INST_INFO_MERGE[instruction]
 
-    if mnemonic.startswith(instruction):
-        register = mnemonic[len(instruction):].strip()
-#         print mnemonic, register
-        if register.isdigit() or register == "":
-            register = None
+        if mnemonic.startswith(instruction):
+            register = mnemonic[len(instruction):].strip()
+    #         print mnemonic, register
+            if register.isdigit() or register == "":
+                register = None
+            else:
+                register = REGISTER_DICT2[register.upper()]
         else:
-            register = REGISTER_DICT2[register.upper()]
-    else:
-        register = None
+            register = None
 
-    desc = SHORT_DESC.get(mnemonic, None)
+        desc = SHORT_DESC.get(mnemonic, None)
 
-    needs_ea = False
-    if mnemonic in NEEDS_EA:
-        needs_ea = True
+        needs_ea = False
+        if mnemonic in NEEDS_EA:
+            needs_ea = True
 
-    read_from_memory = None
-    write_to_memory = None
-    if desc is not None:
-        if "=" in desc:
-            right = desc.split("=")[1]
-            if "M:M" in right:
-                read_from_memory = "WORD"
-            elif "M" in right:
-                read_from_memory = "BYTE"
-            elif "EA" in right:
-                needs_ea = True
+        read_from_memory = None
+        write_to_memory = None
+        if desc is not None:
+            if "=" in desc:
+                right = desc.split("=")[1]
+                if "M:M" in right:
+                    read_from_memory = "WORD"
+                elif "M" in right:
+                    read_from_memory = "BYTE"
+                elif "EA" in right:
+                    needs_ea = True
 
-        if desc.startswith("M:M"):
-            write_to_memory = "WORD"
-        elif desc.startswith("M ="):
-            write_to_memory = "BYTE"
+            if desc.startswith("M:M"):
+                write_to_memory = "WORD"
+            elif desc.startswith("M ="):
+                write_to_memory = "BYTE"
 
-    if write_to_memory is not None:
-        needs_ea = True
+        if write_to_memory is not None:
+            needs_ea = True
 
-    if mnemonic in MEM_READ:
-        width = MEM_READ[mnemonic]
-        read_from_memory = WIDTH_DICT2[width]
+        if mnemonic in MEM_READ:
+            width = MEM_READ[mnemonic]
+            read_from_memory = WIDTH_DICT2[width]
 
-    if read_from_memory is not None:
-        if read_from_memory == "WORD":
-            if not addr_mode.endswith("WORD"):
-                addr_mode += "_WORD" # XXX: really?
+        if read_from_memory is not None:
+            if read_from_memory == "WORD":
+                if not addr_mode.endswith("WORD"):
+                    addr_mode += "_WORD" # XXX: really?
 
+        row = (
+            instruction, hex(op_code), op_code, mnemonic,
+            verbose(register), verbose(needs_ea),
+            verbose(read_from_memory), verbose(write_to_memory), verbose(addr_mode),
+            desc
+        )
+        w.writerow(row)
+        print "\t".join([repr(i).strip("'") for i in row])
 
-    print "\t".join([repr(i).strip("'") for i in (
-        instruction, hex(op_code), op_code, mnemonic,
-        verbose(register), verbose(needs_ea),
-        verbose(read_from_memory), verbose(write_to_memory), verbose(addr_mode),
-        desc
-    )])
-
-    if instruction not in MC6809_DATA:
-        try:
-            inst_info = INSTRUCTION_INFO[instruction]
-        except KeyError:
+        if instruction not in MC6809_DATA:
             try:
-                # Was splitted into byte/word
-                inst_info = INSTRUCTION_INFO[instruction + "8"]
+                inst_info = INSTRUCTION_INFO[instruction]
             except KeyError:
-                # e.g.: PULS, PULU -> merge together
-                inst_info = INSTRUCTION_INFO[mnemonic]
+                try:
+                    # Was splitted into byte/word
+                    inst_info = INSTRUCTION_INFO[instruction + "8"]
+                except KeyError:
+                    # e.g.: PULS, PULU -> merge together
+                    inst_info = INSTRUCTION_INFO[mnemonic]
 
-        MC6809_DATA[instruction] = inst_info
+            MC6809_DATA[instruction] = inst_info
 
-    instr_dict = MC6809_DATA[instruction]
-    instr_dict['description'] = instr_dict.get('description', "").strip()
+        instr_dict = MC6809_DATA[instruction]
+        instr_dict['description'] = instr_dict.get('description', "").strip()
 
-    mnemonic_dict1 = instr_dict.setdefault("mnemonic", {})
-    mnemonic_dict = mnemonic_dict1.setdefault(mnemonic, {})
+        mnemonic_dict1 = instr_dict.setdefault("mnemonic", {})
+        mnemonic_dict = mnemonic_dict1.setdefault(mnemonic, {})
 
-    add_the_same(mnemonic_dict, "desc", desc)
-    add_the_same(mnemonic_dict, "register", register)
-    add_the_same(mnemonic_dict, "needs_ea", needs_ea)
+        add_the_same(mnemonic_dict, "desc", desc)
+        add_the_same(mnemonic_dict, "register", register)
+        add_the_same(mnemonic_dict, "needs_ea", needs_ea)
 
-    add_the_same(mnemonic_dict, "read_from_memory", read_from_memory)
-    add_the_same(mnemonic_dict, "write_to_memory", write_to_memory)
+        add_the_same(mnemonic_dict, "read_from_memory", read_from_memory)
+        add_the_same(mnemonic_dict, "write_to_memory", write_to_memory)
 
-    old_info = OP_DATA_DICT[op_code]
+        old_info = OP_DATA_DICT[op_code]
 
-    add_the_same(mnemonic_dict, "HNZVC", old_info["HNZVC"])
+        add_the_same(mnemonic_dict, "HNZVC", old_info["HNZVC"])
 
-    ops_dict = mnemonic_dict.setdefault("ops", {})
+        ops_dict = mnemonic_dict.setdefault("ops", {})
 
-    ops_dict[op_code] = {
-        "addr_mode": addr_mode,
-    }
-    for key in ("cycles", "bytes"):
-        ops_dict[op_code][key] = old_info[key]
+        ops_dict[op_code] = {
+            "addr_mode": addr_mode,
+        }
+        for key in ("cycles", "bytes"):
+            ops_dict[op_code][key] = old_info[key]
 
 
-sys.stdout.close() # close .cvs write
-# sys.exit()
+
 
 sys.stdout = Tee("MC6809_data_raw2.py", sys.stdout,
     to_stdout=True
