@@ -295,7 +295,7 @@ class Instruction(object):
             needs_ea = opcode_data["needs_ea"]
             read_from_memory = opcode_data["read_from_memory"]
 
-            if addr_mode == MC6809_data.DIRECT and needs_ea and read_from_memory:
+            if needs_ea and read_from_memory:
                 ea_m_func_name = "get_ea_m_%s" % addr_mode.lower()
                 self.get_ea_m_func = getattr(cpu, ea_m_func_name)
             else:
@@ -1084,6 +1084,12 @@ class CPU(object):
         log.debug("\tget_m_indexed(): $%x from $%x", m, ea)
         return m
 
+    def get_ea_m_indexed(self):
+        ea = self.get_ea_indexed()
+        m = self.memory.read_byte(ea)
+        log.debug("\tget_ea_m_indexed(): ea = $%x m = $%x", ea, m)
+        return ea, m
+
     def get_m_indexed_word(self):
         ea = self.get_ea_indexed()
         m = self.memory.read_word(ea)
@@ -1103,6 +1109,12 @@ class CPU(object):
         m = self.memory.read_byte(ea)
         log.debug("\tget_m_extended(): $%x from $%x", m, ea)
         return m
+
+    def get_ea_m_extended(self):
+        ea = self.get_ea_extended()
+        m = self.memory.read_byte(ea)
+        log.debug("\tget_m_extended(): ea = $%x m = $%x", ea, m)
+        return ea, m
 
     def get_m_extended_word(self):
         ea = self.get_ea_extended()
