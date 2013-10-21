@@ -278,34 +278,38 @@ class Instruction(object):
         self.static_kwargs = {
             "opcode": opcode
         }
-
         register_txt = opcode_data["register"]
         if register_txt is not None:
             self.static_kwargs["register"] = cpu.register_str2object[register_txt]
 
         self.get_ea_func = None
         self.get_m_func = None
+        self.get_ea_m_func = None
         self.write_func = None
 
         self.OLD_EA = 0
 
 #         print opcode_data
         addr_mode = opcode_data["addr_mode"]
-        if addr_mode is not None and addr_mode not in MC6809_data.INHERENT:
-
+        if addr_mode is not None and addr_mode != MC6809_data.INHERENT:
             needs_ea = opcode_data["needs_ea"]
-            if needs_ea:
-                # Instruction needs the ea (effective address)
-                ea_func_name = "get_ea_%s" % addr_mode.lower()
-#                 print ea_func_name
-                self.get_ea_func = getattr(cpu, ea_func_name)
-
             read_from_memory = opcode_data["read_from_memory"]
-            if read_from_memory is not None:
-                # Instruction read data from memory
-                m_func_name = "get_%s" % addr_mode.lower()
-#                 print m_func_name
-                self.get_m_func = getattr(cpu, m_func_name)
+
+            if addr_mode == MC6809_data.DIRECT and needs_ea and read_from_memory:
+                ea_m_func_name = "get_ea_m_%s" % addr_mode.lower()
+                self.get_ea_m_func = getattr(cpu, ea_m_func_name)
+            else:
+                if needs_ea:
+                    # Instruction needs the ea (effective address)
+                    ea_func_name = "get_ea_%s" % addr_mode.lower()
+    #                 print ea_func_name
+                    self.get_ea_func = getattr(cpu, ea_func_name)
+
+                if read_from_memory is not None:
+                    # Instruction read data from memory
+                    m_func_name = "get_m_%s" % addr_mode.lower()
+    #                 print m_func_name
+                    self.get_m_func = getattr(cpu, m_func_name)
 
         _width2name = {MC6809_data.BYTE:"byte", MC6809_data.WORD:"word"}
 
@@ -326,14 +330,17 @@ class Instruction(object):
 
     def call_instr_func(self):
         op_kwargs = self.static_kwargs.copy()
-        if self.get_ea_func is not None:
-            log.debug("\tget ea with %s", self.get_ea_func.__name__)
-            op_kwargs["ea"] = self.get_ea_func()
 
-        if self.get_m_func is not None:
-            log.debug("\tget m with %s", self.get_m_func.__name__)
-#             op_kwargs["ea"], op_kwargs["m"] = self.get_m_func()
-            op_kwargs["m"] = self.get_m_func()[1]
+        if self.get_ea_m_func is not None:
+            op_kwargs["ea"], op_kwargs["m"] = self.get_ea_m_func()
+        else:
+            if self.get_ea_func is not None:
+                log.debug("\tget ea with %s", self.get_ea_func.__name__)
+                op_kwargs["ea"] = self.get_ea_func()
+
+            if self.get_m_func is not None:
+                log.debug("\tget m with %s", self.get_m_func.__name__)
+                op_kwargs["m"] = self.get_m_func()
 
         if log.level <= logging.INFO:
             kwargs_info = []
@@ -930,34 +937,40 @@ class CPU(object):
 
     ####
 
-    def get_immediate(self):
+    def get_m_immediate(self):
         ea, m = self.read_pc_byte()
-        log.debug("\tget_immediate_byte(): ea=$%x m=$%x", ea, m)
-        return ea, m
+        log.debug("\tget_m_immediate(): $%x from $%x", m, ea)
+        return m
 
-    def get_immediate_word(self):
+    def get_m_immediate_word(self):
         ea, m = self.read_pc_word()
-        log.debug("\tget_immediate_word(): ea=$%x m=$%x", ea, m)
-        return ea, m
+        log.debug("\tget_m_immediate_word(): $%x from $%x", m, ea)
+        return m
 
     def get_ea_direct(self):
         op_addr, m = self.read_pc_byte()
         dp = self.direct_page.get()
         ea = dp << 8 | m
-        log.debug("\tget_direct_ea(): ea = dp << 8 | m  =>  $%x=$%x<<8|$%x", ea, dp, m)
+        log.debug("\tget_ea_direct(): ea = dp << 8 | m  =>  $%x=$%x<<8|$%x", ea, dp, m)
         return ea
 
-    def get_direct(self):
+    def get_ea_m_direct(self):
         ea = self.get_ea_direct()
         m = self.memory.read_byte(ea)
-        log.debug("\tget_direct_byte(): ea=$%x m=$%x", ea, m)
+        log.debug("\tget_ea_m_direct(): ea=$%x m=$%x", ea, m)
         return ea, m
 
-    def get_direct_word(self):
+    def get_m_direct(self):
+        ea = self.get_ea_direct()
+        m = self.memory.read_byte(ea)
+        log.debug("\tget_m_direct(): $%x from $%x", m, ea)
+        return m
+
+    def get_m_direct_word(self):
         ea = self.get_ea_direct()
         m = self.memory.read_word(ea)
-        log.debug("\tget_direct_word(): ea=$%x m=$%x", ea, m)
-        return ea, m
+        log.debug("\tget_m_direct(): $%x from $%x", m, ea)
+        return m
 
     INDEX_POSTBYTE2STR = {
         0x00: REG_X, # 16 bit index register
@@ -1065,43 +1078,43 @@ class CPU(object):
         log.debug("\tget_ea_indexed(): return ea=$%x", ea)
         return ea
 
-    def get_indexed(self):
+    def get_m_indexed(self):
         ea = self.get_ea_indexed()
         m = self.memory.read_byte(ea)
-        log.debug("\tget_indexed_byte(): ea=$%x m=$%x", ea, m)
-        return ea, m
+        log.debug("\tget_m_indexed(): $%x from $%x", m, ea)
+        return m
 
-    def get_indexed_word(self):
+    def get_m_indexed_word(self):
         ea = self.get_ea_indexed()
         m = self.memory.read_word(ea)
-        log.debug("\tget_indexed_word(): ea=$%x m=$%x", ea, m)
-        return ea, m
+        log.debug("\tget_m_indexed_word(): $%x from $%x", m, ea)
+        return m
 
     def get_ea_extended(self):
         """
         extended indirect addressing mode takes a 2-byte value from post-bytes
         """
         attr, ea = self.read_pc_word()
-        log.debug("\tget_extended_ea() ea=$%x from $%x", ea, attr)
+        log.debug("\tget_ea_extended() ea=$%x from $%x", ea, attr)
         return ea
 
-    def get_extended(self):
+    def get_m_extended(self):
         ea = self.get_ea_extended()
         m = self.memory.read_byte(ea)
-        log.debug("\tget 'extended' byte: ea = $%x m = $%x", ea, m)
-        return ea, m
+        log.debug("\tget_m_extended(): $%x from $%x", m, ea)
+        return m
 
-    def get_extended_word(self):
+    def get_m_extended_word(self):
         ea = self.get_ea_extended()
         m = self.memory.read_word(ea)
-        log.debug("\tget 'extended' word: ea = $%x m = $%x", ea, m)
-        return ea, m
+        log.debug("\tget_m_extended_word(): $%x from $%x", m, ea)
+        return m
 
     def get_ea_relative(self):
         addr, x = self.read_pc_byte()
         x = signed8(x)
         ea = self.program_counter + x
-        log.debug("\taddressing 'relative' ea = $%x + %i = $%x \t| %s",
+        log.debug("\tget_ea_relative(): ea = $%x + %i = $%x \t| %s",
             self.program_counter, x, ea,
             self.cfg.mem_info.get_shortest(ea)
         )
@@ -1110,7 +1123,7 @@ class CPU(object):
     def get_ea_relative_word(self):
         addr, x = self.read_pc_word()
         ea = self.program_counter + x
-        log.debug("\taddressing 'relative word' ea = $%x + %i = $%x \t| %s",
+        log.debug("\tget_ea_relative_word(): ea = $%x + %i = $%x \t| %s",
             self.program_counter, x, ea,
             self.cfg.mem_info.get_shortest(ea)
         )
@@ -1119,13 +1132,13 @@ class CPU(object):
     def get_relative(self):
         ea = self.get_ea_relative()
         m = self.memory.read_byte(ea)
-        log.debug("\tget 'relative' byte: ea = $%x m = $%x", ea, m)
+        log.debug("\tget_relative(): ea = $%x m = $%x", ea, m)
         return ea, m
 
     def get_relative_word(self):
         ea = self.get_ea_relative()
         m = self.memory.read_word(ea)
-        log.debug("\tget 'relative' word: ea = $%x m = $%x", ea, m)
+        log.debug("\tget_relative_word(): ea = $%x m = $%x", ea, m)
         return ea, m
 
     #### Op methods:
@@ -2858,12 +2871,12 @@ class CPU(object):
         self.cc.update_NZ0_8(x)
 
     @opcode(0xd, 0x6d) # TST (direct, indexed)
-    def instruction_TST_memory_8(self, opcode, ea, m):
+    def instruction_TST_memory_8(self, opcode, m):
         """ Test memory location 8-Bit """
         self.cc.update_NZ0_8(m)
 
     @opcode(0x7d) # TST extended
-    def instruction_TST_memory_16(self, opcode, ea, m):
+    def instruction_TST_memory_16(self, opcode, m):
         """ Test memory location 16-Bit """
         self.cc.update_NZ0_16(m)
 
@@ -2882,8 +2895,8 @@ def test_run():
 #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
 
 #         "--area_debug_active=5:bb79-ffff",
-#         "--cfg=Simple6809Cfg",
-        "--cfg=Dragon32Cfg",
+        "--cfg=Simple6809Cfg",
+#         "--cfg=Dragon32Cfg",
 #         "--max=15000",
 #         "--max=46041",
     ]
