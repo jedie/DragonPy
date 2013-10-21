@@ -18,12 +18,12 @@ Future goals are:
 
 == example
 
-Start Simple6809 (with debug output):
+Start Simple6809 (with many debug output):
 {{{
 DragonPy$ ./DragonPy_CLI.py --cfg Simple6809Cfg --verbosity=5
 }}}
 
-Start Dragon 32 (with debug output):
+Start Dragon 32 (with many debug output):
 {{{
 DragonPy$ ./DragonPy_CLI.py --cfg Dragon32Cfg --verbosity=5
 }}}
@@ -63,39 +63,9 @@ optional arguments:
 
 The Simple6809 config works a little bit. First GUI used a simple Tkinter windows.
 Looks like this:
-{{http://www.pylucid.org/media/jensdiemer.de/screenshots/Simple6809_TK_01.PNG}}
+{{http://www.pylucid.org/media/jensdiemer.de/screenshots/Simple6809_TK_02.PNG}}
 
-Try to enter a BASIC command ends with a jump into the ROM command table.
-e.g. a {{{PRINT}}} jumps to **de38** here:
-{{{
-                        *
-                        * DISPATCH TABLE FOR COMMANDS TOKEN #
-                        CMD_TAB
-...
-0085                    TOK_IF    EQU  *-CMD_TAB/2+$7F
-de36 e1 8d                        FDB  DATA                        86
-0086                    TOK_DATA  EQU  *-CMD_TAB/2+$7F
-de38 eb 6a                        FDB  PRINT                       87
-0087                    TOK_PRINT EQU  *-CMD_TAB/2+$7F
-de3a e1 ef                        FDB  ON                          88
-}}}
-see: https://github.com/jedie/DragonPy/blob/master/Simple6809/ExBasROM.LST#L708
-
-The jumps comes from:
-{{{
-                        * HERE IS WHERE WE BRANCH TO DO A 'COMMAND'
-e08f 6e 94                        JMP  [,X]                       GO DO A COMMAND
-}}}
-see: https://github.com/jedie/DragonPy/blob/master/Simple6809/ExBasROM.LST#L1060
-
-debug output at this steps looks like this:
-{{{
-e08f| 6e   JMP    ea:de38                     cc=57 a=00 b=0e dp=00 x=de38 y=dd35 u=00f7 s=7f32 | .F.I.ZVC
-de38| eb   ADDB   B=0e ea:7f3c m:0            cc=50 a=00 b=0e dp=00 x=de38 y=dd35 u=00f7 s=7f32 | .F.I....
-de3a| e1   CMPB   B=0e ea:e29c m:c6           cc=53 a=00 b=0e dp=00 x=de38 y=dd35 u=00f7 s=7f32 | .F.I..VC
-de3e| e0   SUBB   B=0e ea:deff m:25           cc=53 a=00 b=e9 dp=00 x=de38 y=dd35 u=00f7 s=7f32 | .F.I..VC
-...
-}}}
+But result in "OM ERROR" (Out of memory)
 
 
 == Links
