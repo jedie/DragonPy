@@ -1363,7 +1363,15 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BGE" % opcode)
+        if (self.cc.N ^ self.cc.V) == 0:
+            log.debug("$%x BGE branch to $%x, because N XOR V == 0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BGE: don't branch to $%x, because N XOR V != 0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
 
     @opcode(# Branch if greater (signed)
         0x2e, # BGT (relative)
@@ -1502,7 +1510,7 @@ class CPU(object):
         0x2d, # BLT (relative)
         0x102d, # LBLT (relative)
     )
-    def instruction_BLT(self, opcode, ea, m):
+    def instruction_BLT(self, opcode, ea):
         """
         Causes a branch if either, but not both, of the N (negative) or V
         (overflow) bits is set. That is, branch if the sign of a valid twos
@@ -1514,7 +1522,15 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BLT" % opcode)
+        if (self.cc.N ^ self.cc.V) == 1:
+            log.debug("$%x BLT branch to $%x, because N XOR V == 1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BLT: don't branch to $%x, because N XOR V != 1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
 
     @opcode(# Branch if minus
         0x2b, # BMI (relative)
