@@ -20,10 +20,29 @@
 """
 
 import pprint
-import collections
-from MC6809_data_raw import INSTRUCTION_INFO, OP_DATA
 import sys
 import os
+
+# old data
+from MC6809_data_raw import INSTRUCTION_INFO, OP_DATA
+
+
+class Tee(object):
+    def __init__(self, filepath, origin_out, to_stdout):
+        self.filepath = filepath
+        self.origin_out = origin_out
+        self.to_stdout = to_stdout
+        self.f = file(filepath, "w")
+
+    def write(self, *args):
+        txt = " ".join(args)
+        if self.to_stdout:
+            self.origin_out.write(txt)
+        self.f.write(txt)
+
+    def close(self):
+        self.f.close()
+        sys.stdout = self.origin_out
 
 
 def get_global_keys(ignore_keys):
@@ -677,9 +696,7 @@ def get_instruction(mnemonic):
         mnemonic = mnemonic[1:]
         return get_instruction(mnemonic)
 
-print "\t".join((
-    "instr.", "opcode", "mnemonic", "register", "needs ea", "read", "write", "addr.mode", "desc"
-))
+
 
 
 def add_the_same(d, key, value):
@@ -692,6 +709,22 @@ def add_the_same(d, key, value):
 
 OP_DATA_DICT = dict([(op["opcode"], op) for op in OP_DATA])
 
+def verbose(value):
+    if value is None:
+        return ""
+    if value is True:
+        return "yes"
+    if value is False:
+        return ""
+    return value
+
+sys.stdout = Tee("MC6809_data_raw2.csv", sys.stdout,
+    to_stdout=True
+#     to_stdout=False
+)
+print "\t".join((
+    "instr.", "opcode", "mnemonic", "register", "needs ea", "read", "write", "addr.mode", "desc"
+))
 
 
 MC6809_DATA = {}
@@ -754,9 +787,12 @@ for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
                 addr_mode += "_WORD" # XXX: really?
 
 
-    print "\t".join([repr(i).strip("'") for i in
-        (instruction, hex(op_code), mnemonic, register, needs_ea, read_from_memory, write_to_memory, addr_mode, desc)
-    ])
+    print "\t".join([repr(i).strip("'") for i in (
+        instruction, hex(op_code), mnemonic,
+        verbose(register), verbose(needs_ea),
+        verbose(read_from_memory), verbose(write_to_memory), verbose(addr_mode),
+        desc
+    )])
 
     if instruction not in MC6809_DATA:
         try:
@@ -797,24 +833,8 @@ for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
         ops_dict[op_code][key] = old_info[key]
 
 
-
-class Tee(object):
-    def __init__(self, filepath, origin_out, to_stdout):
-        self.filepath = filepath
-        self.origin_out = origin_out
-        self.to_stdout = to_stdout
-        self.f = file(filepath, "w")
-
-    def write(self, *args):
-        txt = " ".join(args)
-        if self.to_stdout:
-            self.origin_out.write(txt)
-        self.f.write(txt)
-
-    def close(self):
-        self.f.close()
-        sys.stdout = self.origin_out
-
+sys.stdout.close() # close .cvs write
+# sys.exit()
 
 sys.stdout = Tee("MC6809_data_raw2.py", sys.stdout,
     to_stdout=True
@@ -885,3 +905,5 @@ print "OP_DATA = %s" % printer.pformat(MC6809_DATA)
 #     break
 
 
+sys.stdout.close()
+print " -- END -- "
