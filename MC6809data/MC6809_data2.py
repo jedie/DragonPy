@@ -581,6 +581,43 @@ MEM_READ = {
     "CMPY":16,
 }
 
+NEEDS_EA = (
+    "BCC", "BHS",
+    "BCS", "BLO",
+    "BHI",
+    "BLS",
+    "BNE",
+    "BEQ",
+    "BGE",
+    "BLT",
+    "BGT",
+    "BLE",
+    "BPL",
+    "BMI",
+    "BVC",
+    "BVS",
+    "BRA",
+    "BRN",
+    "BSR",
+    "LBCC",
+    "LBCS",
+    "LBEQ",
+    "LBGE",
+    "LBGT",
+    "LBHI",
+    "LBLE",
+    "LBLS",
+    "LBLT",
+    "LBMI",
+    "LBNE",
+    "LBPL",
+    "LBRA",
+    "LBRN",
+    "LBSR",
+    "LBVC",
+    "LBVS",
+)
+
 INST_INFO_MERGE = {
     "PSHS": "PSH",
     "PSHU": "PSH",
@@ -631,7 +668,7 @@ print "\t".join((
 
 def add_the_same(d, key, value):
     if key in d:
-        assert d[key] == value
+        assert d[key] == value, "key: %s - value: %s - d:%s" % (key, value, repr(d))
     else:
         d[key] = value
 
@@ -642,8 +679,11 @@ OP_DATA_DICT = dict([(op["opcode"], op) for op in OP_DATA])
 
 
 MC6809_DATA = {}
-for op_code, op_info in sorted(op_info_dict.items()):
+for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
     mnemonic, addr_mode = op_info
+#     if mnemonic.startswith("LB"):
+#         print '"%s",' % mnemonic
+#     continue
 
     instruction = get_instruction(mnemonic)
     if not instruction:
@@ -662,6 +702,9 @@ for op_code, op_info in sorted(op_info_dict.items()):
     desc = SHORT_DESC.get(mnemonic, None)
 
     needs_ea = False
+    if mnemonic in NEEDS_EA:
+        needs_ea = True
+
     read_from_memory = None
     write_to_memory = None
     if desc is not None:
@@ -709,6 +752,7 @@ for op_code, op_info in sorted(op_info_dict.items()):
 
     add_the_same(mnemonic_dict, "desc", desc)
     add_the_same(mnemonic_dict, "register", register)
+#     add_the_same(mnemonic_dict, "needs_ea", needs_ea)
 
     add_the_same(mnemonic_dict, "read_from_memory", read_from_memory)
     add_the_same(mnemonic_dict, "write_to_memory", write_to_memory)
@@ -788,7 +832,7 @@ class HexPrettyPrinter(pprint.PrettyPrinter, object):
     """ print values in hex """
     def format(self, obj, context, maxlevels, level):
         if isinstance(obj, int):
-            if level < 6: # XXX: Only opcode should be hex()
+            if level == 5: # XXX: Only opcode should be hex()
                 return hex(obj), True, False
 
         if obj in CONSTANTS:
