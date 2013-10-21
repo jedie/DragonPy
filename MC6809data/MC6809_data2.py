@@ -582,6 +582,16 @@ MEM_READ = {
 }
 
 NEEDS_EA = (
+    "CLR",
+    "STA",
+    "STB",
+    "STD",
+    "STS",
+    "STU",
+    "STX",
+    "STY",
+
+    # Branch ops:
     "BCC", "BHS",
     "BCS", "BLO",
     "BHI",
@@ -745,14 +755,12 @@ for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
 
     instr_dict = MC6809_DATA[instruction]
 
-    add_the_same(instr_dict, "needs_ea", needs_ea)
-
     mnemonic_dict1 = instr_dict.setdefault("mnemonic", {})
     mnemonic_dict = mnemonic_dict1.setdefault(mnemonic, {})
 
     add_the_same(mnemonic_dict, "desc", desc)
     add_the_same(mnemonic_dict, "register", register)
-#     add_the_same(mnemonic_dict, "needs_ea", needs_ea)
+    add_the_same(mnemonic_dict, "needs_ea", needs_ea)
 
     add_the_same(mnemonic_dict, "read_from_memory", read_from_memory)
     add_the_same(mnemonic_dict, "write_to_memory", write_to_memory)
