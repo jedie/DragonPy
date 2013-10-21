@@ -226,6 +226,7 @@ op_info_dict = {
     0x3b: ("RTI", INHERENT),
     0x3c: ("CWAI", IMMEDIATE),
     0x3d: ("MUL", INHERENT),
+    0x3e: ("RESET", None), # undocumented opcode
     0x3f: ("SWI", INHERENT),
     0x40: ("NEGA", INHERENT),
     0x43: ("COMA", INHERENT),
@@ -560,6 +561,8 @@ SHORT_DESC = {
     "TSTB":"Test B",
     "TST":"Test M",
 
+    "RESET":"Undocumented opcode",
+
     "PAGE 1":"Page 1 Instructions prefix",
     "PAGE 2":"Page 2 Instructions prefix",
 }
@@ -707,7 +710,7 @@ for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
 
     if mnemonic.startswith(instruction):
         register = mnemonic[len(instruction):].strip()
-        print mnemonic, register
+#         print mnemonic, register
         if register.isdigit() or register == "":
             register = None
         else:
@@ -769,6 +772,7 @@ for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
         MC6809_DATA[instruction] = inst_info
 
     instr_dict = MC6809_DATA[instruction]
+    instr_dict['description'] = instr_dict.get('description', "").strip()
 
     mnemonic_dict1 = instr_dict.setdefault("mnemonic", {})
     mnemonic_dict = mnemonic_dict1.setdefault(mnemonic, {})
