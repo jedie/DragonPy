@@ -540,7 +540,6 @@ class CPU(object):
         # S - 16 bit system-stack pointer:
         # Position will be set by ROM code after detection of total installed RAM
         self._system_stack_pointer = ValueStorage16Bit(REG_S, 0)
-        self._system_stack_pointer.counter = 0
 
         # PC - 16 bit program counter register
         self._program_counter = ValueStorage16Bit(REG_PC, self.cfg.RESET_VECTOR)
@@ -827,8 +826,8 @@ class CPU(object):
 
 #         log.info(
         log.error(
-            "%x|\tpush $%x to %s stack at $%x (count: %i)\t|%s",
-            self.last_op_address, byte, stack_pointer.name, addr, stack_pointer.counter,
+            "%x|\tpush $%x to %s stack at $%x\t|%s",
+            self.last_op_address, byte, stack_pointer.name, addr,
             self.cfg.mem_info.get_shortest(self.last_op_address)
         )
         self.memory.write_byte(addr, byte)
@@ -839,8 +838,8 @@ class CPU(object):
         byte = self.memory.read_byte(addr)
 #         log.info(
         log.error(
-            "%x|\tpull $%x from %s stack at $%x (count: %i)\t|%s",
-            self.last_op_address, byte, stack_pointer.name, addr, stack_pointer.counter,
+            "%x|\tpull $%x from %s stack at $%x\t|%s",
+            self.last_op_address, byte, stack_pointer.name, addr,
             self.cfg.mem_info.get_shortest(self.last_op_address)
         )
 
@@ -856,8 +855,8 @@ class CPU(object):
         addr = stack_pointer.get()
 #         log.info(
         log.error(
-            "%x|\tpush word $%x to %s stack at $%x (count: %i)\t|%s",
-            self.last_op_address, word, stack_pointer.name, addr, stack_pointer.counter,
+            "%x|\tpush word $%x to %s stack at $%x\t|%s",
+            self.last_op_address, word, stack_pointer.name, addr,
             self.cfg.mem_info.get_shortest(self.last_op_address)
         )
 
@@ -872,8 +871,8 @@ class CPU(object):
         word = self.memory.read_word(addr)
 #         log.info(
         log.error(
-            "%x|\tpull word $%x from %s stack at $%x (count: %i)\t|%s",
-            self.last_op_address, word, stack_pointer.name, addr, stack_pointer.counter,
+            "%x|\tpull word $%x from %s stack at $%x\t|%s",
+            self.last_op_address, word, stack_pointer.name, addr,
             self.cfg.mem_info.get_shortest(self.last_op_address)
         )
         # FIXME: self._system_stack_pointer += 2
