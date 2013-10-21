@@ -217,10 +217,10 @@ op_info_dict = {
     0x31: ("LEAY", INDEXED),
     0x32: ("LEAS", INDEXED),
     0x33: ("LEAU", INDEXED),
-    0x34: ("PSHS", None),
-    0x35: ("PULS", None),
-    0x36: ("PSHU", None),
-    0x37: ("PULU", None),
+    0x34: ("PSHS", IMMEDIATE),
+    0x35: ("PULS", IMMEDIATE),
+    0x36: ("PSHU", IMMEDIATE),
+    0x37: ("PULU", IMMEDIATE),
     0x39: ("RTS", INHERENT),
     0x3a: ("ABX", INHERENT),
     0x3b: ("RTI", INHERENT),
@@ -675,7 +675,7 @@ def get_instruction(mnemonic):
         return get_instruction(mnemonic)
 
 print "\t".join((
-    "instr.", "opcode", "mnemonic", "register", "read", "write", "addr.mode", "desc"
+    "instr.", "opcode", "mnemonic", "register", "needs ea", "read", "write", "addr.mode", "desc"
 ))
 
 
@@ -700,11 +700,14 @@ for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
 
     instruction = get_instruction(mnemonic)
     if not instruction:
-        print "ERROR:", mnemonic
-        raise
+        raise KeyError("Error with %s" % mnemonic)
+
+    if instruction in INST_INFO_MERGE:
+        instruction = INST_INFO_MERGE[instruction]
 
     if mnemonic.startswith(instruction):
         register = mnemonic[len(instruction):].strip()
+        print mnemonic, register
         if register.isdigit() or register == "":
             register = None
         else:
@@ -735,15 +738,21 @@ for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
         elif desc.startswith("M ="):
             write_to_memory = "BYTE"
 
+    if write_to_memory is not None:
+        needs_ea = True
+
     if mnemonic in MEM_READ:
         width = MEM_READ[mnemonic]
         read_from_memory = WIDTH_DICT2[width]
 
-    if write_to_memory is not None:
-        needs_ea = True
+    if read_from_memory is not None:
+        if read_from_memory == "WORD":
+            if not addr_mode.endswith("WORD"):
+                addr_mode += "_WORD" # XXX: really?
+
 
     print "\t".join([repr(i).strip("'") for i in
-        (instruction, hex(op_code), mnemonic, register, read_from_memory, write_to_memory, addr_mode, desc)
+        (instruction, hex(op_code), mnemonic, register, needs_ea, read_from_memory, write_to_memory, addr_mode, desc)
     ])
 
     if instruction not in MC6809_DATA:
