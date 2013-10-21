@@ -68,7 +68,9 @@ class DragonPyCLI(Base_CLI):
         self.parser.add_argument("--area_debug_active",
             help="Debug in PC area: <level>:<start>-<end> - e.g.: --area_debug_active=10:db79-ffff"
         )
-
+        self.parser.add_argument("--area_debug_cycles", type=int,
+            help="activate debug after CPU cycles",
+        )
 
     def setup_cfg(self):
         args = self.parse_args()

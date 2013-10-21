@@ -109,6 +109,8 @@ class BaseConfig(object):
         else:
             self.area_debug = None
 
+        self.area_debug_cycles = cmd_args.area_debug_cycles
+
         self.mem_info = DummyMemInfo()
 
     def _get_initial_Memory(self, size):

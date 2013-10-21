@@ -525,6 +525,11 @@ class CPU(object):
                 "Activate area debug: Set debug level to %i from $%x to $%x" % self.cfg.area_debug
             )
 
+        if self.cfg.area_debug_cycles is not None:
+            log.critical(
+                "Activate debug after CPU cycle %i" % self.cfg.area_debug_cycles
+            )
+
         if self.cfg.max_cpu_cycles is not None:
             log.warn(
                 "--max set: Stop CPU after %i cycles" % self.cfg.max_cpu_cycles
@@ -770,7 +775,7 @@ class CPU(object):
             duration = time.time() - last_update
             if duration >= 1:
                 count = self.cycles - last_cycles
-                log.error("%.2f cycles/sec.", float(count / duration))
+                log.critical("%.2f cycles/sec. (current cycle: %i)", float(count / duration), self.cycles)
                 last_cycles = self.cycles
                 last_update = time.time()
 
@@ -898,6 +903,12 @@ class CPU(object):
         return self._program_counter.get()
 
     def _set_program_counter(self, value):
+        if self.cfg.area_debug_cycles is not None:
+            if self.cycles >= self.cfg.area_debug_cycles:
+                activate_full_debug_logging()
+                log.debug("area debug activated after CPU cycle %i" % self.cycles)
+                self.cfg.area_debug_cycles = None
+
         if self.cfg.area_debug is not None:
             # cfg.area_debug = (level, start, end)
             # TODO: make it workable with the other loggers
@@ -2899,8 +2910,9 @@ def test_run():
 #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
 
 #         "--area_debug_active=5:bb79-ffff",
-        "--cfg=Simple6809Cfg",
-#         "--cfg=Dragon32Cfg",
+         "--area_debug_cycles=1587101",
+#         "--cfg=Simple6809Cfg",
+        "--cfg=Dragon32Cfg",
 #         "--max=15000",
 #         "--max=46041",
     ]
