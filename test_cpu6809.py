@@ -162,8 +162,8 @@ class Test6809_CC(BaseTestCase):
             0x86, 0xff, # LDA #-128
             0x80, 0x01, # SUBA #1
         ])
-        self.assertEqualHex(self.cpu.accu_a.get(), 0x7f) # $7f == signed: 127 == unsigned: 127
-        self.assertEqual(self.cpu.cc.N, 0) # N - 0x08 - bit 3 - Negative result (twos complement)
+        self.assertEqualHex(self.cpu.accu_a.get(), 0xfe)
+        self.assertEqual(self.cpu.cc.N, 1) # N - 0x08 - bit 3 - Negative result (twos complement)
         self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
         self.assertEqual(self.cpu.cc.V, 1) # V - 0x02 - bit 1 - Overflow
         self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
@@ -202,36 +202,35 @@ class Test6809_CC(BaseTestCase):
         self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
 
     def test_Overflow_INC(self):
-        self.cpu.memory.write_byte(0x4500, 0x00)
-        self.assertEqualHex(self.cpu.memory.read_byte(0x4500), 0x00)
+        self.cpu.memory.write_byte(0x4500, 0x7e)
+        self.assertEqualHex(self.cpu.memory.read_byte(0x4500), 0x7e)
         self.cpu_test_run(start=0x1000, end=None, mem=[
             0x7c, 0x45, 0x00, # INC $4500
         ])
-        self.assertEqualHex(self.cpu.memory.read_byte(0x4500), 0x01)
+        self.assertEqualHex(self.cpu.memory.read_byte(0x4500), 0x7f)
         self.assertEqual(self.cpu.cc.H, 0) # H - 0x20 - bit 5 - Half-Carry
         self.assertEqual(self.cpu.cc.N, 0) # N - 0x08 - bit 3 - Negative result (twos complement)
         self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
         self.assertEqual(self.cpu.cc.V, 0) # V - 0x02 - bit 1 - Overflow
         self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
 
-        self.cpu.memory.write_byte(0x4500, 0xfe)
         self.cpu_test_run(start=0x1000, end=None, mem=[
             0x7c, 0x45, 0x00, # INC $4500
         ])
-        self.assertEqualHex(self.cpu.memory.read_byte(0x4500), 0xff)
+        self.assertEqualHex(self.cpu.memory.read_byte(0x4500), 0x80)
         self.assertEqual(self.cpu.cc.H, 0) # H - 0x20 - bit 5 - Half-Carry
         self.assertEqual(self.cpu.cc.N, 1) # N - 0x08 - bit 3 - Negative result (twos complement)
         self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
-        self.assertEqual(self.cpu.cc.V, 0) # V - 0x02 - bit 1 - Overflow
+        self.assertEqual(self.cpu.cc.V, 1) # V - 0x02 - bit 1 - Overflow
         self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
 
         self.cpu_test_run(start=0x1000, end=None, mem=[
             0x7c, 0x45, 0x00, # INC $4500
         ])
-        self.assertEqualHex(self.cpu.memory.read_byte(0x4500), 0x00)
+        self.assertEqualHex(self.cpu.memory.read_byte(0x4500), 0x81)
         self.assertEqual(self.cpu.cc.H, 0) # H - 0x20 - bit 5 - Half-Carry
-        self.assertEqual(self.cpu.cc.N, 0) # N - 0x08 - bit 3 - Negative result (twos complement)
-        self.assertEqual(self.cpu.cc.Z, 1) # Z - 0x04 - bit 2 - Zero result
+        self.assertEqual(self.cpu.cc.N, 1) # N - 0x08 - bit 3 - Negative result (twos complement)
+        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
         self.assertEqual(self.cpu.cc.V, 0) # V - 0x02 - bit 1 - Overflow
         self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
 
@@ -270,7 +269,7 @@ class Test6809_CC(BaseTestCase):
         self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
 
         self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x86, 0xFF, # LDA #255
+            0x86, 0xff, # LDA #255
             0x8B, 0x01, # ADDA #1
         ])
         self.assertEqual(self.cpu.accu_a.get(), 0x0) # $ff wrap around
@@ -514,6 +513,7 @@ class TestDragon32ROM(BaseTestCase):
     use routines from Dragon 32 ROM
     """
     def test_print(self):
+        return # not ready yet
 #         self.cpu_test_run(start=0x1000, end=None, mem=[
 #             0x86, 0x12, # LDA A=$12
 #             0xC6, 0x34, # LDB B=$34
@@ -545,9 +545,9 @@ if __name__ == '__main__':
     log = logging.getLogger("DragonPy")
     log.setLevel(
 #         logging.ERROR
-#         logging.WARNING
+        logging.WARNING
 #         logging.INFO
-        logging.DEBUG
+#         logging.DEBUG
     )
     log.addHandler(logging.StreamHandler())
 
@@ -560,7 +560,7 @@ if __name__ == '__main__':
 #             "Test6809_Register"
 #             "Test6809_CC",
 #             "Test6809_CC.test_Overflow02",
-            "Test6809_CC.test_Overflow_INC",
+#             "Test6809_CC.test_Overflow_INC",
 #             "Test6809_Ops",
 #             "Test6809_Ops.test_TFR03",
 #             "Test6809_Ops.test_CMPX_extended",
