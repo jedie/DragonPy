@@ -451,15 +451,18 @@ class Instruction(object):
                     log.error("registers (%r != %r) not the same as trace reference!\n" % (
                         registers1, registers2
                     ))
-                else:
-                    cc1 = msg[98:106]
-                    if cc1 != xroar_cc:
-                        log.info("trace: %s" , ref_line)
-                        log.info("own..: %s" , msg)
-                        log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                        log.error("CC (%r != %r) not the same as trace reference!\n" % (
-                            cc1, xroar_cc
-                        ))
+
+                cc1 = msg[98:106]
+                if cc1 != xroar_cc:
+                    log.info("trace: %s" , ref_line)
+                    log.info("own..: %s" , msg)
+                    log.error("Error in CPU cycles: %i", self.cpu.cycles)
+                    err_msg = "CC (%r != %r) not the same as trace reference!\n" % (
+                        cc1, xroar_cc
+                    )
+                    log.error(err_msg)
+                    if registers1 == registers2:
+                        raise RuntimeError(err_msg)
 
                 addr1 = msg.split("|", 1)[0]
                 addr2 = ref_line.split("|", 1)[0]
@@ -477,11 +480,11 @@ class Instruction(object):
                     log.info("trace: %s", ref_line)
                     log.info("own..: %s" , msg)
                     log.error("%04x|Error in CPU cycles: %i", op_address, self.cpu.cycles)
-                    msg = "mnemonic (%r != %r) not the same as trace reference!\n" % (
+                    err_msg = "mnemonic (%r != %r) not the same as trace reference!\n" % (
                         mnemonic1, mnemonic2
                     )
-                    log.error(msg)
-                    raise RuntimeError(msg)
+                    log.error(err_msg)
+                    raise RuntimeError(err_msg)
 
                 log.debug("\t%s", repr(self.data))
 
