@@ -15,6 +15,9 @@
         effective address, but the content of the memory is not needed in
         the instruction them self, the read_from_memory must be set to False.
 
+    Generated data is online here:
+    https://docs.google.com/spreadsheet/ccc?key=0Alhtym6D6yKjdFBtNmF0UVR5OW05S3psaURnUTNtSFE
+
     :copyleft: 2013 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
@@ -25,7 +28,7 @@ import os
 import csv
 
 # old data
-from MC6809_data_raw import INSTRUCTION_INFO, OP_DATA
+from MC6809_data_raw import INSTRUCTION_INFO, OP_DATA, OP_CATEGORIES
 
 
 class Tee(object):
@@ -729,7 +732,7 @@ with open("MC6809_data_raw2.csv", 'wb') as csvfile:
 
     w.writerow([
         "instr.", "opcode", "dez", "mnemonic", "register",
-        "needs ea", "read", "write", "addr.mode", "desc"
+        "needs ea", "read", "write", "addr.mode", "H", "N", "Z", "V", "C", "desc", "category",
     ])
 
 
@@ -792,15 +795,6 @@ with open("MC6809_data_raw2.csv", 'wb') as csvfile:
                 if not addr_mode.endswith("WORD"):
                     addr_mode += "_WORD" # XXX: really?
 
-        row = (
-            instruction, hex(op_code), op_code, mnemonic,
-            verbose(register), verbose(needs_ea),
-            verbose(read_from_memory), verbose(write_to_memory), verbose(addr_mode),
-            desc
-        )
-        w.writerow(row)
-        print "\t".join([repr(i).strip("'") for i in row])
-
         if instruction not in MC6809_DATA:
             try:
                 inst_info = INSTRUCTION_INFO[instruction]
@@ -813,6 +807,22 @@ with open("MC6809_data_raw2.csv", 'wb') as csvfile:
                     inst_info = INSTRUCTION_INFO[mnemonic]
 
             MC6809_DATA[instruction] = inst_info
+
+        old_info = OP_DATA_DICT[op_code]
+        CC_info = old_info["HNZVC"]
+
+        category_id = old_info["category"]
+        category = OP_CATEGORIES[category_id]
+        row = (
+            instruction, "$%02x" % op_code, op_code, mnemonic,
+            verbose(register), verbose(needs_ea),
+            verbose(read_from_memory), verbose(write_to_memory), verbose(addr_mode),
+            CC_info[0], CC_info[1], CC_info[2], CC_info[3], CC_info[4],
+            desc, category
+        )
+        w.writerow(row)
+        print "\t".join([repr(i).strip("'") for i in row])
+        
 
         instr_dict = MC6809_DATA[instruction]
         instr_dict['description'] = instr_dict.get('description', "").strip()
@@ -827,9 +837,7 @@ with open("MC6809_data_raw2.csv", 'wb') as csvfile:
         add_the_same(mnemonic_dict, "read_from_memory", read_from_memory)
         add_the_same(mnemonic_dict, "write_to_memory", write_to_memory)
 
-        old_info = OP_DATA_DICT[op_code]
-
-        add_the_same(mnemonic_dict, "HNZVC", old_info["HNZVC"])
+        add_the_same(mnemonic_dict, "HNZVC", CC_info)
 
         ops_dict = mnemonic_dict.setdefault("ops", {})
 

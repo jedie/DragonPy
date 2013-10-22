@@ -21,8 +21,8 @@
 
 # this file was generated with MC6809_data2.py
 
-WORD = "16"
 BYTE = "8"
+WORD = "16"
 
 
 # Address modes:
