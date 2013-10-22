@@ -63,9 +63,7 @@ optional arguments:
 
 The Simple6809 config works a little bit. First GUI used a simple Tkinter windows.
 Looks like this:
-{{http://www.pylucid.org/media/jensdiemer.de/screenshots/Simple6809_TK_02.PNG}}
-
-But result in "OM ERROR" (Out of memory)
+{{http://www.pylucid.org/media/jensdiemer.de/screenshots/Simple6809_TK_03.PNG}}
 
 
 == Links

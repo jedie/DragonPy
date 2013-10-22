@@ -238,14 +238,20 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
         super(Simple6809PeripheryTk, self).__init__(cfg)
         self.root = Tkinter.Tk()
         self.root.title("DragonPy - Simple 6809")
+        self.root.geometry('640x480+500+300') # X*Y + x/y-offset
 
         # http://www.tutorialspoint.com/python/tk_text.htm
         self.text = Tkinter.Text(
             self.root,
             state=Tkinter.DISABLED # FIXME: make textbox "read-only"
         )
+        self.text.config(
+            background="#08ff08", # nearly green
+            foreground="#004100", # nearly black
+        )
+        self.text.config(font=('courier', 11, 'bold'))
 
-        self.text.pack()
+        self.text.pack(fill=Tkinter.BOTH, expand=1)
         self.root.bind("<Return>", self.event_return)
         self.root.bind("<Escape>", self.from_console_break)
         self.root.bind("<Key>", self.event_key_pressed)
@@ -339,12 +345,12 @@ db13 39                           RTS
         char = chr(value)
         log.error("Write to screen: %s ($%x)" % (repr(char), value))
 
-        self.LAST_INPUT += char
-        if self.LAST_INPUT.endswith("OK\n"):
-            self.line_buffer = list('PRINT "HELLO"\r')
-            print self.line_buffer
-        elif self.LAST_INPUT.endswith("ERROR\n"):
-            sys.exit()
+#         self.LAST_INPUT += char
+#         if self.LAST_INPUT.endswith("OK\n"):
+#             self.line_buffer = list('PRINT "HELLO"\r')
+#             print self.line_buffer
+#         elif self.LAST_INPUT.endswith("ERROR\n"):
+#             sys.exit()
 
         self.text.config(state=Tkinter.NORMAL)
         self.text.insert("end", char)
@@ -359,10 +365,10 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-        "--verbosity=5",
+#         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-#         "--verbosity=30", # WARNING
+        "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
 #         "--verbosity=50", # CRITICAL/FATAL
 
