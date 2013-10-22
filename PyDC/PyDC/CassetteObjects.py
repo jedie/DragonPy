@@ -22,6 +22,7 @@ from utils import get_word, codepoints2string, string2codepoint, LOG_LEVEL_DICT,
     LOG_FORMATTER, pformat_codepoints
 from wave2bitstream import Wave2Bitstream, Bitstream2Wave
 from bitstream_handler import BitstreamHandler, CasStream, BytestreamHandler
+from PyDC.utils import iter_steps
 
 
 log = logging.getLogger("PyDC")
@@ -273,6 +274,10 @@ class FileContent(object):
             result.append(delim)
             result += list(code_line.get_as_codepoints())
         result.append(delim)
+#         log.debug("-"*79)
+#         for line in pformat_codepoints(result):
+#             log.debug(repr(line))
+#         log.debug("-"*79)
         return result
 
     def get_ascii_codeline(self):
@@ -294,6 +299,8 @@ class CassetteFile(object):
     def __init__(self, cfg):
         self.cfg = cfg
         self.is_tokenized = False
+        self.ascii_flag = None
+        self.gap_flag = None # one byte gap flag (0x00=no gaps, 0xFF=gaps)
 
     def create_from_bas(self, filename, file_content):
         filename2 = os.path.split(filename)[1]
@@ -306,7 +313,13 @@ class CassetteFile(object):
         log.debug("filename '%s' from: %s" % (filename2, filename))
 
         self.filename = filename2
+
         self.file_type = self.cfg.FTYPE_BASIC # BASIC programm (0x00)
+
+        # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4231&p=9723#p9723
+        self.ascii_flag = self.cfg.BASIC_ASCII
+        self.gap_flag = self.cfg.GAPS # ASCII File is GAP, tokenized is no gaps
+
         self.file_content = FileContent(self.cfg)
         self.file_content.create_from_bas(file_content)
 
@@ -384,14 +397,7 @@ class CassetteFile(object):
 
         # one byte gap flag (0x00=no gaps, 0xFF=gaps)
         # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4231&p=9110#p9110
-        codepoints.append(self.cfg.GAPS)
-
-#         if self.ascii_flag == self.cfg.BASIC_ASCII:
-#             codepoints.append(self.cfg.GAPS)
-#         elif self.ascii_flag == self.cfg.BASIC_TOKENIZED:
-#             codepoints.append(self.cfg.NO_GAPS)
-#         else:
-#             raise NotImplementedError("Unknown BASIC type: '%s'" % hex(self.ascii_flag))
+        codepoints.append(self.gap_flag)
 
         # machine code starting/loading address
         if self.file_type != self.cfg.FTYPE_BASIC: # BASIC programm (0x00)
@@ -535,12 +541,18 @@ class Cassette(object):
         for file_obj in self.files:
             file_obj.print_debug_info()
 
-    def block2codepoint_stream(self, block_type, block_codepoints):
-        log.debug("yield %sx lead byte %s" % (
-            self.cfg.LEAD_BYTE_LEN, hex(self.cfg.LEAD_BYTE_CODEPOINT)
-        ))
-        leadin = [self.cfg.LEAD_BYTE_CODEPOINT for _ in xrange(self.cfg.LEAD_BYTE_LEN)]
-        yield leadin
+    def block2codepoint_stream(self, file_obj, block_type, block_codepoints):
+        if file_obj.gap_flag == self.cfg.GAPS:
+            # file has gaps (e.g. ASCII BASIC)
+            log.debug("File has GAP flag set:")
+            log.debug("yield %sx bit-sync bytes %s",
+                self.cfg.LEAD_BYTE_LEN, hex(self.cfg.LEAD_BYTE_CODEPOINT)
+            )
+            leadin = [self.cfg.LEAD_BYTE_CODEPOINT for _ in xrange(self.cfg.LEAD_BYTE_LEN)]
+            yield leadin
+
+        log.debug("yield 1x leader byte %s", hex(self.cfg.LEAD_BYTE_CODEPOINT))
+        yield self.cfg.LEAD_BYTE_CODEPOINT
 
         log.debug("yield sync byte %s" % hex(self.cfg.SYNC_BYTE_CODEPOINT))
         if self.wav:
@@ -550,11 +562,13 @@ class Cassette(object):
         log.debug("yield block type '%s'" % self.cfg.BLOCK_TYPE_DICT[block_type])
         yield block_type
 
-        block_length = len(block_codepoints)
+        codepoints = tuple(block_codepoints)
+        block_length = len(codepoints)
+        assert block_length <= 255
         log.debug("yield block length %s (%sBytes)" % (hex(block_length), block_length))
         yield block_length
 
-        if not block_codepoints:
+        if not codepoints:
             # EOF block
             # FIXME checksum
             checksum = block_type
@@ -565,10 +579,9 @@ class Cassette(object):
         else:
             log.debug("content of '%s':" % self.cfg.BLOCK_TYPE_DICT[block_type])
             log.debug("-"*79)
-            log.debug(pformat_codepoints(block_codepoints))
+            log.debug(repr("".join([chr(i) for i in codepoints])))
             log.debug("-"*79)
 
-            codepoints = tuple(block_codepoints)
             yield codepoints
 
             checksum = sum([codepoint for codepoint in codepoints])
@@ -578,13 +591,16 @@ class Cassette(object):
             log.debug("yield calculated checksum %s" % hex(checksum))
             yield checksum
 
+        log.debug("yield 1x tailer byte %s", hex(self.cfg.LEAD_BYTE_CODEPOINT))
+        yield self.cfg.LEAD_BYTE_CODEPOINT
+
     def codepoint_stream(self):
         if self.wav:
             self.wav.write_silence(sec=0.1)
 
         for file_obj in self.files:
             # yield filename
-            for codepoints in self.block2codepoint_stream(
+            for codepoints in self.block2codepoint_stream(file_obj,
                     block_type=self.cfg.FILENAME_BLOCK,
                     block_codepoints=file_obj.get_filename_block_as_codepoints()
                 ):
@@ -594,14 +610,15 @@ class Cassette(object):
                 self.wav.write_silence(sec=0.1)
 
             # yield file content
-            codepoints = tuple(file_obj.get_code_block_as_codepoints())
-            codepoints = iter(codepoints)
-            while True:
-                raw_codepoints = tuple(itertools.islice(codepoints, 0, 255))
-                if not raw_codepoints:
-                    break
+            codepoints = file_obj.get_code_block_as_codepoints()
+
+            for raw_codepoints in iter_steps(codepoints, 255):
+#                 log.debug("-"*79)
+#                 log.debug("".join([chr(i) for i in raw_codepoints]))
+#                 log.debug("-"*79)
+
                 # Add meta information
-                codepoint_stream = self.block2codepoint_stream(
+                codepoint_stream = self.block2codepoint_stream(file_obj,
                     block_type=self.cfg.DATA_BLOCK, block_codepoints=raw_codepoints
                 )
                 for codepoints2 in codepoint_stream:
@@ -611,7 +628,7 @@ class Cassette(object):
                     self.wav.write_silence(sec=0.1)
 
         # yield EOF
-        for codepoints in self.block2codepoint_stream(
+        for codepoints in self.block2codepoint_stream(file_obj,
                 block_type=self.cfg.EOF_BLOCK,
                 block_codepoints=[]
             ):
