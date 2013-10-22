@@ -64,13 +64,13 @@ class ValueStorage8Bit(ValueStorage):
 
     def set(self, v):
         if v > 0xff:
-            log.info(" **** Value $%x is to big for %s (8-bit)" % (v, self.name))
+            log.info(" **** Value $%x is to big for %s (8-bit)", v, self.name)
             v = v & 0xff
-            log.info(" ^^^^ Value %s (8-bit) wrap around to $%x" % (self.name, v))
+            log.info(" ^^^^ Value %s (8-bit) wrap around to $%x", self.name, v)
         elif v < 0:
-            log.info(" **** %s value $%x is negative" % (self.name, v))
+            log.info(" **** %s value $%x is negative", self.name, v)
             v = 0x100 + v
-            log.info(" **** Value %s (8-bit) wrap around to $%x" % (self.name, v))
+            log.info(" **** Value %s (8-bit) wrap around to $%x", self.name, v)
         self.value = v
         return self.value # e.g.: r = operand.set(a + 1)
     def __str__(self):
@@ -82,13 +82,13 @@ class ValueStorage16Bit(ValueStorage):
 
     def set(self, v):
         if v > 0xffff:
-            log.info(" **** Value $%x is to big for %s (16-bit)" % (v, self.name))
+            log.info(" **** Value $%x is to big for %s (16-bit)", v, self.name)
             v = v & 0xffff
-            log.info(" ^^^^ Value %s (16-bit) wrap around to $%x" % (self.name, v))
+            log.info(" ^^^^ Value %s (16-bit) wrap around to $%x", self.name, v)
         elif v < 0:
-            log.info(" **** %s value $%x is negative" % (self.name, v))
+            log.info(" **** %s value $%x is negative", self.name, v)
             v = 0x10000 + v
-            log.info(" **** Value %s (16-bit) wrap around to $%x" % (self.name, v))
+            log.info(" **** Value %s (16-bit) wrap around to $%x", self.name, v)
         self.value = v
         return self.value # e.g.: r = operand.set(a + 1)
     def __str__(self):
@@ -172,60 +172,79 @@ class ConditionCodeRegister(object):
 
     ####
 
+    """
+    #define SET_Z(r)          ( REG_CC |= ((r) ? 0 : CC_Z) )
+    #define SET_N8(r)         ( REG_CC |= (r&0x80)>>4 )
+    #define SET_N16(r)        ( REG_CC |= (r&0x8000)>>12 )
+    #define SET_H(a,b,r)      ( REG_CC |= ((a^b^r)&0x10)<<1 )
+    #define SET_C8(r)         ( REG_CC |= (r&0x100)>>8 )
+    #define SET_C16(r)        ( REG_CC |= (r&0x10000)>>16 )
+    #define SET_V8(a,b,r)     ( REG_CC |= ((a^b^r^(r>>1))&0x80)>>6 )
+    #define SET_V16(a,b,r)    ( REG_CC |= ((a^b^r^(r>>1))&0x8000)>>14 )
+    """
+
     def set_H(self, a, b, r):
-        self.H = 1 if (a ^ b ^ r) & 0x10 else 0
-        log.debug("\tSet H half-carry flag to %i: (%i ^ %i ^ %i) & 16 = %i" % (
-            self.H, a, b, r, (a ^ b ^ r) & 0x10
-        ))
+        r2 = (a ^ b ^ r) & 0x10
+        self.H = 0 if r2 == 0 else 1
+        log.debug("\tset_H(): set half-carry flag to %i: ($%x ^ $%x ^ $%x) & 0x10 = $%x",
+            self.H, a, b, r, r2
+        )
 
     def set_Z8(self, r):
-        self.Z = 1 if r & 0xff == 0 else 0
+        r2 = r & 0xff
+        self.Z = 1 if r2 == 0 else 0
+        log.debug("\tset_Z8(): set zero flag to %i: $%02x & 0xff = $%02x",
+            self.Z, r, r2
+        )
 
     def set_Z16(self, r):
-        self.Z = 1 if r & 0xffff == 0 else 0
+        r2 = r & 0xffff
+        self.Z = 1 if r2 == 0 else 0
+        log.debug("\tset_Z16(): set zero flag to %i: $%04x & 0xffff = $%04x",
+            self.Z, r, r2
+        )
 
     def set_N8(self, r):
-#         self.N = 1 if signed8(r) < 0 else 0
-        self.N = 1 if 127 < r < 256 else 0
-        log.debug("\tSet N negative flag to %i: 127 < %i < 256 = %s" % (
-            self.N, r, repr(127 < r < 256)
-        ))
+        r2 = r & 0x80
+        self.N = 0 if r2 == 0 else 1
+        log.debug("\tset_N8(): set negative flag to %i: ($%02x & 0x80) = $%02x",
+            self.N, r, r2
+        )
 
     def set_N16(self, r):
-        self.N = 1 if signed16(r) < 0 else 0
+        r2 = r & 0x8000
+        self.N = 0 if r2 == 0 else 1
+        log.debug("\tset_N16(): set negative flag to %i: ($%04x & 0x8000) = $%04x",
+            self.N, r, r2
+        )
 
     def set_C8(self, r):
-        """
-        Carry flag:
-        CC.C = 0 - result in range 0-255
-        CC.C = 1 - result out of range
-        """
-        if self.C == 0 and (r > 255 or r < 0):
-            self.C = 1
-
-        self.C = 1 if r & 0x100 else 0
-        log.debug("\tSet C 8bit carry flag to %i: %i & 256 = %i" % (
-            self.C, r, r & 0x100
-        ))
+        r2 = r & 0x100
+        self.C = 0 if r2 == 0 else 1
+        log.debug("\tset_C8(): carry flag to %i: ($%02x & 0x100) = $%02x",
+            self.C, r, r2
+        )
 
     def set_C16(self, r):
-        self.C = 1 if r & 0x10000 else 0
+        r2 = r & 0x10000
+        self.C = 0 if r2 == 0 else 1
+        log.debug("\tset_C16(): carry flag to %i: ($%04x & 0x10000) = $%04x",
+            self.C, r, r2
+        )
 
-    def set_V8(self, a, b, r): # FIXME
-#         if self.V == 0 and ((a ^ b ^ r ^ (r >> 1)) & 0x80):
-#             self.V = 1
-#         log.debug("\tSet V overflow flag to %i: ((%i ^ %i ^ %i ^ (%i >> 1)) & 128) = %i" % (
-#             self.V, a, b, r, r, ((a ^ b ^ r ^ (r >> 1)) & 0x80)
-#         ))
-        if self.V == 0 and (r > 255 or r < 0):
-            self.V = 1
-        log.debug("\tSet V overflow flag to %i" % (
-            self.V,
-        ))
+    def set_V8(self, a, b, r):
+        r2 = (a ^ b ^ r ^ (r >> 1)) & 0x80
+        self.V = 0 if r2 == 0 else 1
+        log.debug("\tset_V8(): overflow flag to %i: (($%02x ^ $%02x ^ $%02x ^ ($%02x >> 1)) & 0x80) = $%02x",
+            self.V, a, b, r, r, r2
+        )
 
     def set_V16(self, a, b, r):
-        if self.V == 0 and ((a ^ b ^ r ^ (r >> 1)) & 0x8000):
-            self.V = 1
+        r2 = (a ^ b ^ r ^ (r >> 1)) & 0x8000
+        self.V = 0 if r2 == 0 else 1
+        log.debug("\tset_V16(): overflow flag to %i: (($%04x ^ $%04x ^ $%04x ^ ($%04x >> 1)) & 0x8000) = $%04x",
+            self.V, a, b, r, r, r2
+        )
 
     ####
 
