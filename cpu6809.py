@@ -448,7 +448,7 @@ class Instruction(object):
                     log.info("trace: %s" , ref_line)
                     log.info("own..: %s" , msg)
                     log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                    log.error("registers (%r != %r) not the same as trace reference!\n" % (
+                    log.error("registers (own: %r != XRoar: %r) not the same as trace reference!\n" % (
                         registers1, registers2
                     ))
 
@@ -457,11 +457,12 @@ class Instruction(object):
                     log.info("trace: %s" , ref_line)
                     log.info("own..: %s" , msg)
                     log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                    err_msg = "CC (%r != %r) not the same as trace reference!\n" % (
+                    err_msg = "CC (own: %r != XRoar: %r) not the same as trace reference!\n" % (
                         cc1, xroar_cc
                     )
                     log.error(err_msg)
-                    if registers1 == registers2:
+                    if registers1 == registers2 and etype is None:
+                        # same register values (except CC) but different CC
                         raise RuntimeError(err_msg)
 
                 addr1 = msg.split("|", 1)[0]
@@ -470,7 +471,7 @@ class Instruction(object):
                     log.info("trace: %s", ref_line)
                     log.info("own..: %s", msg)
                     log.error("%04x|Error in CPU cycles: %i", op_address, self.cpu.cycles)
-                    log.error("address (%r != %r) not the same as trace reference!\n" % (
+                    log.error("address (own: %r != XRoar: %r) not the same as trace reference!\n" % (
                         addr1, addr2
                     ))
 
@@ -480,11 +481,12 @@ class Instruction(object):
                     log.info("trace: %s", ref_line)
                     log.info("own..: %s" , msg)
                     log.error("%04x|Error in CPU cycles: %i", op_address, self.cpu.cycles)
-                    err_msg = "mnemonic (%r != %r) not the same as trace reference!\n" % (
+                    err_msg = "mnemonic (own: %r != XRoar: %r) not the same as trace reference!\n" % (
                         mnemonic1, mnemonic2
                     )
                     log.error(err_msg)
-                    raise RuntimeError(err_msg)
+                    if etype is None:
+                        raise RuntimeError(err_msg)
 
                 log.debug("\t%s", repr(self.data))
 
