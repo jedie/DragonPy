@@ -1761,6 +1761,7 @@ class CPU(object):
             register.name,
             a, b, r
         ))
+        self.cc.clear_NZVC()
         self.cc.update_NZVC_16(a, b, r)
 
     @opcode(# Compare memory from accumulator
@@ -1795,10 +1796,15 @@ class CPU(object):
             register.name,
             a, b, r
         ))
+        self.cc.clear_NZVC()
         self.cc.update_NZVC_8(a, b, r)
 
     def COM(self, value):
+        """
+        CC bits "HNZVC": -aa01
+        """
         value = unsigned8(~value) # the bits of m inverted
+        self.cc.clear_NZ()
         self.cc.update_NZ01_8(value)
         return value
 
@@ -1809,7 +1815,6 @@ class CPU(object):
         """
         Replaces the contents of memory location M with its logical complement.
         source code forms: COM Q
-        CC bits "HNZVC": -aa01
         """
         r = self.COM(value=m)
         log.debug("$%x COM memory $%x to $%x" % (
@@ -1825,7 +1830,6 @@ class CPU(object):
         """
         Replaces the contents of accumulator A or B with its logical complement.
         source code forms: COMA; COMB
-        CC bits "HNZVC": -aa01
         """
         register.set(self.COM(value=register.get()))
         log.debug("$%x COM %s" % (
@@ -1890,24 +1894,9 @@ class CPU(object):
         source code forms: DEC Q; DECA; DECB
 
         CC bits "HNZVC": -aaa-
-
-        #define SET_Z(r)          ( REG_CC |= ((r) ? 0 : CC_Z) )
-        #define SET_N8(r)         ( REG_CC |= (r&0x80)>>4 )
-        #define SET_NZ8(r)        ( SET_N8(r), SET_Z(r&0xff) )
-
-        #define CLR_NZV   ( REG_CC &= ~(CC_N|CC_Z|CC_V) )
-
-        static uint8_t op_dec(struct MC6809 *cpu, uint8_t in) {
-            unsigned out = in - 1;
-            CLR_NZV;
-            SET_NZ8(out);
-            if (out == 0x7f) REG_CC |= CC_V;
-            return out;
-        }
-
-        tmp1 = op_dec(cpu, tmp1); break; // DEC, DECA, DECB
         """
         r = a - 1
+        self.cc.clear_NZV()
         self.cc.update_NZ_8(r)
         if r == 0x7f:
             self.cc.V = 1
@@ -2083,7 +2072,8 @@ class CPU(object):
             self.cfg.mem_info.get_shortest(m)
         ))
         register.set(m)
-        self.cc.update_NZ0_16(m)
+        self.cc.clear_NZV()
+        self.cc.update_NZ_16(m)
 
     @opcode(# Load accumulator from memory
         0x86, 0x96, 0xa6, 0xb6, # LDA (immediate, direct, indexed, extended)
@@ -2102,7 +2092,8 @@ class CPU(object):
             register.name, m,
         ))
         register.set(m)
-        self.cc.update_NZ0_8(m)
+        self.cc.clear_NZV()
+        self.cc.update_NZ_8(m)
 
     @opcode(# Load effective address into an indexable register
         0x32, # LEAS (indexed)
@@ -2154,6 +2145,7 @@ class CPU(object):
             self.cfg.mem_info.get_shortest(ea)
         ))
         register.set(ea)
+        self.cc.Z = 0
         self.cc.set_Z16(ea)
 
     def LSL(self, a):
@@ -2212,7 +2204,7 @@ class CPU(object):
         r = a >> 1
         self.cc.clear_NZC() # XXX:
         self.cc.C |= (a & 1) # XXX: ok?
-        self.cc.set_Z8(r)
+        self.cc.set_Z(r)
         return r
 
     @opcode(0x4, 0x64, 0x74) # LSR (direct, indexed, extended)
@@ -2715,7 +2707,8 @@ class CPU(object):
             value, register.name, ea,
             self.cfg.mem_info.get_shortest(ea)
         ))
-        self.cc.update_NZ0_16(value)
+        self.cc.clear_NZV()
+        self.cc.update_NZ_16(value)
         return ea, value
 
     @opcode(# Store accumulator to memroy
@@ -2736,7 +2729,8 @@ class CPU(object):
             value, register.name, ea,
             self.cfg.mem_info.get_shortest(ea)
         ))
-        self.cc.update_NZ0_8(value)
+        self.cc.clear_NZV()
+        self.cc.update_NZ_8(value)
         return ea, value
 
     @opcode(# Subtract memory from accumulator
@@ -2911,9 +2905,9 @@ def test_run():
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-#         "--verbosity=30", # WARNING
+        "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-        "--verbosity=50", # CRITICAL/FATAL
+#         "--verbosity=50", # CRITICAL/FATAL
 
 #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
 
