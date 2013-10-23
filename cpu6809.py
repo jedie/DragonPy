@@ -331,6 +331,7 @@ class Instruction(object):
     def __repr__(self):
         return "<Instruction $%x %s>" % (self.opcode, repr(self.data))
 
+    CALLED = {}
     def call_instr_func(self):
         op_kwargs = self.static_kwargs.copy()
 
@@ -358,6 +359,10 @@ class Instruction(object):
 
 #         log.info("CPU cycles: %i", self.cpu.cycles)
 
+        func_name = self.instr_func.__name__
+        if func_name not in self.CALLED:
+            log.error("called the first time: %s", func_name)
+            self.CALLED[func_name] = None
 
         log.debug("%04x| %s(%s)",
             self.cpu.last_op_address,
