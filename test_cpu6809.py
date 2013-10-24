@@ -200,6 +200,49 @@ class Test6809_CC(BaseTestCase):
         self.assertEqual(self.cpu.cc.Z, 1) # Z - 0x04 - bit 2 - Zero result
         self.assertEqual(self.cpu.cc.V, 1) # V - 0x02 - bit 1 - Overflow
         self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
+    def test_ADDA(self):
+        half_carry = (# range(0, 255, 16)
+            0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240
+        )
+
+        self.cpu.accu_a.set(0x00) # start value
+        for __ in xrange(260):
+            self.cpu.cc.set(0x00) # Clear all CC flags
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x8B, 0x01, # ADDA #1
+            ])
+            a = self.cpu.accu_a.get()
+#             print a, self.cpu.cc.get_info
+
+            # test half carry
+            if a in half_carry:
+                self.assertEqual(self.cpu.cc.H, 1)
+            else:
+                self.assertEqual(self.cpu.cc.H, 0)
+
+            # test negative
+            if 128 <= a <= 255:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if a == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow
+            if a == 128:
+                self.assertEqual(self.cpu.cc.V, 1)
+            else:
+                self.assertEqual(self.cpu.cc.V, 0)
+
+            # test carry
+            if a == 0:
+                self.assertEqual(self.cpu.cc.C, 1)
+            else:
+                self.assertEqual(self.cpu.cc.C, 0)
 
     def test_Overflow_INC(self):
         self.cpu.memory.write_byte(0x4500, 0x7e)
