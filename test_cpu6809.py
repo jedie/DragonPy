@@ -244,6 +244,45 @@ class Test6809_CC(BaseTestCase):
             else:
                 self.assertEqual(self.cpu.cc.C, 0)
 
+    def test_SUBA(self):
+        self.cpu.accu_a.set(0xff) # start value
+        for __ in xrange(260):
+            self.cpu.cc.set(0x00) # Clear all CC flags
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x80, 0x01, # SUBA #1
+            ])
+            a = self.cpu.accu_a.get()
+            print a, self.cpu.cc.get_info
+
+            # test half carry
+            # XXX: half carry is "undefined" in SUBA!
+            self.assertEqual(self.cpu.cc.H, 0)
+
+            # test negative
+            if 128 <= a <= 255:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if a == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow
+            if a == 127: # V ist set if SUB $80 to $7f
+                self.assertEqual(self.cpu.cc.V, 1)
+            else:
+                self.assertEqual(self.cpu.cc.V, 0)
+
+            # test carry
+            if a == 0xff: # C is set if SUB $00 to $ff
+                self.assertEqual(self.cpu.cc.C, 1)
+            else:
+                self.assertEqual(self.cpu.cc.C, 0)
+
+
     def test_Overflow_INC(self):
         self.cpu.memory.write_byte(0x4500, 0x7e)
         self.assertEqualHex(self.cpu.memory.read_byte(0x4500), 0x7e)

@@ -2752,20 +2752,18 @@ class CPU(object):
         source code forms: SUBA P; SUBB P; SUBD P
 
         CC bits "HNZVC": uaaaa
+        H == undefined
         """
         x1 = register.get()
-        x2 = signed8(x1)
-        r1 = x2 - m
-        r2 = unsigned8(r1)
-        register.set(r2)
-        log.debug("$%x SUB8 %s: %i - %i = %i (unsigned: %i)" % (
+        r1 = x1 - m
+        register.set(r1)
+        log.debug("$%x SUB8 %s: %i - %i = %i" % (
             self.program_counter,
             register.name,
-            x2, m, r1, r2,
+            x1, m, r1,
         ))
         self.cc.clear_NZVC()
         if register.WIDTH == 8:
-#             self.cc.update_NZVC_8(x1, m, r2)
             self.cc.update_NZVC_8(x1, m, r1)
         else:
             assert register.WIDTH == 16
