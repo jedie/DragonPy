@@ -15,8 +15,12 @@ import logging
 import sys
 import Tkinter
 import os
-import pty
-import serial
+
+try:
+    import pty # only available under Linux
+    import serial # Maybe not installed
+except ImportError:
+    pass
 
 log = logging.getLogger("DragonPy.Periphery")
 
@@ -330,6 +334,7 @@ db13 39                           RTS
 
         return 0x0
 
+    STATE = 0
     LAST_INPUT = ""
     def write_rs232_interface(self, cpu_cycles, op_address, address, value):
         log.error("%04x| (%i) write to RS232 address: $%x value: $%x (dez.: %i) ASCII: %r" % (
@@ -353,12 +358,24 @@ db13 39                           RTS
         char = chr(value)
         log.error("Write to screen: %s ($%x)" % (repr(char), value))
 
+        # write some simple BASIC test code:
 #         self.LAST_INPUT += char
-#         if self.LAST_INPUT.endswith("OK\n"):
+#         if self.STATE == 0 and self.LAST_INPUT.endswith("OK\n"):
+#             self.STATE += 1
 #             self.line_buffer = list('PRINT "HELLO"\r')
-#             print self.line_buffer
-#         elif self.LAST_INPUT.endswith("ERROR\n"):
-#             sys.exit()
+#             self.LAST_INPUT = ""
+#         elif self.STATE == 1 and self.LAST_INPUT.endswith("OK\n"):
+#             self.line_buffer = list('PRINT 123\r')
+#             self.STATE += 1
+#         elif self.STATE == 2 and self.LAST_INPUT.endswith("OK\n"):
+#             self.line_buffer = list('10 PRINT 123\rLIST\r')
+#             self.STATE += 1
+#         elif self.STATE == 3 and self.LAST_INPUT.endswith("OK\n"):
+#             self.line_buffer = list('RUN\r')
+#             self.STATE += 1
+#         elif self.STATE == 4 and self.LAST_INPUT.endswith("OK\n"):
+#             self.line_buffer = list('FOR I=1 to 3:PRINT I:NEXT I\r')
+#             self.STATE += 1
 
         self.text.config(state=Tkinter.NORMAL)
         self.text.insert("end", char)
