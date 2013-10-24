@@ -239,7 +239,7 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
         self.root = Tkinter.Tk()
         self.root.title("DragonPy - Simple 6809")
 #         self.root.geometry() # '640x480+500+300') # X*Y + x/y-offset
-        self.root.geometry("+500+300") # X*Y + x/y-offset
+        self.root.geometry("+500+300") # Chnage inital position
 
         # http://www.tutorialspoint.com/python/tk_text.htm
         self.text = Tkinter.Text(

@@ -1288,7 +1288,8 @@ class CPU(object):
         a = register.get()
         r = a & m
         register.set(r)
-        self.cc.update_NZ0_8(r)
+        self.cc.clear_NZV()
+        self.cc.update_NZ_8(r)
         log.debug("\tAND %s: %i & %i = %i",
             register.name, a, m, r
         )
@@ -1473,7 +1474,8 @@ class CPU(object):
             self.program_counter,
             r, m, register.name, x
         ))
-        self.cc.update_NZ0_8(r)
+        self.cc.clear_NZV()
+        self.cc.update_NZ_8(r)
 
     @opcode(# Branch if less than or equal (signed)
         0x2f, # BLE (relative)
@@ -1784,14 +1786,6 @@ class CPU(object):
         source code forms: CMPA P; CMPB P
 
         CC bits "HNZVC": uaaaa
-
-        static uint8_t op_sub(struct MC6809 *cpu, uint8_t a, uint8_t b) {
-            unsigned out = a - b;
-            CLR_NZVC;
-            SET_NZVC8(a, b, out);
-            return out;
-        }
-
         """
         a = register.get()
         b = m
@@ -2368,6 +2362,7 @@ class CPU(object):
         a = register.get()
         r = a | m
         register.set(r)
+        self.cc.clear_NZV()
         self.cc.update_NZ0_8(r)
         log.debug("\tOR %s: %i | %i = %i",
             register.name, a, m, r
@@ -2888,7 +2883,8 @@ class CPU(object):
         CC bits "HNZVC": -aa0-
         """
         x = register.get()
-        self.cc.update_NZ0_8(x)
+        self.cc.clear_NZV()
+        self.cc.update_NZ_8(x)
 
     @opcode(0xd, 0x6d) # TST (direct, indexed)
     def instruction_TST_memory_8(self, opcode, m):
