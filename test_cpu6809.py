@@ -157,40 +157,27 @@ class Test6809_CC(BaseTestCase):
         self.assertEqual(self.cpu.accu_a.get(), 0x1e)
         self.assertEqual(self.cpu.accu_b.get(), 0x12)
 
-    def test_Overflow01(self):
-        self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x86, 0xff, # LDA #-128
-            0x80, 0x01, # SUBA #1
-        ])
-        self.assertEqualHex(self.cpu.accu_a.get(), 0xfe)
-        self.assertEqual(self.cpu.cc.N, 1) # N - 0x08 - bit 3 - Negative result (twos complement)
-        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
-        self.assertEqual(self.cpu.cc.V, 1) # V - 0x02 - bit 1 - Overflow
-        self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
-
-        self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x86, 0xff, # LDA #-128
-            0x80, 0x01, # SUBA #1
-        ])
-        self.assertEqualHex(self.cpu.accu_a.get(), 0x7f) # $7f == signed: 127 == unsigned: 127
-        self.assertEqual(self.cpu.cc.N, 0) # N - 0x08 - bit 3 - Negative result (twos complement)
-        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
-        self.assertEqual(self.cpu.cc.V, 1) # V - 0x02 - bit 1 - Overflow
-        self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
-
     def test_ADDA(self):
+        # expected values are: 1 up to 255 then wrap around to 0 and up to 4
+        excpected_values = range(1, 256)
+        excpected_values += range(0, 5)
+
         half_carry = (# range(0, 255, 16)
             0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240
         )
 
         self.cpu.accu_a.set(0x00) # start value
-        for __ in xrange(260):
+        for i in xrange(260):
             self.cpu.cc.set(0x00) # Clear all CC flags
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x8B, 0x01, # ADDA #1
             ])
             a = self.cpu.accu_a.get()
-#             print a, self.cpu.cc.get_info
+            excpected_value = excpected_values[i]
+#             print i, a, excpected_value, self.cpu.cc.get_info
+
+            # test ADDA result
+            self.assertEqual(a, excpected_value)
 
             # test half carry
             if a in half_carry:
@@ -223,6 +210,7 @@ class Test6809_CC(BaseTestCase):
                 self.assertEqual(self.cpu.cc.C, 0)
 
     def test_INC(self):
+        # expected values are: 1 up to 255 then wrap around to 0 and up to 4
         excpected_values = range(1, 256)
         excpected_values += range(0, 5)
 
@@ -264,14 +252,22 @@ class Test6809_CC(BaseTestCase):
             self.assertEqual(self.cpu.cc.C, 0)
 
     def test_SUBA(self):
+        # expected values are: 254 down to 0 than wrap around to 255 and down to 252
+        excpected_values = range(254, -1, -1)
+        excpected_values += range(255, 250, -1)
+
         self.cpu.accu_a.set(0xff) # start value
-        for __ in xrange(260):
+        for i in xrange(260):
             self.cpu.cc.set(0x00) # Clear all CC flags
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x80, 0x01, # SUBA #1
             ])
             a = self.cpu.accu_a.get()
-            print a, self.cpu.cc.get_info
+            excpected_value = excpected_values[i]
+#             print i, a, excpected_value, self.cpu.cc.get_info
+
+            # test SUBA result
+            self.assertEqual(a, excpected_value)
 
             # test half carry
             # XXX: half carry is "undefined" in SUBA!
@@ -301,83 +297,50 @@ class Test6809_CC(BaseTestCase):
             else:
                 self.assertEqual(self.cpu.cc.C, 0)
 
+    def test_DEC(self):
+        # expected values are: 254 down to 0 than wrap around to 255 and down to 252
+        excpected_values = range(254, -1, -1)
+        excpected_values += range(255, 250, -1)
 
-    def test_Overflow_INC(self):
-        self.cpu.memory.write_byte(0x4500, 0x7e)
-        self.assertEqualHex(self.cpu.memory.read_byte(0x4500), 0x7e)
-        self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x7c, 0x45, 0x00, # INC $4500
-        ])
-        self.assertEqualHex(self.cpu.memory.read_byte(0x4500), 0x7f)
-        self.assertEqual(self.cpu.cc.H, 0) # H - 0x20 - bit 5 - Half-Carry
-        self.assertEqual(self.cpu.cc.N, 0) # N - 0x08 - bit 3 - Negative result (twos complement)
-        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
-        self.assertEqual(self.cpu.cc.V, 0) # V - 0x02 - bit 1 - Overflow
-        self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
+        self.cpu.memory.write_byte(0x4500, 0xff) # start value
+        self.cpu.accu_a.set(0xff) # start value
+        for i in xrange(260):
+            self.cpu.cc.set(0x00) # Clear all CC flags
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x7A, 0x45, 0x00, # DEC $4500
+            ])
+            r = self.cpu.memory.read_byte(0x4500)
+            excpected_value = excpected_values[i]
+#             print i, r, excpected_value, self.cpu.cc.get_info
 
-        self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x7c, 0x45, 0x00, # INC $4500
-        ])
-        self.assertEqualHex(self.cpu.memory.read_byte(0x4500), 0x80)
-        self.assertEqual(self.cpu.cc.H, 0) # H - 0x20 - bit 5 - Half-Carry
-        self.assertEqual(self.cpu.cc.N, 1) # N - 0x08 - bit 3 - Negative result (twos complement)
-        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
-        self.assertEqual(self.cpu.cc.V, 1) # V - 0x02 - bit 1 - Overflow
-        self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
+            # test DEC result
+            self.assertEqual(r, excpected_value)
 
-        self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x7c, 0x45, 0x00, # INC $4500
-        ])
-        self.assertEqualHex(self.cpu.memory.read_byte(0x4500), 0x81)
-        self.assertEqual(self.cpu.cc.H, 0) # H - 0x20 - bit 5 - Half-Carry
-        self.assertEqual(self.cpu.cc.N, 1) # N - 0x08 - bit 3 - Negative result (twos complement)
-        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
-        self.assertEqual(self.cpu.cc.V, 0) # V - 0x02 - bit 1 - Overflow
-        self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
+            # half carry bit is not affected in DEC
+            self.assertEqual(self.cpu.cc.H, 0)
 
-    def test_HalfCarry01(self):
-        self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x86, 0x0e, # LDA #14
-            0x8B, 0x01, # ADDA #1
-        ])
-        self.assertEqual(self.cpu.accu_a.get(), 0xf) # $f == 15
-        self.assertEqual(self.cpu.cc.H, 0) # H - 0x20 - bit 5 - Half-Carry
-        self.assertEqual(self.cpu.cc.N, 0) # N - 0x08 - bit 3 - Negative result (twos complement)
-        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
-        self.assertEqual(self.cpu.cc.V, 0) # V - 0x02 - bit 1 - Overflow
-        self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
+            # test negative
+            if 128 <= r <= 255:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
 
-        self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x86, 0x0f, # LDA #15
-            0x8B, 0x01, # ADDA #1
-        ])
-        self.assertEqual(self.cpu.accu_a.get(), 0x10) # $f == 16
-        self.assertEqual(self.cpu.cc.H, 1) # H - 0x20 - bit 5 - Half-Carry
-        self.assertEqual(self.cpu.cc.N, 0) # N - 0x08 - bit 3 - Negative result (twos complement)
-        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
-        self.assertEqual(self.cpu.cc.V, 0) # V - 0x02 - bit 1 - Overflow
-        self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
+            # test zero
+            if r == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
 
-    def test_Carry01(self):
-        self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x86, 0xfe, # LDA #254
-            0x8B, 0x01, # ADDA #1
-        ])
-        self.assertEqual(self.cpu.accu_a.get(), 0xff)
-        self.assertEqual(self.cpu.cc.N, 1) # N - 0x08 - bit 3 - Negative result (twos complement)
-        self.assertEqual(self.cpu.cc.Z, 0) # Z - 0x04 - bit 2 - Zero result
-        self.assertEqual(self.cpu.cc.V, 0) # V - 0x02 - bit 1 - Overflow
-        self.assertEqual(self.cpu.cc.C, 0) # C - 0x01 - bit 0 - Carry (or borrow)
+            # test overflow
+            if r == 127: # V is set if SUB $80 to $7f
+                self.assertEqual(self.cpu.cc.V, 1)
+            else:
+                self.assertEqual(self.cpu.cc.V, 0)
 
-        self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x86, 0xff, # LDA #255
-            0x8B, 0x01, # ADDA #1
-        ])
-        self.assertEqual(self.cpu.accu_a.get(), 0x0) # $ff wrap around
-        self.assertEqual(self.cpu.cc.N, 0) # N - 0x08 - bit 3 - Negative result (twos complement)
-        self.assertEqual(self.cpu.cc.Z, 1) # Z - 0x04 - bit 2 - Zero result
-        self.assertEqual(self.cpu.cc.V, 1) # V - 0x02 - bit 1 - Overflow
-        self.assertEqual(self.cpu.cc.C, 1) # C - 0x01 - bit 0 - Carry (or borrow)
+            # carry bit is not affected in DEC
+            self.assertEqual(self.cpu.cc.C, 0)
+
+
 
 class Test6809_Ops(BaseTestCase):
     def test_TFR01(self):
@@ -660,8 +623,10 @@ if __name__ == '__main__':
             sys.argv[0],
 #             "Test6809_Register"
 #             "Test6809_CC",
-#             "Test6809_CC.test_Overflow02",
-#             "Test6809_CC.test_Overflow_INC",
+#             "Test6809_CC.test_ADDA",
+#             "Test6809_CC.test_INC",
+#             "Test6809_CC.test_SUBA",
+#             "Test6809_CC.test_DEC",
 #             "Test6809_Ops",
 #             "Test6809_Ops.test_TFR03",
 #             "Test6809_Ops.test_CMPX_extended",
