@@ -347,6 +347,30 @@ class Test6809_CC(BaseTestCase):
             # carry bit is not affected in DEC
             self.assertEqual(self.cpu.cc.C, 0)
 
+    def test_AND(self):
+        # expected values are: 254 down to 0 than wrap around to 255 and down to 252
+        excpected_values = range(0, 128)
+        excpected_values += range(0, 128)
+        excpected_values += range(0, 4)
+
+        for i in xrange(260):
+            self.cpu.accu_a.set(i)
+            self.cpu.cc.set(0x0e) # Set affected flags: ....NZV.
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x84, 0x7f, # ANDA #$7F
+            ])
+            r = self.cpu.accu_a.get()
+            excpected_value = excpected_values[i]
+#             print i, r, excpected_value, self.cpu.cc.get_info, self.cpu.cc.get()
+
+            # test AND result
+            self.assertEqual(r, excpected_value)
+
+            # test all CC flags
+            if r == 0:
+                self.assertEqual(self.cpu.cc.get(), 4)
+            else:
+                self.assertEqual(self.cpu.cc.get(), 0)
 
 
 class Test6809_Ops(BaseTestCase):
