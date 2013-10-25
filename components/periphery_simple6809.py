@@ -398,6 +398,8 @@ def test_run():
 #         "--verbosity=40", # ERROR
 #         "--verbosity=50", # CRITICAL/FATAL
 
+        "--area_debug_cycles=23383", # First OK after copyright info
+
         "--cfg=Simple6809Cfg",
 #         "--max=500000",
 #         "--max=30000",

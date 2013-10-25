@@ -800,11 +800,19 @@ class CPU(object):
                 self.quit = True
 
     def test_run(self, start, end):
+        log.warn("CPU test_run(): from $%x to $%x" % (start, end))
         self.program_counter = start
         log.debug("-"*79)
         while True:
             if self.program_counter == end:
                 break
+            self.get_and_call_next_op()
+
+    def test_run2(self, start, count):
+        log.warn("CPU test_run2(): from $%x count: %i" % (start, count))
+        self.program_counter = start
+        log.debug("-"*79)
+        for __ in xrange(count):
             self.get_and_call_next_op()
 
     ####

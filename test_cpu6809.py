@@ -51,6 +51,13 @@ class BaseTestCase(unittest.TestCase):
             end = start + len(mem)
         self.cpu.test_run(start, end)
 
+    def cpu_test_run2(self, start, count, mem):
+        for cell in mem:
+            self.assertLess(-1, cell, "$%x < 0" % cell)
+            self.assertGreater(0x100, cell, "$%x > 0xff" % cell)
+        self.cpu.memory.load(start, mem)
+        self.cpu.test_run2(start, count)
+
     def assertEqualHex(self, first, second):
         msg = "$%x != $%x" % (first, second)
         self.assertEqual(first, second, msg)
@@ -572,34 +579,28 @@ class Test6809_Stack(BaseTestCase):
 
 
 
-class TestDragon32ROM(BaseTestCase):
-    """
-    use routines from Dragon 32 ROM
-    """
-    def test_print(self):
-        return # not ready yet
-#         self.cpu_test_run(start=0x1000, end=None, mem=[
-#             0x86, 0x12, # LDA A=$12
-#             0xC6, 0x34, # LDB B=$34
-#
-#             0xB7, 0x06, 0x00, # STA 0x0600 (extended) ($0600-1dff = Available graphics pages w/o DOS)
-#             0xF7, 0x06, 0x01, # STB 0x0601 (extended)
-#
-#             0xFC, 0x06, 0x00, # LDD 0x0600 (extended)
-#         ])
-#         self.assertEqualHex(self.cpu.memory.read_word(0x0600), 0x1234)
-#         self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
-#         self.assertEqualHex(self.cpu.accu_a.get(), 0x12)
-#         self.assertEqualHex(self.cpu.accu_b.get(), 0x34)
 
-        self.cpu_test_run(start=0x4000, end=None, mem=[
-            0xCC, 0x12, 0x34, # LDD $1234        ; $5858 == 22616
-#             0xBD, 0x95, 0x7A, # JSR 38266        ; OUTPUT D REGISTER
-            0x7E, 0x95, 0x7A, # JMP 38266        ; OUTPUT D REGISTER
+class TestSimple6809ROM(BaseTestCase):
+    """
+    use routines from Simple 6809 ROM code
+    """
+    def _is_carriage_return(self, a, pc):
+        self.cpu.accu_a.set(a)
+        self.cpu_test_run2(start=0x4000, count=3, mem=[
+            # origin start address in ROM: $db16
+            0x34, 0x02, # PSHS A
+            0x81, 0x0d, # CMPA #000d(CR)       ; IS IT CARRIAGE RETURN?
+            0x27, 0x0b, # BEQ  NEWLINE         ; YES
         ])
-        self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
-        self.assertEqualHex(self.cpu.accu_a.get(), 0x12)
-        self.assertEqualHex(self.cpu.accu_b.get(), 0x34)
+        self.assertEqualHex(self.cpu.program_counter, pc)
+
+    def test_is_not_carriage_return(self):
+        self._is_carriage_return(a=0x00, pc=0x4006)
+
+    def test_is_carriage_return(self):
+        self._is_carriage_return(a=0x0d, pc=0x4011)
+
+
 
 
 
@@ -608,10 +609,11 @@ class TestDragon32ROM(BaseTestCase):
 if __name__ == '__main__':
     log = logging.getLogger("DragonPy")
     log.setLevel(
-#         logging.ERROR
-        logging.WARNING
-#         logging.INFO
-#         logging.DEBUG
+#         10 # DEBUG
+#         20 # INFO
+        30 # WARNING
+#         40 # ERROR
+#         50 # CRITICAL/FATAL
     )
     log.addHandler(logging.StreamHandler())
 
@@ -636,6 +638,7 @@ if __name__ == '__main__':
 #             "Test6809_Ops2.test_TFR_CC_B",
 #              "Test6809_Stack",
 #              "Test6809_Stack.test_PushPullSystemStack_03",
+            "TestSimple6809ROM",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
