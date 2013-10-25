@@ -497,7 +497,7 @@ class Instruction(object):
 
             if mnemonic in DEBUG_INSTR:
                 pc = self.cpu.program_counter
-                log.info(
+                log.debug(
                     "\t new PC: %x -> $%x\t| %s",
                     op_address, pc, self.cpu.cfg.mem_info.get_shortest(pc)
                 )

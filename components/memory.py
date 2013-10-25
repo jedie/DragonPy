@@ -73,9 +73,9 @@ class ROM(object):
 
 class RAM(ROM):
     def write_byte(self, address, value):
-        log.debug(" **** write $%x to $%x - mem info:" % (value, address))
-        log.debug("      %s" % self.cfg.mem_info.get_shortest(value))
-        log.debug("      %s" % self.cfg.mem_info.get_shortest(address))
+        log.debug(" **** write $%x to $%x", value, address)
+        log.log(5, "\t\t%s", self.cfg.mem_info.get_shortest(value))
+        log.log(5, "\t\t%s", self.cfg.mem_info.get_shortest(address))
         self._mem[address] = value
 
 
@@ -116,7 +116,7 @@ class Memory(object):
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
             byte = self.bus_read_byte(address)
-            log.debug("%04x| (%i) read byte $%x from address $%x from bus: %s",
+            log.log(5, "%04x| (%i) read byte $%x from address $%x from bus: %s",
                 self.cpu.last_op_address, self.cpu.cycles,
                 byte, address, info
             )
@@ -134,26 +134,32 @@ class Memory(object):
 #             raise RuntimeError(msg2)
             byte = 0x0
 
-        log.debug("%04x| (%i) read byte $%x from $%x",
+        log.log(5, "%04x| (%i) read byte $%x from $%x",
             self.cpu.last_op_address, self.cpu.cycles,
             byte, address
         )
+#         if 32 <= byte <= 126:
+        if 65 <= byte <= 90:
+            log.info("%04x| (%i) read char %r ($%x) from $%x",
+                self.cpu.last_op_address, self.cpu.cycles, chr(byte), byte, address
+            )
         return byte
 
     def read_word(self, address):
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
-            log.debug("\twrite word at $%x to bus: %s" % (address, info))
+            log.log(5, "\tread word at $%x from bus: %s", address, info)
             return self.bus_read_word(address)
 
         # 6809 is Big-Endian
         return self.read_byte(address + 1) + (self.read_byte(address) << 8)
 
     def write_byte(self, address, value):
-        log.debug("%04x| (%i) write byte $%x at $%x",
+        log.log(5, "%04x| (%i) write byte $%x at $%x",
             self.cpu.last_op_address, self.cpu.cycles, value, address
         )
-        if 32 <= value <= 126:
+#         if 32 <= value <= 126:
+        if 65 <= value <= 90:
             log.info("%04x| (%i) write char %r ($%x) at $%x",
                 self.cpu.last_op_address, self.cpu.cycles, chr(value), value, address
             )
@@ -168,7 +174,7 @@ class Memory(object):
 
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
-            log.debug("\twrite byte at $%x to bus: %s" % (address, info))
+            log.log(5, "\twrite byte at $%x to bus: %s" % (address, info))
             return self.bus_write_byte(address, value)
 
         if address < self.cfg.RAM_END:
@@ -183,7 +189,7 @@ class Memory(object):
     def write_word(self, address, value):
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
-            log.debug("\twrite word at $%x to bus: %s" % (address, info))
+            log.log(5, "\twrite word at $%x to bus: %s" % (address, info))
             return self.bus_write_word(address, value)
 
         # 6809 is Big-Endian
