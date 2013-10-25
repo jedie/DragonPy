@@ -266,6 +266,7 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
 
         self.root.bind("<Return>", self.event_return)
         self.root.bind("<Escape>", self.from_console_break)
+        self.root.bind('<Control-c>', self.copy_to_clipboard)
         self.root.bind("<Key>", self.event_key_pressed)
 
         self.root.update()
@@ -280,6 +281,13 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
         log.error("BREAK: add 0x03")
         # dc61 81 03              LA3C2     CMPA #3             BREAK KEY?
         self.line_buffer.append("\x03")
+
+    def copy_to_clipboard(self, event):
+        log.critical("Copy to clipboard")
+        text = self.text.get("1.0", Tkinter.END)
+        print text
+        self.root.clipboard_clear()
+        self.root.clipboard_append(text)
 
     def event_key_pressed(self, event):
         log.error("keycode %s", repr(event.keycode))
