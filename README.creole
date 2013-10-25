@@ -65,6 +65,33 @@ The Simple6809 config works a little bit. First GUI used a simple Tkinter window
 Looks like this:
 {{http://www.pylucid.org/media/jensdiemer.de/screenshots/Simple6809_TK_03.PNG}}
 
+Current running output:
+{{{
+6809 EXTENDED BASIC
+(C) 1982 BY MICROSOFT
+
+OK
+PRINT "DOES NOT WORK"
+
+
+BREAK
+OK
+PRINT 123
+
+
+BREAK
+OK
+10 PRINT 123
+LIST
+OK
+RUN
+
+BREAK
+OK
+FOR I=1 to 3:PRINT I:NEXT I
+?SN ERROR
+OK
+}}}
 
 == Links
 
