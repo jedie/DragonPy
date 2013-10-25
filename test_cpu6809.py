@@ -372,6 +372,48 @@ class Test6809_CC(BaseTestCase):
             else:
                 self.assertEqual(self.cpu.cc.get(), 0)
 
+    def test_LSL(self):
+        excpected_values = range(0, 255, 2)
+        excpected_values += range(0, 255, 2)
+        excpected_values += range(0, 8, 2)
+
+        for i in xrange(260):
+            self.cpu.accu_a.set(i)
+            self.cpu.cc.set(0x00) # Clear all CC flags
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x48, # LSLA/ASLA
+            ])
+            r = self.cpu.accu_a.get()
+            excpected_value = excpected_values[i]
+#             print "{0:08b} -> {1:08b}".format(i, r), self.cpu.cc.get_info, i, r, self.cpu.cc.get()
+
+            # test LSL result
+            self.assertEqual(r, excpected_value)
+
+            # test negative
+            if 128 <= r <= 255:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if r == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow
+            if 64 <= i <= 191:
+                self.assertEqual(self.cpu.cc.V, 1)
+            else:
+                self.assertEqual(self.cpu.cc.V, 0)
+
+            # test carry
+            if 128 <= i <= 255:
+                self.assertEqual(self.cpu.cc.C, 1)
+            else:
+                self.assertEqual(self.cpu.cc.C, 0)
+
 
 class Test6809_Ops(BaseTestCase):
     def test_TFR01(self):
