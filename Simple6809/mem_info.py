@@ -4207,6 +4207,13 @@ class Simple6809MemInfo(BaseMemoryInfo):
         (0xA000, 0xBFFF, "SERIAL INTERFACE"),
         (0xC000, 0xFFFF, "16K ROM"),
         (0xDB00, 0xFFFF, "BASIC Interpreter"),
+
+        (0xdb00, 0xdb13, "Console in"),
+        (0xdb14, 0xdb39, "Console out"),
+        (0xdb3a, 0xdb45, "Wait for serial data"),
+        (0xdc3e, 0xdc8a, "ROUTINE THAT GETS AN INPUT LINE FOR BASIC"),
+        (0xe0a3, 0xe0b8, "Break check"),
+        (0xeb6a, 0xeb6e, "PRINT"),
     )
 
 
