@@ -348,7 +348,6 @@ class Test6809_CC(BaseTestCase):
             self.assertEqual(self.cpu.cc.C, 0)
 
     def test_AND(self):
-        # expected values are: 254 down to 0 than wrap around to 255 and down to 252
         excpected_values = range(0, 128)
         excpected_values += range(0, 128)
         excpected_values += range(0, 4)
@@ -502,19 +501,6 @@ class Test6809_Ops(BaseTestCase):
         self.assertEqual(self.cpu.cc.V, 0) # FIXME
         self.assertEqual(self.cpu.cc.C, 0)
 
-
-
-#     @opcode(0xbb)
-#     def ADDA_extended(self):
-#         """
-#         A = A + M
-#         """
-#         self.cycles += 5
-#         value = self.read_pc_word()
-#         log.debug("%s - 0xbb ADDA extended: Add %s to accu A: %s" % (
-#             hex(self.program_counter), hex(value), hex(self.accu_a)
-#         ))
-#         self.accu_a += value
 
 class Test6809_Ops2(BaseTestCase):
     def test_TFR_CC_B(self):

@@ -274,11 +274,11 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
         self.line_buffer = []
 
     def event_return(self, event):
-        log.error("ENTER: add \\r")
+        log.critical("ENTER: add \\r")
         self.line_buffer.append("\r")
 
     def from_console_break(self, event):
-        log.error("BREAK: add 0x03")
+        log.critical("BREAK: add 0x03")
         # dc61 81 03              LA3C2     CMPA #3             BREAK KEY?
         self.line_buffer.append("\x03")
 
@@ -290,7 +290,7 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
         self.root.clipboard_append(text)
 
     def event_key_pressed(self, event):
-        log.error("keycode %s", repr(event.keycode))
+        log.critical("keycode %s", repr(event.keycode))
         char = event.char
         log.error("char %s", repr(char))
         if char:
@@ -303,20 +303,20 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
 
     def read_rs232_interface(self, cpu_cycles, op_address, address):
         """
-                        *
-                        * THIS ROUTINE GETS A KEYSTROKE FROM THE KEYBOARD IF A KEY
-                        * IS DOWN. IT RETURNS ZERO TRUE IF THERE WAS NO KEY DOWN.
-                        *
-                        *
-                        LA1C1
-db05 b6 a0 00           KEYIN     LDA  a000(USTAT)
-db08 85 01                        BITA #1
-db0a 27 06                        BEQ  NOCHAR
-db0c b6 a0 01                     LDA  a001(RECEV)
-db0f 84 7f                        ANDA #$7F
-db11 39                           RTS
-db12 4f                 NOCHAR    CLRA
-db13 39                           RTS
+                                *
+                                * THIS ROUTINE GETS A KEYSTROKE FROM THE KEYBOARD IF A KEY
+                                * IS DOWN. IT RETURNS ZERO TRUE IF THERE WAS NO KEY DOWN.
+                                *
+                                *
+                                LA1C1
+        db05 b6 a0 00           KEYIN     LDA  a000(USTAT)
+        db08 85 01                        BITA #1
+        db0a 27 06                        BEQ  NOCHAR
+        db0c b6 a0 01                     LDA  a001(RECEV)
+        db0f 84 7f                        ANDA #$7F
+        db11 39                           RTS
+        db12 4f                 NOCHAR    CLRA
+        db13 39                           RTS
         """
         log.debug(
 #         log.error(
@@ -325,12 +325,16 @@ db13 39                           RTS
         )
 
         if address == 0xa000:
+            return 0xff
 #             if self.line_buffer:
-#                 value = 0x00
+#                 # There is text to send via virtual serial
+#                 value = 0xff
 #             else:
-            value = 0xff
+#                 # No chars to send.
+#                 value = 0x02 # XXX
+#
 #             log.error("read 0xa000, send $%x", value)
-            return value
+#             return value
 
         if self.line_buffer:
             char = self.line_buffer.pop(0)
@@ -364,7 +368,9 @@ db13 39                           RTS
             return
 
         char = chr(value)
+        log.error("*"*79)
         log.error("Write to screen: %s ($%x)" % (repr(char), value))
+        log.error("*"*79)
 
         # write some simple BASIC test code:
 #         self.LAST_INPUT += char
