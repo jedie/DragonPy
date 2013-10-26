@@ -1887,8 +1887,25 @@ class CPU(object):
 
         CC bits "HNZVC": -aa0a
         """
-        raise NotImplementedError("$%x DAA" % opcode)
-        # Update CC bits: -aa0a
+        tmp = 0
+        a = self.accu_a.get()
+        cc = self.cc.get()
+
+        if (a & 0x0f) >= 0x0a or cc & self.cc.H:
+            tmp |= 0x06
+
+        if a >= 0x90 and (a & 0x0f) >= 0x0a:
+            tmp |= 0x60
+
+        if a >= 0xa0 or cc & self.cc.C:
+            tmp |= 0x60
+
+        new_value = tmp + a
+        self.accu_a.set(new_value)
+
+        # CC.C NOT cleared, only set if appropriate
+        self.cc.clear_NZV()
+        self.cc.update_NZC_8(tmp)
 
     def DEC(self, a):
         """
@@ -1956,7 +1973,7 @@ class CPU(object):
     @opcode(# Exchange Rl with R2
         0x1e, # EXG (immediate)
     )
-    def instruction_EXG(self, opcode, ea, m):
+    def instruction_EXG(self, opcode, m):
         """
         0000 = A:B 1000 = A 0001 = X 1001 = B 0010 = Y 1010 = CCR 0011 = US 1011
         = DPR 0100 = SP 1100 = Undefined 0101 = PC 1101 = Undefined 0110 =
@@ -1966,8 +1983,21 @@ class CPU(object):
 
         CC bits "HNZVC": ccccc
         """
-        raise NotImplementedError("$%x EXG" % opcode)
-        # Update CC bits: ccccc
+        high, low = divmod(m, 16)
+        # TODO: check if source and dest has the same size?
+        r1 = self._get_register_obj(high)
+        r2 = self._get_register_obj(low)
+
+        r1_value = r1.get()
+        r2_value = r2.get()
+
+        r1.set(r2_value)
+        r2.set(r1_value)
+
+        log.debug("\tEXG: %s($%x) <-> %s($%x)",
+            r1.name, r1_value, r2.name, r2_value
+        )
+
 
     @opcode(# Increment accumulator
         0x4c, # INCA (inherent)
@@ -2209,9 +2239,9 @@ class CPU(object):
         CC bits "HNZVC": -0a-s
         """
         r = a >> 1
-        self.cc.clear_NZC() # XXX:
+        self.cc.clear_NZC()
         self.cc.C |= (a & 1) # XXX: ok?
-        self.cc.set_Z(r)
+        self.cc.set_Z8(r)
         return r
 
     @opcode(0x4, 0x64, 0x74) # LSR (direct, indexed, extended)
