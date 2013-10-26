@@ -1,7 +1,7 @@
 This is an unfinished. but working version of the 6809 assewmbler. simulator
 and software. It is released under the GPL
 It runs under several versions of Unix. Docs are in LaTeX format (sbc09.tex) and
-in ASCI (README.doc)
+in ASCI (README.txt)
 
 mon2.asm is an alternative version of the monitor program.
 
