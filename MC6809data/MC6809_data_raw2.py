@@ -15,6 +15,9 @@
         effective address, but the content of the memory is not needed in
         the instruction them self, the read_from_memory must be set to False.
 
+    Generated data is online here:
+    https://docs.google.com/spreadsheet/ccc?key=0Alhtym6D6yKjdFBtNmF0UVR5OW05S3psaURnUTNtSFE
+
     :copyleft: 2013 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
@@ -1081,10 +1084,10 @@ EXG: {'condition code': 'Not affected (unless one of the registers is the condit
      'mnemonic': {EXG: {'HNZVC': 'ccccc',
                       'desc': 'exchange R1,R2',
                       'needs_ea': False,
-                      'ops': {0x1e: {'addr_mode': None,
+                      'ops': {0x1e: {'addr_mode': IMMEDIATE,
                                    'bytes': 2,
                                    'cycles': 8}},
-                      'read_from_memory': None,
+                      'read_from_memory': BYTE,
                       'register': None,
                       'write_to_memory': None}},
      'operation': 'R1 <-> R2',

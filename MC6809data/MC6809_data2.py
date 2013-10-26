@@ -218,7 +218,7 @@ op_info_dict = {
     0x1a: ("ORCC", IMMEDIATE),
     0x1c: ("ANDCC", IMMEDIATE),
     0x1d: ("SEX", INHERENT),
-    0x1e: ("EXG", None),
+    0x1e: ("EXG", IMMEDIATE),
     0x1f: ("TFR", IMMEDIATE),
     0x20: ("BRA", RELATIVE),
     0x21: ("BRN", RELATIVE),
@@ -598,6 +598,7 @@ MEM_READ = {
     "BITA":8,
     "BITB":8,
 
+    "EXG":8,
     "TFR":8,
     "TST":8,
 

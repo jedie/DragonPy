@@ -112,7 +112,7 @@ EOR;$d8;216;EORB;REG_B;;BYTE;;DIRECT;-;a;a;0;-;B = M XOR B;8-Bit Accumulator and
 EOR;$f8;248;EORB;REG_B;;BYTE;;EXTENDED;-;a;a;0;-;B = M XOR B;8-Bit Accumulator and Memory Instructions
 EOR;$c8;200;EORB;REG_B;;BYTE;;IMMEDIATE;-;a;a;0;-;B = M XOR B;8-Bit Accumulator and Memory Instructions
 EOR;$e8;232;EORB;REG_B;;BYTE;;INDEXED;-;a;a;0;-;B = M XOR B;8-Bit Accumulator and Memory Instructions
-EXG;$1e;30;EXG;;;;;;c;c;c;c;c;exchange R1,R2;8-Bit Accumulator and Memory Instructions
+EXG;$1e;30;EXG;;;BYTE;;IMMEDIATE;c;c;c;c;c;exchange R1,R2;8-Bit Accumulator and Memory Instructions
 INC;$0c;12;INC;;yes;BYTE;BYTE;DIRECT;-;a;a;a;-;M = M + 1;8-Bit Accumulator and Memory Instructions
 INC;$7c;124;INC;;yes;BYTE;BYTE;EXTENDED;-;a;a;a;-;M = M + 1;8-Bit Accumulator and Memory Instructions
 INC;$6c;108;INC;;yes;BYTE;BYTE;INDEXED;-;a;a;a;-;M = M + 1;8-Bit Accumulator and Memory Instructions
