@@ -2949,9 +2949,12 @@ def test_run():
 #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
 
 #         "--area_debug_active=5:bb79-ffff",
-         "--area_debug_cycles=1587101",
+#          "--area_debug_cycles=1587101",
+
+        "--cfg=SBC09Cfg",
 #         "--cfg=Simple6809Cfg",
-        "--cfg=Dragon32Cfg",
+#         "--cfg=Dragon32Cfg",
+
 #         "--max=15000",
 #         "--max=46041",
     ]

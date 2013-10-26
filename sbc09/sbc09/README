@@ -1,0 +1,13 @@
+This is an unfinished. but working version of the 6809 assewmbler. simulator
+and software. It is released under the GPL
+It runs under several versions of Unix. Docs are in LaTeX format (sbc09.tex) and
+in ASCI (README.doc)
+
+mon2.asm is an alternative version of the monitor program.
+
+alt09.rom is a version of the ROM that contains the alternative monitor and
+Forth. Forth is transferrred to RAM by a small loader.
+To start Forth type G8000. To start it again, type G400.
+
+Yes, you can run TETRIS from the Forth included with this simulator.
+

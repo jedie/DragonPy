@@ -1,0 +1,92 @@
+				TINY BASIC SUMMARY
+ 
+Editing		Standard Basic
+ 
+Direct Mode	All Verbs Usable
+ 
+Statement Types
+ 
+	PRINT	Item List
+	LET	Var = Expr	(LET is optional)
+	IF	Expr Relop Expr  Statement
+	INPUT	Variable List
+	GOTO	Line Number
+	GOSUB	Line Number
+	RETURN
+	POKE	POKE(Expr) = Expr
+	STOP
+	LIST	Line Number, Line Number	(Line Numbers are optional)
+	RUN
+	NEW
+ 
+Functions
+ 
+	USR	Variable = USR(Expr,Expr)
+	PEEK	Variable = PEEK(Expr)
+	MEM	Variable = MEM
+ 
+Number		Integers to _+32767 or Hex Integers preceded by a $ symbol
+ 
+Variable	Letters A-Z
+ 
+Expression	Variables, Numbers, and Functions combined with the following
+		operators +, -, *, /, (, ).
+ 
+Relop		Comparison operators =, <, >, <=, >=, <>.
+ 
+Line Number	Numbers 1 through 9999
+ 
+String		"ALPHANUMERICS"
+ 
+Item List	Expressions and Strings seperated by format control
+		characters , and ;.
+ 
+Control Chars.	Control H or "Back Space" deletes last input character.
+		Control X or "Cancel" deletes entire input line.
+		Control C Terminates Basic program or List operation and
+			  returns control to command mode.
+ 
+Memory Usage	Tiny Basic V1.37
+ 
+$0080 - $009F	Tiny Basic interpreter scratch area.
+$00A0 - $00FD	Not used by Tiny Basic interpreter. (usable USR routines)
+$**** - $****	Pointer to Interrupt Vector Table. (Identical to LILBUG)
+$D800 - $DFFF	Input Buffer, Basic Program storage, Stack Space, and
+		Variables in RAM.
+$**** - $****	Optional Power Up Basic Program and/or USR functions in ROM.
+$E800 - $EFFF	Tiny Basic interpreter ROM.
+ 
+$E800		Cold Start Address.
+$E803		Warm Start Address.
+
+			Tiny Basic USR Function
+ 
+The USR function in Tiny Basic takes 2 arguments and returns a value to a
+variable. The form of the USR function is "LET V = USR(Expr,Expr)".
+The USR function can be used in any expression in Tiny Basic as an example
+"LET V = A * ( B + USR( $EF00, K))". The USR function can also be used with
+the PRINT statement.
+ 
+The first argument of the USR function is evaluated to determine the address
+or the machine language code to be called. The second argument is evaluated
+and the value is send to the machine code routine in the D accumulator. The
+second argument is optional, if it is present the Carry bit in the condition
+code register will be cleared when the machine code routine is called. If the
+second argument is not present the Carry Bit will be set when the machine code
+is called. The machine code routine may return a result to the BASIC program
+in the D accumulator, the value in the D accumulator on return from the machine
+code routine will be used by the BASIC program as the value of the function.
+ 
+The machine code routine must execute a RTS instruction to return conterol to
+the BASIC program. The machine code routine may use all the processor registers
+freely and need not save and restore any registers. It is important that the
+machine code routine not modify any memory used by the Tiny Basic interpreter.
+Consult the memory map provided with your version of Tiny Basic to determine
+which memory areas are not used.
+ 
+Tiny Basic handles interrupts with the same interrupt vectoring technique used
+by LILBUG. Consult the LILBUG manual for details on interrupt vector usage.
+ 
+ 
+ 
+							JPB  12-APR-82

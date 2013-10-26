@@ -1,0 +1,54 @@
+\ 6809 meta compiler to be run from an ANSI standard FORTH system
+\ that contains the FILE wordset.
+
+\ We need the word VOCABULARY. It's not in the standard though it will
+\ be in most actual implementations.
+: VOCABULARY WORDLIST CREATE  ,  \ Make a new wordlist and store it in def.
+  DOES> >R                      \ Replace last item in the search order.
+  GET-ORDER SWAP DROP R> @ SWAP SET-ORDER ;
+
+.( Loading the assembler "asm09.4") CR
+S" asm09.4" INCLUDED
+
+.( Loading the meta compiler "meta09.4") CR
+S" meta09.4" INCLUDED
+
+.( Compiling the kernel from "kernel09.4") CR
+S" kernel09.4" INCLUDED
+
+\ Save the binary image of the Forth system as Motorola S records.
+
+DECIMAL
+VARIABLE CHKSUM 
+CREATE SBUF 42 CHARS ALLOT
+CHAR S SBUF C!
+CHAR 1 SBUF CHAR+ C!
+VARIABLE BYTECOUNT
+VARIABLE ADDR 
+VARIABLE FILEHAND
+: TOHEX ( byte addr ---) \ Conert byte to two-digit hex at addr
+  BASE @ >R HEX SWAP 0 <# # # #> DROP SWAP 2 CHARS CMOVE R> BASE ! ; 
+: FLUSHHEX \ Store the S-record buffer in a file 
+   BYTECOUNT @ IF 
+   BYTECOUNT @ 3 + DUP CHKSUM +!  SBUF 2 CHARS + TOHEX
+   ADDR @ 8 RSHIFT 255 AND DUP CHKSUM +! SBUF 4 CHARS + TOHEX
+   ADDR @ 255 AND DUP  CHKSUM +! SBUF 6 CHARS + TOHEX 
+   255 CHKSUM @ 255 AND -  SBUF 8 BYTECOUNT @ 2* + CHARS + TOHEX
+   SBUF 10 BYTECOUNT @ 2* + FILEHAND @ WRITE-LINE THROW
+  THEN BYTECOUNT @ ADDR +! 0 BYTECOUNT ! 0 CHKSUM ! ;
+: PUTHEX ( byte ---) \ Store the byte in the S-record buffer
+  BYTECOUNT @ 16 = IF FLUSHHEX THEN
+  DUP CHKSUM +! SBUF 8 BYTECOUNT @ 2* + CHARS + TOHEX 
+  1 BYTECOUNT +!
+;
+: SAVE-IMAGE ( --- )
+  S" kernel09" W/O CREATE-FILE THROW FILEHAND !  
+  0 CHKSUM ! 0 BYTECOUNT ! ORIGIN ADDR ! 
+  THERE ORIGIN - 0 DO IMAGE I + C@ PUTHEX LOOP FLUSHHEX
+  S" S9030000FC" FILEHAND @ WRITE-LINE THROW
+  FILEHAND @ CLOSE-FILE THROW
+;
+SAVE-IMAGE 
+.( Image saved as "kernel09") CR
+
+BYE

@@ -1,0 +1,874 @@
+\documentstyle[12pt,a4wide]{report}
+\title{SBC09, an Emulator for a 6809-Based Single Board Compuer.}
+\author{L.C. Benschop}
+\begin{document}
+\def\SetFigFont#1#2#3{\rm}
+
+\maketitle
+\tableofcontents
+\chapter{Introduction}
+
+The {\tt sbc09} package contains an emulator of a 6809-based single board
+computer that runs under UNIX. It contains all the programs needed to work
+with the emulator, such as the emulator itself, an assembler, a monitor
+program, a BASIC interpreter, a Forth interpreter, several example programs
+and several tools needed to build the programs. The program should work
+under most more-or-less POSIX-compliant versions of UNIX and they were
+developed under Linux. Of course I believe that the programs that currently
+run on the emulator would also run on a real 6809 machine.
+
+\section{A Bit of Background on SBCs.}
+
+In the seventies you could buy single board microcomputers that had a
+hexadecimal keypad and 7-segment displays. These computers typically had
+less than 1 kilobyte of RAM and a simple monitor program in ROM. An
+interface to a cassette recorder (or paper tape reader/writer) and a
+terminal was possible, but not standard. The typical way to program the
+machine was entering hexadecimal machine codes on the keypad. Machine code
+was the only language in which you could program them, especially if you
+only had a hexadecimal keypad and 7-segment led displays. You typically used
+these machines to experiment with hardware interfacing, as games and
+calculations were a bit limited with only six 7-sengment digits.
+
+Next came simple home computers, like the TRS80, the Apple ][ and the
+Commodore PET. These machines had BASIC in ROM and they used a simple
+cassette recorder to store data. These computers had a TV or a low quality
+monitor as display and a QWERTY keyboard. These machines could be upgraded
+with a floppy disk drive and a printer and then they could be used for
+professional work. These machines had 4 to 64 kilobyts of memory.
+Apart from assembly language you could use BASIC, Forth
+and sometimes Pascal to program these machines. Most useful programs (and
+the best games) were programmed in assembly language. Many of these machines
+had BASIC in ROM and no machine code monitor. You had to load that
+separately.
+
+Today we have personal computers that run DOS, Windows, UNIX or something
+else. New computers have 4 to 16 megabytes of RAM and hard disks of more
+than 500 Megabytes. Apart from having in the order of 1000 times more
+storage, they are also 1000 times faster than the old 8-bit home computers. 
+Programming? You can use Visual BASIC, C++ and about
+every other programming language on the planet. But programs have become
+bigger and bigger. Programming is not the same as it was before. 
+
+I guess there is some demand for small 8-bit computer systems that are simple
+to build, easy to interface to all kinds of hobby projects, fun to program
+and small enough to integrate into a home-built project.
+Do we want to use hexadecimal keyboards and 7-segment displays? I guess not
+many people want to use them. Do we want to use a cassette recorder for data
+storage and a TV as a display? Not me. And if you build your own 8-bit
+microprocessor, do you want to waste your time and money on a hexadecimal
+keypad or a cassette interface that you do not like to use and that you do
+not need anyway? PCs of five years ago are more than adequate to run an
+editor, a terminal program and a cross assembler for your favourite 8-bit
+processor. The terminal program can then be used to send the programs to the
+8-bit micro.
+If you equip an 8-bit system with some static CMOS RAM, a serial
+interface and a monitor in ROM, you can use the keyboard, hard disk and
+monitor of your PC for program development and the 8-bit micro can be
+disconnected from the PC and do its task, once it is programmed.
+
+Cross development is nothing special. How do you think the microprocessor in
+you microwave was programmed? But it is not practical for a hobbyist to
+program an EPROM for each program change. Professional developers of
+embedded processors have expensive tools, like ROM emulators, processor
+emulators etc. to see what the processor is doing on its way to the next
+crash. For a hobbyist it is much more practical to have a slightly more
+expensive embedded computer that you can run an interactive debugger on.
+And you are not even limited to assembly language. If you have 32k ROM you
+can have both the monitor program and a BASIC interpreter and some
+aplication code in ROM. Nothing prevents you from having Forth as well.
+
+\section{The Emulated System.}
+
+\begin{figure}
+\input{sbc09fig.tex}
+\caption{Block Diagram of SBC.}
+\end{figure}
+
+The program {\tt sbc09} emulates the abovementioned single board computer
+{\em plus} the terminal program that communicates with it.
+
+\chapter{Building the Programs.}
+
+\chapter{The 6809 Assembler {\tt a09}.}
+
+The assembler is a09. Run it with
+\begin{verbatim}
+ a09 [-l listing] [-o object|-s object] source
+\end{verbatim}
+
+Source is a mandatory argument. The -l listing and {\tt -o} or {\tt -s}
+ object arguments are
+optional. By default there is no listing and the object file is the
+sourcefile name without an extension and if the source file name has no
+extension it is the source file name with {\tt .b} extension. 
+
+A09 recognizes standard 6809 mnemonics. Labels should start in the first
+column and may or may not be terminated by a colon. Every line starting with
+a non-alphanumeric is taken to be a comment line. Everything after the
+operand field is taken to be comment. There is a full expression evaluator
+with C-style operators (and Motorola style number bases). 
+
+There are the usual pseudo-ops such as ORG EQU SET SETDP RMB FCB FDB FCC etc. 
+Strings within double quotes may be mixed with numbers on FCB lines. There 
+is conditional assembly with IF/ELSE/ENDIF and there is INCLUDE. The
+assembler is case-insensitive.
+
+The object file is either a binary image file (-o) or Motorola S-records (-s).
+In the former case it contains a binary image of the assembled data starting
+at the first address where something is assembled. In the following case
+\begin{verbatim}
+	ORG 0
+VAR1	RMB 2
+VAR2	RMB 2
+
+	ORG $100
+START	LDS #$400
+        ...
+\end{verbatim}
+
+the RMB statements generate no data so the object file contains the memory
+image from address \$100.
+     
+The list file contains no pretty lay-out and no pagination. It is assumed
+that utilities (Unix pr or enscript) are available for that.
+
+There are no macros and no linkable modules yet. Some provisions are taken
+for it in the code.
+
+After the assembler has finished, it prints the number of pass 2 errors.
+This should be zero. So if you see
+\begin{verbatim}
+  0 Pass 2 Errors.
+\end{verbatim}
+then you are lucky.
+
+\chapter{The Virtual SBC {\tt v09}.}
+
+The simulator is v09. Run it with
+\begin{verbatim}
+  v09 [-t tracefile [-tl tracelo] [-th tracehi]] [-e escchar] 
+\end{verbatim}
+
+{\tt tracelo} and {\tt tracehi} are addresses. They can be entered in
+decimal, octal or hex using the C conventions for number input.
+
+If a tracefile is specified, all instructions at addresses between
+{\tt tracelo} and {\tt tracehi} are traced. Tracing information such as program
+location, register contents and opcodes are written to the trace file.
+
+{\tt escchar} is the escape character. It must be entered as a number. This is
+the character that you must type to get the v09 prompt. This is control-]
+by default. (0x1d)
+
+The program loads its ROM image from the file {\tt v09.rom}, which is a 32
+kiliobyte binary file. This file should have been generated by the {\tt
+Makefile}. The program starts executing at the address found at \$FFFE in
+the ROM, just like a real 6809 would do on reset.
+
+The address map is as follows.
+\begin{description}
+\item[\$0000--\$7FFF] RAM.
+\item[\$8000--\$FFFF] ROM (except the I/O addresses). These addresses are
+write-protected.
+\item[\$E000--\$E0FF] I/O addresses. Currently only one ACIA is mapped.
+\end{description}
+
+At addresses \$E000 and \$E001 there is an emulated serial port (ACIA). All
+bytes sent to it (or read from it) are send to (read from) the terminal and
+sometimes to/from a file.
+Terminal I/O is in raw mode.
+
+If you press the escape char, you get the v09 prompt. At the prompt you
+can enter the following things.
+\begin{description}
+\item[X]        to exit the simulator.
+\item[R]         to reset the emulated 6809 (very useful).
+\item[Lfilename] (no space in between) to log terminal output to a file.
+           Control chars and cr are filtered to make the output a normal
+           text file. L without a file name stops logging.
+\item[Sfilename] to send a specified file to the simulator through its terminal
+           input. LF is converted to CR to mimic raw terminal input.
+\item[Ufilename] (terminal upload command) to send a file to the 6809 using the
+	   X-modem protocol. The 6809 must already run an X-modem receiving
+           program.
+\item[Dfilename] (terminal download command) to receive a file from the 6809 using
+           the X-modem protocol. The 6809 must already run an X-modem
+	   sending program.
+\end{description}
+All of these commands, except the R command, can be seen as commands of the
+communication program that is used to access the single board computer. 
+The R command is a subsitute for pushing the RESET button on the emulated
+computer.
+
+\chapter{Machine Language Monitor.}
+
+The program {\tt monitor.asm} is a program that is intended to be included
+in the ROM of a 6809 based single board computer. The program allows a user
+to communicate with the single board computer through a serial port. It
+allows a user to enter machine code, examine memory and registers, to set
+breakpoints, to trace a program and more. Furthermore, data can be sent to
+and be received from the single board computer through the X-MODEM protocol.
+
+\subsection{Getting Started.}
+
+If you start v09 with the standard ROM, then you will run the monitor
+program.
+If all goes well you see something like
+\begin{verbatim}
+Welcome to BUGGY 1.0
+\end{verbatim}
+and you can type text. Excellent, you are now running 6809 code.
+
+The following example programs you can run from the 6809 monitor.
+All of them start at address \$400. For example to run the program bin2dec
+you type.
+
+XL400
+
+Then press your escape character (default is control-] ).
+
+Then at the v09 prompt type 
+
+ubin2dec
+
+Now you see some lines displaying the progress of the X-modem session.
+If that is finished, you type
+
+G400
+
+Now it runs and exits to the monitor with SWI, so that the registers are
+displayed.  
+
+\begin{description}
+\item[cond09.asm] 
+\item[cond09.inc]  Nonsense program to show conditional assembly and the like.
+
+\item[bench09.asm] Benchmark program. Executes tight loop. Takes 83 secs on
+            25 MHz 386. Should take about 8 sec. on 1MHz real 6809. :-(
+
+\item[test09.asm]  Tests  some nasty features of the 6809. Prints a few lines
+            of PASSED nn and should never print ERROR nn.
+
+\item[bin2dec.asm] Unusual way to convert numbers to decimal using DAA instruction.
+            Prints some test numbers.
+
+\item[basic.asm] Tiny BASIC by John Byrns. Docs are in basic.doc.
+            To test it start the monitor and run basic.
+	    
+            Then press your escape char.
+            At the v09 prompt type: sexampl.bas
+
+	    Now a BASIC program is input.
+	    Type RUN to run it.
+	
+	    Leave BASIC by pressing the escape char and entering x at the
+	    prompt.
+\end{description} 
+
+
+\section{Use of the monitor commands}
+
+
+\subsection{Single Letter Commands}
+
+\begin{description}
+\item[D] Dump memory.
+
+Syntax:
+\begin{description}
+\item[Daddr,len]  Hex/ascii dump of memory region.
+\item[Daddr]      length=64 bytes by default.
+\item[D]          address is address after previous dump by default.
+\end{description}
+
+Examples:
+\begin{verbatim}
+DE400,100
+\end{verbatim}
+Dump 256 bytes starting at \$E400
+\begin{verbatim}
+D
+\end{verbatim}
+Dump the next 64 bytes.
+
+\item[E] Enter data into memory,
+
+\begin{description}
+\item[Eaddr bytes] Enter hexadecimal bytes at address.
+\item[Eaddr"ascii"] Enter ascii at address.
+\item[Eaddr]      Enter interactively at address (until empty line).
+\end{description}
+
+Examples:
+\begin{verbatim}
+E0400 86449D033F
+\end{verbatim}
+Enter the bytes 86 44 9D 03 3F at address \$400. 
+\begin{verbatim}
+E5000"Welcome"
+\end{verbatim}
+Enter the ASCII codes of "Welcome" at address \$400.
+
+\item[F] Find string in memory.
+
+Syntax:
+\begin{description}
+\item[Faddr bytes]   Find byte string string from address.
+\item[Faddr"ascii"]  Find ASCII string.
+\end{description}
+
+Find the specified string in memory, starting at the specified address. The
+I/O addresses \$E000-\$E0FF are skipped. The addresses of the first 16
+occurrences are shown.
+
+Example:
+\begin{verbatim}
+FE400"SEX"
+\end{verbatim}
+Search for the word "SEX" starting in the monitor.
+
+\item[M] Move memory region.
+
+\begin{description}
+\item[Maddr1,addr2,len] Move region of memory from addr1 to addr2. If addr2 is
+                 1 higher than addr1, a region is filled. 
+\end{description}
+
+Example:
+\begin{verbatim}
+ M400,500,80
+\end{verbatim}
+Move 128 bytes from address \$400 to \$500.
+
+\item[A] Assemble instructions.
+
+Syntax:
+\begin{description}
+\item[Aaddr]      Enter line-by-line assembler.
+\end{description}
+
+You are in the assembler until you make an error or until you enter an empty
+line.
+
+Example:
+\begin{verbatim}
+A400
+LDB #$4B
+JSR $03
+SWI
+<empty line>
+\end{verbatim}
+
+\item[U] Disassemble instructions.
+
+Syntax:
+\begin{description}
+\item[Uaddr,len]  Disassemble memory region.
+\item[Uaddr]      (disassemble 21 bytes)
+\item[U]          
+\end{description}
+
+Examples:
+\begin{verbatim}
+UE400,20
+\end{verbatim}
+Diassemble first 32 bytes of monitor program.
+\begin{verbatim}
+U
+\end{verbatim}
+Disassemble next 21 bytes.
+
+\item[B] Set, clear and show breakpoints.
+
+Syntax:
+\begin{description}
+\item[Baddr]      Set/reset breakpoint at address.
+\item[B]          Display active breakpoints.
+\end{description}
+Four breakpoints can be active simultaneously.
+
+Examples:
+\begin{verbatim}
+B403
+B408
+\end{verbatim}
+Set the breakpoints at the addresses \$403 and \$408.
+\begin{verbatim}
+B
+\end{verbatim}
+Show the breakpoints.
+\begin{verbatim}
+B403
+\end{verbatim}
+Remove the breakpoint at \$403.
+
+\item[J] Call a subroutine.
+\item[G] Go to specified address.
+
+Syntax:
+\begin{description}
+\item[Jaddr]      JSR to specified address.
+\item[Gaddr]      Go to specified address.
+\item[G]          Go to address in PC register.
+\end{description}
+The registers are loaded from where they are saved (on the stack) and at the
+breakpoints SWI instructions are entered. Next the code is executed at the
+indicated address. The SWI instruction (or RTS for the J command) returns to
+the monitor, saving the registers.
+
+\item[H] Calculate HEX expression.
+
+Syntax:
+
+\begin{description}
+\item[Hhexnum\{(+|-)hexnum\}] Calculate simple expression in hex with + and -      
+\end{description}
+
+Examples:
+\begin{verbatim}
+H4444+A5
+H4444-44F3
+\end{verbatim}
+
+\item[P] Put a temporary breakpoint after current instruction and exeucte it,
+
+P is similar to T, because it usually executes one instruction and returns
+to the monitor after it. That does not work for jumps though. Normally you
+use P only with JSR instructions if you want to execute the whole subroutine
+without single-stepping through it. 
+
+\item[R] Display or modify registers.
+
+Syntax:
+\begin{description}
+\item[R]         Register display.  
+\item[Rregvalue] Enter new value into register Supported registers:
+          X,Y,U,S,A,B,D (direct page),P (program counter),C (condition code).
+\end{description}
+The R command uses the saved register values (on the stack). There are some
+restrictions on changing the S register.
+
+Examples:
+\begin{verbatim}
+R
+\end{verbatim}
+Display all registers.
+\begin{verbatim}
+RB03
+RP4444
+\end{verbatim}
+Load the B register with \$03 and the program counter with \$4444.
+
+\item[T] Single step trace. 
+
+\item[I] Show the contents of one address.
+
+Syntax:
+\begin{description}
+\item[Iaddr]      Display the contents of the given address. (used to read input 
+           port)
+\end{description}
+
+Example:
+\begin{verbatim}
+  IE001
+\end{verbatim}
+Show the ACIA status.
+\end{description}
+
+\subsection{S-Records Related Commands.}
+
+\begin{description}
+\item[S1bytes]     Enter Motorola S records.
+\item[S9bytes]     Last S record in series.
+
+S records are usually entered from a file, either ASCII transfer (S command
+from the v09 prompt) or X-MODEM transfer (XX command in monitor, U command
+from v09 prompt). Most Motorola cross assemblers generate S records. 
+
+\item[SSaddr,len]  Dump memory region as Motorola S records.
+
+These S records can be loaded later by the monitor program.
+
+Usually you capture the S records into a file (use L command at v09 prompt)
+or use XSS instead.
+The XSS command is the same as SS, except that it outputs the S records
+through the X-modem protocol (use D command at v09 prompt).
+
+\item[SOaddr]    Set origin address for S-record transfer.
+
+Before entering S records, it sets the first memory address where S records
+will be loaded, regardless of the address contained in the S records.
+
+Before the SS command, it sets the first address that will go into the S
+records.
+
+Examples.
+\begin{verbatim}
+SO800
+S1130400etc...
+\end{verbatim}
+Load the S records at address \$800 even though the address in the S records
+is \$400
+\begin{verbatim}
+SO8000
+SS400,100
+\end{verbatim}
+Save the memory region of 256 bytes starting at \$400 as S records. The S
+records contain addresses starting at \$8000.
+\end{description}
+
+\subsection{X-Modem Related Commands.}
+
+\begin{description}
+\item[XLaddr]     Load binary data using X-modem protocol
+
+Example:
+\begin{verbatim}
+XL400
+\end{verbatim}
+Type your escape character and at the v09 prompt type
+\begin{verbatim}
+ubasic
+\end{verbatim}
+to load the binary file "basic" at address \$400.
+
+\item[XSaddr,len] Save binary data using X-modem protocol.
+
+Example:
+\begin{verbatim}
+XS400,100 
+\end{verbatim}
+to save the memory region of 128 bytes starting at \$400
+Type your escape character and at the v09 prompt type:
+\begin{verbatim}
+dfoo
+\end{verbatim}
+Now the bytes are saved into the file "foo".
+
+\item[XSSaddr,len] Save memory region as S records through X-modem protocol.
+
+See SS command for more details.
+
+\item[XX]         Execute commands received through X-modem protocol 
+           This is usually used to receive S-records.  
+
+Example:
+\begin{verbatim}
+XX
+\end{verbatim}
+Now press the escape character and at the v09 prompt type 
+\begin{verbatim}
+usfile
+\end{verbatim}
+where {\tt sfile} is a file with S-records.
+
+\item[XOnl,eof]   Set X-modem text output options, first number type of newline.
+           1=LF, 2=CR, 3=CRLF, second number filler byte at end of file
+           (sensible options include 0,4,1A) These options are used by
+           the XSS command.
+
+Example: Under a UNIX system you want X-modem's text output with just LF
+         and a filler byte of 0. Type:
+\begin{verbatim}      
+XO1,0
+\end{verbatim}
+\end{description}
+
+\section{Memory Map}
+
+\section{Operating System Facilities}
+
+\begin{description}
+\item[getchar] address \$00.
+\item[putchar] address \$03.
+\item[getline] address \$06.
+\item[putline] address \$09.
+\item[putcr] address \$0C.
+\item[getpoll] address \$0F.
+\item[xopenin] address \$12.
+\item[xopenout] address \$15.
+\item[xabortin] address \$18.
+\item[xclosein] address \$1B.
+\item[xcloseout] address \$1E.
+\item[delay] address \$21. On input the D register contains the number of
+timer ticks to wait. Each timer tick is 20ms.
+\end{description}
+
+\section{Extending the built-in Assembler}
+
+\chapter{The Forth Language.}
+
+\begin{verbatim}
+kernel09 and the *.4 files. FORTH for the 6809. To run it, type
+            XX
+ 
+            Then press the escape char and at the v09 prompt type
+ 
+            ukernel09
+         
+            Then type 
+
+            G400
+           
+	    From FORTH type
+
+            XLOAD
+
+            Then press your escape char and at the v09 prompt type
+
+            uextend09.4
+
+            From FORTH type
+
+            XLOAD
+
+            Then press your escape char and at the v09 prompt type
+   
+            utetris.4
+
+ 	    From FORTH type
+
+	    TT
+
+            And play tetris under FORTH on the 6809!
+\end{verbatim}
+
+\chapter{The BASIC Interpreter.}
+
+\chapter{History of the Project.}
+
+\section{Introduction.}
+
+Of all the 8-bit home computers only a few had the Motorola 6809 CPU, the
+most famous of which was the Tandy Color Computer. Then there was its clone
+(from Wales) the Dragon and there was an old obscure SuperPet that I have
+never seen. The 6809 was the 8-bit processor finally done right, but it came
+a bit too late to have a real influence on the market. 
+
+The book that raised my enthousiasm for the Motorola 6809 processor was: 
+Lance A. Leventhal, ``6809 Assembly Language Programming", 1981
+Osborne/McGrawhill. ISBN 0-07-931035-4. I borrowed it several times from the
+university library and finally I bought my own copy.
+
+The first sentence on the back of that book reads:
+\begin{quote}
+While everyone's been talking about new 16-bit microprocessors, the 6809 has
+emerged as {\em the} important new device.
+\end{quote}
+
+Though it was not the processor that changed the world, it certainly was the
+processor that changed my idea of what a good instruction set should look
+like. Before that I thought that the Z80 was superior to everything else on
+the planet, at least superior to every other 8-bit processor. 
+
+It was in April 1987. I borrowed the book for the first time and I had just
+written a Forth interpreter for my Z80 machine. It struck me that the
+following 7-instruction sequence on a Z80   
+\begin{verbatim}
+EX DE,HL
+LD E,(HL)
+INC HL
+LD D,(HL)
+INC HL
+EX DE,HL
+JMP (HL)
+\end{verbatim}
+
+could be replaced by just {\em one} instruction on the 6809.
+\begin{verbatim}
+JMP [,Y++]
+\end{verbatim}
+
+BTW the above instructions are the heart of a Forth interpreter and making
+them more efficient has a tremendous effect on efficiency.
+
+\section{The 6809 Emulator in Forth.}
+
+The years went by and I had bought an XT compatible computer in 1988. I
+didn't buy a 6809 system though I could have done so. But it would either be
+too expensive or I would have to build it myself (I wasn't too handy with
+soldering) or it would be a primitive machine like the Tandy Color Computer
+without expansions and I didn't like to use cassettes and a 32-column
+display.
+
+In 1989 I saw a 6502 simulator at a meeting of our Forth club. One could
+interactively enter hex codes, page through memory, modify registers, trace
+intructions etc. I just got to have this, but for a 6809 instead.
+
+Around Christmas of that year I wrote a 6809 Forth assembler and an
+interactive simulator, like the one I had seen on the club meeting.
+Everything was written in F-PC, a very comprehensive Forth system for the
+PC. 
+
+\begin{figure}
+\begin{verbatim}
+       0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F 0123456789ABCDEF
+0000  10 8E 00 40 E6 A0 D7 80 8E 00 81 3A 5D 27 07 A6 ...@f W ...:]'.&
+0010  A0 A7 82 5A 26 F9 7E FF FF 00 00 00 00 00 00 00  '.Z&y~  .......
+0020  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+0030  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+0040  05 46 4F 52 54 48 00 00 00 00 00 00 00 00 00 00 .FORTH..........
+0050  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+0060  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+0070  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+0080  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+0090  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+00A0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+00B0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+00C0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+00D0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+00E0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+00F0  00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 ................
+CC=00000000  A=$00 B=$00 DP=$00 X=$0000 Y=$0000 U=$0000 S=$0000 
+   EFHINZVC PC=$0000 LDY # $0040                                 
+\end{verbatim}
+\caption{Screen snapshot of the Forth-based 6809 simulator.}
+\end{figure}
+
+I even made a start with writing an implementation of Forth for it, but the
+obvious lack of speed (among other things) witheld me from finishing it.
+I had a fairly complete set of assembly routines though.
+The estimated speed was around one thousand instructions per second, good
+for an equivalent processor speed of around 4kHz.
+
+In May 1992 I changed my trusted 8MHz Turbo XT for a blistering fast 25MHz
+80386 and it could run the simulator more than 5 times as fast. But then I
+wasn't really working on it. In the summer of 1992 I changed to Linux, which
+I have been using ever since.  
+
+Around the summer of 1993 I was working with pfe, a brand new Forth system 
+for Unix written by Dirk Zoller. It had reached such state of completeness
+and usability that porting the 6809 simulator to it would be feasible.
+I ported it and by doing so I regained interest in the 6809 processor. 
+PFE is written in C instead of assembler and at least on the 80386 it is
+considerably slower than a Forth written in Assembler, like FPC. My
+simulated processor speed was around 5kHz, nothing to write home
+about. It was faster than on the XT, but not much. 
+
+\section{The Assembler and Simulator in C.}
+
+The switch from Forth to C was caused by the fact that I wanted a
+traditional 6809 assembler, instead of the 'Forth' assembler, in which the
+syntax is slightly tweaked to make the thing easy to implement in Forth and
+easy to use within Forth. In the fall of 1993 I wrote a traditional two pass
+assembler in a few days. It worked more or less, but only recently it has
+become bug-free in that it assembles all the instructions and all the
+addressing modes (even PC relative) without error. 
+
+Now that I had a real assembler, I could write real 6809 assembly programs,
+such as a BASIC interpreter (maybe kidding) or a monitor program or god
+knows what. If I would ever run real code on that 6809 simulator, I had to
+increase its speed considerably. So I wrote a very straightforward 
+6809 simulator in C using tables of function pointers. It did really well in
+terms of speed, I could reach an equivalent processor clock speed of around
+200kHz. The C simulator didn't have any fancy display, memory edit or single
+step functions. Its only I/O was through the SWI2 instruction for character
+output and SWI3 for character input, something I had added to the
+Forth-based simulator quite some time ago.
+
+One afternoon in optimized hack mode brought me a crude port of E-Forth, a
+tiny and very slow (most was interpreted, very few assembler words)
+implementation of Forth. The original was written in MASM for the 8086  and
+other ports (like the 8051) wre already around. That was the first time I
+had Forth on an emulated 6809. BTW this Forth would also run, or should I
+say crawl, on the Forth-based simulator. 
+
+I released the assembler, simulator and EForth on {\tt alt.sources} in November
+1993.
+
+Of course I also wrote some test and toy programs (what about a program to
+convert binary numbers to decimal using that oddball DAA instruction?). 
+
+In the spring of 1994 I picked up that old TINY BASIC interpreter written by
+John Byrns. And tiny it was. Not even arrays were supported. I ported it to
+my simulator and found some bugs, both in my simulator and in TINY BASIC
+itself. 
+
+I made some improvements to the 6809 simulator. Now I could send ASCII files
+to it and log the output to another ASCII file. That way I could 'load' and
+'save' BASIC programs for one thing. Further I had a trace facility to write
+a trace of all the instructions in a certain address range to a file. Last I
+cleaned up the I/O and signal handling somewhat, making it portable across
+several Unix versions.
+
+That version of the software, along with some example programs, was also
+released on {\tt alt.sources}. The assembler implemented includes and conditional
+assembly in that version.
+
+\section{The Virtual SBC.}
+
+That blistering fast 80386 that I bought back in 1992 has become slow as
+molasses. It has actually become slower since the memory upgrade with
+slow memory (it was cheap) that necessitated an extra wait state. 
+Fortunately I recently pruchased a Pentium.
+
+At the moment I actually have plans to build (or have somebody build for me)
+a single board computer containing a 6809. I would like to have 32k RAM plus
+32k EPROM. I definitely like to have a monitor program with the features I
+want. Hence another project was born, the virtual SBC that I could prototype
+my monitor ROM and some other software on.
+
+The virtual SBC emulates a single board computer that communicates with a PC
+through an ACIA. On that PC there runs a simple terminal program that
+supports XMODEM file transfer. Things I recently did.
+
+\begin{itemize}
+\item I rewrote the 6809 emulator engine with giant switch statements to hammer
+  out all unnecessary procedure calls and to gain some speed by enabling the 
+  compiler to use register variables where appropriate. On my 386 the
+  speed increase was disappointing. The equivalent processor speed is now
+  250kHz, up from about 170kHz (remember that extra wait state?). On a HPUX
+  workstation, I got a factor of 2 speed increase. That sucker runs at an
+  emulated processor speed of about 3.5MHz. A Pentium-90 is even faster,
+  more than any real 6809 can (officially) run.
+\item I added XMODEM upload/download features to the 'terminal front end' of the
+  simulator. On the other end of the 'serial link' a 6809 machine code
+  program runs the other end of the XMODEM file transfer protocol. 
+\item I changed the SWI2/SWI3 hack to real ACIA emulation at a port address.
+\item I write-protected the ROM area.
+\item I added a 20ms timer interrupt. 
+\item I wrote a monitor program for the virtual SBC that has to followin
+  features.
+  \begin{itemize}
+  \item Simple (vectorized) operating system functions, like character I/O
+    line I/O, XMODEM transfer. Usable by application programs.
+  \item a hex/ascii dump command.
+  \item a hex/ascii enter command.
+  \item a hex/ascii memory search command.
+  \item memory move command.
+  \item S-record send and receive capabilities (directly in ASCII or
+    through XMODEM).
+  \item Binary load and save of memory region through XMODEM
+  \item register display and modify.
+  \item go to address (or current program counter) and call subroutine commands.
+  \item breakpoints.
+  \item program step tracing (breakpoint after next instruction), DEBUG P
+    command
+  \item single step tracing (based on timer interrupt). I had to cheat with the
+    emulator to implement this. 
+  \item one-pass (no labels) disassembler (DEBUG U command).
+  \item line-by-line assembler (DEBUG A command) I wrote
+    this one such that an additional real assembler can use most of the guts of
+    it.
+  \end{itemize}
+\end{itemize}
+
+Finally I wrote a real 6809 Forth, based on some other Forth I wrote for an
+imaginary stack machine. Those old dusty primitives that I had written back in
+1990 proved very useful now. This Forth can load programs through XMODEM
+too. It can recompile (metacompile) itself and, very importantly, it runs
+tetris! (crawls on the 386) This is the tetris implementation written in
+ANSI Forth by Dirk Zoller and it is used as a test program.
+Next I have to make this Forth ROM-able.
+
+What else will go into that 32k ROM area? The monitor will be around 7k, 1k
+is reserved for the I/O space. Forth (with its own Forth assembler) will
+take about 12k, 8k without. A few additional k could be used for a 'real'
+assemler, but I doubt I will ever use that. A cross assembler is much more
+convenient. BASIC no doubt. But I'm afraid I'll have to write it myself,
+more so as I want to have {\em source code} of all my 6809 stuff. I already have
+the floating point routines for it.
+
+\end{document}

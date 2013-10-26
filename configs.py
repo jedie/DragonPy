@@ -16,6 +16,8 @@ from Dragon32_mem_info import get_dragon_meminfo
 from components.periphery_dragon import Dragon32Periphery
 from components.periphery_simple6809 import Simple6809Periphery
 from Simple6809.mem_info import get_simple6809_meminfo
+from sbc09.mem_info import get_sbc09_meminfo
+from sbc09.periphery import SBC09Periphery
 
 
 
@@ -234,6 +236,41 @@ class Simple6809Cfg(BaseConfig):
         self.periphery_class = Simple6809Periphery
 
 
+class SBC09Cfg(BaseConfig):
+    """
+    DragonPy config for Lennart's 6809 single board computer
+
+        Buggy machine language monitor and rudimentary O.S. version 1.0
+
+    More info read ./sbc09/README.creole
+    """
+    RAM_START = 0x0000
+    RAM_END = 0x7FFF
+    RAM_SIZE = 0x8000 # 32768 Bytes
+
+    ROM_START = 0x8000
+    ROM_END = 0xFFFF
+    ROM_SIZE = 0x4000 # 16384 Bytes
+
+    RESET_VECTOR = 0xFFFE
+
+    BUS_ADDR_AREAS = (
+        (0xe000, 0xe001, "RS232 interface"), # emulated serial port (ACIA)
+        (0xFFF2, 0xFFFE, "Interrupt vectors"),
+    )
+
+    DEFAULT_ROM = os.path.join("sbc09", "sbc09", "v09.rom") # Source for this is monitor.asm
+
+    def __init__(self, cmd_args):
+        self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
+        super(SBC09Cfg, self).__init__(cmd_args)
+
+#         if self.verbosity <= logging.INFO:
+        self.mem_info = get_sbc09_meminfo()
+
+        self.periphery_class = SBC09Periphery
+
+
 DEFAULT_CFG = Dragon32Cfg.__name__
 
 
@@ -242,8 +279,16 @@ def test_run():
     import sys, subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-        "--verbosity=5",
-        "--cfg=Simple6809Cfg",
+
+#         "--verbosity=5",
+        "--verbosity=10", # DEBUG
+#         "--verbosity=20", # INFO
+#         "--verbosity=30", # WARNING
+#         "--verbosity=40", # ERROR
+#         "--verbosity=50", # CRITICAL/FATAL
+
+#         "--cfg=Simple6809Cfg",
+        "--cfg=SBC09Cfg",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd=".").wait()

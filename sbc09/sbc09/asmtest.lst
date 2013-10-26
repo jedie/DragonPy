@@ -1,0 +1,411 @@
+0000:                         org $400
+0400:                 addr8   equ $80h
+0400:                 addr16  equ $1234
+0400:                 
+0400: 0080                    neg addr8
+0402: 0380                    com addr8
+0404: 0480                    lsr addr8
+0406: 0680                    ror addr8
+0408: 0780                    asr addr8
+040A: 0880                    asl addr8
+040C: 0880                    lsl addr8
+040E: 0980                    rol addr8
+0410: 0A80                    dec addr8
+0412: 0C80                    inc addr8
+0414: 0D80                    tst addr8
+0416: 0E80                    jmp addr8
+0418: 0F80                    clr addr8
+041A:                 
+041A: 10210E16                lbrn addr16
+041E: 10220E12                lbhi addr16
+0422: 10230E0E                lbls addr16
+0426: 10240E0A                lbhs addr16
+042A: 10240E06                lbcc addr16
+042E: 10250E02                lblo addr16
+0432: 10250DFE                lbcs addr16
+0436: 10260DFA                lbne addr16
+043A: 10270DF6                lbeq addr16
+043E: 10280DF2                lbvc addr16
+0442: 10290DEE                lbvs addr16
+0446: 102A0DEA                lbpl addr16
+044A: 102B0DE6                lbmi addr16
+044E: 102C0DE2                lbge addr16
+0452: 102D0DDE                lblt addr16
+0456: 102E0DDA                lbgt addr16
+045A: 102F0DD6                lble addr16
+045E:                 
+045E: 103F                    swi2
+0460: 10834444                cmpd #$4444
+0464: 108C4444                cmpy #$4444
+0468: 108E4444                ldy  #$4444
+046C: 109380                  cmpd addr8
+046F: 109C80                  cmpy addr8
+0472: 109E80                  ldy addr8
+0475: 109F80                  sty addr8
+0478: 10A384                  cmpd ,x
+047B: 10AC84                  cmpy ,x
+047E: 10AE84                  ldy ,x
+0481: 10AF84                  sty ,x
+0484: 10B31234                cmpd addr16
+0488: 10BC1234                cmpy addr16
+048C: 10BE1234                ldy addr16
+0490: 10BF1234                sty addr16
+0494: 10CE4444                lds #$4444
+0498: 10DE80                  lds addr8
+049B: 10DF80                  sts addr8
+049E: 10EE84                  lds ,x
+04A1: 10EF84                  sts ,x
+04A4: 10FE1234                lds addr16
+04A8: 10FF1234                sts addr16
+04AC: 113F                    swi3
+04AE: 11834444                cmpu #$4444
+04B2: 118C4444                cmps #$4444
+04B6: 119380                  cmpu addr8
+04B9: 119C80                  cmps addr8
+04BC: 11A384                  cmpu ,x
+04BF: 11AC84                  cmps ,x
+04C2: 11B31234                cmpu addr16
+04C6: 11BC1234                cmps addr16
+04CA:                 
+04CA: 12                      nop
+04CB: 13                      sync
+04CC: 160D65                  lbra addr16
+04CF: 170D62                  lbsr addr16
+04D2: 19                      daa
+04D3: 1AFF                    orcc #$ff
+04D5: 1C00                    andcc #$00
+04D7: 1D                      sex
+04D8: 1E89                    exg a,b
+04DA: 1F89                    tfr a,b
+04DC:                 
+04DC:                 
+04DC: 20FE            labx    bra labx
+04DE: 21FC                    brn labx
+04E0: 22FA                    bhi labx
+04E2: 23F8                    bls labx
+04E4: 24F6                    bhs labx
+04E6: 24F4                    bcc labx
+04E8: 25F2                    blo labx
+04EA: 25F0                    bcs labx
+04EC: 26EE                    bne labx
+04EE: 27EC                    beq labx
+04F0: 28EA                    bvc labx
+04F2: 29E8                    bvs labx
+04F4: 2AE6                    bpl labx
+04F6: 2BE4                    bmi labx
+04F8: 2CE2                    bge labx
+04FA: 2DE0                    blt labx
+04FC: 2EDE                    bgt labx
+04FE: 2FDC                    ble labx
+0500:                 
+0500: 3084                    leax ,x
+0502: 3184                    leay ,x
+0504: 3284                    leas ,x
+0506: 3384                    leau ,x
+0508: 3410                    pshs x
+050A: 3510                    puls x
+050C: 3610                    pshu x
+050E: 3710                    pulu x
+0510: 39                      rts
+0511: 3A                      abx
+0512: 3B                      rti
+0513: 3C00                    cwai #$00
+0515: 3D                      mul 
+0516: 3F                      swi
+0517:                 
+0517: 40                      nega
+0518: 43                      coma
+0519: 44                      lsra
+051A: 46                      rora
+051B: 47                      asra
+051C: 48                      asla
+051D: 48                      lsla
+051E: 49                      rola
+051F: 4A                      deca
+0520: 4C                      inca
+0521: 4D                      tsta
+0522: 4F                      clra
+0523:                 
+0523: 50                      negb
+0524: 53                      comb
+0525: 54                      lsrb
+0526: 56                      rorb
+0527: 57                      asrb
+0528: 58                      aslb
+0529: 58                      lslb
+052A: 59                      rolb
+052B: 5A                      decb
+052C: 5C                      incb
+052D: 5D                      tstb
+052E: 5F                      clrb
+052F:                 
+052F: 6084                    neg ,x
+0531: 6384                    com ,x
+0533: 6484                    lsr ,x
+0535: 6684                    ror ,x
+0537: 6784                    asr ,x
+0539: 6884                    asl ,x
+053B: 6884                    lsl ,x
+053D: 6984                    rol ,x
+053F: 6A84                    dec ,x
+0541: 6C84                    inc ,x
+0543: 6D84                    tst ,x
+0545: 6E84                    jmp ,x
+0547: 6F84                    clr ,x
+0549:                 
+0549: 701234                  neg addr16
+054C: 731234                  com addr16
+054F: 741234                  lsr addr16
+0552: 761234                  ror addr16
+0555: 771234                  asr addr16
+0558: 781234                  asl addr16
+055B: 781234                  lsl addr16
+055E: 791234                  rol addr16
+0561: 7A1234                  dec addr16
+0564: 7C1234                  inc addr16
+0567: 7D1234                  tst addr16
+056A: 7E1234                  jmp addr16
+056D: 7F1234                  clr addr16
+0570:                 
+0570: 8022                    suba #$22
+0572: 8122                    cmpa #$22
+0574: 8222                    sbca #$22
+0576: 834444                  subd #$4444
+0579: 8422                    anda #$22
+057B: 8522                    bita #$22
+057D: 8622                    lda #$22
+057F: 8822                    eora #$22
+0581: 8922                    adca #$22
+0583: 8A22                    ora #$22
+0585: 8B22                    adda #$22
+0587: 8C4444                  cmpx #$4444
+058A: 8DFE            laby    bsr laby
+058C: 8E4444                  ldx #$4444
+058F:                 
+058F: 9080                    suba addr8
+0591: 9180                    cmpa addr8
+0593: 9280                    sbca addr8
+0595: 9380                    subd addr8
+0597: 9480                    anda addr8
+0599: 9580                    bita addr8
+059B: 9680                    lda addr8
+059D: 9780                    sta addr8
+059F: 9880                    eora addr8
+05A1: 9980                    adca addr8
+05A3: 9A80                    ora addr8
+05A5: 9B80                    adda addr8
+05A7: 9C80                    cmpx addr8
+05A9: 9D80                    jsr addr8
+05AB: 9E80                    ldx addr8
+05AD: 9F80                    stx addr8
+05AF:                 
+05AF: A084                    suba ,x
+05B1: A184                    cmpa ,x
+05B3: A284                    sbca ,x
+05B5: A384                    subd ,x
+05B7: A484                    anda ,x
+05B9: A584                    bita ,x
+05BB: A684                    lda ,x
+05BD: A784                    sta ,x
+05BF: A884                    eora ,x
+05C1: A984                    adca ,x
+05C3: AA84                    ora ,x
+05C5: AB84                    adda ,x
+05C7: AC84                    cmpx ,x
+05C9: AD84                    jsr ,x
+05CB: AE84                    ldx ,x
+05CD: AF84                    stx ,x
+05CF:                 
+05CF: B01234                  suba addr16
+05D2: B11234                  cmpa addr16
+05D5: B21234                  sbca addr16
+05D8: B31234                  subd addr16
+05DB: B41234                  anda addr16
+05DE: B51234                  bita addr16
+05E1: B61234                  lda addr16
+05E4: B71234                  sta addr16
+05E7: B81234                  eora addr16
+05EA: B91234                  adca addr16
+05ED: BA1234                  ora addr16
+05F0: BB1234                  adda addr16
+05F3: BC1234                  cmpx addr16
+05F6: BD1234                  jsr addr16
+05F9: BE1234                  ldx addr16
+05FC: BF1234                  stx addr16
+05FF:                 
+05FF: C022                    subb #$22
+0601: C122                    cmpb #$22
+0603: C222                    sbcb #$22
+0605: C34444                  addd #$4444
+0608: C422                    andb #$22
+060A: C522                    bitb #$22
+060C: C622                    ldb #$22
+060E: C822                    eorb #$22
+0610: C922                    adcb #$22
+0612: CA22                    orb #$22
+0614: CB22                    addb #$22
+0616: CC4444                  ldd #$4444
+0619: CE4444                  ldu #$4444
+061C:                 
+061C: D080                    subb addr8
+061E: D180                    cmpb addr8
+0620: D280                    sbcb addr8
+0622: D380                    addd addr8
+0624: D480                    andb addr8
+0626: D580                    bitb addr8
+0628: D680                    ldb addr8
+062A: D780                    stb addr8
+062C: D880                    eorb addr8
+062E: D980                    adcb addr8
+0630: DA80                    orb addr8
+0632: DB80                    addb addr8
+0634: DC80                    ldd addr8
+0636: DD80                    std addr8
+0638: DE80                    ldu addr8
+063A: DF80                    stu addr8
+063C:                 
+063C: E084                    subb ,x
+063E: E184                    cmpb ,x
+0640: E284                    sbcb ,x
+0642: E384                    addd ,x
+0644: E484                    andb ,x
+0646: E584                    bitb ,x
+0648: E684                    ldb ,x
+064A: E784                    stb ,x
+064C: E884                    eorb ,x
+064E: E984                    adcb ,x
+0650: EA84                    orb ,x
+0652: EB84                    addb ,x
+0654: EC84                    ldd ,x
+0656: ED84                    std ,x
+0658: EE84                    ldu ,x
+065A: EF84                    stu ,x
+065C:                 
+065C: F01234                  subb addr16
+065F: F11234                  cmpb addr16
+0662: F21234                  sbcb addr16
+0665: F31234                  addd addr16
+0668: F41234                  andb addr16
+066B: F51234                  bitb addr16
+066E: F61234                  ldb addr16
+0671: F71234                  stb addr16
+0674: F81234                  eorb addr16
+0677: F91234                  adcb addr16
+067A: FA1234                  orb addr16
+067D: FB1234                  addb addr16
+0680: FC1234                  ldd addr16
+0683: FD1234                  std addr16
+0686: FE1234                  ldu addr16
+0689: FF1234                  stu addr16
+068C:                 
+068C: 1F00                    tfr d,d
+068E: 1F01                    tfr d,x
+0690: 1F02                    tfr d,y
+0692: 1F03                    tfr d,u
+0694: 1F04                    tfr d,s
+0696: 1F05                    tfr d,pc
+0698: 1F88                    tfr a,a
+069A: 1F89                    tfr a,b
+069C: 1F8A                    tfr a,cc
+069E: 1F8B                    tfr a,dp
+06A0: 1F00                    tfr d,d
+06A2: 1F10                    tfr x,d
+06A4: 1F20                    tfr y,d
+06A6: 1F30                    tfr u,d
+06A8: 1F40                    tfr s,d
+06AA: 1F50                    tfr pc,d
+06AC: 1F88                    tfr a,a
+06AE: 1F98                    tfr b,a
+06B0: 1FA8                    tfr cc,a
+06B2: 1FB8                    tfr dp,a
+06B4:                 
+06B4: 3480                    pshs pc
+06B6: 3440                    pshs u
+06B8: 3640                    pshu s
+06BA: 3410                    pshs x
+06BC: 3420                    pshs y
+06BE: 3408                    pshs dp
+06C0: 3406                    pshs d
+06C2: 3406                    pshs a,b
+06C4: 3402                    pshs a
+06C6: 3404                    pshs b
+06C8: 3401                    pshs cc
+06CA: 34FF                    pshs pc,u,x,y,dp,a,b,cc
+06CC:                 
+06CC: A600                    lda 0,x
+06CE: A601                    lda 1,x
+06D0: A602                    lda 2,x
+06D2: A603                    lda 3,x
+06D4: A604                    lda 4,x
+06D6: A605                    lda 5,x
+06D8: A606                    lda 6,x
+06DA: A607                    lda 7,x
+06DC: A608                    lda 8,x
+06DE: A609                    lda 9,x
+06E0: A60A                    lda 10,x
+06E2: A60B                    lda 11,x
+06E4: A60C                    lda 12,x
+06E6: A60D                    lda 13,x
+06E8: A60E                    lda 14,x
+06EA: A60F                    lda 15,x
+06EC: A610                    lda -16,x
+06EE: A611                    lda -15,x
+06F0: A612                    lda -14,x
+06F2: A613                    lda -13,x
+06F4: A614                    lda -12,x
+06F6: A615                    lda -11,x
+06F8: A616                    lda -10,x
+06FA: A617                    lda -9,x
+06FC: A618                    lda -8,x
+06FE: A619                    lda -7,x
+0700: A61A                    lda -6,x
+0702: A61B                    lda -5,x
+0704: A61C                    lda -4,x
+0706: A61D                    lda -3,x
+0708: A61E                    lda -2,x
+070A: A61F                    lda -1,x
+070C: A621                    lda 1,y
+070E: A63F                    lda -1,y
+0710: A641                    lda 1,u
+0712: A65F                    lda -1,u
+0714: A661                    lda 1,s
+0716: A67F                    lda -1,s
+0718: A680                    lda ,x+
+071A: EC81                    ldd ,x++
+071C: A682                    lda ,-x
+071E: EC83                    ldd ,--x
+0720: A684                    lda ,x
+0722: A685                    lda b,x
+0724: A686                    lda a,x
+0726: A68880                  lda -128,x
+0729: A68821                  lda 33,x
+072C: A6887F                  lda 127,x
+072F: A689FF7F                lda -129,x
+0733: A6891234                lda $1234,x
+0737: A68B                    lda d,x
+0739: A68CFD          labz    lda labz,pcr
+073C: A68D0AF4                lda addr16,pcr
+0740: A691                    lda [,x++]
+0742: A693                    lda [,--x]
+0744: A694                    lda [,x]
+0746: A695                    lda [b,x]
+0748: A696                    lda [a,x]
+074A: A69821                  lda [33,x]
+074D: A69801                  lda [1,x]
+0750: A6991234                lda [$1234,x]
+0754: A69B                    lda [d,x]
+0756: A69CE0                  lda [labz,pcr]
+0759: A69D0AD7                lda [addr16,pcr]
+075D: A69F1234                lda [addr16]
+0761: A6A0                    lda ,y+
+0763: A6C0                    lda ,u+
+0765: A6E0                    lda ,s+
+0767: 10AE9F1234              ldy [addr16]
+076C: 10AE8D0AC3              ldy addr16,pcr
+0771:                 
+0771:                         
+0 Pass 2 errors.
+
+SYMBOL TABLE
+    ADDR16 00 1234     ADDR8 00 0080      LABX 02 04dc      LABY 02 058a
+      LABZ 02 0739
