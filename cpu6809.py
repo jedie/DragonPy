@@ -63,10 +63,10 @@ MC6809OP_DATA_DICT = get_opdata()
 
 
 def activate_full_debug_logging():
-    log2 = logging.getLogger("DragonPy")
+    global log
     handler = logging.StreamHandler()
     handler.level = 5
-    log2.handlers = (handler,)
+    log.handlers = (handler,)
     log.critical("Activate full debug logging in %s!", __file__)
 
 
@@ -527,7 +527,7 @@ class CPU(object):
         self.cfg = cfg
         log.info("Use config: %s", cfg)
 
-        if self.cfg.__class__.__name__ == "Simple6809Cfg":
+        if self.cfg.__class__.__name__ != "Dragon32Cfg":
             # FIXME: Hacked bugtracking only with Dragon 32
             global trace_file
             trace_file = None
