@@ -2291,8 +2291,9 @@ class CPU(object):
         CC bits "HNZVC": naaas
         """
         r = a << 1
-        self.cc.clear_NZVC()
-        self.cc.update_NZVC_8(a, a, r)
+        # XXX: normaly half-carry is "undefined"
+        self.cc.clear_HNZVC()
+        self.cc.update_HNZVC_8(a, a, r)
         return r
 
     @opcode(0x8, 0x68, 0x78) # LSL/ASL (direct, indexed, extended)
@@ -2877,7 +2878,6 @@ class CPU(object):
         source code forms: SUBA P; SUBB P; SUBD P
 
         CC bits "HNZVC": uaaaa
-        H == undefined
         """
         x1 = register.get()
         r1 = x1 - m
@@ -2887,12 +2887,13 @@ class CPU(object):
             register.name,
             x1, m, r1,
         ))
-        self.cc.clear_NZVC()
+        # XXX: normaly half-carry is "undefined"
+        self.cc.clear_HNZVC()
         if register.WIDTH == 8:
-            self.cc.update_NZVC_8(x1, m, r1)
+            self.cc.update_HNZVC_8(x1, m, r1)
         else:
             assert register.WIDTH == 16
-            self.cc.update_NZVC_16(x1, m, r1)
+            self.cc.update_HNZVC_16(x1, m, r1)
 
     @opcode(# Software interrupt (absolute indirect)
         0x3f, # SWI (inherent)
