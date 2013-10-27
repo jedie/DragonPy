@@ -8,7 +8,8 @@ A usable Dragon / CoCo emulator is [[http://www.6809.org.uk/dragon/xroar.shtml|X
 DragonPy will not be a second XRoar written in Python.
 This project is primarily to lean and understand.
 
-The first target is to be able to run the Simple6809 design.
+The first target is to be able to run sbc09 and the Simple6809 design.
+sbc09 stands for Lennart Benschop 6809 Single Board Computer, read: [[https://github.com/jedie/DragonPy/tree/master/sbc09|/sbc09/README]]
 More info about Simple6809, read: [[https://github.com/jedie/DragonPy/blob/master/Simple6809/README.creole|/Simple6809/README.creole]]
 
 Future goals are:
@@ -60,6 +61,9 @@ optional arguments:
 
 
 == current status
+
+sbc09 works quite well almost:
+{{http://www.jensdiemer.de/media/jensdiemer.de/screenshots/DragonPy_sbc09_01.png}}
 
 The Simple6809 config works a little bit. First GUI used a simple Tkinter windows.
 Looks like this:

@@ -232,35 +232,81 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
 
         char = chr(value)
         log.error("*"*79)
-        log.error("Write to screen: %s ($%x)" % (repr(char), value))
+        log.error("Write to screen: %s ($%x)" , repr(char), value)
         log.error("*"*79)
 
-        # write some simple BASIC test code:
+        if value >= 0x90: # FIXME: Why?
+            value -= 0x60
+            char = chr(value)
+            log.error("convert value -= 0x30 to %s ($%x)" , repr(char), value)
+
+        if value <= 9: # FIXME: Why?
+            value += 0x41
+            char = chr(value)
+            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
+
+        """
+        $ python create_trace.py
+        Welcome to BUGGY version 1.0
+        r
+        X=0000 Y=0000 U=0000 S=0400 A=00 B=00 D=00 C=00
+        P=0400 NEG   $00
+        r
+        X=0000 Y=0000 U=0000 S=0400 A=00 B=00 D=00 C=00
+        P=0400 NEG   $00
+        ss
+        S11300007EE45A7EE4717EE4807EE4E47EE4F57E60
+        S1130010E4657EED447EED677EED8C7EEDCF7EED76
+        S1130020AC7EE5180C660000000000000000000033
+        S113003000000000000000000000000000000000BC
+        S113004000000000000000000000000000000000AC
+        S1130050000000000000000000000000000000009C
+        S1130060000000000000000000000000000000008C
+        S1130070000000000000000000000000000000007C
+        S1130080000000000000000000000000000000006C
+        S1130090000000000000000000000000000000005C
+        S11300A0000000000000000000000000000000004C
+        S11300B0000000000000000000000000000000003C
+        S11300C0000000000000000000000000000000002C
+        S11300D0000000000000000000000000000000001C
+        S11300E0000000000000000000000000000000000C
+        S11300F000000000000000000000000000000000FC
+        S9030000FC
+        x
+        Unknown command
+        """
+
         self.LAST_INPUT += char
         if self.STATE == 0 and self.LAST_INPUT.endswith("1.0\r\n"):
             self.STATE += 1
             self.line_buffer = list('r\n')
             self.LAST_INPUT = ""
-        elif self.STATE == 1 and "\x94" in self.LAST_INPUT:
-            sys.exit()
-#         elif self.STATE == 1 and self.LAST_INPUT.endswith("OK\n"):
-# #             sys.exit()
-#             self.line_buffer = list('PRINT 123\n')
+        elif self.STATE == 1 and self.LAST_INPUT.endswith("$00\r\n"):
+            self.STATE += 1
+            self.line_buffer = list('r\n')
+            self.LAST_INPUT = ""
+        elif self.STATE == 2 and self.LAST_INPUT.endswith("$00\r\n"):
+            self.STATE += 1
+            self.line_buffer = list('ss\n')
+            self.LAST_INPUT = ""
+#         elif self.STATE == 3 and self.LAST_INPUT.endswith("4657"):
+#             sys.exit()
+
+#         self.LAST_INPUT += char
+#         if self.STATE == 0 and self.LAST_INPUT.endswith("1.0\r\n"):
+#             print self.LAST_INPUT
 #             self.STATE += 1
-#         elif self.STATE == 2 and self.LAST_INPUT.endswith("OK\n"):
-#             self.line_buffer = list('10 PRINT 123\nLIST\n')
-#             self.STATE += 1
-#         elif self.STATE == 3 and self.LAST_INPUT.endswith("OK\n"):
-#             self.line_buffer = list('RUN\n')
-#             self.STATE += 1
-#         elif self.STATE == 4 and self.LAST_INPUT.endswith("OK\n"):
-#             self.line_buffer = list('FOR I=1 to 3:PRINT I:NEXT I\n')
-#             self.STATE += 1
+#             self.line_buffer = list('ss\n')
+#             self.LAST_INPUT = ""
+#         elif self.STATE == 1 and self.LAST_INPUT.endswith("447"):
+#             print self.LAST_INPUT
+#             sys.exit()
 
         self.text.config(state=Tkinter.NORMAL)
         self.text.insert("end", char)
         self.text.see("end")
         self.text.config(state=Tkinter.DISABLED) # FIXME: make textbox "read-only"
+
 
 
 # SBC09Periphery = SBC09PeripherySerial
@@ -273,12 +319,14 @@ def test_run():
         "DragonPy_CLI.py",
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
-        "--verbosity=20", # INFO
+#         "--verbosity=20", # INFO
 #         "--verbosity=30", # WARNING
-#         "--verbosity=40", # ERROR
+        "--verbosity=40", # ERROR
 #         "--verbosity=50", # CRITICAL/FATAL
 
-#         "--area_debug_cycles=5805",
+#         "--area_debug_cycles=6355",
+#         "--area_debug_cycles=20241",
+        "--area_debug_cycles=44983",
 
         "--cfg=SBC09Cfg",
 #         "--max=500000",

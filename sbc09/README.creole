@@ -1,4 +1,40 @@
 
-Lennart Benschop 6809 assembler, simulator and monitor released under the GPL.
+sbc09 stands for Lennart Benschop 6809 Single Board Computer.
+The source code is released under the GPL.
 
 Homepage: http://lennartb.home.xs4all.nl/m6809.html
+
+The downloadable archive [[http://lennartb.home.xs4all.nl/sbc09.tar.gz|sbc09.tar.gz]] contains e.g:
+ 
+* 6809 assembler: [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09/a09.c|/sbc09/a09.c]]
+* 6809 simulator: [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09/v09.c|/sbc09/v09.c]]
+* A ROM with ASM source code. included a monitor program: [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09/monitor.asm|/sbc09/monitor.asm]]
+
+The content of sbc09.tar.gz included here: [[https://github.com/jedie/DragonPy/tree/master/sbc09/sbc09|/sbc09/sbc09/]]
+
+sbc09 information is in the README and LaTeX files, e.g.:
+* [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09/README.txt|/sbc09/README.txt]]
+* [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09/sbc09.tex|/sbc09/sbc09.tex]]
+
+The used ROM file for DragonPy is here:
+* [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09/v09.rom|/sbc09/sbc09/v09.rom]]
+and the source code ASM listing here:
+* [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09/monitor.asm|/sbc09/sbc09/monitor.asm]]
+* [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09/monitor.lst|/sbc09/sbc09/monitor.lst]]
+
+
+== trace file
+
+The "6809 Simulator" can also create trace files like XRoar, e.g.:
+{{{
+pc=e400 i=1a    x=0000 y=0000 u=0000 s=0000 a=00 b=00 cc=00
+pc=e402 i=4f    x=0000 y=0000 u=0000 s=0000 a=00 b=00 cc=ff
+pc=e403 i=1f    x=0000 y=0000 u=0000 s=0000 a=00 b=00 cc=f4
+pc=e405 i=10 ce x=0000 y=0000 u=0000 s=0000 a=00 b=00 cc=f4
+pc=e409 i=8e    x=0000 y=0000 u=0000 s=0400 a=00 b=00 cc=f0
+pc=e40c i=ce    x=e520 y=0000 u=0000 s=0400 a=00 b=00 cc=f8
+pc=e40f i=c6    x=e520 y=0000 u=0280 s=0400 a=00 b=00 cc=f0
+...
+}}}
+
+A simple, hacked Python scripts helps to create a **small** trace file: [[https://github.com/jedie/DragonPy/blob/master/sbc09/create_trace.py|/sbc09/create_trace.py]]
