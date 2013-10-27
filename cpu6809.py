@@ -723,8 +723,8 @@ class CPU(object):
                         own_ab, ref_ab
                     )
                     log.error(err_msg)
-                    if etype is None:
-                        raise RuntimeError(err_msg)
+#                     if etype is None:
+#                         raise RuntimeError(err_msg)
 
                 ref_xy_us = ref_line[16:43] # e.g.: x=e5e4 y=0000 u=0400 s=03e6
                 own_xy_us = msg[68:95]
@@ -736,8 +736,8 @@ class CPU(object):
                         own_xy_us, ref_xy_us
                     )
                     log.error(err_msg)
-                    if etype is None:
-                        raise RuntimeError(err_msg)
+#                     if etype is None:
+#                         raise RuntimeError(err_msg)
 
                 cc1 = msg[98:106]
                 ref_cc = int(ref_line[57:59], 16)
@@ -750,8 +750,8 @@ class CPU(object):
                         cc1, ref_cc
                     )
                     log.error(err_msg)
-                    if etype is None:
-                        raise RuntimeError(err_msg)
+#                     if etype is None:
+#                         raise RuntimeError(err_msg)
 
                 self.last_trace_line = ref_line
 
