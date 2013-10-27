@@ -1803,8 +1803,8 @@ class CPU(object):
             register.name,
             a, b, r
         ))
-        self.cc.clear_NZVC()
-        self.cc.update_NZVC_8(a, b, r)
+        self.cc.clear_HNZVC()
+        self.cc.update_HNZVC_8(a, b, r)
 
     def COM(self, value):
         """
