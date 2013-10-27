@@ -302,6 +302,27 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
 #             print self.LAST_INPUT
 #             sys.exit()
 
+        #~ self.LAST_INPUT += char
+        #~ if self.STATE == 0 and self.LAST_INPUT.endswith("1.0\r\n"):
+            #~ print self.LAST_INPUT
+            #~ self.STATE += 1
+
+            # SSaddr,len    Dump memory region as Motorola S records.
+            #~ self.line_buffer = list('ss\n')
+
+            # Daddr,len     Dump memory region
+            #~ self.line_buffer = list('DE5E2\n')
+
+            # Iaddr     Display the contents of the given address.
+            #~ self.line_buffer = list('IE001\n') # e.g.: Show the ACIA status
+
+            # Uaddr,len     Diassemble memory region
+            #~ self.line_buffer = list('UE400\n')
+
+            # Calculate simple expression in hex with + and -
+            #~ self.line_buffer = list('H4444+A5\n')
+            #~ self.LAST_INPUT = ""
+
         self.text.config(state=Tkinter.NORMAL)
         self.text.insert("end", char)
         self.text.see("end")
