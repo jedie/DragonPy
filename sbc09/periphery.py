@@ -143,12 +143,13 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
 
     def read_acia_status(self, cpu_cycles, op_address, address):
 #         return 0xff
+        return 0x03
         if self.line_buffer:
             # There is text to send via virtual serial
             value = 0xff
         else:
             # No chars to send.
-            value = 0x02 # XXX
+            value = 0x03 # XXX
 
         log.error("read from ACIA status, send $%x", value)
         return value
@@ -238,7 +239,7 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
         self.LAST_INPUT += char
         if self.STATE == 0 and self.LAST_INPUT.endswith("1.0\r\n"):
             self.STATE += 1
-            self.line_buffer = list('R\r\n')
+            self.line_buffer = list('r\n')
             self.LAST_INPUT = ""
         elif self.STATE == 1 and "\x94" in self.LAST_INPUT:
             sys.exit()
