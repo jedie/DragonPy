@@ -2812,9 +2812,27 @@ class CPU(object):
         source code forms: SEX
 
         CC bits "HNZVC": -aa0-
+
+            // 0x1d SEX inherent
+            case 0x1d:
+                WREG_A = (RREG_B & 0x80) ? 0xff : 0;
+                CLR_NZ;
+                SET_NZ16(REG_D);
+                peek_byte(cpu, REG_PC);
+
+        #define SIGNED(b) ((Word)(b&0x80?b|0xff00:b))
+        case 0x1D: /* SEX */ tw=SIGNED(ibreg); SETNZ16(tw) SETDREG(tw) break;
         """
-        raise NotImplementedError("$%x SEX" % opcode)
-        # self.cc.update_NZ0()
+        b = self.accu_b.get()
+        if b & 0x80 == 0:
+            self.accu_a.set(0x00)
+
+        d = self.accu_d.get()
+
+        log.debug("SEX: b=$%x ; $%x&0x80=$%x ; d=$%x", b, b, (b & 0x80), d)
+
+        self.cc.clear_NZ()
+        self.cc.update_NZ_16(d)
 
     @opcode(# Store register to memory
         0xdd, 0xed, 0xfd, # STD (direct, indexed, extended)
