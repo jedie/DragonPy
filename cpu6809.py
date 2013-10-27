@@ -248,9 +248,10 @@ class ControlHandlerFactory:
     def __call__(self, request, client_address, server):
         return ControlHandler(request, client_address, server, self.cpu)
 
+
 import os
+# FIXME: Hacked XRoar bugtracking...
 try:
-    # FIXME: Hacked bugtracking...
     trace_file = open(os.path.expanduser(r"~/xroar_trace.txt"), "r")
 except IOError, err:
     log.error("No trace file: %s" % err)
@@ -258,6 +259,14 @@ except IOError, err:
     trace_file = None
 else:
     trace_file.readline() # Skip reset line
+
+# FIXME: Hacked sbc09 bugtracking...
+try:
+    v09trace_file = open(os.path.expanduser(r"~/v09trace.txt"), "r")
+except IOError, err:
+    log.error("No trace file: %s" % err)
+    sys.exc_clear() # clears all information relating this exception
+    v09trace_file = None
 
 
 DEBUG_INSTR = ("BCC", "BCS", "BEQ", "BGE", "BGT", "BHI", "BHS", "BLE", "BLO",
@@ -333,29 +342,18 @@ class Instruction(object):
 
     CALLED = {}
     def call_instr_func(self):
-        op_kwargs = self.static_kwargs.copy()
+        self.op_kwargs = self.static_kwargs.copy()
 
         if self.get_ea_m_func is not None:
-            op_kwargs["ea"], op_kwargs["m"] = self.get_ea_m_func()
+            self.op_kwargs["ea"], self.op_kwargs["m"] = self.get_ea_m_func()
         else:
             if self.get_ea_func is not None:
                 log.debug("\tget ea with %s", self.get_ea_func.__name__)
-                op_kwargs["ea"] = self.get_ea_func()
+                self.op_kwargs["ea"] = self.get_ea_func()
 
             if self.get_m_func is not None:
                 log.debug("\tget m with %s", self.get_m_func.__name__)
-                op_kwargs["m"] = self.get_m_func()
-
-        if log.level <= logging.INFO:
-            kwargs_info = []
-            if "register" in op_kwargs:
-                kwargs_info.append(str(op_kwargs["register"]))
-
-            if "ea" in op_kwargs:
-                kwargs_info.append("ea:%04x" % op_kwargs["ea"])
-
-            if "m" in op_kwargs:
-                kwargs_info.append("m:%x" % op_kwargs["m"])
+                self.op_kwargs["m"] = self.get_m_func()
 
 #         log.info("CPU cycles: %i", self.cpu.cycles)
 
@@ -366,147 +364,33 @@ class Instruction(object):
 
         log.debug("%04x| %s(%s)",
             self.cpu.last_op_address,
-            self.instr_func.__name__, hex_repr(op_kwargs)
+            self.instr_func.__name__, hex_repr(self.op_kwargs)
         )
-        try:
-            result = self.instr_func(**op_kwargs)
-        except Exception, err:
-            # Display the op information log messages
-            activate_full_debug_logging()
-            log.info("Activate debug at $%x", self.cpu.last_op_address)
 
-            # raise the error later, after op information log messages
-            etype, evalue, etb = sys.exc_info()
-            evalue = etype("%s\n   kwargs: %s" % (evalue, hex_repr(op_kwargs)))
+        result = self.instr_func(**self.op_kwargs)
+        self.cpu.cycles += self.data["cycles"]
+
+        if self.write_func is not None:
+            # Instruction write result to memory
+            assert result is not None, (
+                "Instruction %r write result to memory but returned None!"
+            ) % self.instr_func.__name__
+            ea, value = result
+            log.debug("\twrite with %r to $%x the value $%x",
+                self.write_func.__name__, ea, value
+            )
+            self.write_func(ea, value)
         else:
-            etype = None
-
-            if self.write_func is not None:
-                # Instruction write result to memory
-                assert result is not None, (
-                    "Instruction %r write result to memory but returned None!"
-                ) % self.instr_func.__name__
-                ea, value = result
-                log.debug("\twrite with %r to $%x the value $%x",
-                    self.write_func.__name__, ea, value
-                )
-                self.write_func(ea, value)
-            else:
-                assert result is None, (
-                    "Instruction %r doesn't write result to memory but returned: %s!"
-                ) % (self.instr_func.__name__, repr(result))
+            assert result is None, (
+                "Instruction %r doesn't write result to memory but returned: %s!"
+            ) % (self.instr_func.__name__, repr(result))
 
 #         # XXX: remove this temp hack
 #         if self.cpu.cfg.__class__.__name__ == "Simple6809Cfg":
 #             if self.data["mnemonic"] == "BEQ":
-#                 if op_kwargs["ea"] == 0xeb10:
+#                 if self.op_kwargs["ea"] == 0xeb10:
 #                     activate_full_debug_logging()
 
-        self.cpu.cycles += self.data["cycles"]
-
-        if log.level <= logging.INFO:
-            op_address = self.cpu.last_op_address
-            mnemonic = self.data["mnemonic"]
-
-            msg = "%(op_address)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | %(cc)s" % {
-                "op_address": op_address,
-                "opcode": "%02x" % self.opcode,
-                "mnemonic": mnemonic,
-                "kwargs": " ".join(kwargs_info),
-                "cpu": self.cpu.get_info,
-                "cc": self.cpu.cc.get_info,
-            }
-#             if mnemonic in DEBUG_INSTR:
-#                 if "ea" in op_kwargs:
-#                     if self.OLD_EA != op_kwargs["ea"]:
-#                         self.OLD_EA = op_kwargs["ea"]
-#                         log.error(msg)
-#                     else:
-#                         log.info(msg)
-#                 else:
-#                     log.error(msg)
-#             else:
-            log.info(msg)
-
-            if trace_file: # Hacked bugtracking...
-
-                if self.opcode in (0x10, 0x11): # PAGE 1/2 instructions
-                    return
-
-                ref_line = trace_file.readline()
-                if ref_line == "":
-                    log.error("no XRoar log line (CPU cycles: %i)", self.cpu.cycles)
-                    return
-
-                ref_line = ref_line.strip()
-
-                # Add CC register info, e.g.: .F.IN..C
-                xroar_cc = int(ref_line[49:51], 16)
-                xroar_cc = cc_value2txt(xroar_cc)
-                ref_line = "%s | %s" % (ref_line, xroar_cc)
-#                 log.info("%s | %s", ref_line, xroar_cc)
-                log.info("%s <<< XRoar", ref_line)
-
-                registers1 = msg[52:95]
-                registers2 = ref_line[52:95]
-                if registers1 != registers2:
-                    log.info("trace: %s" , ref_line)
-                    log.info("own..: %s" , msg)
-                    log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                    log.error("registers (own: %r != XRoar: %r) not the same as trace reference!\n" % (
-                        registers1, registers2
-                    ))
-
-                cc1 = msg[98:106]
-                if cc1 != xroar_cc:
-                    log.info("trace: %s" , ref_line)
-                    log.info("own..: %s" , msg)
-                    log.error("Error in CPU cycles: %i", self.cpu.cycles)
-                    err_msg = "CC (own: %r != XRoar: %r) not the same as trace reference!\n" % (
-                        cc1, xroar_cc
-                    )
-                    log.error(err_msg)
-                    if registers1 == registers2 and etype is None:
-                        # same register values (except CC) but different CC
-                        raise RuntimeError(err_msg)
-
-                addr1 = msg.split("|", 1)[0]
-                addr2 = ref_line.split("|", 1)[0]
-                if addr1 != addr2:
-                    log.info("trace: %s", ref_line)
-                    log.info("own..: %s", msg)
-                    log.error("%04x|Error in CPU cycles: %i", op_address, self.cpu.cycles)
-                    log.error("address (own: %r != XRoar: %r) not the same as trace reference!\n" % (
-                        addr1, addr2
-                    ))
-
-                mnemonic1 = msg[11:18].strip()
-                mnemonic2 = ref_line[18:24].strip()
-                if mnemonic1 != mnemonic2:
-                    log.info("trace: %s", ref_line)
-                    log.info("own..: %s" , msg)
-                    log.error("%04x|Error in CPU cycles: %i", op_address, self.cpu.cycles)
-                    err_msg = "mnemonic (own: %r != XRoar: %r) not the same as trace reference!\n" % (
-                        mnemonic1, mnemonic2
-                    )
-                    log.error(err_msg)
-                    if etype is None:
-                        raise RuntimeError(err_msg)
-
-                log.debug("\t%s", repr(self.data))
-
-            if mnemonic in DEBUG_INSTR:
-                pc = self.cpu.program_counter
-                log.debug(
-                    "\t new PC: %x -> $%x\t| %s",
-                    op_address, pc, self.cpu.cfg.mem_info.get_shortest(pc)
-                )
-
-            log.debug("-"*79)
-
-        if etype is not None:
-            # raise the error while calling instruction, above.
-            raise etype, evalue, etb
 
 
 class IllegalInstruction(object):
@@ -527,10 +411,17 @@ class CPU(object):
         self.cfg = cfg
         log.info("Use config: %s", cfg)
 
+
         if self.cfg.__class__.__name__ != "Dragon32Cfg":
             # FIXME: Hacked bugtracking only with Dragon 32
             global trace_file
             trace_file = None
+
+        if self.cfg.__class__.__name__ != "SBC09Cfg":
+            # FIXME: Hacked bugtracking only with SBC09Cfg
+            global v09trace_file
+            v09trace_file = None
+
 
         if self.cfg.area_debug is not None:
             self.area_debug_active = False
@@ -702,11 +593,19 @@ class CPU(object):
 
         self.last_op_address = 0
 
-        log.debug("\tset cc.F=1: FIRQ interrupt masked")
-        self.cc.F = 1
+        if self.cfg.__class__.__name__ == "SBC09Cfg":
+            # first op is:
+            # E400: 1AFF  reset  orcc #$FF  ;Disable interrupts.
+#             log.debug("\tset CC register to 0xff")
+#             self.cc.set(0xff)
+            log.debug("\tset CC register to 0x00")
+            self.cc.set(0x00)
+        else:
+            log.debug("\tset cc.F=1: FIRQ interrupt masked")
+            self.cc.F = 1
 
-        log.debug("\tset cc.I=1: IRQ interrupt masked")
-        self.cc.I = 1
+            log.debug("\tset cc.I=1: IRQ interrupt masked")
+            self.cc.I = 1
 
 #         log.debug("\tset PC to $%x" % self.cfg.RESET_VECTOR)
 #         self.program_counter = self.cfg.RESET_VECTOR
@@ -723,6 +622,8 @@ class CPU(object):
 
     same_op_count = 0
     last_op_code = None
+    last_trace_line = None
+    trace_line_no = 0
     def call_instruction_func(self, op_address, opcode):
 
 #         if self.last_op_address == op_address:
@@ -739,10 +640,201 @@ class CPU(object):
             log.error(msg)
             sys.exit(msg)
 
-        instruction.call_instr_func()
-
+        try:
+            instruction.call_instr_func()
 #         if opcode not in (0x10, 0x11):
 #         assert op_address != old_op_address, "$%x| Endless loop!" % opcode
+        except Exception, err:
+            # Display the op information log messages
+            activate_full_debug_logging()
+            log.info("Activate debug at $%x", self.last_op_address)
+
+            # raise the error later, after op information log messages
+            etype, evalue, etb = sys.exc_info()
+            evalue = etype("%s\n   kwargs: %s" % (evalue, hex_repr(instruction.op_kwargs)))
+        else:
+            etype = None
+
+        if log.level <= logging.INFO:
+            kwargs_info = []
+            if "register" in instruction.op_kwargs:
+                kwargs_info.append(str(instruction.op_kwargs["register"]))
+            if "ea" in instruction.op_kwargs:
+                kwargs_info.append("ea:%04x" % instruction.op_kwargs["ea"])
+            if "m" in instruction.op_kwargs:
+                kwargs_info.append("m:%x" % instruction.op_kwargs["m"])
+
+
+            mnemonic = instruction.data["mnemonic"]
+
+            msg = "%(op_address)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | %(cc)s" % {
+                "op_address": self.last_op_address,
+                "opcode": "%02x" % opcode,
+                "mnemonic": mnemonic,
+                "kwargs": " ".join(kwargs_info),
+                "cpu": self.get_info,
+                "cc": self.cc.get_info,
+            }
+#             if mnemonic in DEBUG_INSTR:
+#                 if "ea" in self.op_kwargs:
+#                     if self.OLD_EA != self.op_kwargs["ea"]:
+#                         self.OLD_EA = self.op_kwargs["ea"]
+#                         log.error(msg)
+#                     else:
+#                         log.info(msg)
+#                 else:
+#                     log.error(msg)
+#             else:
+            log.info(msg)
+
+            if v09trace_file is not None: # Hacked sbc09 bugtracking...
+                if opcode in (0x10, 0x11): # PAGE 1/2 instructions
+                    return
+
+                if v09trace_file is not None and self.last_trace_line is None:
+                    self.last_trace_line = v09trace_file.readline()
+                    self.trace_line_no += 1
+                ref_line = v09trace_file.readline()
+                self.trace_line_no += 1
+                if ref_line == "":
+                    log.error("no sbc09 log line (CPU cycles: %i)", self.cycles)
+                    return
+
+                log.info("sbc09: %s", ref_line)
+                pc = int(self.last_trace_line[3:7], 16)
+                if pc != op_address:
+                    log.info("trace: %s" , ref_line)
+                    log.info("own..: %s" , msg)
+                    log.error("trace line number: %i - CPU cycles: %i", self.trace_line_no, self.cycles)
+                    err_msg = "programm counter (own: $%x != sbc09: $%x) not the same as trace reference!\n" % (
+                        op_address, pc
+                    )
+                    log.error(err_msg)
+                    if etype is None:
+                        raise RuntimeError(err_msg)
+
+                ref_ab = ref_line[44:53] # e.g.: a=ff b=57
+                own_ab = msg[52:61]
+                if own_ab != ref_ab:
+                    log.info("trace: %s" , ref_line)
+                    log.info("own..: %s" , msg)
+                    log.error("trace line number: %i - CPU cycles: %i", self.trace_line_no, self.cycles)
+                    err_msg = "'a' or 'b' (own: %s != sbc09: %s) not the same as trace reference!\n" % (
+                        own_ab, ref_ab
+                    )
+                    log.error(err_msg)
+                    if etype is None:
+                        raise RuntimeError(err_msg)
+
+                ref_xy_us = ref_line[16:43] # e.g.: x=e5e4 y=0000 u=0400 s=03e6
+                own_xy_us = msg[68:95]
+                if own_xy_us != ref_xy_us:
+                    log.info("trace: %s" , ref_line)
+                    log.info("own..: %s" , msg)
+                    log.error("trace line number: %i - CPU cycles: %i", self.trace_line_no, self.cycles)
+                    err_msg = "x,y,u or s (own: %s != sbc09: %s) not the same as trace reference!\n" % (
+                        own_xy_us, ref_xy_us
+                    )
+                    log.error(err_msg)
+                    if etype is None:
+                        raise RuntimeError(err_msg)
+
+                cc1 = msg[98:106]
+                ref_cc = int(ref_line[57:59], 16)
+                ref_cc = cc_value2txt(ref_cc)
+                if cc1 != ref_cc:
+                    log.info("trace: %s" , ref_line)
+                    log.info("own..: %s" , msg)
+                    log.error("trace line number: %i - CPU cycles: %i", self.trace_line_no, self.cycles)
+                    err_msg = "cc (own: %s != sbc09: %s) not the same as trace reference!\n" % (
+                        cc1, ref_cc
+                    )
+                    log.error(err_msg)
+                    if etype is None:
+                        raise RuntimeError(err_msg)
+
+                self.last_trace_line = ref_line
+
+
+            if trace_file is not None: # Hacked XRoar bugtracking...
+                if opcode in (0x10, 0x11): # PAGE 1/2 instructions
+                    return
+
+                ref_line = trace_file.readline()
+                if ref_line == "":
+                    log.error("no XRoar log line (CPU cycles: %i)", self.cycles)
+                    return
+
+                ref_line = ref_line.strip()
+
+                # Add CC register info, e.g.: .F.IN..C
+                xroar_cc = int(ref_line[49:51], 16)
+                xroar_cc = cc_value2txt(xroar_cc)
+                ref_line = "%s | %s" % (ref_line, xroar_cc)
+#                 log.info("%s | %s", ref_line, xroar_cc)
+                log.info("%s <<< XRoar", ref_line)
+
+                registers1 = msg[52:95]
+                registers2 = ref_line[52:95]
+                if registers1 != registers2:
+                    log.info("trace: %s" , ref_line)
+                    log.info("own..: %s" , msg)
+                    log.error("Error in CPU cycles: %i", self.cycles)
+                    log.error("registers (own: %r != XRoar: %r) not the same as trace reference!\n" % (
+                        registers1, registers2
+                    ))
+
+                cc1 = msg[98:106]
+                if cc1 != xroar_cc:
+                    log.info("trace: %s" , ref_line)
+                    log.info("own..: %s" , msg)
+                    log.error("Error in CPU cycles: %i", self.cycles)
+                    err_msg = "CC (own: %r != XRoar: %r) not the same as trace reference!\n" % (
+                        cc1, xroar_cc
+                    )
+                    log.error(err_msg)
+                    if registers1 == registers2 and etype is None:
+                        # same register values (except CC) but different CC
+                        raise RuntimeError(err_msg)
+
+                addr1 = msg.split("|", 1)[0]
+                addr2 = ref_line.split("|", 1)[0]
+                if addr1 != addr2:
+                    log.info("trace: %s", ref_line)
+                    log.info("own..: %s", msg)
+                    log.error("%04x|Error in CPU cycles: %i", op_address, self.cycles)
+                    log.error("address (own: %r != XRoar: %r) not the same as trace reference!\n" % (
+                        addr1, addr2
+                    ))
+
+                mnemonic1 = msg[11:18].strip()
+                mnemonic2 = ref_line[18:24].strip()
+                if mnemonic1 != mnemonic2:
+                    log.info("trace: %s", ref_line)
+                    log.info("own..: %s" , msg)
+                    log.error("%04x|Error in CPU cycles: %i", op_address, self.cycles)
+                    err_msg = "mnemonic (own: %r != XRoar: %r) not the same as trace reference!\n" % (
+                        mnemonic1, mnemonic2
+                    )
+                    log.error(err_msg)
+                    if etype is None:
+                        raise RuntimeError(err_msg)
+
+                log.debug("\t%s", repr(self.data))
+
+            if mnemonic in DEBUG_INSTR:
+                pc = self.program_counter
+                log.debug(
+                    "\t new PC: %x -> $%x\t| %s",
+                    op_address, pc, self.cfg.mem_info.get_shortest(pc)
+                )
+
+            log.debug("-"*79)
+
+        if etype is not None:
+            # raise the error while calling instruction, above.
+            raise etype, evalue, etb
+
 
     @opcode(
         0x10, # PAGE 2 instructions
@@ -2939,10 +3031,10 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-#         "--verbosity=5",
+        "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-        "--verbosity=30", # WARNING
+#         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
 #         "--verbosity=50", # CRITICAL/FATAL
 
