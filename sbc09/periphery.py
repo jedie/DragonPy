@@ -22,52 +22,47 @@ log = logging.getLogger("DragonPy.Periphery")
 class SBC09PeripheryBase(object):
     def __init__(self, cfg):
         self.cfg = cfg
-        self.address2func_map = {
-            0xfffe: self.reset_vector,
-        }
+        self.read_address2func_map = None
+        self.write_address2func_map = None
 
     def read_byte(self, cpu_cycles, op_address, address):
         log.debug(
-            "%04x| Periphery.read_byte from $%x (cpu_cycles: %i)" % (
+            "%04x| Periphery.read_byte from $%x (cpu_cycles: %i)",
             op_address, address, cpu_cycles
-        ))
-        if 0xe000 <= address <= 0xe1ff:
-            return self.read_rs232_interface(cpu_cycles, op_address, address)
-
+        )
         try:
-            func = self.address2func_map[address]
+            func = self.read_address2func_map[address]
         except KeyError, err:
             msg = "TODO: read byte from $%x" % address
             log.error(msg)
             raise NotImplementedError(msg)
         else:
-            return func(address)
-
-        raise NotImplementedError
-
+            log.debug("func: %s", func.__name__)
+            byte = func(cpu_cycles, op_address, address)
+            log.debug("\tsend byte $%x back" % byte)
+            return byte
     read_word = read_byte
 
     def write_byte(self, cpu_cycles, op_address, address, value):
-        if 0xe000 <= address <= 0xe1ff:
-            return self.write_rs232_interface(cpu_cycles, op_address, address, value)
+        log.debug(
+            "%04x| Periphery.write_byte $%x to $%x (cpu_cycles: %i)",
+            op_address, value, address, cpu_cycles
+        )
+        try:
+            func = self.write_address2func_map[address]
+        except KeyError, err:
+            msg = "TODO: read byte from $%x" % address
+            log.error(msg)
+            raise NotImplementedError(msg)
+        else:
+            log.debug("func: %s", func.__name__)
+            func(cpu_cycles, op_address, address, value)
 
-        msg = "%04x| TODO: write byte $%x to $%x" % (op_address, value, address)
-        log.error(msg)
-        raise NotImplementedError(msg)
     write_word = write_byte
 
     def cycle(self, cpu_cycles, op_address):
         log.debug("TODO: SBC09Periphery.cycle")
 
-
-    def read_rs232_interface(self, cpu_cycles, op_address, address):
-        raise NotImplementedError
-
-    def write_rs232_interface(self, cpu_cycles, op_address, address, value):
-        raise NotImplementedError
-
-    def reset_vector(self, address):
-        return 0xe400
 
 
 class SBC09PeripheryTk(SBC09PeripheryBase):
@@ -105,6 +100,18 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
         self.root.update()
 
         self.line_buffer = []
+        self.read_address2func_map = {
+            0xe000: self.read_acia_status, # Control/status port of ACIA
+            0xe001: self.read_acia_data, # Data port of ACIA
+            0xfffe: self.reset_vector,
+        }
+        self.write_address2func_map = {
+            0xe000: self.write_acia_status, # Control/status port of ACIA
+            0xe001: self.write_acia_data, # Data port of ACIA
+        }
+
+    def reset_vector(self, cpu_cycles, op_address, address):
+        return 0xe400
 
     def event_return(self, event):
         log.critical("ENTER: add \\n")
@@ -134,7 +141,24 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
     def cycle(self, cpu_cycles, op_address):
         self.root.update()
 
-    def read_rs232_interface(self, cpu_cycles, op_address, address):
+    def read_acia_status(self, cpu_cycles, op_address, address):
+#         return 0xff
+        if self.line_buffer:
+            # There is text to send via virtual serial
+            value = 0xff
+        else:
+            # No chars to send.
+            value = 0x02 # XXX
+
+        log.error("read from ACIA status, send $%x", value)
+        return value
+
+    def write_acia_status(self, cpu_cycles, op_address, address, value):
+        value = 0xff
+        log.error("FIXME: write to ACIA status (send $%x back)", value)
+        return value
+
+    def read_acia_data(self, cpu_cycles, op_address, address):
         """
                                 *
                                 * THIS ROUTINE GETS A KEYSTROKE FROM THE KEYBOARD IF A KEY
@@ -156,24 +180,11 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
             "%04x| (%i) read from RS232 address: $%x",
             op_address, cpu_cycles, address,
         )
-
-        if address == 0xe000:
-            return 0xff
-#             if self.line_buffer:
-#                 # There is text to send via virtual serial
-#                 value = 0xff
-#             else:
-#                 # No chars to send.
-#                 value = 0x02 # XXX
-#
-#             log.error("read 0xe000, send $%x", value)
-#             return value
-
         if self.line_buffer:
             char = self.line_buffer.pop(0)
             value = ord(char)
-            log.error("%04x| (%i) read from RS232 address: $%x, send back %r $%x",
-                op_address, cpu_cycles, address, char, value
+            log.error("%04x| (%i) read from ACIA-data, send back %r $%x",
+                op_address, cpu_cycles, char, value
             )
             return value
 
@@ -181,15 +192,10 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
 
     STATE = 0
     LAST_INPUT = ""
-    def write_rs232_interface(self, cpu_cycles, op_address, address, value):
-        log.error("%04x| (%i) write to RS232 address: $%x value: $%x (dez.: %i) ASCII: %r" % (
-            op_address, cpu_cycles, address, value, value, chr(value)
+    def write_acia_data(self, cpu_cycles, op_address, address, value):
+        log.error("%04x| (%i) write to ACIA-data value: $%x (dez.: %i) ASCII: %r" % (
+            op_address, cpu_cycles, value, value, chr(value)
         ))
-        if address == 0xe000:
-            value = 0xff
-            log.error("write 0xe000, send $%x", value)
-            return value
-
         """
         * ASCII control characters.
         SOH             equ 1
@@ -213,7 +219,6 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
         $15  21  NAK (No Acknowledge)
         $18  24  CAN (Cancel)
         """
-
 #         if value == 0xd: # == \n
 #             log.error("ignore insert \\n")
 #             return
