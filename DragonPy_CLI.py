@@ -13,6 +13,7 @@ import sys
 from DragonPy import Dragon
 from base_cli import Base_CLI
 import configs
+from utils.simple_debugger import print_exc_plus
 
 
 @atexit.register
@@ -83,13 +84,15 @@ class DragonPyCLI(Base_CLI):
 
     def run(self):
         self.setup_cfg()
-
         dragon = Dragon(self.cfg)
         dragon.run()
 
 
 if __name__ == "__main__":
-    cli = DragonPyCLI()
-    cli.run()
+    try:
+        cli = DragonPyCLI()
+        cli.run()
+    except:
+        print_exc_plus()
 
     print "\n --- END --- \n"
