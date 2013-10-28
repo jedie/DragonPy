@@ -276,21 +276,19 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
         Unknown command
         """
 
-        self.LAST_INPUT += char
-        if self.STATE == 0 and self.LAST_INPUT.endswith("1.0\r\n"):
-            self.STATE += 1
-            self.line_buffer = list('r\n')
-            self.LAST_INPUT = ""
-        elif self.STATE == 1 and self.LAST_INPUT.endswith("$00\r\n"):
-            self.STATE += 1
-            self.line_buffer = list('r\n')
-            self.LAST_INPUT = ""
-        elif self.STATE == 2 and self.LAST_INPUT.endswith("$00\r\n"):
-            self.STATE += 1
-            self.line_buffer = list('ss\n')
-            self.LAST_INPUT = ""
-#         elif self.STATE == 3 and self.LAST_INPUT.endswith("4657"):
-#             sys.exit()
+#         self.LAST_INPUT += char
+#         if self.STATE == 0 and self.LAST_INPUT.endswith("1.0\r\n"):
+#             self.STATE += 1
+#             self.line_buffer = list('r\n')
+#             self.LAST_INPUT = ""
+#         elif self.STATE == 1 and self.LAST_INPUT.endswith("$00\r\n"):
+#             self.STATE += 1
+#             self.line_buffer = list('r\n')
+#             self.LAST_INPUT = ""
+#         elif self.STATE == 2 and self.LAST_INPUT.endswith("$00\r\n"):
+#             self.STATE += 1
+#             self.line_buffer = list('ss\n')
+#             self.LAST_INPUT = ""
 
 #         self.LAST_INPUT += char
 #         if self.STATE == 0 and self.LAST_INPUT.endswith("1.0\r\n"):
