@@ -12,9 +12,9 @@ The downloadable archive [[http://lennartb.home.xs4all.nl/sbc09.tar.gz|sbc09.tar
 
 The content of sbc09.tar.gz included here: [[https://github.com/jedie/DragonPy/tree/master/sbc09/sbc09|/sbc09/sbc09/]]
 
-sbc09 information is in the README and LaTeX files, e.g.:
-* [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09/README.txt|/sbc09/README.txt]]
-* [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09/sbc09.tex|/sbc09/sbc09.tex]]
+sbc09 information is in the [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09/README.txt|/sbc09/README.txt]] and LaTeX files.  
+There is a generated and hand changed **creole** version of [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09/sbc09.tex|/sbc09/sbc09.tex]] here: 
+* [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09.creole|sbc09.creole]]
 
 The used ROM file for DragonPy is here:
 * [[https://github.com/jedie/DragonPy/blob/master/sbc09/sbc09/v09.rom|/sbc09/sbc09/v09.rom]]
