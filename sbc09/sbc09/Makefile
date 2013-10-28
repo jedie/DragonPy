@@ -46,3 +46,8 @@ bin2dec: bin2dec.asm
 asmtest: asmtest.asm
 	./a09 -l asmtest.lst asmtest.asm
 
+clean:
+	rm *.o
+	rm a09 v09 makerom
+	rm *.lst
+	rm test09 bench09 basic bin2dec asmtest
