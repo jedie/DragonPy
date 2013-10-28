@@ -14,7 +14,11 @@
 """
 
 import logging
-import pygame
+try:
+    import pygame
+except ImportError:
+    # Maybe Dragon would not be emulated ;)
+    pygame = None
 
 from components.MC6883_SAM import SAM
 from components.MC6821_PIA import PIA

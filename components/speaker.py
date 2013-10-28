@@ -13,8 +13,16 @@
         origin source code licensed under MIT License
 """
 
-import pygame
-import numpy
+try:
+    import pygame
+except ImportError:
+    # Maybe Dragon would not be emulated ;)
+    pygame = None
+
+try:
+    import numpy
+except ImportError:
+    numpy = None
 
 
 class Speaker:

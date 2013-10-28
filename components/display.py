@@ -15,7 +15,11 @@
 
 
 import time
-import pygame
+try:
+    import pygame
+except ImportError:
+    # Maybe Dragon would not be emulated ;)
+    pygame = None
 
 
 class Display(object):

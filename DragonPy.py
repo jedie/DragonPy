@@ -14,7 +14,6 @@
 """
 
 
-import pygame
 import select
 import socket
 import struct
