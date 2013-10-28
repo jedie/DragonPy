@@ -92,6 +92,8 @@ if __name__ == "__main__":
     try:
         cli = DragonPyCLI()
         cli.run()
+    except SystemExit:
+        pass
     except:
         print_exc_plus()
 
