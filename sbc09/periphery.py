@@ -13,8 +13,12 @@
 
 import logging
 import sys
-import Tkinter
 import os
+try:
+    import Tkinter
+except Exception, err:
+    print "Error importing Tkinter: %s" % err
+    Tkinter = None
 
 log = logging.getLogger("DragonPy.Periphery")
 
