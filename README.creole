@@ -100,10 +100,9 @@ OK
 === performance
 
 The current implementation is not optimised.
-Even contrary, with many logging statements in the code.
 
-With CPython there is round about 55.000 CPU cycles/sec.
-With PyPy round about 140.000 CPU cycles/sec.
+With CPython there is round about 235.000 CPU cycles/sec.
+With PyPy round about 315.000 CPU cycles/sec.
 
 A real 6809 machine runs with round about 894.000 CPU cycles/sec. (14.31818 MHz crystal / 16)
 
