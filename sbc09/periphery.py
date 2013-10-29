@@ -13,12 +13,16 @@
 
 import logging
 import sys
-import os
+
 try:
     import Tkinter
 except Exception, err:
     print "Error importing Tkinter: %s" % err
     Tkinter = None
+
+import Queue
+import threading
+import time
 
 log = logging.getLogger("DragonPy.Periphery")
 
@@ -26,8 +30,20 @@ log = logging.getLogger("DragonPy.Periphery")
 class SBC09PeripheryBase(object):
     def __init__(self, cfg):
         self.cfg = cfg
-        self.read_address2func_map = None
-        self.write_address2func_map = None
+        self.read_address2func_map = {
+            0xe000: self.read_acia_status, # Control/status port of ACIA
+            0xe001: self.read_acia_data, # Data port of ACIA
+            0xfffe: self.reset_vector,
+        }
+        self.write_address2func_map = {
+            0xe000: self.write_acia_status, # Control/status port of ACIA
+            0xe001: self.write_acia_data, # Data port of ACIA
+        }
+        self.user_input_queue = Queue.Queue() # Buffer for input to send back to the CPU
+        self.output_queue = Queue.Queue() # Buffer with content from the CPU to display
+
+        self.update_time = 0.1
+        self.last_update = time.time()
 
     def read_byte(self, cpu_cycles, op_address, address):
 #        log.debug(
@@ -64,10 +80,51 @@ class SBC09PeripheryBase(object):
 
     write_word = write_byte
 
+    def reset_vector(self, cpu_cycles, op_address, address):
+        return 0xe400
+
+    def update(self, cpu_cycles):
+        raise NotImplementedError
+
     def cycle(self, cpu_cycles, op_address):
-        log.debug("TODO: SBC09Periphery.cycle")
+        if time.time() - self.last_update > self.update_time:
+            self.last_update = time.time()
+            self.update(cpu_cycles)
 
+    def write_acia_status(self, cpu_cycles, op_address, address, value):
+        return 0xff
+    def read_acia_status(self, cpu_cycles, op_address, address):
+        return 0x03
 
+    def read_acia_data(self, cpu_cycles, op_address, address):
+        if self.user_input_queue.empty():
+            return 0x0
+
+        char = self.user_input_queue.get()
+        value = ord(char)
+#         log.error("%04x| (%i) read from ACIA-data, send back %r $%x",
+#             op_address, cpu_cycles, char, value
+#         )
+        return value
+    
+    def write_acia_data(self, cpu_cycles, op_address, address, value):
+        char = chr(value)
+#        log.error("*"*79)
+#        log.error("Write to screen: %s ($%x)" , repr(char), value)
+#        log.error("*"*79)
+
+        if value >= 0x90: # FIXME: Why?
+            value -= 0x60
+            char = chr(value)
+#            log.error("convert value -= 0x30 to %s ($%x)" , repr(char), value)
+
+        if value <= 9: # FIXME: Why?
+            value += 0x41
+            char = chr(value)
+#            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
+
+        self.output_queue.put(char)
+    
 
 class SBC09PeripheryTk(SBC09PeripheryBase):
     def __init__(self, cfg):
@@ -103,28 +160,16 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
 
         self.root.update()
 
-        self.line_buffer = []
-        self.read_address2func_map = {
-            0xe000: self.read_acia_status, # Control/status port of ACIA
-            0xe001: self.read_acia_data, # Data port of ACIA
-            0xfffe: self.reset_vector,
-        }
-        self.write_address2func_map = {
-            0xe000: self.write_acia_status, # Control/status port of ACIA
-            0xe001: self.write_acia_data, # Data port of ACIA
-        }
 
-    def reset_vector(self, cpu_cycles, op_address, address):
-        return 0xe400
 
     def event_return(self, event):
 #        log.critical("ENTER: add \\n")
-        self.line_buffer.append("\n")
+        self.user_input_queue.put("\n")
 
     def from_console_break(self, event):
 #        log.critical("BREAK: add 0x03")
         # dc61 81 03              LA3C2     CMPA #3             BREAK KEY?
-        self.line_buffer.append("\x03")
+        self.user_input_queue.put("\x03")
 
     def copy_to_clipboard(self, event):
         log.critical("Copy to clipboard")
@@ -140,60 +185,27 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
         if char:
             char = char.upper()
             log.error("Send %s", repr(char))
-            self.line_buffer.append(char)
+            self.user_input_queue.put(char)
 
-    def cycle(self, cpu_cycles, op_address):
-        self.root.update()
+#     def read_acia_status(self, cpu_cycles, op_address, address):
+# #         return 0xff
+#         return 0x03
+#         if self.user_input_queue:
+#             # There is text to send via virtual serial
+#             value = 0xff
+#         else:
+#             # No chars to send.
+#             value = 0x03 # XXX
+#
+# #        log.error("read from ACIA status, send $%x", value)
+#         return value
+#
+#     def write_acia_status(self, cpu_cycles, op_address, address, value):
+#         value = 0xff
+# #        log.error("FIXME: write to ACIA status (send $%x back)", value)
+#         return value
 
-    def read_acia_status(self, cpu_cycles, op_address, address):
-#         return 0xff
-        return 0x03
-        if self.line_buffer:
-            # There is text to send via virtual serial
-            value = 0xff
-        else:
-            # No chars to send.
-            value = 0x03 # XXX
 
-#        log.error("read from ACIA status, send $%x", value)
-        return value
-
-    def write_acia_status(self, cpu_cycles, op_address, address, value):
-        value = 0xff
-#        log.error("FIXME: write to ACIA status (send $%x back)", value)
-        return value
-
-    def read_acia_data(self, cpu_cycles, op_address, address):
-        """
-                                *
-                                * THIS ROUTINE GETS A KEYSTROKE FROM THE KEYBOARD IF A KEY
-                                * IS DOWN. IT RETURNS ZERO TRUE IF THERE WAS NO KEY DOWN.
-                                *
-                                *
-                                LA1C1
-        db05 b6 a0 00           KEYIN     LDA  a000(USTAT)
-        db08 85 01                        BITA #1
-        db0a 27 06                        BEQ  NOCHAR
-        db0c b6 a0 01                     LDA  a001(RECEV)
-        db0f 84 7f                        ANDA #$7F
-        db11 39                           RTS
-        db12 4f                 NOCHAR    CLRA
-        db13 39                           RTS
-        """
-#        log.debug(
-#         log.error(
-#            "%04x| (%i) read from RS232 address: $%x",
-#            op_address, cpu_cycles, address,
-#        )
-        if self.line_buffer:
-            char = self.line_buffer.pop(0)
-            value = ord(char)
-#            log.error("%04x| (%i) read from ACIA-data, send back %r $%x",
-#                op_address, cpu_cycles, char, value
-#            )
-            return value
-
-        return 0x0
 
     STATE = 0
     LAST_INPUT = ""
@@ -234,20 +246,7 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
             self.text.config(state=Tkinter.DISABLED) # FIXME: make textbox "read-only"
             return
 
-        char = chr(value)
-#        log.error("*"*79)
-#        log.error("Write to screen: %s ($%x)" , repr(char), value)
-#        log.error("*"*79)
 
-        if value >= 0x90: # FIXME: Why?
-            value -= 0x60
-            char = chr(value)
-#            log.error("convert value -= 0x30 to %s ($%x)" , repr(char), value)
-
-        if value <= 9: # FIXME: Why?
-            value += 0x41
-            char = chr(value)
-#            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
 
         """
         $ python create_trace.py
@@ -283,22 +282,22 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
 #         self.LAST_INPUT += char
 #         if self.STATE == 0 and self.LAST_INPUT.endswith("1.0\r\n"):
 #             self.STATE += 1
-#             self.line_buffer = list('r\n')
+#             self.user_input_queue = list('r\n')
 #             self.LAST_INPUT = ""
 #         elif self.STATE == 1 and self.LAST_INPUT.endswith("$00\r\n"):
 #             self.STATE += 1
-#             self.line_buffer = list('r\n')
+#             self.user_input_queue = list('r\n')
 #             self.LAST_INPUT = ""
 #         elif self.STATE == 2 and self.LAST_INPUT.endswith("$00\r\n"):
 #             self.STATE += 1
-#             self.line_buffer = list('ss\n')
+#             self.user_input_queue = list('ss\n')
 #             self.LAST_INPUT = ""
 
 #         self.LAST_INPUT += char
 #         if self.STATE == 0 and self.LAST_INPUT.endswith("1.0\r\n"):
 #             print self.LAST_INPUT
 #             self.STATE += 1
-#             self.line_buffer = list('ss\n')
+#             self.user_input_queue = list('ss\n')
 #             self.LAST_INPUT = ""
 #         elif self.STATE == 1 and self.LAST_INPUT.endswith("447"):
 #             print self.LAST_INPUT
@@ -310,42 +309,85 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
             #~ self.STATE += 1
 
             # SSaddr,len    Dump memory region as Motorola S records.
-            #~ self.line_buffer = list('ss\n')
+            #~ self.user_input_queue = list('ss\n')
 
             # Daddr,len     Dump memory region
-            #~ self.line_buffer = list('DE5E2\n')
+            #~ self.user_input_queue = list('DE5E2\n')
 
             # Iaddr     Display the contents of the given address.
-            #~ self.line_buffer = list('IE001\n') # e.g.: Show the ACIA status
+            #~ self.user_input_queue = list('IE001\n') # e.g.: Show the ACIA status
 
             # Uaddr,len     Diassemble memory region
-            #~ self.line_buffer = list('UE400\n')
+            #~ self.user_input_queue = list('UE400\n')
 
             # Calculate simple expression in hex with + and -
-            #~ self.line_buffer = list('H4444+A5\n')
+            #~ self.user_input_queue = list('H4444+A5\n')
             #~ self.LAST_INPUT = ""
 
-        self.text.config(state=Tkinter.NORMAL)
-        self.text.insert("end", char)
-        self.text.see("end")
-        self.text.config(state=Tkinter.DISABLED) # FIXME: make textbox "read-only"
+        super(SBC09PeripheryTk, self).write_acia_data(cpu_cycles, op_address, address, value)
 
+    def update(self, cpu_cycles):
+        if not self.output_queue.empty():
+            text_buffer = []
+            while not self.output_queue.empty():
+                text_buffer.append(self.output_queue.get())
+
+            text = "".join(text_buffer)
+            sys.stdout.write(text)
+            sys.stdout.flush()
+
+            self.text.config(state=Tkinter.NORMAL)
+            self.text.insert("end", text)
+            self.text.see("end")
+            self.text.config(state=Tkinter.DISABLED) # FIXME: make textbox "read-only"
+
+        self.root.update()
+
+
+class SBC09PeripheryConsole(SBC09PeripheryBase):
+    """
+    A simple console to interact with the 6809 simulation.
+    FIXME:
+        The CPU echo all input characters.
+        So you will see all input double.
+    """
+    def __init__(self, cfg):
+        super(SBC09PeripheryConsole, self).__init__(cfg)
+
+        input_thread = threading.Thread(target=self.input_thread, args=(self.user_input_queue,))
+        input_thread.daemon = True
+        input_thread.start()
+
+    def input_thread(self, input_queue):
+        while True:
+            input_queue.put(sys.stdin.read(1))
+
+    def update(self, cpu_cycles):
+        if not self.output_queue.empty():
+            text_buffer = []
+            while not self.output_queue.empty():
+                text_buffer.append(self.output_queue.get())
+
+            text = "".join(text_buffer)
+            sys.stdout.write(text)
+            sys.stdout.flush()
 
 
 # SBC09Periphery = SBC09PeripherySerial
-SBC09Periphery = SBC09PeripheryTk
+# SBC09Periphery = SBC09PeripheryTk
+SBC09Periphery = SBC09PeripheryConsole
 
 
 def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-        "--verbosity=5",
+#         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
 #         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
+        "--verbosity=50", # CRITICAL/FATAL
 
 #         "--area_debug_cycles=6355",
 #         "--area_debug_cycles=20241",
