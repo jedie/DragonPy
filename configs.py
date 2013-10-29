@@ -68,6 +68,9 @@ class BaseConfig(object):
     STRUCT_TO_MEMORY_FORMAT = "<H"
     STRUCT_MEMORY_LEN = struct.calcsize(STRUCT_TO_MEMORY_FORMAT)
 
+    # How many ops should be execute before make a control server update cycle?
+    BURST_COUNT = 10000
+
     def __init__(self, cmd_args):
         assert self.RAM_SIZE == (self.RAM_END - self.RAM_START) + 1
         assert self.ROM_SIZE == (self.ROM_END - self.ROM_START) + 1

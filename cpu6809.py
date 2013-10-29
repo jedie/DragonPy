@@ -874,9 +874,7 @@ class CPU(object):
                 else:
                     pass
 
-#             for count in xrange(10):
-            for count in xrange(100):
-#             for count in xrange(1000):
+            for count in xrange(self.cfg.BURST_COUNT):
                 if not self.running:
                     break
                 self.get_and_call_next_op()
