@@ -238,9 +238,9 @@ class Memory(object):
             sys.exit(0)
             
         if len(data) != self.cfg.STRUCT_MEMORY_LEN:
-#            log.error("Memory bus read $%x error: Get wrong data length back: %s" % (
-#                address, repr(data)
-#            ))
+            log.critical("Memory bus read $%x error: Get wrong data length back: %s" % (
+                address, repr(data)
+            ))
             sys.exit(0)
 
         value = struct.unpack(self.cfg.STRUCT_TO_MEMORY_FORMAT, data)[0]
