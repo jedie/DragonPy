@@ -26,10 +26,10 @@ class SBC09PeripheryBase(object):
         self.write_address2func_map = None
 
     def read_byte(self, cpu_cycles, op_address, address):
-        log.debug(
-            "%04x| Periphery.read_byte from $%x (cpu_cycles: %i)",
-            op_address, address, cpu_cycles
-        )
+#        log.debug(
+#            "%04x| Periphery.read_byte from $%x (cpu_cycles: %i)",
+#            op_address, address, cpu_cycles
+#        )
         try:
             func = self.read_address2func_map[address]
         except KeyError, err:
@@ -37,17 +37,17 @@ class SBC09PeripheryBase(object):
             log.error(msg)
             raise NotImplementedError(msg)
         else:
-            log.debug("func: %s", func.__name__)
+#            log.debug("func: %s", func.__name__)
             byte = func(cpu_cycles, op_address, address)
-            log.debug("\tsend byte $%x back" % byte)
+#            log.debug("\tsend byte $%x back" % byte)
             return byte
     read_word = read_byte
 
     def write_byte(self, cpu_cycles, op_address, address, value):
-        log.debug(
-            "%04x| Periphery.write_byte $%x to $%x (cpu_cycles: %i)",
-            op_address, value, address, cpu_cycles
-        )
+#        log.debug(
+#            "%04x| Periphery.write_byte $%x to $%x (cpu_cycles: %i)",
+#            op_address, value, address, cpu_cycles
+#        )
         try:
             func = self.write_address2func_map[address]
         except KeyError, err:
@@ -55,7 +55,7 @@ class SBC09PeripheryBase(object):
             log.error(msg)
             raise NotImplementedError(msg)
         else:
-            log.debug("func: %s", func.__name__)
+#            log.debug("func: %s", func.__name__)
             func(cpu_cycles, op_address, address, value)
 
     write_word = write_byte
@@ -114,11 +114,11 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
         return 0xe400
 
     def event_return(self, event):
-        log.critical("ENTER: add \\n")
+#        log.critical("ENTER: add \\n")
         self.line_buffer.append("\n")
 
     def from_console_break(self, event):
-        log.critical("BREAK: add 0x03")
+#        log.critical("BREAK: add 0x03")
         # dc61 81 03              LA3C2     CMPA #3             BREAK KEY?
         self.line_buffer.append("\x03")
 
@@ -151,12 +151,12 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
             # No chars to send.
             value = 0x03 # XXX
 
-        log.error("read from ACIA status, send $%x", value)
+#        log.error("read from ACIA status, send $%x", value)
         return value
 
     def write_acia_status(self, cpu_cycles, op_address, address, value):
         value = 0xff
-        log.error("FIXME: write to ACIA status (send $%x back)", value)
+#        log.error("FIXME: write to ACIA status (send $%x back)", value)
         return value
 
     def read_acia_data(self, cpu_cycles, op_address, address):
@@ -176,17 +176,17 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
         db12 4f                 NOCHAR    CLRA
         db13 39                           RTS
         """
-        log.debug(
+#        log.debug(
 #         log.error(
-            "%04x| (%i) read from RS232 address: $%x",
-            op_address, cpu_cycles, address,
-        )
+#            "%04x| (%i) read from RS232 address: $%x",
+#            op_address, cpu_cycles, address,
+#        )
         if self.line_buffer:
             char = self.line_buffer.pop(0)
             value = ord(char)
-            log.error("%04x| (%i) read from ACIA-data, send back %r $%x",
-                op_address, cpu_cycles, char, value
-            )
+#            log.error("%04x| (%i) read from ACIA-data, send back %r $%x",
+#                op_address, cpu_cycles, char, value
+#            )
             return value
 
         return 0x0
@@ -194,9 +194,9 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
     STATE = 0
     LAST_INPUT = ""
     def write_acia_data(self, cpu_cycles, op_address, address, value):
-        log.error("%04x| (%i) write to ACIA-data value: $%x (dez.: %i) ASCII: %r" % (
-            op_address, cpu_cycles, value, value, chr(value)
-        ))
+#        log.error("%04x| (%i) write to ACIA-data value: $%x (dez.: %i) ASCII: %r" % (
+#            op_address, cpu_cycles, value, value, chr(value)
+#        ))
         """
         * ASCII control characters.
         SOH             equ 1
@@ -231,19 +231,19 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
             return
 
         char = chr(value)
-        log.error("*"*79)
-        log.error("Write to screen: %s ($%x)" , repr(char), value)
-        log.error("*"*79)
+#        log.error("*"*79)
+#        log.error("Write to screen: %s ($%x)" , repr(char), value)
+#        log.error("*"*79)
 
         if value >= 0x90: # FIXME: Why?
             value -= 0x60
             char = chr(value)
-            log.error("convert value -= 0x30 to %s ($%x)" , repr(char), value)
+#            log.error("convert value -= 0x30 to %s ($%x)" , repr(char), value)
 
         if value <= 9: # FIXME: Why?
             value += 0x41
             char = chr(value)
-            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
+#            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
 
         """
         $ python create_trace.py
@@ -336,16 +336,16 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-#         "--verbosity=5",
+        "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
 #         "--verbosity=30", # WARNING
-        "--verbosity=40", # ERROR
+#         "--verbosity=40", # ERROR
 #         "--verbosity=50", # CRITICAL/FATAL
 
 #         "--area_debug_cycles=6355",
 #         "--area_debug_cycles=20241",
-        "--area_debug_cycles=44983",
+#         "--area_debug_cycles=44983",
 
         "--cfg=SBC09Cfg",
 #         "--max=500000",

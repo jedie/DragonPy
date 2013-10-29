@@ -73,9 +73,9 @@ class ROM(object):
 
 class RAM(ROM):
     def write_byte(self, address, value):
-        log.debug(" **** write $%x to $%x", value, address)
-        log.log(5, "\t\t%s", self.cfg.mem_info.get_shortest(value))
-        log.log(5, "\t\t%s", self.cfg.mem_info.get_shortest(address))
+#        log.debug(" **** write $%x to $%x", value, address)
+#        log.log(5, "\t\t%s", self.cfg.mem_info.get_shortest(value))
+#        log.log(5, "\t\t%s", self.cfg.mem_info.get_shortest(address))
         self._mem[address] = value
 
 
@@ -116,10 +116,10 @@ class Memory(object):
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
             byte = self.bus_read_byte(address)
-            log.log(5, "%04x| (%i) read byte $%x from address $%x from bus: %s",
-                self.cpu.last_op_address, self.cpu.cycles,
-                byte, address, info
-            )
+#            log.log(5, "%04x| (%i) read byte $%x from address $%x from bus: %s",
+#                self.cpu.last_op_address, self.cpu.cycles,
+#                byte, address, info
+#            )
             return byte
 
         if address < self.cfg.RAM_END:
@@ -131,38 +131,38 @@ class Memory(object):
             self.cfg.mem_info(address, msg)
             msg2 = "%s: $%x" % (msg, address)
             log.warn(msg2)
-#             raise RuntimeError(msg2)
+            #raise RuntimeError(msg2)
             byte = 0x0
 
-        log.log(5, "%04x| (%i) read byte $%x from $%x",
-            self.cpu.last_op_address, self.cpu.cycles,
-            byte, address
-        )
+#        log.log(5, "%04x| (%i) read byte $%x from $%x",
+#            self.cpu.last_op_address, self.cpu.cycles,
+#            byte, address
+#        )
 #         if 32 <= byte <= 126:
-        if 65 <= byte <= 90:
-            log.info("%04x| (%i) read char %r ($%x) from $%x",
-                self.cpu.last_op_address, self.cpu.cycles, chr(byte), byte, address
-            )
+#         if 65 <= byte <= 90:
+#            log.info("%04x| (%i) read char %r ($%x) from $%x",
+#                self.cpu.last_op_address, self.cpu.cycles, chr(byte), byte, address
+#            )
         return byte
 
     def read_word(self, address):
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
-            log.log(5, "\tread word at $%x from bus: %s", address, info)
+#            log.log(5, "\tread word at $%x from bus: %s", address, info)
             return self.bus_read_word(address)
 
         # 6809 is Big-Endian
         return self.read_byte(address + 1) + (self.read_byte(address) << 8)
 
     def write_byte(self, address, value):
-        log.log(5, "%04x| (%i) write byte $%x at $%x",
-            self.cpu.last_op_address, self.cpu.cycles, value, address
-        )
+#        log.log(5, "%04x| (%i) write byte $%x at $%x",
+#            self.cpu.last_op_address, self.cpu.cycles, value, address
+#        )
 #         if 32 <= value <= 126:
-        if 65 <= value <= 90:
-            log.info("%04x| (%i) write char %r ($%x) at $%x",
-                self.cpu.last_op_address, self.cpu.cycles, chr(value), value, address
-            )
+#         if 65 <= value <= 90:
+#            log.info("%04x| (%i) write char %r ($%x) at $%x",
+#                self.cpu.last_op_address, self.cpu.cycles, chr(value), value, address
+#            )
         self.cpu.cycles += 1
         
 #         assert 0x0 <= value <= 0xff, "Write out of range value $%x to $%x" % (value, address)
@@ -174,7 +174,7 @@ class Memory(object):
 
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
-            log.log(5, "\twrite byte at $%x to bus: %s" % (address, info))
+#            log.log(5, "\twrite byte at $%x to bus: %s" % (address, info))
             return self.bus_write_byte(address, value)
 
         if address < self.cfg.RAM_END:
@@ -189,7 +189,7 @@ class Memory(object):
     def write_word(self, address, value):
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
-            log.log(5, "\twrite word at $%x to bus: %s" % (address, info))
+#            log.log(5, "\twrite word at $%x to bus: %s" % (address, info))
             return self.bus_write_word(address, value)
 
         # 6809 is Big-Endian
@@ -198,11 +198,11 @@ class Memory(object):
 
     def _bus_communication(self, structure, address, value=None):
         if value is None:
-            log.debug(" **** bus read $%x" % (address))
+#            log.debug(" **** bus read $%x" % (address))
             action = self.cfg.BUS_ACTION_READ # = 0
             value = 0
         else:
-            log.debug(" **** bus write $%x to $%x" % (value, address))
+#            log.debug(" **** bus write $%x to $%x" % (value, address))
             action = self.cfg.BUS_ACTION_WRITE # = 1
 
         if not self.use_bus:
@@ -218,9 +218,9 @@ class Memory(object):
             value, # value to write
         )
         data = struct.pack(self.cfg.STRUCT_TO_PERIPHERY_FORMAT, *args)
-        log.debug("struct.pack %s with %s: %s" % (
-            repr(args), self.cfg.STRUCT_TO_PERIPHERY_FORMAT, repr(data)
-        ))
+#        log.debug("struct.pack %s with %s: %s" % (
+#            repr(args), self.cfg.STRUCT_TO_PERIPHERY_FORMAT, repr(data)
+#        ))
         try:
             self.bus.send(data)
         except IOError:
@@ -238,13 +238,13 @@ class Memory(object):
             sys.exit(0)
             
         if len(data) != self.cfg.STRUCT_MEMORY_LEN:
-            log.error("Memory bus read $%x error: Get wrong data length back: %s" % (
-                address, repr(data)
-            ))
+#            log.error("Memory bus read $%x error: Get wrong data length back: %s" % (
+#                address, repr(data)
+#            ))
             sys.exit(0)
 
         value = struct.unpack(self.cfg.STRUCT_TO_MEMORY_FORMAT, data)[0]
-        log.debug("Receive from bus: %s -> $%x" % (repr(data), value))
+#        log.debug("Receive from bus: %s -> $%x" % (repr(data), value))
             
         return value
 
@@ -253,7 +253,7 @@ class Memory(object):
         self._bus_communication(structure, address, value)
 
     def bus_read_byte(self, address):
-        log.debug(" **** bus read byte from $%x" % (address))
+#        log.debug(" **** bus read byte from $%x" % (address))
         value = self._bus_read(self.cfg.BUS_STRUCTURE_BYTE, address)
 #         if address == 0xa001 and value == 0xd: # 0xd == \r
 #             log2 = logging.getLogger("DragonPy")
@@ -263,15 +263,15 @@ class Memory(object):
         return value
 
     def bus_read_word(self, address):
-        log.debug(" **** bus read word from $%x" % (address))
+#        log.debug(" **** bus read word from $%x" % (address))
         return self._bus_read(self.cfg.BUS_STRUCTURE_WORD, address)
 
     def bus_write_byte(self, address, value):
-        log.debug(" **** bus write byte $%x to $%x" % (value, address))
+#        log.debug(" **** bus write byte $%x to $%x" % (value, address))
         return self._bus_write(self.cfg.BUS_STRUCTURE_BYTE, address, value)
 
     def bus_write_word(self, address, value):
-        log.debug(" **** bus write word $%x to $%x" % (value, address))
+#        log.debug(" **** bus write word $%x to $%x" % (value, address))
         return self._bus_write(self.cfg.BUS_STRUCTURE_WORD, address, value)
 
 

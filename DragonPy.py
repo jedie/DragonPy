@@ -83,7 +83,7 @@ class Dragon(object):
         quit_cpu = False
         while not quit_cpu:
             cpu_data = self.cpu.recv(self.cfg.STRUCT_TO_PERIPHERY_LEN)
-            log.debug("receive %s Bytes from CPU via bus" % self.cfg.STRUCT_TO_PERIPHERY_LEN)
+#            log.debug("receive %s Bytes from CPU via bus" % self.cfg.STRUCT_TO_PERIPHERY_LEN)
             if len(cpu_data) == 0:
                 break
 
@@ -120,7 +120,7 @@ class Dragon(object):
             if self.cfg.area_debug_cycles is not None:
                 if cpu_cycles >= self.cfg.area_debug_cycles:
                     activate_full_debug_logging()
-                    log.debug("area debug activated after CPU cycle %i" % cpu_cycles)
+#                    log.debug("area debug activated after CPU cycle %i" % cpu_cycles)
                     self.cfg.area_debug_cycles = None
 
 

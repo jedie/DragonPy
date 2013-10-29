@@ -348,11 +348,11 @@ class Instruction(object):
             self.op_kwargs["ea"], self.op_kwargs["m"] = self.get_ea_m_func()
         else:
             if self.get_ea_func is not None:
-                log.debug("\tget ea with %s", self.get_ea_func.__name__)
+#                log.debug("\tget ea with %s", self.get_ea_func.__name__)
                 self.op_kwargs["ea"] = self.get_ea_func()
 
             if self.get_m_func is not None:
-                log.debug("\tget m with %s", self.get_m_func.__name__)
+#                log.debug("\tget m with %s", self.get_m_func.__name__)
                 self.op_kwargs["m"] = self.get_m_func()
 
 #         log.info("CPU cycles: %i", self.cpu.cycles)
@@ -362,10 +362,10 @@ class Instruction(object):
             log.error("called the first time: %s", func_name)
             self.CALLED[func_name] = None
 
-        log.debug("%04x| %s(%s)",
-            self.cpu.last_op_address,
-            self.instr_func.__name__, hex_repr(self.op_kwargs)
-        )
+#        log.debug("%04x| %s(%s)",
+#            self.cpu.last_op_address,
+#            self.instr_func.__name__, hex_repr(self.op_kwargs)
+#        )
 
         result = self.instr_func(**self.op_kwargs)
         self.cpu.cycles += self.data["cycles"]
@@ -376,9 +376,9 @@ class Instruction(object):
                 "Instruction %r write result to memory but returned None!"
             ) % self.instr_func.__name__
             ea, value = result
-            log.debug("\twrite with %r to $%x the value $%x",
-                self.write_func.__name__, ea, value
-            )
+#            log.debug("\twrite with %r to $%x the value $%x",
+#                self.write_func.__name__, ea, value
+#            )
             self.write_func(ea, value)
         else:
             assert result is None, (
@@ -578,12 +578,12 @@ class CPU(object):
     def get_register(self, addr):
         reg_obj = self._get_register_obj(addr)
         value = reg_obj.get()
-        log.debug("\tget register value $%x from %s ($%x)" % (value, reg_obj.name, addr))
+#        log.debug("\tget register value $%x from %s ($%x)" % (value, reg_obj.name, addr))
         return value
 
     def set_register(self, addr, value):
         reg_obj = self._get_register_obj(addr)
-        log.debug("\tset register %s ($%x) to $%x" % (reg_obj.name, addr, value))
+#        log.debug("\tset register %s ($%x) to $%x" % (reg_obj.name, addr, value))
         return reg_obj.set(value)
 
     ####
@@ -631,14 +631,18 @@ class CPU(object):
 #             activate_full_debug_logging()
 #             log.error("Endless loop???")
 
-        old_op_address = self.last_op_address
-        self.last_op_address = op_address
+#         old_op_address = self.last_op_address
+#         self.last_op_address = op_address
         try:
             instruction = self.opcode_dict[opcode]
         except KeyError:
             msg = "$%x *** UNKNOWN OP $%x" % (op_address, opcode)
             log.error(msg)
             sys.exit(msg)
+
+        instruction.call_instr_func()
+        return
+
 
         try:
             instruction.call_instr_func()
@@ -844,9 +848,9 @@ class CPU(object):
         """ call op from page 2 or 3 """
         op_address, opcode2 = self.read_pc_byte()
         paged_opcode = opcode * 256 + opcode2
-        log.debug("$%x *** call paged opcode $%x" % (
-            self.program_counter, paged_opcode
-        ))
+#        log.debug("$%x *** call paged opcode $%x" % (
+#            self.program_counter, paged_opcode
+#        ))
         self.call_instruction_func(op_address - 1, paged_opcode)
 
     def run(self):
@@ -955,24 +959,24 @@ class CPU(object):
         stack_pointer.decrement(1)
         addr = stack_pointer.get()
 
-        log.info(
+#        log.info(
 #         log.error(
-            "%x|\tpush $%x to %s stack at $%x\t|%s",
-            self.last_op_address, byte, stack_pointer.name, addr,
-            self.cfg.mem_info.get_shortest(self.last_op_address)
-        )
+#            "%x|\tpush $%x to %s stack at $%x\t|%s",
+#            self.last_op_address, byte, stack_pointer.name, addr,
+#            self.cfg.mem_info.get_shortest(self.last_op_address)
+#        )
         self.memory.write_byte(addr, byte)
 
     def pull_byte(self, stack_pointer):
         """ pulled a byte from stack """
         addr = stack_pointer.get()
         byte = self.memory.read_byte(addr)
-        log.info(
+#        log.info(
 #         log.error(
-            "%x|\tpull $%x from %s stack at $%x\t|%s",
-            self.last_op_address, byte, stack_pointer.name, addr,
-            self.cfg.mem_info.get_shortest(self.last_op_address)
-        )
+#            "%x|\tpull $%x from %s stack at $%x\t|%s",
+#            self.last_op_address, byte, stack_pointer.name, addr,
+#            self.cfg.mem_info.get_shortest(self.last_op_address)
+#        )
 
         # FIXME: self._system_stack_pointer += 1
         stack_pointer.increment(1)
@@ -984,12 +988,12 @@ class CPU(object):
         stack_pointer.decrement(2)
 
         addr = stack_pointer.get()
-        log.info(
+#        log.info(
 #         log.error(
-            "%x|\tpush word $%x to %s stack at $%x\t|%s",
-            self.last_op_address, word, stack_pointer.name, addr,
-            self.cfg.mem_info.get_shortest(self.last_op_address)
-        )
+#            "%x|\tpush word $%x to %s stack at $%x\t|%s",
+#            self.last_op_address, word, stack_pointer.name, addr,
+#            self.cfg.mem_info.get_shortest(self.last_op_address)
+#        )
 
         self.memory.write_word(addr, word)
 
@@ -1000,12 +1004,12 @@ class CPU(object):
     def pull_word(self, stack_pointer):
         addr = stack_pointer.get()
         word = self.memory.read_word(addr)
-        log.info(
+#        log.info(
 #         log.error(
-            "%x|\tpull word $%x from %s stack at $%x\t|%s",
-            self.last_op_address, word, stack_pointer.name, addr,
-            self.cfg.mem_info.get_shortest(self.last_op_address)
-        )
+#            "%x|\tpull word $%x from %s stack at $%x\t|%s",
+#            self.last_op_address, word, stack_pointer.name, addr,
+#            self.cfg.mem_info.get_shortest(self.last_op_address)
+#        )
         # FIXME: self._system_stack_pointer += 2
         stack_pointer.increment(2)
         return word
@@ -1049,51 +1053,51 @@ class CPU(object):
         op_addr = self.program_counter
         m = self.memory.read_byte(op_addr)
         self.program_counter += 1
-        log.log(5, "read pc byte: $%02x from $%04x", m, op_addr)
+#        log.log(5, "read pc byte: $%02x from $%04x", m, op_addr)
         return op_addr, m
 
     def read_pc_word(self):
         op_addr = self.program_counter
         m = self.memory.read_word(op_addr)
         self.program_counter += 2
-        log.log(5, "\tread pc word: $%04x from $%04x", m, op_addr)
+#        log.log(5, "\tread pc word: $%04x from $%04x", m, op_addr)
         return op_addr, m
 
     ####
 
     def get_m_immediate(self):
         ea, m = self.read_pc_byte()
-        log.debug("\tget_m_immediate(): $%x from $%x", m, ea)
+#        log.debug("\tget_m_immediate(): $%x from $%x", m, ea)
         return m
 
     def get_m_immediate_word(self):
         ea, m = self.read_pc_word()
-        log.debug("\tget_m_immediate_word(): $%x from $%x", m, ea)
+#        log.debug("\tget_m_immediate_word(): $%x from $%x", m, ea)
         return m
 
     def get_ea_direct(self):
         op_addr, m = self.read_pc_byte()
         dp = self.direct_page.get()
         ea = dp << 8 | m
-        log.debug("\tget_ea_direct(): ea = dp << 8 | m  =>  $%x=$%x<<8|$%x", ea, dp, m)
+#        log.debug("\tget_ea_direct(): ea = dp << 8 | m  =>  $%x=$%x<<8|$%x", ea, dp, m)
         return ea
 
     def get_ea_m_direct(self):
         ea = self.get_ea_direct()
         m = self.memory.read_byte(ea)
-        log.debug("\tget_ea_m_direct(): ea=$%x m=$%x", ea, m)
+#        log.debug("\tget_ea_m_direct(): ea=$%x m=$%x", ea, m)
         return ea, m
 
     def get_m_direct(self):
         ea = self.get_ea_direct()
         m = self.memory.read_byte(ea)
-        log.debug("\tget_m_direct(): $%x from $%x", m, ea)
+#        log.debug("\tget_m_direct(): $%x from $%x", m, ea)
         return m
 
     def get_m_direct_word(self):
         ea = self.get_ea_direct()
         m = self.memory.read_word(ea)
-        log.debug("\tget_m_direct(): $%x from $%x", m, ea)
+#        log.debug("\tget_m_direct(): $%x from $%x", m, ea)
         return m
 
     INDEX_POSTBYTE2STR = {
@@ -1107,9 +1111,9 @@ class CPU(object):
         Calculate the address for all indexed addressing modes
         """
         addr, postbyte = self.read_pc_byte()
-        log.debug("\tget_ea_indexed(): postbyte: $%x (%s) from $%x",
-            postbyte, byte2bit_string(postbyte), addr
-        )
+#        log.debug("\tget_ea_indexed(): postbyte: $%x (%s) from $%x",
+#            postbyte, byte2bit_string(postbyte), addr
+#        )
 
         rr = (postbyte >> 5) & 3
         try:
@@ -1119,105 +1123,105 @@ class CPU(object):
 
         register_obj = self.register_str2object[register_str]
         register_value = register_obj.get()
-        log.debug("\t%02x == register %s: value $%x",
-            rr, register_obj.name, register_value
-        )
+#        log.debug("\t%02x == register %s: value $%x",
+#            rr, register_obj.name, register_value
+#        )
 
         if (postbyte & 0x80) == 0: # bit 7 == 0
             # FIXME: cutout only the 5bits from post byte?
             # EA = n, R - use 5-bit offset from post-byte
             offset = signed5(postbyte & 0x1f)
             ea = register_value + offset
-            log.debug(
-                "\tget_ea_indexed(): bit 7 == 0: reg.value: $%x -> ea=%i + %i = $%x",
-                register_value, register_value, offset, ea
-            )
+#            log.debug(
+#                "\tget_ea_indexed(): bit 7 == 0: reg.value: $%x -> ea=%i + %i = $%x",
+#                register_value, register_value, offset, ea
+#            )
             return ea
 
         addr_mode = postbyte & 0x0f
         self.cycles += 1
         if addr_mode == 0x0:
-            log.debug("\t0000 0x0 | ,R+ | increment by 1")
+#            log.debug("\t0000 0x0 | ,R+ | increment by 1")
             ea = register_value
             register_obj.increment(1)
         elif addr_mode == 0x1:
-            log.debug("\t0001 0x1 | ,R++ | increment by 2")
+#            log.debug("\t0001 0x1 | ,R++ | increment by 2")
             ea = register_value
             register_obj.increment(2)
             self.cycles += 1
         elif addr_mode == 0x2:
-            log.debug("\t0010 0x2 | ,R- | decrement by 1")
+#            log.debug("\t0010 0x2 | ,R- | decrement by 1")
             ea = register_obj.decrement(1)
         elif addr_mode == 0x3:
-            log.debug("\t0011 0x3 | ,R-- | decrement by 2")
+#            log.debug("\t0011 0x3 | ,R-- | decrement by 2")
             ea = register_obj.decrement(2)
             self.cycles += 1
         elif addr_mode == 0x4:
-            log.debug("\t0100 0x4 | ,R | No offset")
+#            log.debug("\t0100 0x4 | ,R | No offset")
             ea = register_value
         elif addr_mode == 0x5:
-            log.debug("\t0101 0x5 | B, R | B register offset")
+#            log.debug("\t0101 0x5 | B, R | B register offset")
             ea = register_value + signed8(self.accu_b.get())
         elif addr_mode == 0x6:
-            log.debug("\t0110 0x6 | A, R | A register offset")
+#            log.debug("\t0110 0x6 | A, R | A register offset")
             ea = register_value + signed8(self.accu_a.get())
         elif addr_mode == 0x8:
-            log.debug("\t1000 0x8 | n, R | 8 bit offset")
+#            log.debug("\t1000 0x8 | n, R | 8 bit offset")
             ea = register_value + signed8(self.read_pc_byte()[1])
         elif addr_mode == 0x9:
-            log.debug("\t1001 0x9 | n, R | 16 bit offset")
+#            log.debug("\t1001 0x9 | n, R | 16 bit offset")
             ea = register_value + signed16(self.read_pc_word()[1]) # FIXME: signed16() ok?
             self.cycles += 1
         elif addr_mode == 0xa:
-            log.debug("\t1010 0xa | FIXME: illegal???")
+#            log.debug("\t1010 0xa | FIXME: illegal???")
             ea = self.program_counter | 0xff
         elif addr_mode == 0xb:
-            log.debug("\t1011 0xb | D, R | D register offset")
+#            log.debug("\t1011 0xb | D, R | D register offset")
             # D - 16 bit concatenated reg. (A + B)
             ea = register_value + signed16(self.accu_d.get()) # FIXME: signed16() ok?
             self.cycles += 1
         elif addr_mode == 0xc:
-            log.debug("\t1100 0xc | n, PCR | 8 bit offset from program counter")
+#            log.debug("\t1100 0xc | n, PCR | 8 bit offset from program counter")
             ea = signed8(self.read_pc_byte()[1]) + self.program_counter
         elif addr_mode == 0xd:
-            log.debug("\t1101 0xd | n, PCR | 16 bit offset from program counter")
+#            log.debug("\t1101 0xd | n, PCR | 16 bit offset from program counter")
             ea = self.read_pc_word()[1] + self.program_counter # FIXME: use signed16() here?
             self.cycles += 1
         elif addr_mode == 0xe:
-            log.error("\tget_ea_indexed(): illegal address mode, use 0xffff")
+#            log.error("\tget_ea_indexed(): illegal address mode, use 0xffff")
             ea = 0xffff # illegal
         elif addr_mode == 0xf:
-            log.debug("\t1111 0xf | [n] | 16 bit address - extended indirect")
+#            log.debug("\t1111 0xf | [n] | 16 bit address - extended indirect")
             ea = self.read_pc_word()[1]
         else:
             raise RuntimeError("Illegal indexed addressing mode: $%x" % addr_mode)
 
         if postbyte & 0x10 != 0: # bit 4 is 1 -> Indirect
-            log.debug("\tget_ea_indexed(): bit 4 is 1 -> Indirect")
+#            log.debug("\tget_ea_indexed(): bit 4 is 1 -> Indirect")
             tmp_ea = self.memory.read_byte(ea)
             tmp_ea = tmp_ea << 8
             m = self.memory.read_byte(ea + 1)
             ea = tmp_ea | m
 
-        log.debug("\tget_ea_indexed(): return ea=$%x", ea)
+#        log.debug("\tget_ea_indexed(): return ea=$%x", ea)
         return ea
 
     def get_m_indexed(self):
         ea = self.get_ea_indexed()
         m = self.memory.read_byte(ea)
-        log.debug("\tget_m_indexed(): $%x from $%x", m, ea)
+#        log.debug("\tget_m_indexed(): $%x from $%x", m, ea)
         return m
 
     def get_ea_m_indexed(self):
         ea = self.get_ea_indexed()
         m = self.memory.read_byte(ea)
-        log.debug("\tget_ea_m_indexed(): ea = $%x m = $%x", ea, m)
+#        log.debug("\tget_ea_m_indexed(): ea = $%x m = $%x", ea, m)
         return ea, m
 
     def get_m_indexed_word(self):
         ea = self.get_ea_indexed()
         m = self.memory.read_word(ea)
-        log.debug("\tget_m_indexed_word(): $%x from $%x", m, ea)
+#        log.debug("\tget_m_indexed_word(): $%x from $%x", m, ea)
         return m
 
     def get_ea_extended(self):
@@ -1225,56 +1229,56 @@ class CPU(object):
         extended indirect addressing mode takes a 2-byte value from post-bytes
         """
         attr, ea = self.read_pc_word()
-        log.debug("\tget_ea_extended() ea=$%x from $%x", ea, attr)
+#        log.debug("\tget_ea_extended() ea=$%x from $%x", ea, attr)
         return ea
 
     def get_m_extended(self):
         ea = self.get_ea_extended()
         m = self.memory.read_byte(ea)
-        log.debug("\tget_m_extended(): $%x from $%x", m, ea)
+#        log.debug("\tget_m_extended(): $%x from $%x", m, ea)
         return m
 
     def get_ea_m_extended(self):
         ea = self.get_ea_extended()
         m = self.memory.read_byte(ea)
-        log.debug("\tget_m_extended(): ea = $%x m = $%x", ea, m)
+#        log.debug("\tget_m_extended(): ea = $%x m = $%x", ea, m)
         return ea, m
 
     def get_m_extended_word(self):
         ea = self.get_ea_extended()
         m = self.memory.read_word(ea)
-        log.debug("\tget_m_extended_word(): $%x from $%x", m, ea)
+#        log.debug("\tget_m_extended_word(): $%x from $%x", m, ea)
         return m
 
     def get_ea_relative(self):
         addr, x = self.read_pc_byte()
         x = signed8(x)
         ea = self.program_counter + x
-        log.debug("\tget_ea_relative(): ea = $%x + %i = $%x \t| %s",
-            self.program_counter, x, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        )
+#        log.debug("\tget_ea_relative(): ea = $%x + %i = $%x \t| %s",
+#            self.program_counter, x, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        )
         return ea
 
     def get_ea_relative_word(self):
         addr, x = self.read_pc_word()
         ea = self.program_counter + x
-        log.debug("\tget_ea_relative_word(): ea = $%x + %i = $%x \t| %s",
-            self.program_counter, x, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        )
+#        log.debug("\tget_ea_relative_word(): ea = $%x + %i = $%x \t| %s",
+#            self.program_counter, x, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        )
         return ea
 
     def get_relative(self):
         ea = self.get_ea_relative()
         m = self.memory.read_byte(ea)
-        log.debug("\tget_relative(): ea = $%x m = $%x", ea, m)
+#        log.debug("\tget_relative(): ea = $%x m = $%x", ea, m)
         return ea, m
 
     def get_relative_word(self):
         ea = self.get_ea_relative()
         m = self.memory.read_word(ea)
-        log.debug("\tget_relative_word(): ea = $%x m = $%x", ea, m)
+#        log.debug("\tget_relative_word(): ea = $%x m = $%x", ea, m)
         return ea, m
 
     #### Op methods:
@@ -1293,10 +1297,10 @@ class CPU(object):
         old = self.index_x.get()
         b = self.accu_b.get()
         new = self.index_x.increment(b)
-        log.debug("%x %02x ABX: X($%x) += B($%x) = $%x" % (
-            self.program_counter, opcode,
-            old, b, new
-        ))
+#        log.debug("%x %02x ABX: X($%x) += B($%x) = $%x" % (
+#            self.program_counter, opcode,
+#            old, b, new
+#        ))
 
     @opcode(# Add memory to accumulator with carry
         0x89, 0x99, 0xa9, 0xb9, # ADCA (immediate, direct, indexed, extended)
@@ -1313,10 +1317,10 @@ class CPU(object):
         """
         a = register.get()
         r = a + m + self.cc.C
-        log.debug("$%x %02x ADC %s: %i + %i + %i = %i (=$%x)" % (
-            self.program_counter, opcode, register.name,
-            a, m, self.cc.C, r, r
-        ))
+#        log.debug("$%x %02x ADC %s: %i + %i + %i = %i (=$%x)" % (
+#            self.program_counter, opcode, register.name,
+#            a, m, self.cc.C, r, r
+#        ))
         self.cc.clear_HNZVC()
         self.cc.update_HNZVC_8(a, m, r)
 
@@ -1337,11 +1341,11 @@ class CPU(object):
         r1 = x1 + m
         r2 = unsigned8(r1)
         register.set(r2)
-        log.debug("$%x %02x %02x ADD16 %s: %i + %i = %i (signed: %i)" % (
-            self.program_counter, opcode, m,
-            register.name,
-            x1, m, r2, r1,
-        ))
+#        log.debug("$%x %02x %02x ADD16 %s: %i + %i = %i (signed: %i)" % (
+#            self.program_counter, opcode, m,
+#            register.name,
+#            x1, m, r2, r1,
+#        ))
         self.cc.clear_NZVC()
         self.cc.update_NZVC_16(x1, m, r1)
 
@@ -1363,11 +1367,11 @@ class CPU(object):
         r1 = x1 + m
         r2 = unsigned8(r1)
         register.set(r2)
-        log.debug("$%x %02x %02x ADD8 %s: %i + %i = %i (signed: %i)" % (
-            self.program_counter, opcode, m,
-            register.name,
-            x1, m, r2, r1,
-        ))
+#        log.debug("$%x %02x %02x ADD8 %s: %i + %i = %i (signed: %i)" % (
+#            self.program_counter, opcode, m,
+#            register.name,
+#            x1, m, r2, r1,
+#        ))
         self.cc.clear_HNZVC()
         self.cc.update_HNZVC_8(x1, m, r1)
 
@@ -1390,9 +1394,9 @@ class CPU(object):
         register.set(r)
         self.cc.clear_NZV()
         self.cc.update_NZ_8(r)
-        log.debug("\tAND %s: %i & %i = %i",
-            register.name, a, m, r
-        )
+#        log.debug("\tAND %s: %i & %i = %i",
+#            register.name, a, m, r
+#        )
 
     @opcode(# AND condition code register
         0x1c, # ANDCC (immediate)
@@ -1428,11 +1432,11 @@ class CPU(object):
     def instruction_ASR_memory(self, opcode, ea, m):
         """ Arithmetic shift memory right """
         r = self.ASR(m)
-        log.debug("$%x ASR memory value $%x >> 1 | Carry = $%x and write it to $%x \t| %s" % (
-            self.program_counter,
-            m, r, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x ASR memory value $%x >> 1 | Carry = $%x and write it to $%x \t| %s" % (
+#            self.program_counter,
+#            m, r, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         return ea, r
 
     @opcode(0x47, 0x57) # ASRA/ASRB (inherent)
@@ -1440,10 +1444,10 @@ class CPU(object):
         """ Arithmetic shift accumulator right """
         a = register.get()
         r = self.ASR(a)
-        log.debug("$%x ASR %s value $%x >> 1 | Carry = $%x" % (
-            self.program_counter,
-            register.name, a, r
-        ))
+#        log.debug("$%x ASR %s value $%x >> 1 | Carry = $%x" % (
+#            self.program_counter,
+#            register.name, a, r
+#        ))
         register.set(r)
 
     @opcode(# Branch if equal
@@ -1462,14 +1466,14 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if self.cc.Z == 1:
-            log.debug("$%x BEQ branch to $%x, because Z==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.debug("$%x BEQ branch to $%x, because Z==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BEQ: don't branch to $%x, because Z==0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#         else:
+#            log.debug("$%x BEQ: don't branch to $%x, because Z==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Branch if greater than or equal (signed)
         0x2c, # BGE (relative)
@@ -1489,14 +1493,14 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if (self.cc.N ^ self.cc.V) == 0:
-            log.debug("$%x BGE branch to $%x, because N XOR V == 0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.debug("$%x BGE branch to $%x, because N XOR V == 0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BGE: don't branch to $%x, because N XOR V != 0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#         else:
+#            log.debug("$%x BGE: don't branch to $%x, because N XOR V != 0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Branch if greater (signed)
         0x2e, # BGT (relative)
@@ -1516,14 +1520,14 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if not ((self.cc.N ^ self.cc.V) == 1 or self.cc.Z == 1):
-            log.debug("$%x BGT branch to $%x, because not (N^V==1 or Z==1) \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.debug("$%x BGT branch to $%x, because not (N^V==1 or Z==1) \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BGT: don't branch to $%x, because N^V==1 or Z==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#         else:
+#            log.debug("$%x BGT: don't branch to $%x, because N^V==1 or Z==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Branch if higher (unsigned)
         0x22, # BHI (relative)
@@ -1544,14 +1548,14 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if self.cc.C == 0 and self.cc.Z == 0:
-            log.debug("$%x BHI branch to $%x, because C==0 and Z==0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.debug("$%x BHI branch to $%x, because C==0 and Z==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BHI: don't branch to $%x, because C and Z not 0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#         else:
+#            log.debug("$%x BHI: don't branch to $%x, because C and Z not 0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Bit test memory with accumulator
         0x85, 0x95, 0xa5, 0xb5, # BITA (immediate, direct, indexed, extended)
@@ -1570,10 +1574,10 @@ class CPU(object):
         """
         x = register.get()
         r = m & x
-        log.debug("$%x BIT update CC with $%x (m:%i & %s:%i)" % (
-            self.program_counter,
-            r, m, register.name, x
-        ))
+#        log.debug("$%x BIT update CC with $%x (m:%i & %s:%i)" % (
+#            self.program_counter,
+#            r, m, register.name, x
+#        ))
         self.cc.clear_NZV()
         self.cc.update_NZ_8(r)
 
@@ -1595,14 +1599,14 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if (self.cc.N ^ self.cc.V) == 1 or self.cc.Z == 1:
-            log.debug("$%x BLE branch to $%x, because N^V==1 or Z==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.debug("$%x BLE branch to $%x, because N^V==1 or Z==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BLE: don't branch to $%x, because N^V!=1 and Z!=1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#         else:
+#            log.debug("$%x BLE: don't branch to $%x, because N^V!=1 and Z!=1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Branch if lower or same (unsigned)
         0x23, # BLS (relative)
@@ -1623,14 +1627,14 @@ class CPU(object):
         """
 #         if (self.cc.C|self.cc.Z) == 0:
         if self.cc.C == 1 or self.cc.Z == 1:
-            log.debug("$%x BLS branch to $%x, because C|Z==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.debug("$%x BLS branch to $%x, because C|Z==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BLS: don't branch to $%x, because C|Z!=1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#         else:
+#            log.debug("$%x BLS: don't branch to $%x, because C|Z!=1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Branch if less than (signed)
         0x2d, # BLT (relative)
@@ -1649,14 +1653,14 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if (self.cc.N ^ self.cc.V) == 1:
-            log.debug("$%x BLT branch to $%x, because N XOR V == 1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.debug("$%x BLT branch to $%x, because N XOR V == 1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BLT: don't branch to $%x, because N XOR V != 1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#         else:
+#            log.debug("$%x BLT: don't branch to $%x, because N XOR V != 1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Branch if minus
         0x2b, # BMI (relative)
@@ -1676,14 +1680,14 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if self.cc.N == 1:
-            log.debug("$%x BMI branch to $%x, because N==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.debug("$%x BMI branch to $%x, because N==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BMI: don't branch to $%x, because N==0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#         else:
+#            log.debug("$%x BMI: don't branch to $%x, because N==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Branch if not equal
         0x26, # BNE (relative)
@@ -1701,14 +1705,14 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if self.cc.Z == 0:
-            log.debug("$%x BNE branch to $%x, because Z==0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.debug("$%x BNE branch to $%x, because Z==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BNE: don't branch to $%x, because Z==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#         else:
+#            log.debug("$%x BNE: don't branch to $%x, because Z==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Branch if plus
         0x2a, # BPL (relative)
@@ -1729,14 +1733,14 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if self.cc.N == 0:
-            log.debug("$%x BPL branch to $%x, because N==0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.debug("$%x BPL branch to $%x, because N==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BPL: don't branch to $%x, because N==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#         else:
+#            log.debug("$%x BPL: don't branch to $%x, because N==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Branch always
         0x20, # BRA (relative)
@@ -1757,17 +1761,17 @@ class CPU(object):
 #                 raise RuntimeError(msg)
                 new_x = 0x7ffd
                 new_ea = 0xdb79
-                log.warn(
-                    "Speedup Simple6809 RAM test: Set X to $%x and goto $%x" % (
-                        new_x, new_ea
-                ))
+#                log.warn(
+#                    "Speedup Simple6809 RAM test: Set X to $%x and goto $%x" % (
+#                        new_x, new_ea
+#                ))
                 self.index_x.set(new_x)
                 self.program_counter = new_ea
                 return
 
-        log.debug("$%x BRA branch to $%x \t| %s" % (
-            self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x BRA branch to $%x \t| %s" % (
+#            self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#        ))
         self.program_counter = ea
 
     @opcode(# Branch never
@@ -1863,11 +1867,11 @@ class CPU(object):
         a = register.get()
         b = m
         r = a - b
-        log.debug("$%x CMP16 %s $%x - $%x = $%x" % (
-            self.program_counter,
-            register.name,
-            a, b, r
-        ))
+#        log.debug("$%x CMP16 %s $%x - $%x = $%x" % (
+#            self.program_counter,
+#            register.name,
+#            a, b, r
+#        ))
         self.cc.clear_NZVC()
         self.cc.update_NZVC_16(a, b, r)
 
@@ -1890,11 +1894,11 @@ class CPU(object):
         a = register.get()
         b = m
         r = a - b
-        log.debug("$%x CMP8 %s $%x - $%x = $%x" % (
-            self.program_counter,
-            register.name,
-            a, b, r
-        ))
+#        log.debug("$%x CMP8 %s $%x - $%x = $%x" % (
+#            self.program_counter,
+#            register.name,
+#            a, b, r
+#        ))
         self.cc.clear_HNZVC()
         self.cc.update_HNZVC_8(a, b, r)
 
@@ -1916,9 +1920,9 @@ class CPU(object):
         source code forms: COM Q
         """
         r = self.COM(value=m)
-        log.debug("$%x COM memory $%x to $%x" % (
-            self.program_counter, m, r,
-        ))
+#        log.debug("$%x COM memory $%x to $%x" % (
+#            self.program_counter, m, r,
+#        ))
         return ea, r
 
     @opcode(# Complement accumulator
@@ -1931,9 +1935,9 @@ class CPU(object):
         source code forms: COMA; COMB
         """
         register.set(self.COM(value=register.get()))
-        log.debug("$%x COM %s" % (
-            self.program_counter, register.name,
-        ))
+#        log.debug("$%x COM %s" % (
+#            self.program_counter, register.name,
+#        ))
 
     @opcode(# AND condition code register, then wait for interrupt
         0x3c, # CWAI (immediate)
@@ -2022,11 +2026,11 @@ class CPU(object):
     def instruction_DEC_memory(self, opcode, ea, m):
         """ Decrement memory location """
         r = self.DEC(m)
-        log.debug("$%x DEC memory value $%x -1 = $%x and write it to $%x \t| %s" % (
-            self.program_counter,
-            m, r, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x DEC memory value $%x -1 = $%x and write it to $%x \t| %s" % (
+#            self.program_counter,
+#            m, r, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         return ea, r
 
     @opcode(0x4a, 0x5a) # DECA / DECB (inherent)
@@ -2034,10 +2038,10 @@ class CPU(object):
         """ Decrement accumulator """
         a = register.get()
         r = self.DEC(a)
-        log.debug("$%x DEC %s value $%x -1 = $%x" % (
-            self.program_counter,
-            register.name, a, r
-        ))
+#        log.debug("$%x DEC %s value $%x -1 = $%x" % (
+#            self.program_counter,
+#            register.name, a, r
+#        ))
         register.set(r)
 
     @opcode(# Exclusive OR memory with accumulator
@@ -2057,9 +2061,9 @@ class CPU(object):
         r = a ^ m
         register.set(r)
         self.cc.update_NZ0_8(r)
-        log.debug("\tEOR %s: %i ^ %i = %i",
-            register.name, a, m, r
-        )
+#        log.debug("\tEOR %s: %i ^ %i = %i",
+#            register.name, a, m, r
+#        )
         # self.cc.update_NZ0()
 
     @opcode(# Exchange Rl with R2
@@ -2086,9 +2090,9 @@ class CPU(object):
         r1.set(r2_value)
         r2.set(r1_value)
 
-        log.debug("\tEXG: %s($%x) <-> %s($%x)",
-            r1.name, r1_value, r2.name, r2_value
-        )
+#        log.debug("\tEXG: %s($%x) <-> %s($%x)",
+#            r1.name, r1_value, r2.name, r2_value
+#        )
 
 
     @opcode(# Increment accumulator
@@ -2128,11 +2132,11 @@ class CPU(object):
         CC bits "HNZVC": -aaa-
         """
         r = m + 1
-        log.debug("$%x INC memory value $%x +1 = $%x and write it to $%x \t| %s" % (
-            self.program_counter,
-            m, r, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x INC memory value $%x +1 = $%x and write it to $%x \t| %s" % (
+#            self.program_counter,
+#            m, r, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         self.cc.update_NZV_8(a=m, b=1, r=r)
         return ea, r
 
@@ -2147,10 +2151,10 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        log.info("%x|\tJMP to $%x \t| %s" % (
-            self.last_op_address,
-            ea, self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.info("%x|\tJMP to $%x \t| %s" % (
+#            self.last_op_address,
+#            ea, self.cfg.mem_info.get_shortest(ea)
+#        ))
         self.program_counter = ea
 
     @opcode(
@@ -2172,10 +2176,10 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        log.info("%x|\tJSR/BSR to $%x \t| %s" % (
-            self.last_op_address,
-            ea, self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.info("%x|\tJSR/BSR to $%x \t| %s" % (
+#            self.last_op_address,
+#            ea, self.cfg.mem_info.get_shortest(ea)
+#        ))
         self.push_word(self._system_stack_pointer, self.program_counter)
         self.program_counter = ea
 
@@ -2195,11 +2199,11 @@ class CPU(object):
 
         CC bits "HNZVC": -aa0-
         """
-        log.debug("$%x LD16 set %s to $%x \t| %s" % (
-            self.program_counter,
-            register.name, m,
-            self.cfg.mem_info.get_shortest(m)
-        ))
+#        log.debug("$%x LD16 set %s to $%x \t| %s" % (
+#            self.program_counter,
+#            register.name, m,
+#            self.cfg.mem_info.get_shortest(m)
+#        ))
         register.set(m)
         self.cc.clear_NZV()
         self.cc.update_NZ_16(m)
@@ -2216,10 +2220,10 @@ class CPU(object):
 
         CC bits "HNZVC": -aa0-
         """
-        log.debug("$%x LD8 %s = $%x" % (
-            self.program_counter,
-            register.name, m,
-        ))
+#        log.debug("$%x LD8 %s = $%x" % (
+#            self.program_counter,
+#            register.name, m,
+#        ))
         register.set(m)
         self.cc.clear_NZV()
         self.cc.update_NZ_8(m)
@@ -2252,11 +2256,11 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        log.debug("$%x LEA %s: Set %s and Z to $%x \t| %s" % (
-            self.program_counter,
-            register.name, register.name, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x LEA %s: Set %s and Z to $%x \t| %s" % (
+#            self.program_counter,
+#            register.name, register.name, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         register.set(ea)
 
     @opcode(# Load effective address into an indexable register
@@ -2268,11 +2272,11 @@ class CPU(object):
 
         CC bits "HNZVC": --a--
         """
-        log.debug("$%x LEA %s: Set %s to $%x \t| %s" % (
-            self.program_counter,
-            register.name, register.name, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x LEA %s: Set %s to $%x \t| %s" % (
+#            self.program_counter,
+#            register.name, register.name, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         register.set(ea)
         self.cc.Z = 0
         self.cc.set_Z16(ea)
@@ -2302,11 +2306,11 @@ class CPU(object):
         Logical shift left memory location / Arithmetic shift of memory left
         """
         r = self.LSL(m)
-        log.debug("$%x LSL memory value $%x << 1 = $%x and write it to $%x \t| %s" % (
-            self.program_counter,
-            m, r, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x LSL memory value $%x << 1 = $%x and write it to $%x \t| %s" % (
+#            self.program_counter,
+#            m, r, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         return ea, r
 
     @opcode(0x48, 0x58) # LSLA/ASLA / LSLB/ASLB (inherent)
@@ -2316,10 +2320,10 @@ class CPU(object):
         """
         a = register.get()
         r = self.LSL(a)
-        log.debug("$%x LSL %s value $%x << 1 = $%x" % (
-            self.program_counter,
-            register.name, a, r
-        ))
+#        log.debug("$%x LSL %s value $%x << 1 = $%x" % (
+#            self.program_counter,
+#            register.name, a, r
+#        ))
         register.set(r)
 
     def LSR(self, a):
@@ -2341,11 +2345,11 @@ class CPU(object):
     def instruction_LSR_memory(self, opcode, ea, m):
         """ Logical shift right memory location """
         r = self.LSR(m)
-        log.debug("$%x LSR memory value $%x >> 1 = $%x and write it to $%x \t| %s" % (
-            self.program_counter,
-            m, r, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x LSR memory value $%x >> 1 = $%x and write it to $%x \t| %s" % (
+#            self.program_counter,
+#            m, r, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         return ea, r
 
     @opcode(0x44, 0x54) # LSRA / LSRB (inherent)
@@ -2353,10 +2357,10 @@ class CPU(object):
         """ Logical shift right accumulator """
         a = register.get()
         r = self.LSR(a)
-        log.debug("$%x LSR %s value $%x >> 1 = $%x" % (
-            self.program_counter,
-            register.name, a, r
-        ))
+#        log.debug("$%x LSR %s value $%x >> 1 = $%x" % (
+#            self.program_counter,
+#            register.name, a, r
+#        ))
         register.set(r)
 
     @opcode(# Unsigned multiply (A * B ? D)
@@ -2399,11 +2403,11 @@ class CPU(object):
         r1 = x2 * -1
         r2 = unsigned8(r1)
         register.set(r2)
-        log.debug("$%x NEG %s unsigned:$%x (signed:$%x) to unsigned:$%x (signed:$%x) \t| %s" % (
-            self.program_counter,
-            register.name, x1, x2, r1, r2,
-            self.cfg.mem_info.get_shortest(r2)
-        ))
+#        log.debug("$%x NEG %s unsigned:$%x (signed:$%x) to unsigned:$%x (signed:$%x) \t| %s" % (
+#            self.program_counter,
+#            register.name, x1, x2, r1, r2,
+#            self.cfg.mem_info.get_shortest(r2)
+#        ))
         self.cc.clear_NZVC()
         self.cc.update_NZVC_8(0, x1, r2)
 
@@ -2421,12 +2425,12 @@ class CPU(object):
         r1 = m2 * -1
         r2 = unsigned8(r1)
 
-        log.debug("$%x NEG memory addr: $%x with unsigned:$%x (signed:$%x) to unsigned:$%x (signed:$%x) \t| %s" % (
-            self.program_counter,
-            ea,
-            m, m2, r1, r2,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x NEG memory addr: $%x with unsigned:$%x (signed:$%x) to unsigned:$%x (signed:$%x) \t| %s" % (
+#            self.program_counter,
+#            ea,
+#            m, m2, r1, r2,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         self.cc.clear_NZVC()
         self.cc.update_NZVC_8(0, m, r2)
 
@@ -2474,7 +2478,7 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        log.debug("\tNOP")
+#        log.debug("\tNOP")
 
     @opcode(# OR memory with accumulator
         0x8a, 0x9a, 0xaa, 0xba, # ORA (immediate, direct, indexed, extended)
@@ -2495,9 +2499,9 @@ class CPU(object):
         register.set(r)
         self.cc.clear_NZV()
         self.cc.update_NZ0_8(r)
-        log.debug("\tOR %s: %i | %i = %i",
-            register.name, a, m, r
-        )
+#        log.debug("\tOR %s: %i | %i = %i",
+#            register.name, a, m, r
+#        )
 
     @opcode(# OR condition code register
         0x1a, # ORCC (immediate)
@@ -2517,9 +2521,9 @@ class CPU(object):
         cc = old_cc = register.get()
         cc |= m
         register.set(cc)
-        log.debug("\tORCC: $%x |= $%x ; set CC to $%x (from %r to %r)",
-            old_cc, m, cc, old_cc_info, self.cc.get_info
-        )
+#        log.debug("\tORCC: $%x |= $%x ; set CC to $%x (from %r to %r)",
+#            old_cc, m, cc, old_cc_info, self.cc.get_info
+#        )
 
     @opcode(# Branch if lower (unsigned)
         0x25, # BLO/BCS (relative)
@@ -2531,14 +2535,14 @@ class CPU(object):
         case 0x5: cond = REG_CC & CC_C; break; // BCS, BLO, LBCS, LBLO
         """
         if self.cc.C == 1:
-            log.debug("$%x BLO/BCS/LBLO/LBCS branch to $%x, because C==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.debug("$%x BLO/BCS/LBLO/LBCS branch to $%x, because C==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BLO/BCS/LBLO/LBCS: don't branch to $%x, because C==0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#         else:
+#            log.debug("$%x BLO/BCS/LBLO/LBCS: don't branch to $%x, because C==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Branch if lower (unsigned)
         0x24, # BHS/BCC (relative)
@@ -2550,14 +2554,14 @@ class CPU(object):
         case 0x4: cond = !(REG_CC & CC_C); break; // BCC, BHS, LBCC, LBHS
         """
         if self.cc.C == 0:
-            log.debug("$%x BHS/BCC/LBHS/LBCC branch to $%x, because C==0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.debug("$%x BHS/BCC/LBHS/LBCC branch to $%x, because C==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BHS/BCC/LBHS/LBCC: don't branch to $%x, because C==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#         else:
+#            log.debug("$%x BHS/BCC/LBHS/LBCC: don't branch to $%x, because C==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Push A, B, CC, DP, D, X, Y, U, or PC onto stack
         0x36, # PSHU (immediate)
@@ -2588,7 +2592,7 @@ class CPU(object):
                 assert register_obj.WIDTH == 16
                 self.push_word(register, data)
 
-        log.debug("$%x PSH%s:", self.program_counter, register.name)
+#        log.debug("$%x PSH%s:", self.program_counter, register.name)
 
         # m = postbyte
         if m & 0x80: push(REG_PC, register) # 16 bit program counter register
@@ -2632,7 +2636,7 @@ class CPU(object):
 
             reg_obj.set(data)
 
-        log.debug("$%x PUL%s:", self.program_counter, register.name)
+#        log.debug("$%x PUL%s:", self.program_counter, register.name)
 
         # m = postbyte
         if m & 0x01: pull(REG_CC, register) # 8 bit condition code register
@@ -2687,11 +2691,11 @@ class CPU(object):
     def instruction_ROL_memory(self, opcode, ea, m):
         """ Rotate memory left """
         r = self.ROL(m)
-        log.debug("$%x ROL memory value $%x << 1 | Carry = $%x and write it to $%x \t| %s" % (
-            self.program_counter,
-            m, r, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x ROL memory value $%x << 1 | Carry = $%x and write it to $%x \t| %s" % (
+#            self.program_counter,
+#            m, r, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         return ea, r
 
     @opcode(0x49, 0x59) # ROLA / ROLB (inherent)
@@ -2699,10 +2703,10 @@ class CPU(object):
         """ Rotate accumulator left """
         a = register.get()
         r = self.ROL(a)
-        log.debug("$%x ROL %s value $%x << 1 | Carry = $%x" % (
-            self.program_counter,
-            register.name, a, r
-        ))
+#        log.debug("$%x ROL %s value $%x << 1 | Carry = $%x" % (
+#            self.program_counter,
+#            register.name, a, r
+#        ))
         register.set(r)
 
     def ROR(self, a):
@@ -2723,11 +2727,11 @@ class CPU(object):
     def instruction_ROR_memory(self, opcode, ea, m):
         """ Rotate memory right """
         r = self.ROR(m)
-        log.debug("$%x ROR memory value $%x >> 1 | Carry = $%x and write it to $%x \t| %s" % (
-            self.program_counter,
-            m, r, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x ROR memory value $%x >> 1 | Carry = $%x and write it to $%x \t| %s" % (
+#            self.program_counter,
+#            m, r, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         return ea, r
 
     @opcode(0x46, 0x56) # RORA/RORB (inherent)
@@ -2735,10 +2739,10 @@ class CPU(object):
         """ Rotate accumulator right """
         a = register.get()
         r = self.ROR(a)
-        log.debug("$%x ROR %s value $%x >> 1 | Carry = $%x" % (
-            self.program_counter,
-            register.name, a, r
-        ))
+#        log.debug("$%x ROR %s value $%x >> 1 | Carry = $%x" % (
+#            self.program_counter,
+#            register.name, a, r
+#        ))
         register.set(r)
 
     @opcode(# Return from interrupt
@@ -2770,11 +2774,11 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         ea = self.pull_word(self._system_stack_pointer)
-        log.info("%x|\tRTS to $%x \t| %s" % (
-            self.last_op_address,
-            ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.info("%x|\tRTS to $%x \t| %s" % (
+#            self.last_op_address,
+#            ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         self.program_counter = ea
 
     @opcode(# Subtract memory from accumulator with borrow
@@ -2794,10 +2798,10 @@ class CPU(object):
         """
         a = register.get()
         r = a - m - self.cc.C
-        log.debug("$%x %02x SBC %s: %i - %i - %i = %i (=$%x)" % (
-            self.program_counter, opcode, register.name,
-            a, m, self.cc.C, r, r
-        ))
+#        log.debug("$%x %02x SBC %s: %i - %i - %i = %i (=$%x)" % (
+#            self.program_counter, opcode, register.name,
+#            a, m, self.cc.C, r, r
+#        ))
         self.cc.clear_HNZVC()
         self.cc.update_HNZVC_8(a, m, r) # FIXME: or NZVC instead of HNZVC ?
 
@@ -2829,7 +2833,7 @@ class CPU(object):
 
         d = self.accu_d.get()
 
-        log.debug("SEX: b=$%x ; $%x&0x80=$%x ; d=$%x", b, b, (b & 0x80), d)
+#        log.debug("SEX: b=$%x ; $%x&0x80=$%x ; d=$%x", b, b, (b & 0x80), d)
 
         self.cc.clear_NZ()
         self.cc.update_NZ_16(d)
@@ -2851,11 +2855,11 @@ class CPU(object):
         CC bits "HNZVC": -aa0-
         """
         value = register.get()
-        log.debug("$%x ST16 store value $%x from %s at $%x \t| %s" % (
-            self.program_counter,
-            value, register.name, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x ST16 store value $%x from %s at $%x \t| %s" % (
+#            self.program_counter,
+#            value, register.name, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         self.cc.clear_NZV()
         self.cc.update_NZ_16(value)
         return ea, value
@@ -2873,11 +2877,11 @@ class CPU(object):
         CC bits "HNZVC": -aa0-
         """
         value = register.get()
-        log.debug("$%x ST8 store value $%x from %s at $%x \t| %s" % (
-            self.program_counter,
-            value, register.name, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x ST8 store value $%x from %s at $%x \t| %s" % (
+#            self.program_counter,
+#            value, register.name, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         self.cc.clear_NZV()
         self.cc.update_NZ_8(value)
         return ea, value
@@ -2900,11 +2904,11 @@ class CPU(object):
         x1 = register.get()
         r1 = x1 - m
         register.set(r1)
-        log.debug("$%x SUB8 %s: %i - %i = %i" % (
-            self.program_counter,
-            register.name,
-            x1, m, r1,
-        ))
+#        log.debug("$%x SUB8 %s: %i - %i = %i" % (
+#            self.program_counter,
+#            register.name,
+#            x1, m, r1,
+#        ))
         # XXX: normaly half-carry is "undefined"
         self.cc.clear_HNZVC()
         if register.WIDTH == 8:
@@ -3002,9 +3006,9 @@ class CPU(object):
         CC bits "HNZVC": ccccc
         """
         high, low = divmod(m, 16)
-        log.debug("$%x TFR: post byte: $%x -> high: $%x low: $%x" % (
-            self.program_counter, m, high, low
-        ))
+#        log.debug("$%x TFR: post byte: $%x -> high: $%x low: $%x" % (
+#            self.program_counter, m, high, low
+#        ))
         # TODO: check if source and dest has the same size?
         source = self.get_register(high)
         self.set_register(low, source)
