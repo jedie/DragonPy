@@ -344,12 +344,13 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
         self.root.update()
 
 
+class DummyStdout(object):
+    def write(self, *args):
+        pass
+
 class SBC09PeripheryConsole(SBC09PeripheryBase):
     """
     A simple console to interact with the 6809 simulation.
-    FIXME:
-        The CPU echo all input characters.
-        So you will see all input double.
     """
     def __init__(self, cfg):
         super(SBC09PeripheryConsole, self).__init__(cfg)
@@ -357,6 +358,11 @@ class SBC09PeripheryConsole(SBC09PeripheryBase):
         input_thread = threading.Thread(target=self.input_thread, args=(self.user_input_queue,))
         input_thread.daemon = True
         input_thread.start()
+
+        # "redirect" use input into nirvana, because the ROM code will echo
+        # the user input back.
+        self.origin_stdout = sys.stdout
+        sys.stdout = DummyStdout()
 
     def input_thread(self, input_queue):
         while True:
@@ -369,8 +375,8 @@ class SBC09PeripheryConsole(SBC09PeripheryBase):
                 text_buffer.append(self.output_queue.get())
 
             text = "".join(text_buffer)
-            sys.stdout.write(text)
-            sys.stdout.flush()
+            self.origin_stdout.write(text)
+            self.origin_stdout.flush()
 
 
 # SBC09Periphery = SBC09PeripherySerial
