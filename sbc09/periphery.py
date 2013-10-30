@@ -345,8 +345,10 @@ class SBC09PeripheryTk(SBC09PeripheryBase):
 
 
 class DummyStdout(object):
-    def write(self, *args):
+    def dummy_func(self, *args):
         pass
+    write = dummy_func
+    flush = dummy_func
 
 class SBC09PeripheryConsole(SBC09PeripheryBase):
     """
