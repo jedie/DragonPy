@@ -14,6 +14,7 @@ import Queue
 import time
 import logging
 import sys
+import httplib
 
 try:
     import Tkinter
@@ -30,6 +31,7 @@ class PeripheryBase(object):
 
     def __init__(self, cfg):
         self.cfg = cfg
+        self.running = True
 
         self.user_input_queue = Queue.Queue() # Buffer for input to send back to the CPU
         self.output_queue = Queue.Queue() # Buffer with content from the CPU to display
@@ -45,7 +47,33 @@ class PeripheryBase(object):
             for char in self.INITAL_INPUT:
                 self.user_input_queue.put(char)
 
+    def exit(self):
+        self.running = False
+
+        # FIXME: It doesn't work to request that CPU shutdown:
+        #        will get timeouts
+        url = "/quit/"
+        log.critical("request %s:%s%s", self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT, url)
+        conn = httplib.HTTPConnection(
+            self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT,
+            timeout=1
+        )
+        conn.request("POST", url)
+        try:
+            response = conn.getresponse()
+        except Exception, err:
+            log.critical("Error request %s: %s", url, err)
+        else:
+            print response.status, response.reason
+
+        time.sleep(1) # Wait that CPU quit
+        sys.exit(0)
+
     def read_byte(self, cpu_cycles, op_address, address):
+        if not self.running:
+            log.critical("Periphery.read_byte, but not running anymore.")
+            return 0x0
+
 #        log.debug(
 #            "%04x| Periphery.read_byte from $%x (cpu_cycles: %i)",
 #            op_address, address, cpu_cycles
@@ -80,8 +108,16 @@ class PeripheryBase(object):
 
     write_word = write_byte
 
+    last_cycles_update = time.time()
+    last_cycles = 0
     def update(self, cpu_cycles):
-        raise NotImplementedError
+        if self.cfg.display_cycle:
+            duration = time.time() - self.last_cycles_update
+            if duration >= 1:
+                count = cpu_cycles - self.last_cycles
+                log.critical("%.2f cycles/sec. (current cycle: %i)", float(count / duration), cpu_cycles)
+                self.last_cycles = cpu_cycles
+                self.last_cycles_update = time.time()
 
     def cycle(self, cpu_cycles, op_address):
         if time.time() - self.last_update > self.update_time:
@@ -168,7 +204,7 @@ class TkPeripheryBase(PeripheryBase):
         """
         log.critical("Tk window closed.")
         self.root.destroy()
-        sys.exit(0)
+        self.exit()
 
     STATE = 0
     LAST_INPUT = ""
@@ -186,6 +222,7 @@ class TkPeripheryBase(PeripheryBase):
         super(TkPeripheryBase, self).write_acia_data(cpu_cycles, op_address, address, value)
 
     def update(self, cpu_cycles):
+        super(TkPeripheryBase, self).update(cpu_cycles)
         if not self.output_queue.empty():
             text_buffer = []
             while not self.output_queue.empty():

@@ -71,6 +71,10 @@ class BaseConfig(object):
     STRUCT_TO_MEMORY_FORMAT = "<H"
     STRUCT_MEMORY_LEN = struct.calcsize(STRUCT_TO_MEMORY_FORMAT)
 
+    # http address/port number for the CPU control server
+    CPU_CONTROL_ADDR = "127.0.0.1"
+    CPU_CONTROL_PORT = 6809
+
     # How many ops should be execute before make a control server update cycle?
     BURST_COUNT = 10000
 
@@ -79,6 +83,9 @@ class BaseConfig(object):
         assert self.ROM_SIZE == (self.ROM_END - self.ROM_START) + 1
 
         self.bus_addr_areas = AddressAreas(self.BUS_ADDR_AREAS)
+
+        # print CPU cycle/sec while running
+        self.display_cycle = cmd_args.display_cycle
 
         # socket address for internal bus I/O:
         if cmd_args.bus_socket_host and cmd_args.bus_socket_port:

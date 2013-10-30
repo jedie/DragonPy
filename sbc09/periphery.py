@@ -33,7 +33,7 @@ class SBC09PeripheryBase(PeripheryBase):
     TITLE = "DragonPy - Buggy machine language monitor and rudimentary O.S. version 1.0"
     INITAL_INPUT = (
         # Dump registers
-        'r\r\n'
+#         'r\r\n'
 
         # SSaddr,len - Dump memory region as Motorola S records.
 #         'ss\r\n'
@@ -51,8 +51,8 @@ class SBC09PeripheryBase(PeripheryBase):
 #         'H4444+A5\r\n'
 
         #
-        "UE400,20\r\n"
-        "ubasic\r\n"
+#         "UE400,20\r\n"
+#         "ubasic\r\n"
     )
 
     def __init__(self, cfg):
@@ -138,6 +138,7 @@ class SBC09PeripheryConsole(SBC09PeripheryBase):
             input_queue.put(sys.stdin.read(1))
 
     def update(self, cpu_cycles):
+        super(SBC09PeripheryConsole, self).update(cpu_cycles)
         if not self.output_queue.empty():
             text_buffer = []
             while not self.output_queue.empty():

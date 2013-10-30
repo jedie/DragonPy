@@ -21,7 +21,7 @@ Future goals are:
 
 Start sbc09:
 {{{
-DragonPy$ ./DragonPy_CLI.py --cfg sbc09
+DragonPy$ ./DragonPy_CLI.py --cfg sbc09 --display_cycle
 }}}
 
 Start Simple6809 (with many debug output):
@@ -43,7 +43,7 @@ DragonPy - Dragon 32 emulator in Python None
 usage: DragonPy_CLI.py [-h] [--verbosity {5,7,0,10,20,30,40,50}]
                        [--logfile {5,7,0,10,20,30,40,50}]
                        [--log_formatter LOG_FORMATTER]
-                       [--cfg {Dragon32,sbc09,Simple6809}]
+                       [--cfg {Dragon32,sbc09,Simple6809}] [--display_cycle]
                        [--bus_socket_host BUS_SOCKET_HOST]
                        [--bus_socket_port BUS_SOCKET_PORT] [--ram RAM]
                        [--rom ROM] [--max MAX]
@@ -65,6 +65,7 @@ optional arguments:
                         #logrecord-attributes
   --cfg {Dragon32,sbc09,Simple6809}
                         Used configuration
+  --display_cycle       print CPU cycle/sec while running.
   --bus_socket_host BUS_SOCKET_HOST
                         Host internal socket bus I/O (do not set manually!)
   --bus_socket_port BUS_SOCKET_PORT

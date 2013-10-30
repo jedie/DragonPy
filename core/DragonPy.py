@@ -53,7 +53,7 @@ class Dragon(object):
         bus_socket_host, bus_socket_port = listener.getsockname()
         cmd_args = [
             sys.executable,
-            os.path.join("core", "cpu6809.py"),
+            "cpu6809.py",
              "--bus_socket_host=%s" % bus_socket_host,
              "--bus_socket_port=%i" % bus_socket_port,
         ]

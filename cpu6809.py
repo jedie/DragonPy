@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+# coding: utf-8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -20,19 +21,15 @@
     more info, see README
 """
 
-import BaseHTTPServer
 import inspect
-import json
 import logging
-import re
 import select
 import socket
 import sys
 import time
-import pprint
 
-from core.configs import configs
-from DragonPy_CLI import DragonPyCLI
+# sys.path.append("..")
+
 import MC6809data.MC6809_data_raw2 as MC6809_data
 from MC6809data.MC6809_data_raw2 import (
     OP_DATA, REG_A, REG_B, REG_CC, REG_D , REG_DP, REG_PC, REG_S, REG_U, REG_X, REG_Y
@@ -43,9 +40,12 @@ from cpu_utils.MC6809_registers import (
     ValueStorage16Bit, ConditionCodeRegister, unsigned8, cc_value2txt
 )
 from utils.simple_debugger import print_exc_plus
+from core.cpu_control_server import get_http_control_server
+from DragonPy_CLI import get_cli
 
 
-log = logging.getLogger("DragonPy")
+
+log = logging.getLogger("DragonPy.cpu6809")
 
 
 def get_opdata():
@@ -111,143 +111,6 @@ def opcode(*opcodes):
         setattr(func, "_opcodes", opcodes)
         return func
     return decorator
-
-
-
-
-
-class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-
-    def __init__(self, request, client_address, server, cpu):
-        self.cpu = cpu
-
-        self.get_urls = {
-            r"/disassemble/(\d+)$": self.get_disassemble,
-            r"/memory/(\d+)(-(\d+))?$": self.get_memory,
-            r"/memory/(\d+)(-(\d+))?/raw$": self.get_memory_raw,
-            r"/status$": self.get_status,
-        }
-
-        self.post_urls = {
-            r"/memory/(\d+)(-(\d+))?$": self.post_memory,
-            r"/memory/(\d+)(-(\d+))?/raw$": self.post_memory_raw,
-            r"/quit$": self.post_quit,
-            r"/reset$": self.post_reset,
-        }
-
-        BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, request, client_address, server)
-
-    def log_request(self, code, size=0):
-        pass
-
-    def dispatch(self, urls):
-        for r, f in urls.items():
-            m = re.match(r, self.path)
-            if m is not None:
-                f(m)
-                break
-        else:
-            self.send_response(404)
-            self.end_headers()
-
-    def response(self, s):
-        self.send_response(200)
-        self.send_header("Content-Length", str(len(s)))
-        self.end_headers()
-        self.wfile.write(s)
-
-    def do_GET(self):
-        self.dispatch(self.get_urls)
-
-    def do_POST(self):
-        self.dispatch(self.post_urls)
-
-    def get_disassemble(self, m):
-        addr = int(m.group(1))
-        r = []
-        n = 20
-        while n > 0:
-            dis, length = self.disassemble.disasm(addr)
-            r.append(dis)
-            addr += length
-            n -= 1
-        self.response(json.dumps(r))
-
-    def get_memory_raw(self, m):
-        addr = int(m.group(1))
-        e = m.group(3)
-        if e is not None:
-            end = int(e)
-        else:
-            end = addr
-        self.response("".join([chr(self.cpu.read_byte(x)) for x in range(addr, end + 1)]))
-
-    def get_memory(self, m):
-        addr = int(m.group(1))
-        e = m.group(3)
-        if e is not None:
-            end = int(e)
-        else:
-            end = addr
-        self.response(json.dumps(list(map(self.cpu.read_byte, range(addr, end + 1)))))
-
-    def get_status(self, m):
-        self.response(json.dumps(dict((x, getattr(self.cpu, x)) for x in (
-            "accumulator",
-            "x_index",
-            "y_index",
-            "stack_pointer",
-            "program_counter",
-            "sign_flag",
-            "flag_V",
-            "break_flag",
-            "decimal_mode_flag",
-            "interrupt_disable_flag",
-            "flag_Z",
-            "flag_C",
-        ))))
-
-    def post_memory(self, m):
-        addr = int(m.group(1))
-        e = m.group(3)
-        if e is not None:
-            end = int(e)
-        else:
-            end = addr
-        data = json.loads(self.rfile.read(int(self.headers["Content-Length"])))
-        for i, a in enumerate(range(addr, end + 1)):
-            self.cpu.write_byte(a, data[i])
-        self.response("")
-
-    def post_memory_raw(self, m):
-        addr = int(m.group(1))
-        e = m.group(3)
-        if e is not None:
-            end = int(e)
-        else:
-            end = addr
-        data = self.rfile.read(int(self.headers["Content-Length"]))
-        for i, a in enumerate(range(addr, end + 1)):
-            self.cpu.write_byte(a, data[i])
-        self.response("")
-
-    def post_quit(self, m):
-        self.cpu.quit = True
-        self.response("")
-
-    def post_reset(self, m):
-        self.cpu.reset()
-        self.cpu.running = True
-        self.response("")
-
-
-class ControlHandlerFactory:
-
-    def __init__(self, cpu):
-        self.cpu = cpu
-
-    def __call__(self, request, client_address, server):
-        return ControlHandler(request, client_address, server, self.cpu)
 
 
 import os
@@ -442,14 +305,7 @@ class CPU(object):
 
         self.memory = Memory(self, cfg)
 
-        if not self.cfg.use_bus:
-            self.control_server = None
-        else:
-            control_handler = ControlHandlerFactory(self)
-            self.control_server = BaseHTTPServer.HTTPServer(
-                ("127.0.0.1", 6809), control_handler
-            )
-
+        self.control_server = get_http_control_server(self, cfg)
 
         self.index_x = ValueStorage16Bit(REG_X, 0) # X - 16 bit index register
         self.index_y = ValueStorage16Bit(REG_Y, 0) # Y - 16 bit index register
@@ -854,10 +710,6 @@ class CPU(object):
         self.call_instruction_func(op_address - 1, paged_opcode)
 
     def run(self):
-        log.debug("-"*79)
-
-        last_update = time.time()
-        last_cycles = 0
         while not self.quit:
             timeout = 0
             if not self.running:
@@ -874,17 +726,10 @@ class CPU(object):
                 else:
                     pass
 
-            for count in xrange(self.cfg.BURST_COUNT):
+            for __ in xrange(self.cfg.BURST_COUNT):
                 if not self.running:
                     break
                 self.get_and_call_next_op()
-
-#             duration = time.time() - last_update
-#             if duration >= 1:
-#                 count = self.cycles - last_cycles
-#                 log.critical("%.2f cycles/sec. (current cycle: %i)", float(count / duration), self.cycles)
-#                 last_cycles = self.cycles
-#                 last_update = time.time()
 
             if self.cfg.max_cpu_cycles is not None \
                 and self.cycles >= self.cfg.max_cpu_cycles:
@@ -892,6 +737,7 @@ class CPU(object):
                     "Stop CPU after %i cycles" % self.cycles
                 )
                 self.quit = True
+        log.critical("CPU quit")
 
     def test_run(self, start, end):
         log.warn("CPU test_run(): from $%x to $%x" % (start, end))
@@ -3050,40 +2896,10 @@ class CPU(object):
         self.cc.update_NZ0_16(m)
 
 
-def test_run():
-    import subprocess
-    cmd_args = [sys.executable,
-        "DragonPy_CLI.py",
-        "--verbosity=5",
-#         "--verbosity=10", # DEBUG
-#         "--verbosity=20", # INFO
-#         "--verbosity=30", # WARNING
-#         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
-
-#         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
-
-#         "--area_debug_active=5:bb79-ffff",
-#          "--area_debug_cycles=1587101",
-
-        "--cfg=sbc09",
-#         "--cfg=Simple6809",
-#         "--cfg=Dragon32",
-
-#         "--max=15000",
-#         "--max=46041",
-    ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
-    subprocess.Popen(cmd_args, cwd="..").wait()
-    sys.exit(0)
-
-
 if __name__ == "__main__":
-    cli = DragonPyCLI(configs)
-    cli.setup_cfg()
+    cli = get_cli()
 
     if not cli.cfg.use_bus:
-        test_run()
         print "DragonPy cpu core"
         print "Run DragonPy_CLI.py instead"
         sys.exit(0)
