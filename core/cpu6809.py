@@ -31,6 +31,7 @@ import sys
 import time
 import pprint
 
+from core.configs import configs
 from DragonPy_CLI import DragonPyCLI
 import MC6809data.MC6809_data_raw2 as MC6809_data
 from MC6809data.MC6809_data_raw2 import (
@@ -640,9 +641,8 @@ class CPU(object):
             log.error(msg)
             sys.exit(msg)
 
-        instruction.call_instr_func()
-        return
-
+#         instruction.call_instr_func()
+#         return
 
         try:
             instruction.call_instr_func()
@@ -824,7 +824,7 @@ class CPU(object):
                     if etype is None:
                         raise RuntimeError(err_msg)
 
-                log.debug("\t%s", repr(self.data))
+                log.debug("\t%s", repr(instruction.data))
 
             if mnemonic in DEBUG_INSTR:
                 pc = self.program_counter
@@ -879,12 +879,12 @@ class CPU(object):
                     break
                 self.get_and_call_next_op()
 
-            duration = time.time() - last_update
-            if duration >= 1:
-                count = self.cycles - last_cycles
-                log.critical("%.2f cycles/sec. (current cycle: %i)", float(count / duration), self.cycles)
-                last_cycles = self.cycles
-                last_update = time.time()
+#             duration = time.time() - last_update
+#             if duration >= 1:
+#                 count = self.cycles - last_cycles
+#                 log.critical("%.2f cycles/sec. (current cycle: %i)", float(count / duration), self.cycles)
+#                 last_cycles = self.cycles
+#                 last_update = time.time()
 
             if self.cfg.max_cpu_cycles is not None \
                 and self.cycles >= self.cfg.max_cpu_cycles:
@@ -3066,20 +3066,20 @@ def test_run():
 #         "--area_debug_active=5:bb79-ffff",
 #          "--area_debug_cycles=1587101",
 
-        "--cfg=SBC09Cfg",
-#         "--cfg=Simple6809Cfg",
-#         "--cfg=Dragon32Cfg",
+        "--cfg=sbc09",
+#         "--cfg=Simple6809",
+#         "--cfg=Dragon32",
 
 #         "--max=15000",
 #         "--max=46041",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
-    subprocess.Popen(cmd_args).wait()
+    subprocess.Popen(cmd_args, cwd="..").wait()
     sys.exit(0)
 
 
 if __name__ == "__main__":
-    cli = DragonPyCLI()
+    cli = DragonPyCLI(configs)
     cli.setup_cfg()
 
     if not cli.cfg.use_bus:

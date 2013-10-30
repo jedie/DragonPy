@@ -1,9 +1,20 @@
+#!/usr/bin/env python
+
+"""
+    DragonPy - Simple6809 memory info
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    :created: 2013 by Jens Diemer - www.jensdiemer.de
+    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :license: GNU GPL v3 or above, see LICENSE for more details.
+"""
+
 
 import logging
+from core.memory_info import BaseMemoryInfo
 
-from utils.memory_info import BaseMemoryInfo
+log = logging.getLogger("DragonPy.Simple6809.mem_info")
 
-log = logging.getLogger(__name__)
 
 class Simple6809MemInfo(BaseMemoryInfo):
     MEM_INFO = (

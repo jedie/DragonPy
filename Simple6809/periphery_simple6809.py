@@ -276,16 +276,16 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
 
         self.root.update()
 
-        self.line_buffer = []
+        self.user_input_queue = []
 
     def event_return(self, event):
         log.critical("ENTER: add \\r")
-        self.line_buffer.append("\r")
+        self.user_input_queue.put("\r")
 
     def from_console_break(self, event):
         log.critical("BREAK: add 0x03")
         # dc61 81 03              LA3C2     CMPA #3             BREAK KEY?
-        self.line_buffer.append("\x03")
+        self.user_input_queue.put("\x03")
 
     def copy_to_clipboard(self, event):
         log.critical("Copy to clipboard")
@@ -301,7 +301,7 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
         if char:
             char = char.upper()
             log.error("Send %s", repr(char))
-            self.line_buffer.append(char)
+            self.user_input_queue.put(char)
 
     def cycle(self, cpu_cycles, op_address):
         self.root.update()
@@ -331,7 +331,7 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
 
         if address == 0xa000:
             return 0xff
-#             if self.line_buffer:
+#             if self.user_input_queue:
 #                 # There is text to send via virtual serial
 #                 value = 0xff
 #             else:
@@ -341,8 +341,8 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
 #             log.error("read 0xa000, send $%x", value)
 #             return value
 
-        if self.line_buffer:
-            char = self.line_buffer.pop(0)
+        if not self.user_input_queue.empty():
+            char = self.user_input_queue.pop(0)
             value = ord(char)
             log.error("%04x| (%i) read from RS232 address: $%x, send back %r $%x",
                 op_address, cpu_cycles, address, char, value
@@ -381,19 +381,19 @@ class Simple6809PeripheryTk(Simple6809PeripheryBase):
 #         self.LAST_INPUT += char
 #         if self.STATE == 0 and self.LAST_INPUT.endswith("OK\n"):
 #             self.STATE += 1
-#             self.line_buffer = list('PRINT "HELLO"\r')
+#             self.user_input_queue = list('PRINT "HELLO"\r')
 #             self.LAST_INPUT = ""
 #         elif self.STATE == 1 and self.LAST_INPUT.endswith("OK\n"):
-#             self.line_buffer = list('PRINT 123\r')
+#             self.user_input_queue = list('PRINT 123\r')
 #             self.STATE += 1
 #         elif self.STATE == 2 and self.LAST_INPUT.endswith("OK\n"):
-#             self.line_buffer = list('10 PRINT 123\rLIST\r')
+#             self.user_input_queue = list('10 PRINT 123\rLIST\r')
 #             self.STATE += 1
 #         elif self.STATE == 3 and self.LAST_INPUT.endswith("OK\n"):
-#             self.line_buffer = list('RUN\r')
+#             self.user_input_queue = list('RUN\r')
 #             self.STATE += 1
 #         elif self.STATE == 4 and self.LAST_INPUT.endswith("OK\n"):
-#             self.line_buffer = list('FOR I=1 to 3:PRINT I:NEXT I\r')
+#             self.user_input_queue = list('FOR I=1 to 3:PRINT I:NEXT I\r')
 #             self.STATE += 1
 
         self.text.config(state=Tkinter.NORMAL)
@@ -419,7 +419,7 @@ def test_run():
 
         "--area_debug_cycles=23383", # First OK after copyright info
 
-        "--cfg=Simple6809Cfg",
+        "--cfg=Simple6809",
 #         "--max=500000",
 #         "--max=30000",
 #         "--max=20000",

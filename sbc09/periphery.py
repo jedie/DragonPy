@@ -102,9 +102,9 @@ class SBC09PeripheryBase(object):
 
         char = self.user_input_queue.get()
         value = ord(char)
-#         log.error("%04x| (%i) read from ACIA-data, send back %r $%x",
-#             op_address, cpu_cycles, char, value
-#         )
+        log.error("%04x| (%i) read from ACIA-data, send back %r $%x",
+            op_address, cpu_cycles, char, value
+        )
         return value
     
     def write_acia_data(self, cpu_cycles, op_address, address, value):
@@ -124,6 +124,7 @@ class SBC09PeripheryBase(object):
 #            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
 
         self.output_queue.put(char)
+
     
 
 class SBC09PeripheryTk(SBC09PeripheryBase):
@@ -366,6 +367,9 @@ class SBC09PeripheryConsole(SBC09PeripheryBase):
         self.origin_stdout = sys.stdout
         sys.stdout = DummyStdout()
 
+        for char in "UE400,20\n":
+            self.user_input_queue.put(char)
+
     def input_thread(self, input_queue):
         while True:
             input_queue.put(sys.stdin.read(1))
@@ -391,17 +395,17 @@ def test_run():
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
 #         "--verbosity=5",
-#         "--verbosity=10", # DEBUG
+        "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
 #         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-        "--verbosity=50", # CRITICAL/FATAL
+#         "--verbosity=50", # CRITICAL/FATAL
 
 #         "--area_debug_cycles=6355",
 #         "--area_debug_cycles=20241",
 #         "--area_debug_cycles=44983",
 
-        "--cfg=SBC09Cfg",
+        "--cfg=sbc09",
 #         "--max=500000",
 #         "--max=30000",
 #         "--max=20000",

@@ -47,9 +47,15 @@ p=subprocess.Popen(cmd_args,
     #~ stdout=subprocess.PIPE
 )
 p.stdin.write(
-    "r\n" # Register display
-    "r\n" # Register display
-    "ss\n" # Register display
+#     "r\n" # Register display
+#     "r\n" # Register display
+#     "ss\n" # generate Motorola S records
+
+#     "XL400\n" # Load binary data using X-modem protocol at $400
+#     "\x1d" # escape character
+#     "ubasic\n" # load the binary file "basic" at address $400
+
+    "UE400,20" # Diassemble first 32 bytes of monitor program.
 
     # FIXME: Doesn't work:
     "\x1d" # escape character

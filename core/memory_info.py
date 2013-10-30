@@ -1,3 +1,13 @@
+#!/usr/bin/env python
+
+"""
+    DragonPy - base memory info
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+    :created: 2013 by Jens Diemer - www.jensdiemer.de
+    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :license: GNU GPL v3 or above, see LICENSE for more details.
+"""
 
 import sys
 

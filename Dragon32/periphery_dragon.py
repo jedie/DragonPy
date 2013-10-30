@@ -20,11 +20,9 @@ except ImportError:
     # Maybe Dragon would not be emulated ;)
     pygame = None
 
-from components.MC6883_SAM import SAM
-from components.MC6821_PIA import PIA
-from components.display import Display
-from components.speaker import Speaker
-from components.cassette import Cassette
+from Dragon32.display import Display
+from Dragon32.MC6883_SAM import SAM
+from Dragon32.MC6821_PIA import PIA
 
 log = logging.getLogger("DragonPy.perophery.dragon")
 
@@ -199,7 +197,7 @@ def test_run():
         "DragonPy_CLI.py",
 #         "--verbosity=5",
         "--verbosity=20",
-        "--cfg=Dragon32Cfg",
+        "--cfg=Dragon32",
         "--max=1",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])

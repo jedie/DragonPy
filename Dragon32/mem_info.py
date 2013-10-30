@@ -23,9 +23,9 @@
 
 import logging
 
-from utils.memory_info import BaseMemoryInfo
+from core.memory_info import BaseMemoryInfo
 
-log = logging.getLogger(__name__)
+log = logging.getLogger("DragonPy.dragon32.mem_info")
 
 
 class DragonMemInfo(BaseMemoryInfo):

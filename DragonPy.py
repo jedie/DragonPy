@@ -19,8 +19,9 @@ import socket
 import struct
 import subprocess
 import sys
-
 import logging
+import os
+
 from utils.simple_debugger import print_exc_plus
 
 
@@ -52,7 +53,7 @@ class Dragon(object):
         bus_socket_host, bus_socket_port = listener.getsockname()
         cmd_args = [
             sys.executable,
-            "cpu6809.py",
+            os.path.join("core", "cpu6809.py"),
              "--bus_socket_host=%s" % bus_socket_host,
              "--bus_socket_port=%i" % bus_socket_port,
         ]

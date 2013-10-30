@@ -285,7 +285,7 @@ def test_run():
 #         "--verbosity=30",
 #         "--verbosity=40",
         "--verbosity=50",
-        "--cfg=Simple6809Cfg",
+        "--cfg=Simple6809",
 #         "--max=100000",
 #         "--max=30000",
 #         "--max=20000",

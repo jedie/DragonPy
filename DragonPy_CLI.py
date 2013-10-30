@@ -1,10 +1,14 @@
 #!/usr/bin/env python
 
 """
+    DragonPy - CLI
+    ~~~~~~~~~~~~~~
+
     :created: 2013 by Jens Diemer - www.jensdiemer.de
     :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
+
 import atexit
 import logging
 import inspect
@@ -12,8 +16,16 @@ import sys
 
 from DragonPy import Dragon
 from base_cli import Base_CLI
-import configs
+from core.configs import configs
 from utils.simple_debugger import print_exc_plus
+
+from Dragon32.config import Dragon32Cfg
+from sbc09.config import SBC09Cfg
+from Simple6809.config import Simple6809Cfg
+
+configs.register("Dragon32", Dragon32Cfg, default=True)
+configs.register("sbc09", SBC09Cfg)
+configs.register("Simple6809", Simple6809Cfg)
 
 
 @atexit.register
@@ -23,32 +35,20 @@ def goodbye():
     sys.stderr.flush()
 
 
-def get_configs():
-    cfg_classes = {}
-    for name, cls in inspect.getmembers(configs, inspect.isclass):
-        if not issubclass(cls, configs.BaseConfig):
-            continue
-        if name == "BaseConfig":
-            continue
-
-        cfg_classes[name] = cls
-    return cfg_classes
-
-
 class DragonPyCLI(Base_CLI):
     LOG_NAME = "DragonPy"
     DESCRIPTION = "DragonPy - Dragon 32 emulator in Python"
 
-    def __init__(self):
+    def __init__(self, configs):
         super(DragonPyCLI, self).__init__()
-        self.configs = get_configs()
+        self.configs = configs
         self.log.debug("Existing configs: %s" % repr(self.configs))
 
-        default_cfg = self.configs[configs.DEFAULT_CFG] # for default values
+        default_cfg = self.configs[configs.DEFAULT] # for default values
 
         self.parser.add_argument("--cfg",
             choices=self.configs.keys(),
-            default="Dragon32Cfg",
+            default=configs.DEFAULT,
             help="Used configuration"
         )
         self.parser.add_argument("--bus_socket_host",
@@ -90,7 +90,7 @@ class DragonPyCLI(Base_CLI):
 
 if __name__ == "__main__":
     try:
-        cli = DragonPyCLI()
+        cli = DragonPyCLI(configs)
         cli.run()
     except SystemExit:
         pass
