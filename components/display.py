@@ -13,14 +13,16 @@
         origin source code licensed under MIT License
 """
 
-
+import sys
 import time
+import logging
 try:
     import pygame
 except ImportError:
     # Maybe Dragon would not be emulated ;)
     pygame = None
 
+log = logging.getLogger("DragonPy.Display")
 
 class Display(object):
 
@@ -111,6 +113,10 @@ class Display(object):
     ]
 
     def __init__(self):
+        if pygame is None:
+            log.critical("Pygame is not installed!")
+            sys.exit(1)
+
         self.screen = pygame.display.set_mode((560, 384))
         pygame.display.set_caption("DragonPy")
         self.mix = False
