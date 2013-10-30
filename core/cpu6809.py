@@ -641,8 +641,8 @@ class CPU(object):
             log.error(msg)
             sys.exit(msg)
 
-#         instruction.call_instr_func()
-#         return
+        instruction.call_instr_func()
+        return
 
         try:
             instruction.call_instr_func()

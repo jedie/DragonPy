@@ -14,6 +14,7 @@
 import logging
 import sys
 import os
+import Queue
 
 try:
     import Tkinter
@@ -27,72 +28,68 @@ try:
 except ImportError:
     pass
 
-log = logging.getLogger("DragonPy.Periphery")
+from components.periphery import PeripheryBase, TkPeripheryBase
 
 
-class Simple6809PeripheryBase(object):
-    """
-    5390 fff0                              ORG  $FFF0
-    5391 fff0 00 00              LBFF0     FDB  $0000          RESERVED
-    5392 fff2 00 9b              LBFF2     FDB  SW3VEC         SWI3
-    5393 fff4 00 9e              LBFF4     FDB  SW2VEC         SWI2
-    5394 fff6 00 aa              LBFF6     FDB  FRQVEC         FIRQ
-    5395 fff8 00 a7              LBFF8     FDB  IRQVEC         IRQ
-    5396 fffa 00 a1              LBFFA     FDB  SWIVEC         SWI
-    5397 fffc 00 a4              LBFFC     FDB  NMIVEC         NMI
-    5398 fffe db 46              LBFFE     FDB  RESVEC         RESET
-    """
+log = logging.getLogger("DragonPy.simple6809.Periphery")
+
+
+class Simple6809PeripheryBase(PeripheryBase):
     def __init__(self, cfg):
-        self.cfg = cfg
-        self.address2func_map = {
+        super(Simple6809PeripheryBase, self).__init__(cfg)
+        self.read_address2func_map = {
+            0xa000: self.read_acia_status, # Control/status port of ACIA
+            0xa001: self.read_acia_data, # Data port of ACIA
             0xbffe: self.reset_vector,
         }
+        self.write_address2func_map = {
+            0xa000: self.write_acia_status, # Control/status port of ACIA
+            0xa001: self.write_acia_data, # Data port of ACIA
+        }
 
-    def read_byte(self, cpu_cycles, op_address, address):
-        log.debug(
-            "%04x| Periphery.read_byte from $%x (cpu_cycles: %i)" % (
-            op_address, address, cpu_cycles
-        ))
-        if 0xa000 <= address <= 0xbfef:
-            return self.read_rs232_interface(cpu_cycles, op_address, address)
-
-        try:
-            func = self.address2func_map[address]
-        except KeyError, err:
-            msg = "TODO: read byte from $%x" % address
-            log.error(msg)
-            raise NotImplementedError(msg)
-        else:
-            return func(address)
-
-        raise NotImplementedError
-
-    read_word = read_byte
-
-    def write_byte(self, cpu_cycles, op_address, address, value):
-        if 0xa000 <= address <= 0xbfef:
-            return self.write_rs232_interface(cpu_cycles, op_address, address, value)
-
-        msg = "%04x| TODO: write byte $%x to $%x" % (op_address, value, address)
-        log.error(msg)
-        raise NotImplementedError(msg)
-    write_word = write_byte
-
-    def cycle(self, cpu_cycles, op_address):
-        log.debug("TODO: Simple6809Periphery.cycle")
-
-
-    def read_rs232_interface(self, cpu_cycles, op_address, address):
-        raise NotImplementedError
-
-    def write_rs232_interface(self, cpu_cycles, op_address, address, value):
-        raise NotImplementedError
-
-    def reset_vector(self, address):
+    def reset_vector(self, cpu_cycles, op_address, address):
         return 0xdb46
+
+    def write_acia_status(self, cpu_cycles, op_address, address, value):
+        return 0xff
+    def read_acia_status(self, cpu_cycles, op_address, address):
+        return 0x03
+
+    def read_acia_data(self, cpu_cycles, op_address, address):
+        if self.user_input_queue.empty():
+            return 0x0
+
+        char = self.user_input_queue.get()
+        value = ord(char)
+        log.error("%04x| (%i) read from ACIA-data, send back %r $%x",
+            op_address, cpu_cycles, char, value
+        )
+        return value
+
+    def write_acia_data(self, cpu_cycles, op_address, address, value):
+        char = chr(value)
+#        log.error("*"*79)
+#        log.error("Write to screen: %s ($%x)" , repr(char), value)
+#        log.error("*"*79)
+
+        if value >= 0x90: # FIXME: Why?
+            value -= 0x60
+            char = chr(value)
+#            log.error("convert value -= 0x30 to %s ($%x)" , repr(char), value)
+
+        if value <= 9: # FIXME: Why?
+            value += 0x41
+            char = chr(value)
+#            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
+
+        self.output_queue.put(char)
+
 
 
 class Simple6809PeripherySerial(Simple6809PeripheryBase):
+    """
+    TODO: not working!
+    """
     def __init__(self, cfg):
         super(Simple6809PeripherySerial, self).__init__(cfg)
 
@@ -182,48 +179,6 @@ class Simple6809PeripherySerial(Simple6809PeripheryBase):
         return value
 
     def write_rs232_interface(self, cpu_cycles, op_address, address, value):
-        """
-                        * CONSOLE OUT
-db14 8d 24              PUTCHR    BSR  WAITACIA
-db16 34 02                        PSHS A
-db18 81 0d                        CMPA #000d(CR)                  IS IT CARRIAGE RETURN?
-db1a 27 0b                        BEQ  NEWLINE                    YES
-db1c b7 a0 01                     STA  a001(TRANS)
-db1f 0c 79                        INC  0079(LPTPOS)               INCREMENT CHARACTER COUNTER
-db21 96 79                        LDA  0079(LPTPOS)               CHECK FOR END OF LINE PRINTER LINE
-db23 91 78                        CMPA 0078(LPTWID)               AT END OF LINE PRINTER LINE?
-db25 25 10                        BLO  PUTEND                     NO
-db27 0f 79              NEWLINE   CLR  0079(LPTPOS)               RESET CHARACTER COUNTER
-db29 8d 0f                        BSR  WAITACIA
-db2b 86 0d                        LDA  #13
-db2d b7 a0 01                     STA  a001(TRANS)
-db30 8d 08                        BSR  WAITACIA
-db32 86 0a                        LDA  #10                        DO LINEFEED AFTER CR
-db34 b7 a0 01                     STA  a001(TRANS)
-db37 35 02              PUTEND    PULS A
-db39 39                           RTS
-
-db3a 34 02              WAITACIA  PSHS A
-db3c b6 a0 00           WRWAIT    LDA  a000(USTAT)
-db3f 85 02                        BITA #2
-db41 27 f9                        BEQ  db3c(WRWAIT)
-db43 35 02                        PULS A
-db45 39                           RTS
-
-                        * INITIALISE ACIA
-dbb0 86 95                        LDA  #0095(RTS_LOW)             DIV16 CLOCK -> 7372800 / 4 / 16 = 115200
-dbb2 b7 a0 00                     STA  a000(UCTRL)
-dbb5 8e dc 03                     LDX  #LA147-1                   POINT X TO COLOR BASIC COPYRIGHT MESSAGE
-dbb8 bd eb e5                     JSR  LB99C                      PRINT 'COLOR BASIC'
-dbbb 8e db c6                     LDX  #BAWMST                    WARM START ADDRESS
-dbbe 9f 6f                        STX  006f(RSTVEC)               SAVE IT
-dbc0 86 55                        LDA  #$55                       WARM START FLAG
-dbc2 97 6e                        STA  006e(RSTFLG)               SAVE IT
-dbc4 20 04                        BRA  LA0F3                      GO TO BASIC'S MAIN LOOP
-        """
-        if address == 0xa000:
-            return 0xff
-
         if value == 0x95:
             # RTS low:
             log.error("%04x| (%i) set RTS low",
@@ -242,164 +197,21 @@ dbc4 20 04                        BRA  LA0F3                      GO TO BASIC'S 
         self.serial.flush() # wait until all data is written
 
 
-class Simple6809PeripheryTk(Simple6809PeripheryBase):
-    def __init__(self, cfg):
-        super(Simple6809PeripheryTk, self).__init__(cfg)
-        self.root = Tkinter.Tk()
-        self.root.title("DragonPy - Simple 6809")
-#         self.root.geometry() # '640x480+500+300') # X*Y + x/y-offset
-        self.root.geometry("+500+300") # Chnage inital position
-
-        # http://www.tutorialspoint.com/python/tk_text.htm
-        self.text = Tkinter.Text(
-            self.root,
-            height=20, width=80,
-            state=Tkinter.DISABLED # FIXME: make textbox "read-only"
-        )
-        scollbar = Tkinter.Scrollbar(self.root)
-        scollbar.config(command=self.text.yview)
-
-        self.text.config(
-            background="#08ff08", # nearly green
-            foreground="#004100", # nearly black
-            font=('courier', 11, 'bold'),
-            yscrollcommand=scollbar.set,
-        )
-
-        scollbar.pack(side=Tkinter.RIGHT, fill=Tkinter.Y)
-        self.text.pack(side=Tkinter.LEFT, fill=Tkinter.Y)
-
-        self.root.bind("<Return>", self.event_return)
-        self.root.bind("<Escape>", self.from_console_break)
-        self.root.bind('<Control-c>', self.copy_to_clipboard)
-        self.root.bind("<Key>", self.event_key_pressed)
-
-        self.root.update()
-
-        self.user_input_queue = []
+class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
+    TITLE = "DragonPy - Simple 6809"
+    GEOMETRY = "+500+300"
+#     INITAL_INPUT = (
+#         'PRINT "HELLO"\r\n'
+#         'PRINT 123\r\n'
+#         '10 PRINT 123\r\nLIST\r\nRUN\r\n'
+#         'FOR I=1 to 3:PRINT I:NEXT I\r\n'
+#         'PRINT "NOTHING WORKS :(\r\n'
+#     )
 
     def event_return(self, event):
-        log.critical("ENTER: add \\r")
         self.user_input_queue.put("\r")
+#         self.user_input_queue.put("\n")
 
-    def from_console_break(self, event):
-        log.critical("BREAK: add 0x03")
-        # dc61 81 03              LA3C2     CMPA #3             BREAK KEY?
-        self.user_input_queue.put("\x03")
-
-    def copy_to_clipboard(self, event):
-        log.critical("Copy to clipboard")
-        text = self.text.get("1.0", Tkinter.END)
-        print text
-        self.root.clipboard_clear()
-        self.root.clipboard_append(text)
-
-    def event_key_pressed(self, event):
-        log.critical("keycode %s", repr(event.keycode))
-        char = event.char
-        log.error("char %s", repr(char))
-        if char:
-            char = char.upper()
-            log.error("Send %s", repr(char))
-            self.user_input_queue.put(char)
-
-    def cycle(self, cpu_cycles, op_address):
-        self.root.update()
-
-    def read_rs232_interface(self, cpu_cycles, op_address, address):
-        """
-                                *
-                                * THIS ROUTINE GETS A KEYSTROKE FROM THE KEYBOARD IF A KEY
-                                * IS DOWN. IT RETURNS ZERO TRUE IF THERE WAS NO KEY DOWN.
-                                *
-                                *
-                                LA1C1
-        db05 b6 a0 00           KEYIN     LDA  a000(USTAT)
-        db08 85 01                        BITA #1
-        db0a 27 06                        BEQ  NOCHAR
-        db0c b6 a0 01                     LDA  a001(RECEV)
-        db0f 84 7f                        ANDA #$7F
-        db11 39                           RTS
-        db12 4f                 NOCHAR    CLRA
-        db13 39                           RTS
-        """
-        log.debug(
-#         log.error(
-            "%04x| (%i) read from RS232 address: $%x",
-            op_address, cpu_cycles, address,
-        )
-
-        if address == 0xa000:
-            return 0xff
-#             if self.user_input_queue:
-#                 # There is text to send via virtual serial
-#                 value = 0xff
-#             else:
-#                 # No chars to send.
-#                 value = 0x02 # XXX
-#
-#             log.error("read 0xa000, send $%x", value)
-#             return value
-
-        if not self.user_input_queue.empty():
-            char = self.user_input_queue.pop(0)
-            value = ord(char)
-            log.error("%04x| (%i) read from RS232 address: $%x, send back %r $%x",
-                op_address, cpu_cycles, address, char, value
-            )
-            return value
-
-        return 0x0
-
-    STATE = 0
-    LAST_INPUT = ""
-    def write_rs232_interface(self, cpu_cycles, op_address, address, value):
-        log.error("%04x| (%i) write to RS232 address: $%x value: $%x (dez.: %i) ASCII: %r" % (
-            op_address, cpu_cycles, address, value, value, chr(value)
-        ))
-        if address == 0xa000:
-            value = 0xff
-            log.error("write 0xa000, send $%x", value)
-            return value
-
-        if value == 0xd: # == \r
-            log.error("ignore insert \\r")
-            return
-        elif value == 0x8: # Backspace
-            self.text.config(state=Tkinter.NORMAL)
-            # delete last character
-            self.text.delete("%s - 1 chars" % Tkinter.INSERT, Tkinter.INSERT)
-            self.text.config(state=Tkinter.DISABLED) # FIXME: make textbox "read-only"
-            return
-
-        char = chr(value)
-        log.error("*"*79)
-        log.error("Write to screen: %s ($%x)" % (repr(char), value))
-        log.error("*"*79)
-
-        # write some simple BASIC test code:
-#         self.LAST_INPUT += char
-#         if self.STATE == 0 and self.LAST_INPUT.endswith("OK\n"):
-#             self.STATE += 1
-#             self.user_input_queue = list('PRINT "HELLO"\r')
-#             self.LAST_INPUT = ""
-#         elif self.STATE == 1 and self.LAST_INPUT.endswith("OK\n"):
-#             self.user_input_queue = list('PRINT 123\r')
-#             self.STATE += 1
-#         elif self.STATE == 2 and self.LAST_INPUT.endswith("OK\n"):
-#             self.user_input_queue = list('10 PRINT 123\rLIST\r')
-#             self.STATE += 1
-#         elif self.STATE == 3 and self.LAST_INPUT.endswith("OK\n"):
-#             self.user_input_queue = list('RUN\r')
-#             self.STATE += 1
-#         elif self.STATE == 4 and self.LAST_INPUT.endswith("OK\n"):
-#             self.user_input_queue = list('FOR I=1 to 3:PRINT I:NEXT I\r')
-#             self.STATE += 1
-
-        self.text.config(state=Tkinter.NORMAL)
-        self.text.insert("end", char)
-        self.text.see("end")
-        self.text.config(state=Tkinter.DISABLED) # FIXME: make textbox "read-only"
 
 
 # Simple6809Periphery = Simple6809PeripherySerial
@@ -413,11 +225,11 @@ def test_run():
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-        "--verbosity=30", # WARNING
+#         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
+        "--verbosity=50", # CRITICAL/FATAL
 
-        "--area_debug_cycles=23383", # First OK after copyright info
+#         "--area_debug_cycles=23383", # First OK after copyright info
 
         "--cfg=Simple6809",
 #         "--max=500000",
