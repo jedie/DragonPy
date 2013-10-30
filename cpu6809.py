@@ -2377,8 +2377,10 @@ class CPU(object):
 
         CC bits "HNZVC": --a-a
         """
-        raise NotImplementedError("$%x MUL" % opcode)
-        # Update CC bits: --a-a
+        r = self.accu_a.get() * self.accu_b.get()
+        self.accu_d.set(r)
+        self.cc.Z = 1 if r == 0 else 0
+        self.cc.C = 1 if r & 0x80 else 0
 
     @opcode(# Negate accumulator
         0x40, # NEGA (inherent)
