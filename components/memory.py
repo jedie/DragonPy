@@ -197,6 +197,9 @@ class Memory(object):
         self.write_byte(address + 1, value & 0xff)
 
     def _bus_communication(self, structure, address, value=None):
+        """
+        XXX: Use multiprocessing.Pipe here?
+        """
         if value is None:
 #            log.debug(" **** bus read $%x" % (address))
             action = self.cfg.BUS_ACTION_READ # = 0

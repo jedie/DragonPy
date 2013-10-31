@@ -61,6 +61,7 @@ class Dragon(object):
         print "Startup CPU with: %s" % " ".join(cmd_args)
 
         try:
+            # XXX: use multiprocessing module here?
             self.core = subprocess.Popen(cmd_args)
         except:
             print_exc_plus()

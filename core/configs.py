@@ -51,6 +51,7 @@ class AddressAreas(dict):
 
 class BaseConfig(object):
 
+    # XXX: use multiprocessing send instead of struct
     # for sending a bytes/words via socket bus I/O:
     STRUCT_TO_PERIPHERY_FORMAT = (# For sending data to periphery
         "<" # little-endian byte order

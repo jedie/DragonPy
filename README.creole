@@ -34,6 +34,10 @@ Start Dragon 32 (with some debug output):
 DragonPy$ ./DragonPy_CLI.py --cfg Dragon32 --verbosity=30
 }}}
 
+If the CPU runs, it starts a http server.
+Just request http://localhost:6809 from your browser.
+(The Web-Page must be enhanced ;)
+
 == CLI
 
 {{{
@@ -131,6 +135,31 @@ In other words with PyPy a 1,37MHz CPU is emulated.
 
 e.g. The Dragon 32 6809 machine with a 14.31818 MHz crystal runs with:
 0,895MHz (14,31818Mhz/16=0,895MHz) in other words: 895.000 CPU-cycles/sec.
+
+=== about implementation
+
+The current implementation 
+
+# CLI starts CPU via subprocess
+# CPU starts a control http server at localhost:6809
+# in the config some memory areas are "marked" as "bus areas"
+# If CPU read/write in a bus memory area:
+## send/receive via socked from the periphery
+## periphery send/receive to components like the screen/SAM/PIA/cassette etc.
+
+It looks like this:
+{{{
++----------+               +----------+              +--------------------+
+| CLI      |  start via    | 6809 CPU |  start in    | CPU control server |
+|----------|-------------->|----------|+------------>|--------------------|
+|          |  subprocess   |          | same process |                    |
+|          |               |          |              |    http server     |
+|periphery |               |          |              |                    |
+|-Screen   |bus communicate|bus Memory|<-------------|   localhost:6809   |
+|-SAM/PIA  |<------------->|   area   |              |                    |
+|-cassette |   via socket  |          |              |                    |
++----------+               +----------+              +--------------------+
+}}}
 
 == Links
 

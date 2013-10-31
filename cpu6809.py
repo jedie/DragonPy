@@ -305,6 +305,7 @@ class CPU(object):
 
         self.memory = Memory(self, cfg)
 
+        # XXX: Maybe use multiprocessing to start a server?
         self.control_server = get_http_control_server(self, cfg)
 
         self.index_x = ValueStorage16Bit(REG_X, 0) # X - 16 bit index register
@@ -718,6 +719,7 @@ class CPU(object):
             # a connection is accepted until the response
             # is sent. TODO: use an async HTTP server that
             # handles input data asynchronously.
+            # XXX: use multiprocessing ?
             sockets = [self.control_server]
             rs, _, _ = select.select(sockets, [], [], timeout)
             for s in rs:
