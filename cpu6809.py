@@ -504,7 +504,7 @@ class CPU(object):
         except Exception, err:
             # Display the op information log messages
             activate_full_debug_logging()
-            log.info("Activate debug at $%x", self.last_op_address)
+            log.info("Activate debug at $%x", op_address)
 
             # raise the error later, after op information log messages
             etype, evalue, etb = sys.exc_info()
@@ -525,7 +525,7 @@ class CPU(object):
             mnemonic = instruction.data["mnemonic"]
 
             msg = "%(op_address)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | %(cc)s" % {
-                "op_address": self.last_op_address,
+                "op_address": op_address,
                 "opcode": "%02x" % opcode,
                 "mnemonic": mnemonic,
                 "kwargs": " ".join(kwargs_info),
