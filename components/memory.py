@@ -131,7 +131,7 @@ class Memory(object):
             self.cfg.mem_info(address, msg)
             msg2 = "%s: $%x" % (msg, address)
             log.warn(msg2)
-            #raise RuntimeError(msg2)
+            # raise RuntimeError(msg2)
             byte = 0x0
 
 #        log.log(5, "%04x| (%i) read byte $%x from $%x",
@@ -164,7 +164,7 @@ class Memory(object):
 #                self.cpu.last_op_address, self.cpu.cycles, chr(value), value, address
 #            )
         self.cpu.cycles += 1
-        
+
 #         assert 0x0 <= value <= 0xff, "Write out of range value $%x to $%x" % (value, address)
         if not (0x0 <= value <= 0xff):
             log.error("Write out of range value $%x to $%x", value, address)
@@ -224,10 +224,7 @@ class Memory(object):
 #        log.debug("struct.pack %s with %s: %s" % (
 #            repr(args), self.cfg.STRUCT_TO_PERIPHERY_FORMAT, repr(data)
 #        ))
-        try:
-            self.bus.send(data)
-        except IOError:
-            sys.exit(0)
+        self.bus.send(data)
 
     def _bus_read(self, structure, address):
 #         self.cpu.cycles += 1 # ???
@@ -239,7 +236,7 @@ class Memory(object):
         except socket.error, err:
             log.error("Socket error: %s" % err)
             sys.exit(0)
-            
+
         if len(data) != self.cfg.STRUCT_MEMORY_LEN:
             log.critical("Memory bus read $%x error: Get wrong data length back: %s" % (
                 address, repr(data)
@@ -248,7 +245,7 @@ class Memory(object):
 
         value = struct.unpack(self.cfg.STRUCT_TO_MEMORY_FORMAT, data)[0]
 #        log.debug("Receive from bus: %s -> $%x" % (repr(data), value))
-            
+
         return value
 
     def _bus_write(self, structure, address, value):

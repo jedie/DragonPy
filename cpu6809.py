@@ -114,23 +114,7 @@ def opcode(*opcodes):
 
 
 import os
-# FIXME: Hacked XRoar bugtracking...
-try:
-    trace_file = open(os.path.expanduser(r"~/xroar_trace.txt"), "r")
-except IOError, err:
-    log.error("No trace file: %s" % err)
-    sys.exc_clear() # clears all information relating this exception
-    trace_file = None
-else:
-    trace_file.readline() # Skip reset line
 
-# FIXME: Hacked sbc09 bugtracking...
-try:
-    v09trace_file = open(os.path.expanduser(r"~/v09trace.txt"), "r")
-except IOError, err:
-    log.error("No trace file: %s" % err)
-    sys.exc_clear() # clears all information relating this exception
-    v09trace_file = None
 
 
 DEBUG_INSTR = ("BCC", "BCS", "BEQ", "BGE", "BGT", "BHI", "BHS", "BLE", "BLO",
@@ -275,18 +259,6 @@ class CPU(object):
         self.cfg = cfg
         log.info("Use config: %s", cfg)
 
-
-        if self.cfg.__class__.__name__ != "Dragon32Cfg":
-            # FIXME: Hacked bugtracking only with Dragon 32
-            global trace_file
-            trace_file = None
-
-        if self.cfg.__class__.__name__ != "SBC09Cfg":
-            # FIXME: Hacked bugtracking only with SBC09Cfg
-            global v09trace_file
-            v09trace_file = None
-
-
         if self.cfg.area_debug is not None:
             self.area_debug_active = False
             log.warn(
@@ -378,6 +350,33 @@ class CPU(object):
 
         self.running = True
         self.quit = False
+
+        self.setup_trace_compare()
+
+    def setup_trace_compare(self):
+        self.xroar_trace_file = None
+        self.v09_trace_file = None
+
+        if not self.cfg.compare_trace:
+            return
+
+        if self.cfg.__class__.__name__ == "Dragon32Cfg":
+            # XRoar bugtracking only with Dragon 32
+            try:
+                self.xroar_trace_file = open(os.path.expanduser(r"~/xroar_trace.txt"), "r")
+            except IOError, err:
+                log.error("No XRoar trace file: %s" % err)
+                sys.exc_clear() # clears all information relating this exception
+            else:
+                self.xroar_trace_file.readline() # Skip reset line
+
+        if self.cfg.__class__.__name__ == "SBC09Cfg":
+            # v09 bugtrackung only with sbc09
+            try:
+                self.v09_trace_file = open(os.path.expanduser(r"~/v09_trace.txt"), "r")
+            except IOError, err:
+                log.error("No trace file: %s" % err)
+                sys.exc_clear() # clears all information relating this exception
 
     ####
 
@@ -498,9 +497,6 @@ class CPU(object):
             log.error(msg)
             sys.exit(msg)
 
-        instruction.call_instr_func()
-        return
-
         try:
             instruction.call_instr_func()
 #         if opcode not in (0x10, 0x11):
@@ -548,14 +544,14 @@ class CPU(object):
 #             else:
             log.info(msg)
 
-            if v09trace_file is not None: # Hacked sbc09 bugtracking...
+            if self.v09_trace_file is not None: # Hacked sbc09 bugtracking...
                 if opcode in (0x10, 0x11): # PAGE 1/2 instructions
                     return
 
-                if v09trace_file is not None and self.last_trace_line is None:
-                    self.last_trace_line = v09trace_file.readline()
+                if self.v09_trace_file is not None and self.last_trace_line is None:
+                    self.last_trace_line = self.v09_trace_file.readline()
                     self.trace_line_no += 1
-                ref_line = v09trace_file.readline()
+                ref_line = self.v09_trace_file.readline()
                 self.trace_line_no += 1
                 if ref_line == "":
                     log.error("no sbc09 log line (CPU cycles: %i)", self.cycles)
@@ -617,11 +613,11 @@ class CPU(object):
                 self.last_trace_line = ref_line
 
 
-            if trace_file is not None: # Hacked XRoar bugtracking...
+            if self.xroar_trace_file is not None: # Hacked XRoar bugtracking...
                 if opcode in (0x10, 0x11): # PAGE 1/2 instructions
                     return
 
-                ref_line = trace_file.readline()
+                ref_line = self.xroar_trace_file.readline()
                 if ref_line == "":
                     log.error("no XRoar log line (CPU cycles: %i)", self.cycles)
                     return
@@ -2898,12 +2894,43 @@ class CPU(object):
         self.cc.update_NZ0_16(m)
 
 
+def test_run():
+    import subprocess
+    cmd_args = [sys.executable,
+        "DragonPy_CLI.py",
+#         "--verbosity=5",
+#         "--verbosity=10", # DEBUG
+        "--verbosity=20", # INFO
+#         "--verbosity=30", # WARNING
+#         "--verbosity=40", # ERROR
+#         "--verbosity=50", # CRITICAL/FATAL
+#
+#         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
+#
+#         "--area_debug_active=5:bb79-ffff",
+#         "--area_debug_cycles=1587101",
+#
+#         "--cfg=sbc09",
+#         "--cfg=Simple6809",
+        "--cfg=Dragon32",
+#
+        "--compare_trace=2", # PC differ
+#
+#         "--max=15000",
+#         "--max=46041",
+    ]
+    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    subprocess.Popen(cmd_args).wait()
+    sys.exit(0)
+
+
 if __name__ == "__main__":
     cli = get_cli()
 
     if not cli.cfg.use_bus:
-        print "DragonPy cpu core"
-        print "Run DragonPy_CLI.py instead"
+        test_run()
+#         print "DragonPy cpu core"
+#         print "Run DragonPy_CLI.py instead"
         sys.exit(0)
 
     bus_socket_addr = cli.cfg.bus_socket_addr

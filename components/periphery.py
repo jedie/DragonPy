@@ -123,6 +123,7 @@ class PeripheryBase(object):
         if time.time() - self.last_update > self.update_time:
             self.last_update = time.time()
             self.update(cpu_cycles)
+            return self.running # send pack if CPU quit
 
     def write_acia_status(self, cpu_cycles, op_address, address, value):
         raise NotImplementedError

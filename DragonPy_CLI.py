@@ -31,8 +31,12 @@ configs.register("Simple6809", Simple6809Cfg)
 @atexit.register
 def goodbye():
     print "\n --- END --- \n"
-    sys.stdout.flush()
-    sys.stderr.flush()
+    try:
+        # for Eclipse :(
+        sys.stdout.flush()
+        sys.stderr.flush()
+    except:
+        pass
 
 
 class DragonPyCLI(Base_CLI):
@@ -54,6 +58,17 @@ class DragonPyCLI(Base_CLI):
         self.parser.add_argument('--display_cycle', action='store_true',
             help="print CPU cycle/sec while running."
         )
+
+        # TODO:
+#         self.parser.add_argument('--trace',
+#             help="Filename for create a trace file."
+#         )
+
+        self.parser.add_argument('--compare_trace',
+            type=int, choices=(0, 1, 2, 3, 4, 5), default=0,
+            help="Compare with XRoar/v09 trace file? (see README)"
+        )
+
         self.parser.add_argument("--bus_socket_host",
             help="Host internal socket bus I/O (do not set manually!)"
         )

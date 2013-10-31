@@ -70,6 +70,8 @@ optional arguments:
   --cfg {Dragon32,sbc09,Simple6809}
                         Used configuration
   --display_cycle       print CPU cycle/sec while running.
+  --compare_trace {0,1,2,3}
+                        Compare with XRoar/v09 trace file? (see README)
   --bus_socket_host BUS_SOCKET_HOST
                         Host internal socket bus I/O (do not set manually!)
   --bus_socket_port BUS_SOCKET_PORT
@@ -86,6 +88,22 @@ optional arguments:
                         activate debug after CPU cycles
 }}}
 
+==== compare trace
+
+For developing we add a way to compare the CPU running with a trace file
+from XRoar or v09.
+
+For this we add the command line option **--compare_trace**
+Set it to:
+
+| **--compare_trace=1** | compare and info if differed
+| **--compare_trace=2** | exit if program counter is differed
+| **--compare_trace=3** | exit if program counter or CC flags are differed
+| **--compare_trace=4** | exit if program counter or CC flags or accu A/B are differed
+| **--compare_trace=5** | exit if program counter or CC flags or A,B,X,Y,U or S are differed
+
+A XRoar trace file must be stored at **~/xroar_trace.txt**
+The v09 trace file here: **~/v09_trace.txt**
 
 == current status
 
@@ -160,6 +178,13 @@ It looks like this:
 |-cassette |   via socket  |          |              |                    |
 +----------+               +----------+              +--------------------+
 }}}
+
+== TODO:
+
+# Bugfix CPU to run Simple6809 BASIC interpreter
+# implement Dragon 32 periphery
+# use Python multiprocessing module
+# 
 
 == Links
 

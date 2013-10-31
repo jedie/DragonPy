@@ -82,8 +82,7 @@ class Dragon(object):
         }
 
     def run(self):
-        quit_cpu = False
-        while not quit_cpu:
+        while True:
             cpu_data = self.cpu.recv(self.cfg.STRUCT_TO_PERIPHERY_LEN)
 #            log.debug("receive %s Bytes from CPU via bus" % self.cfg.STRUCT_TO_PERIPHERY_LEN)
             if len(cpu_data) == 0:
@@ -117,7 +116,11 @@ class Dragon(object):
             else:
                 raise RuntimeError
 
-            quit_cpu = self.periphery.cycle(cpu_cycles, op_address)
+            print "call cycle",
+            should_quit = self.periphery.cycle(cpu_cycles, op_address)
+            if should_quit is False:
+                log.critical("Exit DragonPy run loop.")
+                return
 
             if self.cfg.area_debug_cycles is not None:
                 if cpu_cycles >= self.cfg.area_debug_cycles:

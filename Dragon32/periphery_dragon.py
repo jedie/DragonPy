@@ -23,15 +23,17 @@ except ImportError:
 from Dragon32.display import Display
 from Dragon32.MC6883_SAM import SAM
 from Dragon32.MC6821_PIA import PIA
+from components.periphery import PeripheryBase
 
 log = logging.getLogger("DragonPy.perophery.dragon")
 
 
 
-class Dragon32Periphery(object):
+class Dragon32Periphery(PeripheryBase):
 
     def __init__(self, cfg):
-        self.cfg = cfg
+        super(Dragon32Periphery, self).__init__(cfg)
+
         self.kbd = 0xBF
         self.display = Display()
         self.speaker = None # Speaker()
@@ -39,8 +41,6 @@ class Dragon32Periphery(object):
 
         self.sam = SAM(cfg)
         self.pia = PIA(cfg)
-
-        self.update_cycle = 0
 
         self.address2func_map = {
             0xfffe: self.reset_vector,
@@ -158,11 +158,19 @@ class Dragon32Periphery(object):
 
     write_word = write_byte # TODO: implement
 
+    def update(self, cpu_cycles):
+        super(Dragon32Periphery, self).update(cpu_cycles)
+        self.display.flash()
+        pygame.display.flip()
+        if self.speaker:
+            self.speaker.update(cpu_cycles)
+
     def cycle(self, cpu_cycles, op_address):
-        quit_cpu = False
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                quit_cpu = True
+                log.critical("pygame.QUIT: shutdown")
+                self.exit()
+                return False # Quit
 
             if event.type == pygame.KEYDOWN:
                 key = ord(event.unicode) if event.unicode else 0
@@ -175,15 +183,7 @@ class Dragon32Periphery(object):
                         key = 0x08
                     self.periphery.kbd = 0x80 + (key & 0x7F)
 
-        self.update_cycle += 1
-        if self.update_cycle >= 1024:
-            self.display.flash()
-            pygame.display.flip()
-            if self.speaker:
-                self.speaker.update(cpu_cycles)
-            self.update_cycle = 0
-
-        return quit_cpu
+        return super(Dragon32Periphery, self).cycle(cpu_cycles, op_address)
 
     def reset_vector(self, address):
         ea = 0xb3b4
@@ -196,9 +196,24 @@ def test_run():
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
 #         "--verbosity=5",
-        "--verbosity=20",
+#         "--verbosity=10", # DEBUG
+#         "--verbosity=20", # INFO
+        "--verbosity=30", # WARNING
+#         "--verbosity=40", # ERROR
+#         "--verbosity=50", # CRITICAL/FATAL
+#
+#         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
+#
+#         "--area_debug_active=5:bb79-ffff",
+#         "--area_debug_cycles=1587101",
+#
         "--cfg=Dragon32",
-        "--max=1",
+#
+        "--display_cycle", # print CPU cycle/sec while running.
+#         "--compare_trace=2", # PC differ
+#
+#         "--max=15000",
+#         "--max=46041",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()
