@@ -196,9 +196,9 @@ def test_run():
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
 #         "--verbosity=5",
-#         "--verbosity=10", # DEBUG
+        "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-        "--verbosity=30", # WARNING
+#         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
 #         "--verbosity=50", # CRITICAL/FATAL
 #

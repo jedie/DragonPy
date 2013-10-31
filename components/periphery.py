@@ -111,6 +111,8 @@ class PeripheryBase(object):
     last_cycles_update = time.time()
     last_cycles = 0
     def update(self, cpu_cycles):
+        sys.stdout.write("u")
+        sys.stdout.flush()
         if self.cfg.display_cycle:
             duration = time.time() - self.last_cycles_update
             if duration >= 1:
@@ -120,6 +122,8 @@ class PeripheryBase(object):
                 self.last_cycles_update = time.time()
 
     def cycle(self, cpu_cycles, op_address):
+        sys.stdout.write("c")
+        sys.stdout.flush()
         if time.time() - self.last_update > self.update_time:
             self.last_update = time.time()
             self.update(cpu_cycles)
@@ -223,7 +227,6 @@ class TkPeripheryBase(PeripheryBase):
         super(TkPeripheryBase, self).write_acia_data(cpu_cycles, op_address, address, value)
 
     def update(self, cpu_cycles):
-        super(TkPeripheryBase, self).update(cpu_cycles)
         if not self.output_queue.empty():
             text_buffer = []
             while not self.output_queue.empty():
@@ -242,3 +245,4 @@ class TkPeripheryBase(PeripheryBase):
             self.text.config(state=Tkinter.DISABLED)
 
         self.root.update()
+        return super(TkPeripheryBase, self).update(cpu_cycles)

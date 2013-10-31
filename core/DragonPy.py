@@ -116,7 +116,6 @@ class Dragon(object):
             else:
                 raise RuntimeError
 
-            print "call cycle",
             should_quit = self.periphery.cycle(cpu_cycles, op_address)
             if should_quit is False:
                 log.critical("Exit DragonPy run loop.")
