@@ -197,6 +197,8 @@ Some links:
  * http://koti.mbnet.fi/~atjs/mc6809/ - 6809 Emulation Page
 
 Source codes:
+ * https://github.com/naughton/mc6809/blob/master/mc6809.ts
+ * https://github.com/maly/6809js/blob/master/6809.js
  * http://mamedev.org/source/src/mess/drivers/dragon.c.html
  * http://mamedev.org/source/src/mess/machine/dragon.c.html
  * http://mamedev.org/source/src/emu/cpu/m6809/m6809.c.html
