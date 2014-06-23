@@ -446,7 +446,7 @@ class CPU(object):
     ####
 
     def reset(self):
-        log.debug("$%x CPU reset:" % self.program_counter)
+        log.info("$%x CPU reset:" % self.program_counter)
 
         self.last_op_address = 0
 
@@ -455,21 +455,21 @@ class CPU(object):
             # E400: 1AFF  reset  orcc #$FF  ;Disable interrupts.
 #             log.debug("\tset CC register to 0xff")
 #             self.cc.set(0xff)
-            log.debug("\tset CC register to 0x00")
+            log.info("\tset CC register to 0x00")
             self.cc.set(0x00)
         else:
-            log.debug("\tset cc.F=1: FIRQ interrupt masked")
+            log.info("\tset cc.F=1: FIRQ interrupt masked")
             self.cc.F = 1
 
-            log.debug("\tset cc.I=1: IRQ interrupt masked")
+            log.info("\tset cc.I=1: IRQ interrupt masked")
             self.cc.I = 1
 
 #         log.debug("\tset PC to $%x" % self.cfg.RESET_VECTOR)
 #         self.program_counter = self.cfg.RESET_VECTOR
 
-        log.debug("\tread word from $%x" % self.cfg.RESET_VECTOR)
+        log.info("\tread word from $%x" % self.cfg.RESET_VECTOR)
         pc = self.memory.read_word(self.cfg.RESET_VECTOR)
-        log.debug("\tset PC to $%x" % (pc))
+        log.info("\tset PC to $%x" % (pc))
         self.program_counter = pc
 
 
