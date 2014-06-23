@@ -20,12 +20,14 @@ from utils.simple_debugger import print_exc_plus
 
 from Dragon32.config import Dragon32Cfg
 from Simple6809.config import Simple6809Cfg
+from Multicomp6809.config import Multicomp6809Cfg
 from sbc09.config import SBC09Cfg
 
 
 configs.register("Dragon32", Dragon32Cfg, default=True)
 configs.register("sbc09", SBC09Cfg)
 configs.register("Simple6809", Simple6809Cfg)
+configs.register("Multicomp6809", Multicomp6809Cfg)
 
 
 @atexit.register
