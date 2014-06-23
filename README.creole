@@ -108,11 +108,11 @@ The v09 trace file here: **~/v09_trace.txt**
 == current status
 
 sbc09 works quite well almost:
-{{http://www.jensdiemer.de/media/jensdiemer.de/screenshots/DragonPy_sbc09_01.png}}
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/DragonPy_sbc09_01.png}}
 
 The Simple6809 config works a little bit. First GUI used a simple Tkinter windows.
 Looks like this:
-{{http://www.pylucid.org/media/jensdiemer.de/screenshots/Simple6809_TK_03.PNG}}
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/Simple6809_TK_03.PNG}}
 
 Current running output:
 {{{
