@@ -4,7 +4,9 @@
     DragonPy - Dragon 32 emulator in Python
     =======================================
 
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    simply run all existing Unittests
+
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -24,16 +26,14 @@ if __name__ == '__main__':
     )
     log.addHandler(logging.StreamHandler())
 
-    raise "FIXME!!!"
-    unittest.main(
-        argv=(
-            "test_cpu6809",
-#             "Test6809_Ops.test_TFR02",
-#             "Test6809_Ops.test_CMPX_extended",
-#             "Test6809_AddressModes",
-        ),
-        testRunner=TextTestRunner2,
+
+    loader = unittest.TestLoader()
+    tests = loader.discover('.')
+
+    test_runner = TextTestRunner2(
 #         verbosity=1,
         verbosity=2,
 #         failfast=True,
     )
+
+    test_runner.run(tests)

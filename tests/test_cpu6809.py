@@ -10,10 +10,10 @@ import logging
 import sys
 import unittest
 
-from configs import Dragon32Cfg
 from cpu6809 import CPU
-from Dragon32_mem_info import DragonMemInfo
-from test_base import TextTestRunner2
+from Dragon32.config import Dragon32Cfg
+from Dragon32.mem_info import DragonMemInfo
+from tests.test_base import TextTestRunner2
 
 
 class UnittestCmdArgs(object):
@@ -25,6 +25,12 @@ class UnittestCmdArgs(object):
     max = None
     area_debug_active = None
     area_debug_cycles = None
+
+    # print CPU cycle/sec while running
+    display_cycle = False
+
+    # Compare with XRoar/v09 trace file? (see README)
+    compare_trace = False
 
 
 class BaseTestCase(unittest.TestCase):
@@ -654,10 +660,6 @@ class TestSimple6809ROM(BaseTestCase):
 
 
 
-
-
-
-
 if __name__ == '__main__':
     log = logging.getLogger("DragonPy")
     log.setLevel(
@@ -690,7 +692,7 @@ if __name__ == '__main__':
 #             "Test6809_Ops2.test_TFR_CC_B",
 #              "Test6809_Stack",
 #              "Test6809_Stack.test_PushPullSystemStack_03",
-            "TestSimple6809ROM",
+#             "TestSimple6809ROM",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,

@@ -12,6 +12,7 @@
 import unittest
 
 from cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
+import logging
 
 
 class BaseTestCase(unittest.TestCase):
