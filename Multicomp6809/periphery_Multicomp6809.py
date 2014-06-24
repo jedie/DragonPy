@@ -97,127 +97,17 @@ class Multicomp6809PeripheryBase(PeripheryBase):
 
 
 
-class Multicomp6809PeripherySerial(Multicomp6809PeripheryBase):
-    """
-    TODO: not working!
-    """
-    def __init__(self, cfg):
-        super(Multicomp6809PeripherySerial, self).__init__(cfg)
-
-        self.master, slave = pty.openpty()
-        s_name = os.ttyname(slave)
-
-        print "Serial name: %s" % s_name
-
-        # http://pyserial.sourceforge.net/pyserial_api.html
-        self.serial = serial.Serial(
-            port=s_name, # Device name or port number number or None.
-            baudrate=115200, # Baud rate such as 9600 or 115200 etc.
-#             bytesize=serial.SEVENBITS, # Number of data bits. Possible values: FIVEBITS, SIXBITS, SEVENBITS, EIGHTBITS
-#             parity= ... #Enable parity checking. Possible values: PARITY_NONE, PARITY_EVEN, PARITY_ODD PARITY_MARK, PARITY_SPACE
-#             stopbits= ... #Number of stop bits. Possible values: STOPBITS_ONE, STOPBITS_ONE_POINT_FIVE, STOPBITS_TWO
-#              timeout=0, # non-blocking mode (return immediately on read)
-#              timeout=None, # wait forever
-#             xonxoff= ... #Enable software flow control.
-#             rtscts=True, # Enable hardware (RTS/CTS) flow control.
-#             dsrdtr= ... #Enable hardware (DSR/DTR) flow control.
-#             writeTimeout= ... #Set a write timeout value.
-#             interCharTimeout= ... #Inter-character timeout, None to disable (default).
-        )
-        log.log(100, repr(self.serial.getSettingsDict()))
-        print "Please connect, e.g.: 'screen %s'" % s_name
-        print "(ENTER to continue!)"
-        sys.stdout.flush() # for eclipse :(
-        raw_input()
-
-        self.serial.write("Welcome to DragonPy") # write to pty
-        self.serial.flush() # wait until all data is written
-
-
-    def read_rs232_interface(self, cpu_cycles, op_address, address):
-        """
-        $00   0  NUL (Null Prompt)
-        $01   1  SOH (Start of heading)
-        $02   2  STX (Start of Text)
-        $03   3  ETX (End of Text)
-        $04   4  EOT (End of transmission)
-        $05   5  ENQ (Enqiry)
-        $06   6  ACK (Acknowledge)
-        $07   7  BEL (Bell)
-        $08   8  BS  (Backspace)
-        $09   9  HT  (Horizontal Tab)
-        $0a  10  LF  (LineFeed)
-        $0b  11  VT  (Vertical Tab)
-        $0c  12  FF  (Form Feed)
-        $0d  13  CR  (Carriage Return)
-        $0e  14  SO  (Shift Out)
-        $0f  15  SI  (Shift In)
-        $10  16  DLE (Data link Escape)
-        $11  17  DC1 (X-On)
-        $12  18  DC2 (X-On)
-        $13  19  DC3 (X-Off)
-        $14  20  DC4 (X-Off)
-        $15  21  NAK (No Acknowledge)
-        $16  22  SYN (Synchronous idle)
-        $17  23  ETB (End transmission blocks)
-        $18  24  CAN (Cancel)
-        $19  25  EM  (End of Medium)
-        $1a  26  SUB (Substitute)
-        $1b  27  ESC (Escape)
-        $1c  28  FS  (File Separator)
-        $1d  29  GS  (Group Separator)
-        $1e  30  RS  (Record Seperator)
-        $1f  31  US  (Unit Seperator)
-        $20  32  BLA (Blank)
-        """
-        log.error("%04x| (%i) read from RS232 address: $%x",
-            op_address, cpu_cycles, address,
-        )
-        if address == 0xa000:
-            return 0x02
-
-
-#         char = self.serial.read()
-        char = os.read(self.master, 1) # read from pty
-        if char == "":
-            value = 0x0
-        else:
-            value = ord(char)
-
-        log.error("%04x| (%i) get from RS232 (address: $%x): %r ($%x)",
-            op_address, cpu_cycles, address, char, value
-        )
-        return value
-
-    def write_rs232_interface(self, cpu_cycles, op_address, address, value):
-        if value == 0x95:
-            # RTS low:
-            log.error("%04x| (%i) set RTS low",
-                op_address, cpu_cycles
-            )
-            try:
-                self.serial.setRTS(True)
-            except Exception, err:
-                log.error("Error while serial.setRTS: %s" % err)
-            return
-
-        log.error("%04x| (%i) write to RS232 address: $%x value: $%x (dez.: %i) ASCII: %r" % (
-            op_address, cpu_cycles, address, value, value, chr(value)
-        ))
-        self.serial.write(chr(value)) # write to pty
-        self.serial.flush() # wait until all data is written
-
 
 class Multicomp6809PeripheryTk(TkPeripheryBase, Multicomp6809PeripheryBase):
     TITLE = "DragonPy - Multicomp 6809"
     GEOMETRY = "+500+300"
-#     INITAL_INPUT = (
-#         'PRINT "HELLO"\r\n'
-#         'PRINT 123\r\n'
-#         '10 PRINT 123\r\nLIST\r\nRUN\r\n'
-#         'FOR I=1 to 3:PRINT I:NEXT I\r\n'
-#         'PRINT "NOTHING WORKS :(\r\n'
-#     )
+    INITAL_INPUT = (
+        'PRINT "HELLO"\r\n'
+        'PRINT 123\r\n'
+        '10 PRINT 123\r\nLIST\r\nRUN\r\n'
+        'FOR I=1 to 3:PRINT I:NEXT I\r\n'
+        'PRINT "NOTHING WORKS :("\r\n'
+    )
 
     def event_return(self, event):
         self.user_input_queue.put("\r")

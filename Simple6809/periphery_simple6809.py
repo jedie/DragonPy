@@ -205,7 +205,7 @@ class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
 #         'PRINT 123\r\n'
 #         '10 PRINT 123\r\nLIST\r\nRUN\r\n'
 #         'FOR I=1 to 3:PRINT I:NEXT I\r\n'
-#         'PRINT "NOTHING WORKS :(\r\n'
+#         'PRINT "NOTHING WORKS :("\r\n'
 #     )
 
     def event_return(self, event):

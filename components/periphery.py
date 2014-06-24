@@ -111,8 +111,8 @@ class PeripheryBase(object):
     last_cycles_update = time.time()
     last_cycles = 0
     def update(self, cpu_cycles):
-        sys.stdout.write("u")
-        sys.stdout.flush()
+#         sys.stdout.write("u")
+#         sys.stdout.flush()
         if self.cfg.display_cycle:
             duration = time.time() - self.last_cycles_update
             if duration >= 1:
@@ -122,8 +122,8 @@ class PeripheryBase(object):
                 self.last_cycles_update = time.time()
 
     def cycle(self, cpu_cycles, op_address):
-        sys.stdout.write("c")
-        sys.stdout.flush()
+#         sys.stdout.write("c")
+#         sys.stdout.flush()
         if time.time() - self.last_update > self.update_time:
             self.last_update = time.time()
             self.update(cpu_cycles)
