@@ -207,7 +207,9 @@ class Instruction(object):
 
         func_name = self.instr_func.__name__
         if func_name not in self.CALLED:
-            log.error("called the first time: %s", func_name)
+            log.error("%04x| called the first time: %s (CPU cycles: %i)",
+                self.cpu.last_op_address, func_name, self.cpu.cycles
+            )
             self.CALLED[func_name] = None
 
 #        log.debug("%04x| %s(%s)",
@@ -489,7 +491,7 @@ class CPU(object):
 #             log.error("Endless loop???")
 
 #         old_op_address = self.last_op_address
-#         self.last_op_address = op_address
+        self.last_op_address = op_address
         try:
             instruction = self.opcode_dict[opcode]
         except KeyError:
@@ -2900,7 +2902,7 @@ def test_run():
         "DragonPy_CLI.py",
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
-        "--verbosity=20", # INFO
+#         "--verbosity=20", # INFO
 #         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
 #         "--verbosity=50", # CRITICAL/FATAL
@@ -2911,10 +2913,13 @@ def test_run():
 #         "--area_debug_cycles=1587101",
 #
 #         "--cfg=sbc09",
-#         "--cfg=Simple6809",
-        "--cfg=Dragon32",
+#          "--cfg=Simple6809",
+#        "--cfg=Dragon32",
+
+         "--cfg=Multicomp6809",
+
 #
-        "--compare_trace=2", # PC differ
+#         "--compare_trace=2", # PC differ
 #
 #         "--max=15000",
 #         "--max=46041",
