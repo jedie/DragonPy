@@ -25,9 +25,15 @@ class Multicomp6809Cfg(BaseConfig):
     RAM_END = 0x7FFF
     RAM_SIZE = 0x8000 # 32768 Bytes
 
+    # The intended layout:
     ROM_START = 0xE000
     ROM_END = 0xFFFF
     ROM_SIZE = 0x2000 # 8192 Bytes
+
+    # To match the addresses in basic.asm:
+#     ROM_START = 0xA000
+#     ROM_END = 0xBFFF
+#     ROM_SIZE = 0x2000 # 8192 Bytes
 
     RESET_VECTOR = 0xBFFE
 

@@ -188,6 +188,13 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             self.cpu.write_byte(a, data[i])
         self.response("")
 
+    def post_debug(self, m):
+        handler = logging.StreamHandler()
+        handler.level = 5
+        log.handlers = (handler,)
+        log.critical("Activate full debug logging in %s!", __file__)
+        self.response("")
+
     def post_quit(self, m):
         self.cpu.quit = True
         self.response("")

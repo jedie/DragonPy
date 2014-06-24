@@ -47,12 +47,7 @@ class PeripheryBase(object):
             for char in self.INITAL_INPUT:
                 self.user_input_queue.put(char)
 
-    def exit(self):
-        self.running = False
-
-        # FIXME: It doesn't work to request that CPU shutdown:
-        #        will get timeouts
-        url = "/quit/"
+    def request_cpu(self, url):
         log.critical("request %s:%s%s", self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT, url)
         conn = httplib.HTTPConnection(
             self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT,
@@ -66,8 +61,24 @@ class PeripheryBase(object):
         else:
             print response.status, response.reason
 
+        raise "FIXME: Doesn't work!!!"
+
+    def exit(self):
+        self.running = False
+
+        # FIXME: It doesn't work to request that CPU shutdown:
+        #        will get timeouts
+        self.request_cpu(url="/quit/")
+
         time.sleep(1) # Wait that CPU quit
         sys.exit(0)
+
+    def activate_full_debug_logging(self):
+        handler = logging.StreamHandler()
+        handler.level = 5
+        log.handlers = (handler,)
+        log.critical("Activate full debug logging in %s!", __file__)
+        self.request_cpu(url="/debug/")
 
     def read_byte(self, cpu_cycles, op_address, address):
         if not self.running:
@@ -203,7 +214,7 @@ class TkPeripheryBase(PeripheryBase):
             log.error("Send %s", repr(char))
             self.user_input_queue.put(char)
 
-    def destroy(self, event):
+    def destroy(self, event=None):
         """
         FIXME: How destroy the CPU process?
         """

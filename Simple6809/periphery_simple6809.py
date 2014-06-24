@@ -48,7 +48,7 @@ class Simple6809PeripheryBase(PeripheryBase):
         }
 
     def reset_vector(self, cpu_cycles, op_address, address):
-        return 0xdb46
+        return self.cfg.ROM_START + 0x1b46 # normaly: 0xdb46
 
     def write_acia_status(self, cpu_cycles, op_address, address, value):
         return 0xff
@@ -200,18 +200,31 @@ class Simple6809PeripherySerial(Simple6809PeripheryBase):
 class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
     TITLE = "DragonPy - Simple 6809"
     GEOMETRY = "+500+300"
-#     INITAL_INPUT = (
-#         'PRINT "HELLO"\r\n'
+    INITAL_INPUT = (
+        'PRINT "HELLO"\r\n'
 #         'PRINT 123\r\n'
 #         '10 PRINT 123\r\nLIST\r\nRUN\r\n'
 #         'FOR I=1 to 3:PRINT I:NEXT I\r\n'
 #         'PRINT "NOTHING WORKS :("\r\n'
-#     )
+    )
 
     def event_return(self, event):
         self.user_input_queue.put("\r")
 #         self.user_input_queue.put("\n")
 
+    _state = 0
+    def update(self, cpu_cycles):
+        is_empty = self.output_queue.empty()
+        super(Simple6809PeripheryTk, self).update(cpu_cycles)
+        if not is_empty:
+            if self._state == 0 and "OK\r\n" in self.text.get(1.0, Tkinter.END):
+                self._state = 1
+                self.activate_full_debug_logging()
+                log.error("OK found -> turn debug on!")
+
+            if self._state == 1 and "BREAK" in self.text.get(1.0, Tkinter.END):
+                log.error("BREAK found -> exit!")
+                self.destroy()
 
 
 # Simple6809Periphery = Simple6809PeripherySerial
@@ -232,7 +245,7 @@ def test_run():
 #         "--area_debug_cycles=23383", # First OK after copyright info
 
         "--cfg=Simple6809",
-#         "--max=500000",
+        "--max=500000",
 #         "--max=30000",
 #         "--max=20000",
     ]

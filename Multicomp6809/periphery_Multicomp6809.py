@@ -59,7 +59,7 @@ class Multicomp6809PeripheryBase(PeripheryBase):
         }
 
     def reset_vector(self, cpu_cycles, op_address, address):
-        return 0xe046
+        return self.cfg.ROM_START + 0x0046
 
     def write_acia_status(self, cpu_cycles, op_address, address, value):
         return 0xff
@@ -115,6 +115,7 @@ class Multicomp6809PeripheryTk(TkPeripheryBase, Multicomp6809PeripheryBase):
 
 
 
+
 # Multicomp6809Periphery = Multicomp6809PeripherySerial
 Multicomp6809Periphery = Multicomp6809PeripheryTk
 
@@ -126,16 +127,15 @@ def test_run():
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-#         "--verbosity=30", # WARNING
+        "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-        "--verbosity=50", # CRITICAL/FATAL
+#         "--verbosity=50", # CRITICAL/FATAL
 
-#         "--area_debug_cycles=23383", # First OK after copyright info
+#         "--area_debug_cycles=1635000", # First OK after copyright info
+#                       "--max=1660000",
+#         "--max=1000",
 
         "--cfg=Multicomp6809",
-#         "--max=500000",
-#         "--max=30000",
-#         "--max=20000",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()
