@@ -184,7 +184,7 @@ It looks like this:
 # Bugfix CPU to run Simple6809 BASIC interpreter
 # implement Dragon 32 periphery
 # use Python multiprocessing module
-# 
+
 
 == Links
 
