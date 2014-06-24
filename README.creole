@@ -16,6 +16,12 @@ Future goals are:
 * run Dragon 32 ROMs (maybe in far future: Dragon 64)
 * Implement a integrated development environment for BASIC programs
 
+The Dragon ROMs can be downloaded here:
+* http://archive.worldofdragon.org/archive/index.php?dir=Roms/Dragon/
+
+I used {{{Dragon Data Ltd - Dragon 32 - IC17.zip}}} extract the ROM file
+and save it as {{{d32.rom}}} in {{{./Dragon32/}}}
+
 
 == example
 
