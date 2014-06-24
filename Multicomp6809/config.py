@@ -19,7 +19,7 @@ from Multicomp6809.periphery_Multicomp6809 import Multicomp6809Periphery
 class Multicomp6809Cfg(BaseConfig):
     """
     DragonPy config for Grant Searle's Multicomp FPGA project
-    Mhttp://searle.hostei.com/grant/Multicomp/
+    http://searle.hostei.com/grant/Multicomp/
     """
     RAM_START = 0x0000
     RAM_END = 0x7FFF

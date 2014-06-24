@@ -209,6 +209,18 @@ Dragon 32 resources:
  * Forum: http://archive.worldofdragon.org/phpBB3/index.php
  * Wiki: http://archive.worldofdragon.org/index.php?title=Main_Page
 
+other resources:
+
+ * Grant Searle's Multicomp FPGA project:
+ ** Homepage: http://searle.hostei.com/grant/Multicomp/
+ ** own [[https://github.com/jedie/DragonPy/tree/master/Simple6809#readme|Simple6809/README]]
+ * Lennart Benschop 6809 Single Board Computer:
+ ** Homepage: http://lennartb.home.xs4all.nl/m6809.html
+ ** own [[https://github.com/jedie/DragonPy/tree/master/sbc09#readme|sbc09/README]]
+ * Grant Searle's Simple 6809 design:
+ ** Homepage: http://searle.hostei.com/grant/6809/Simple6809.html
+ ** own [[https://github.com/jedie/DragonPy/tree/master/Multicomp6809#readme|Multicomp6809/README]]
+
 
 == Credits
 

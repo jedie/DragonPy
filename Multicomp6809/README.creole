@@ -1,0 +1,15 @@
+=== Multicomp FPGA project
+
+Grant Searle's Multicomp FPGA project:
+* Pick-and-mix to create your own custom computer on a low-cost FPGA board
+* BASIC, Z80, 6502, 6809, internal/external RAM, serial/keyboard+monitor, SD-card for CP/M or other storage
+
+Emulate the 6809 in DragonPy. 
+
+Homepage:
+ * http://searle.hostei.com/grant/Multicomp/
+
+== hex2bin
+
+With the hacked script 'hex2bin.py' i convertet the "EXT_BASIC_NO_USING.hex" file
+to the binary "EXT_BASIC_NO_USING.bin" for usage in DragonPy.
