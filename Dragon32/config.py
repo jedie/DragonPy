@@ -4,11 +4,12 @@
     DragonPy - Dragon 32 emulator in Python
     =======================================
 
-    :created: 2013 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :created: 2013-2014 by Jens Diemer - www.jensdiemer.de
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+import os
 import logging
 
 from core.configs import BaseConfig
@@ -47,7 +48,10 @@ class Dragon32Cfg(BaseConfig):
         (0xfff0, 0xffff, "Interrupt vectors"),
     )
 
-    DEFAULT_ROM = "d32.rom"
+    DEFAULT_ROM = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        "d32.rom"
+    )
 
     def __init__(self, cmd_args):
         super(Dragon32Cfg, self).__init__(cmd_args)
