@@ -805,6 +805,21 @@ class Test6809_Code(BaseTestCase):
             mem=[0xFF, 0x21, 0x22, 0x21, 0xFF, 0xFF]
         )
 
+    def test_code02(self):
+        self.cpu_test_run(start=0x2000, end=None, mem=[
+            0x10, 0x8e, 0x30, 0x00, #       2000|       LDY $3000
+            0xcc, 0x10, 0x00, #             2004|       LDD $1000
+            0xed, 0xa4, #                   2007|       STD ,Y
+            0x86, 0x55, #                   2009|       LDA $55
+            0xA7, 0xb4, #                   200B|       STA ,[Y]
+        ])
+        self.assertEqualHex(self.cpu.cc.get(), 0x00)
+        self.assertMemory(
+            start=0x1000,
+            mem=[0x55]
+        )
+
+
 
 class TestSimple6809ROM(BaseTestCase):
     """
