@@ -45,6 +45,9 @@ class ROM(object):
         ))
 
     def load(self, address, data):
+        log.debug("ROM load at $%04x: %s", address,
+            ", ".join(["$%02x" % i for i in data])
+        )
         for offset, datum in enumerate(data):
             self._mem[address - self.start + offset] = datum
 
@@ -95,7 +98,7 @@ class Memory(object):
             cfg, memory=cfg.get_initial_ROM(),
             start=cfg.ROM_START, size=cfg.ROM_SIZE
         )
-        if cfg:
+        if cfg and cfg.rom:
             self.rom.load_file(cfg.ROM_START, cfg.rom)
 
         self.ram = RAM(
@@ -109,6 +112,12 @@ class Memory(object):
     def load(self, address, data):
         if address < self.cfg.RAM_END:
             self.ram.load(address, data)
+        else:
+            raise RuntimeError(
+                "Load data into ROM?!? Load into $%x, RAM end is $%x" % (
+                    address, self.cfg.RAM_END
+                )
+            )
 
     def read_byte(self, address):
         self.cpu.cycles += 1

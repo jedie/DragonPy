@@ -14,6 +14,7 @@ from cpu6809 import CPU
 from Dragon32.config import Dragon32Cfg
 from Dragon32.mem_info import DragonMemInfo
 from tests.test_base import TextTestRunner2
+from tests.test_config import TestCfg
 
 
 class UnittestCmdArgs(object):
@@ -34,24 +35,18 @@ class UnittestCmdArgs(object):
 
 
 class BaseTestCase(unittest.TestCase):
-    # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4462
-    INITIAL_SYSTEM_STACK_ADDR = 0x7f36
-    INITIAL_USER_STACK_ADDR = 0x82ec
-
     def setUp(self):
         cmd_args = UnittestCmdArgs
-        cfg = Dragon32Cfg(cmd_args)
-        self.assertFalse(cfg.use_bus)
-        cfg.mem_info = DragonMemInfo(log.debug)
+        cfg = TestCfg(cmd_args)
         self.cpu = CPU(cfg)
-
-        self.cpu._system_stack_pointer.set(self.INITIAL_SYSTEM_STACK_ADDR)
-        self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
 
     def cpu_test_run(self, start, end, mem):
         for cell in mem:
             self.assertLess(-1, cell, "$%x < 0" % cell)
             self.assertGreater(0x100, cell, "$%x > 0xff" % cell)
+        log.debug("memory load at $%x: %s", start,
+            ", ".join(["$%x" % i for i in mem])
+        )
         self.cpu.memory.load(start, mem)
         if end is None:
             end = start + len(mem)
@@ -65,9 +60,34 @@ class BaseTestCase(unittest.TestCase):
         self.cpu.test_run2(start, count)
 
     def assertEqualHex(self, first, second):
-        msg = "$%x != $%x" % (first, second)
+        msg = "$%02x != $%02x" % (first, second)
         self.assertEqual(first, second, msg)
 
+    def assertMemory(self, start, mem):
+        for index, should_byte in enumerate(mem):
+            address = start + index
+            is_byte = self.cpu.memory.read_byte(address)
+
+            msg = "$%02x is not $%02x at address $%04x (index: %i)" % (
+                is_byte, should_byte, address, index
+            )
+            self.assertEqual(is_byte, should_byte, msg)
+
+
+class BaseDragon32TestCase(BaseTestCase):
+    # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4462
+    INITIAL_SYSTEM_STACK_ADDR = 0x7f36
+    INITIAL_USER_STACK_ADDR = 0x82ec
+
+    def setUp(self):
+        cmd_args = UnittestCmdArgs
+        cfg = Dragon32Cfg(cmd_args)
+        self.assertFalse(cfg.use_bus)
+        cfg.mem_info = DragonMemInfo(log.debug)
+        self.cpu = CPU(cfg)
+
+        self.cpu._system_stack_pointer.set(self.INITIAL_SYSTEM_STACK_ADDR)
+        self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
 
 class Test6809_AddressModes(BaseTestCase):
     def test_base_page_direct01(self):
@@ -541,6 +561,7 @@ class Test6809_Ops2(BaseTestCase):
         self.cpu_test_run(start=0x4000, end=None, mem=[0xFC, 0x50, 0x00]) # LDD $5000 (Extended)
         self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
 
+
 class Test6809_Stack(BaseTestCase):
     def test_PushPullSytemStack_01(self):
         self.assertEqualHex(
@@ -636,6 +657,35 @@ class Test6809_Stack(BaseTestCase):
         self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
 
 
+class Test6809_Code(BaseTestCase):
+    """
+    Test with some small test codes
+    """
+    def test_code01(self):
+        self.cpu.memory.load(
+            0x2220, [0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF]
+        )
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0x22, #       LDA $22    ; Immediate
+            0x8E, 0x22, 0x22, # LDX $2222  ; Immediate
+            0x1F, 0x89, #       TFR A,B    ; Inherent (Register)
+            0x5A, #             DECB       ; Inherent (Implied)
+            0xED, 0x84, #       STD ,X     ; Indexed (non indirect)
+            0x4A, #             DECA       ; Inherent (Implied)
+            0xA7, 0x94, #       STA [,X]   ; Indexed (indirect)
+        ])
+        self.assertEqualHex(self.cpu.accu_a.get(), 0x21)
+        self.assertEqualHex(self.cpu.accu_b.get(), 0x21)
+        self.assertEqualHex(self.cpu.accu_d.get(), 0x2121)
+        self.assertEqualHex(self.cpu.index_x.get(), 0x2222)
+        self.assertEqualHex(self.cpu.index_y.get(), 0x0000)
+        self.assertEqualHex(self.cpu.direct_page.get(), 0x00)
+
+        self.assertMemory(
+            start=0x2220,
+            mem=[0xFF, 0x21, 0x22, 0x21, 0xFF, 0xFF]
+        )
 
 
 class TestSimple6809ROM(BaseTestCase):
@@ -663,9 +713,10 @@ class TestSimple6809ROM(BaseTestCase):
 if __name__ == '__main__':
     log = logging.getLogger("DragonPy")
     log.setLevel(
+        1
 #         10 # DEBUG
 #         20 # INFO
-        30 # WARNING
+#         30 # WARNING
 #         40 # ERROR
 #         50 # CRITICAL/FATAL
     )
@@ -693,6 +744,7 @@ if __name__ == '__main__':
 #              "Test6809_Stack",
 #              "Test6809_Stack.test_PushPullSystemStack_03",
 #             "TestSimple6809ROM",
+            "Test6809_Code",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
