@@ -171,6 +171,79 @@ class Test6809_Register(BaseTestCase):
         self.assertEqualHex(x, 0x10000 - 2)
 
 
+class Test6809_ZeroFlag(BaseTestCase):
+    def test_DECA(self):
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0x1, # LDA $01
+            0x4A, #      DECA
+        ])
+        self.assertEqual(self.cpu.cc.Z, 1)
+
+    def test_DECB(self):
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0xC6, 0x1, # LDB $01
+            0x5A, #      DECB
+        ])
+        self.assertEqual(self.cpu.cc.Z, 1)
+
+    def test_ADDA(self):
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0xff, # LDA $FF
+            0x8B, 0x01, # ADDA #1
+        ])
+        self.assertEqual(self.cpu.cc.Z, 1)
+
+    def test_CMPA(self):
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0x00, # LDA $00
+            0x81, 0x00, # CMPA %00
+        ])
+        self.assertEqual(self.cpu.cc.Z, 1)
+
+    def test_COMA(self):
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0xFF, # LDA $FF
+            0x43, #       COMA
+        ])
+        self.assertEqual(self.cpu.cc.Z, 1)
+
+    def test_NEGA(self):
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0xFF, # LDA $FF
+            0x40, #       NEGA
+        ])
+        self.assertEqual(self.cpu.cc.Z, 0)
+
+    def test_ANDA(self):
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0xF0, # LDA $F0
+            0x84, 0x0F, # ANDA $0F
+        ])
+        self.assertEqual(self.cpu.cc.Z, 1)
+
+    def test_TFR(self):
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0x04, # LDA $04
+            0x1F, 0x8a, # TFR A,CCR
+        ])
+        self.assertEqual(self.cpu.cc.Z, 1)
+
+    def test_CLRA(self):
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x4F, # CLRA
+        ])
+        self.assertEqual(self.cpu.cc.Z, 1)
+
+
 class Test6809_CC(BaseTestCase):
     """
     condition code register tests
@@ -729,6 +802,7 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #             "Test6809_Register"
+            "Test6809_ZeroFlag",
 #             "Test6809_CC",
 #             "Test6809_CC.test_ADDA",
 #             "Test6809_CC.test_INC",
@@ -744,7 +818,7 @@ if __name__ == '__main__':
 #              "Test6809_Stack",
 #              "Test6809_Stack.test_PushPullSystemStack_03",
 #             "TestSimple6809ROM",
-            "Test6809_Code",
+#             "Test6809_Code",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
