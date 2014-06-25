@@ -244,6 +244,51 @@ class Test6809_ZeroFlag(BaseTestCase):
         self.assertEqual(self.cpu.cc.Z, 1)
 
 
+
+class Test6809_CarryFlag(BaseTestCase):
+    def test_ADDA(self):
+        self.assertEqual(self.cpu.cc.C, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0xf0, # LDA $f0
+            0x8B, 0x33, # ADDA #33
+        ])
+        self.assertEqual(self.cpu.cc.C, 1)
+
+    def test_SUBA(self):
+        self.assertEqual(self.cpu.cc.C, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0xf0, # LDA $f0
+            0x80, 0xf0, # SUBA $f0
+        ])
+        self.assertEqual(self.cpu.cc.C, 0)
+        self.assertEqual(self.cpu.cc.Z, 1)
+
+    def test_NEGA(self):
+        self.assertEqual(self.cpu.cc.C, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0xff, # LDA $ff
+            0x40, #       NEGA
+        ])
+        self.assertEqual(self.cpu.cc.C, 0)
+
+    def test_LSLA(self):
+        self.assertEqual(self.cpu.cc.C, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0x99, # LDA $99
+            0x48, #       LSLA
+        ])
+        self.assertEqual(self.cpu.cc.C, 1)
+
+    def test_LSRA(self):
+        self.assertEqual(self.cpu.cc.C, 0)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x86, 0x99, # LDA $99
+            0x44, #       LSRA
+        ])
+        self.assertEqual(self.cpu.cc.C, 1)
+
+
+
 class Test6809_CC(BaseTestCase):
     """
     condition code register tests
@@ -786,12 +831,12 @@ class TestSimple6809ROM(BaseTestCase):
 if __name__ == '__main__':
     log = logging.getLogger("DragonPy")
     log.setLevel(
-        1
+#         1
 #         10 # DEBUG
 #         20 # INFO
 #         30 # WARNING
 #         40 # ERROR
-#         50 # CRITICAL/FATAL
+        50 # CRITICAL/FATAL
     )
     log.addHandler(logging.StreamHandler())
 
@@ -802,12 +847,9 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #             "Test6809_Register"
-            "Test6809_ZeroFlag",
+#             "Test6809_ZeroFlag",
+            "Test6809_CarryFlag",
 #             "Test6809_CC",
-#             "Test6809_CC.test_ADDA",
-#             "Test6809_CC.test_INC",
-#             "Test6809_CC.test_SUBA",
-#             "Test6809_CC.test_DEC",
 #             "Test6809_Ops",
 #             "Test6809_Ops.test_TFR03",
 #             "Test6809_Ops.test_CMPX_extended",
