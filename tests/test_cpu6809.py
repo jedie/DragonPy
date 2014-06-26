@@ -889,6 +889,28 @@ class Test6809_Code(BaseTestCase):
             mem=[0x55]
         )
 
+    def test_code_LEAU_01(self):
+        self.cpu.user_stack_pointer.set(0xff)
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            0x33, 0x41, #                  0000|            LEAU   1,U
+        ])
+        self.assertEqualHex(self.cpu.user_stack_pointer.get(), 0x100)
+
+    def test_code_LEAU_02(self):
+        self.cpu.user_stack_pointer.set(0xff)
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            0xCE, 0x00, 0x00, #                       LDU   #$0000
+            0x33, 0xC9, 0x1A, 0xBC, #                 LEAU  $1abc,U
+        ])
+        self.assertEqualHex(self.cpu.user_stack_pointer.get(), 0x1abc)
+
+    def test_code_LDU_01(self):
+        self.cpu.user_stack_pointer.set(0xff)
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            0xCE, 0x12, 0x34, #                       LDU   #$0000
+        ])
+        self.assertEqualHex(self.cpu.user_stack_pointer.get(), 0x1234)
+
 
 
 class TestSimple6809ROM(BaseTestCase):
