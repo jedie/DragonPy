@@ -2893,11 +2893,19 @@ class CPU(object):
     @opcode(0xd, 0x6d) # TST (direct, indexed)
     def instruction_TST_memory_8(self, opcode, m):
         """ Test memory location 8-Bit """
-        self.cc.update_NZ0_8(m)
+#         log.debug("$%x TST 8Bit m=$%02x" % (
+#             self.program_counter, m
+#         ))
+        self.cc.clear_NZV()
+        self.cc.update_NZ_8(m)
 
     @opcode(0x7d) # TST extended
     def instruction_TST_memory_16(self, opcode, m):
         """ Test memory location 16-Bit """
+#         log.debug("$%x TST 16Bit m=$%04x" % (
+#             self.program_counter, m
+#         ))
+        self.cc.clear_NZV()
         self.cc.update_NZ0_16(m)
 
 

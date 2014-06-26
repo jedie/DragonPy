@@ -647,6 +647,66 @@ class Test6809_Ops(BaseTestCase):
         self.assertEqual(self.cpu.cc.C, 0)
 
 
+class Test6809_TestInstructions(BaseTestCase):
+    def assertTST(self, i):
+        if 128 <= i <= 255: # test negative
+            self.assertEqual(self.cpu.cc.N, 1)
+        else:
+            self.assertEqual(self.cpu.cc.N, 0)
+
+        if i == 0: # test zero
+            self.assertEqual(self.cpu.cc.Z, 1)
+        else:
+            self.assertEqual(self.cpu.cc.Z, 0)
+
+        # test overflow
+        self.assertEqual(self.cpu.cc.V, 0)
+
+        # test not affected flags:
+        self.assertEqual(self.cpu.cc.E, 1)
+        self.assertEqual(self.cpu.cc.F, 1)
+        self.assertEqual(self.cpu.cc.H, 1)
+        self.assertEqual(self.cpu.cc.I, 1)
+        self.assertEqual(self.cpu.cc.C, 1)
+
+    def test_TST_8Bit(self):
+        for i in xrange(255):
+            self.cpu.accu_a.set(i)
+            self.cpu.cc.set(0xff) # Set all CC flags
+
+            self.cpu.memory.write_byte(address=0x00, value=i)
+
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x0D, 0x00 # TST $00
+            ])
+            self.assertTST(i)
+
+    def test_TST_16Bit(self):
+        raise NotImplementedError("TODO!")
+
+    def test_TSTA(self):
+        for i in xrange(255):
+            self.cpu.accu_a.set(i)
+            self.cpu.cc.set(0xff) # Set all CC flags
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x4D # TSTA
+            ])
+            self.assertTST(i)
+
+    def test_TSTB(self):
+        for i in xrange(255):
+            self.cpu.accu_b.set(i)
+            self.cpu.cc.set(0xff) # Set all CC flags
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x5D # TSTB
+            ])
+            self.assertTST(i)
+
+
+
+
+
+
 class Test6809_Ops2(BaseTestCase):
     def test_TFR_CC_B(self):
         self.cpu_test_run(start=0x4000, end=None, mem=[
@@ -1052,6 +1112,7 @@ if __name__ == '__main__':
 #             "Test6809_Ops.test_TFR03",
 #             "Test6809_Ops.test_CMPX_extended",
 #             "Test6809_Ops.test_NEGA_02",
+             "Test6809_TestInstructions",
 #             "Test6809_AddressModes",
 #             "Test6809_Ops2",
 #             "Test6809_Ops2.test_TFR_CC_B",
