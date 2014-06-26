@@ -911,6 +911,24 @@ class Test6809_Code(BaseTestCase):
         ])
         self.assertEqualHex(self.cpu.user_stack_pointer.get(), 0x1234)
 
+    def test_code_ORA_01(self):
+        self.cpu.cc.set(0xff)
+        self.cpu.accu_a.set(0x12)
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            0x8A, 0x21, #                             ORA   $21
+        ])
+        self.assertEqualHex(self.cpu.accu_a.get(), 0x33)
+        self.assertEqual(self.cpu.cc.N, 0)
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.assertEqual(self.cpu.cc.V, 0)
+
+    def test_code_ORCC_01(self):
+        self.cpu.cc.set(0x12)
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            0x1A, 0x21, #                             ORCC   $21
+        ])
+        self.assertEqualHex(self.cpu.cc.get(), 0x33)
+
 
 
 class TestSimple6809ROM(BaseTestCase):

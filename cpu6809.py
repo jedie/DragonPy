@@ -2354,10 +2354,10 @@ class CPU(object):
         r = a | m
         register.set(r)
         self.cc.clear_NZV()
-        self.cc.update_NZ0_8(r)
-#        log.debug("\tOR %s: %i | %i = %i",
-#            register.name, a, m, r
-#        )
+        self.cc.update_NZ_8(r)
+#         log.debug("$%04x OR %s: %02x | %02x = %02x",
+#             self.program_counter, register.name, a, m, r
+#         )
 
     @opcode(# OR condition code register
         0x1a, # ORCC (immediate)
@@ -2373,7 +2373,7 @@ class CPU(object):
 
         CC bits "HNZVC": ddddd
         """
-        old_cc_info = self.cc.get_info
+#         old_cc_info = self.cc.get_info
         cc = old_cc = register.get()
         cc |= m
         register.set(cc)
