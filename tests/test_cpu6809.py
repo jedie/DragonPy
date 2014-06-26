@@ -669,7 +669,7 @@ class Test6809_TestInstructions(BaseTestCase):
         self.assertEqual(self.cpu.cc.I, 1)
         self.assertEqual(self.cpu.cc.C, 1)
 
-    def test_TST_8Bit(self):
+    def test_TST_direct(self):
         for i in xrange(255):
             self.cpu.accu_a.set(i)
             self.cpu.cc.set(0xff) # Set all CC flags
@@ -681,8 +681,17 @@ class Test6809_TestInstructions(BaseTestCase):
             ])
             self.assertTST(i)
 
-    def test_TST_16Bit(self):
-        raise NotImplementedError("TODO!")
+    def test_TST_extended(self):
+        for i in xrange(255):
+            self.cpu.accu_a.set(i)
+            self.cpu.cc.set(0xff) # Set all CC flags
+
+            self.cpu.memory.write_byte(address=0x1234, value=i)
+
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x7D, 0x12, 0x34 # TST $1234
+            ])
+            self.assertTST(i)
 
     def test_TSTA(self):
         for i in xrange(255):
