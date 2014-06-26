@@ -1323,7 +1323,7 @@ class CPU(object):
         0x2c, # BGE (relative)
         0x102c, # LBGE (relative)
     )
-    def instruction_BGE(self, opcode, ea, m):
+    def instruction_BGE(self, opcode, ea):
         """
         Causes a branch if the N (negative) bit and the V (overflow) bit are
         either both set or both clear. That is, branch if the sign of a valid
@@ -1336,15 +1336,15 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        if (self.cc.N ^ self.cc.V) == 0:
-#            log.debug("$%x BGE branch to $%x, because N XOR V == 0 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
+        if self.cc.N == self.cc.V: # the same as: (self.cc.N ^ self.cc.V) == 0:
+#             log.debug("$%x BGE branch to $%x, because N XOR V == 0 \t| %s" % (
+#                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#             ))
             self.program_counter = ea
 #         else:
-#            log.debug("$%x BGE: don't branch to $%x, because N XOR V != 0 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
+#             log.debug("$%x BGE: don't branch to $%x, because N XOR V != 0 \t| %s" % (
+#                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#             ))
 
     @opcode(# Branch if greater (signed)
         0x2e, # BGT (relative)
@@ -1363,13 +1363,18 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        if not ((self.cc.N ^ self.cc.V) == 1 or self.cc.Z == 1):
-#            log.debug("$%x BGT branch to $%x, because not (N^V==1 or Z==1) \t| %s" % (
+        # Note these variantes are the same:
+        #    not ((self.cc.N ^ self.cc.V) == 1 or self.cc.Z == 1)
+        #    not ((self.cc.N ^ self.cc.V) | self.cc.Z)
+        #    self.cc.N == self.cc.V and self.cc.Z == 0
+        # ;)
+        if self.cc.N == self.cc.V and self.cc.Z == 0:
+#            log.debug("$%x BGT branch to $%x, because (N==V and Z==0) \t| %s" % (
 #                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
 #            ))
             self.program_counter = ea
 #         else:
-#            log.debug("$%x BGT: don't branch to $%x, because N^V==1 or Z==1 \t| %s" % (
+#            log.debug("$%x BGT: don't branch to $%x, because (N==V and Z==0) is False \t| %s" % (
 #                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
 #            ))
 

@@ -1,14 +1,15 @@
 #!/usr/bin/env python
 
 """
-    :created: 2013 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :created: 2013-2014 by Jens Diemer - www.jensdiemer.de
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 import logging
 import sys
 import unittest
+import itertools
 
 from cpu6809 import CPU
 from Dragon32.config import Dragon32Cfg
@@ -680,7 +681,7 @@ class Test6809_Ops2(BaseTestCase):
         self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
 
 
-class Test6809_Stack(BaseTestCase):
+class Test6809_Stack(BaseDragon32TestCase):
     def test_PushPullSytemStack_01(self):
         self.assertEqualHex(
             self.cpu.system_stack_pointer,
@@ -843,6 +844,187 @@ class TestSimple6809ROM(BaseTestCase):
 
 
 
+class Test6809_BranchInstructions(BaseTestCase):
+    """
+    Test branch instructions
+    """
+    def test_BCC_no(self):
+        self.cpu.cc.C = 1
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x24, 0xf4, # BCC -12
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x1002)
+
+    def test_BCC_yes(self):
+        self.cpu.cc.C = 0
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x24, 0xf4, # BCC -12    ; ea = $1002 + -12 = $ff6
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0xff6)
+
+    def test_LBCC_no(self):
+        self.cpu.cc.C = 1
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x10, 0x24, 0x07, 0xe4, # LBCC +2020    ; ea = $1004 + 2020 = $17e8
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x1004)
+
+    def test_LBCC_yes(self):
+        self.cpu.cc.C = 0
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x10, 0x24, 0x07, 0xe4, # LBCC +2020    ; ea = $1004 + 2020 = $17e8
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x17e8)
+
+    def test_BCS_no(self):
+        self.cpu.cc.C = 0
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x25, 0xf4, # BCS -12
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x1002)
+
+    def test_BCS_yes(self):
+        self.cpu.cc.C = 1
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x25, 0xf4, # BCS -12    ; ea = $1002 + -12 = $ff6
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0xff6)
+
+    def test_LBCS_no(self):
+        self.cpu.cc.C = 0
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x10, 0x25, 0x07, 0xe4, # LBCS +2020    ; ea = $1004 + 2020 = $17e8
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x1004)
+
+    def test_LBCS_yes(self):
+        self.cpu.cc.C = 1
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x10, 0x25, 0x07, 0xe4, # LBCS +2020    ; ea = $1004 + 2020 = $17e8
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x17e8)
+
+    def test_BEQ_no(self):
+        self.cpu.cc.Z = 0
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x27, 0xf4, # BEQ -12
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x1002)
+
+    def test_BEQ_yes(self):
+        self.cpu.cc.Z = 1
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x27, 0xf4, # BEQ -12    ; ea = $1002 + -12 = $ff6
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0xff6)
+
+    def test_LBEQ_no(self):
+        self.cpu.cc.Z = 0
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x10, 0x27, 0x07, 0xe4, # LBEQ +2020    ; ea = $1004 + 2020 = $17e8
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x1004)
+
+    def test_LBEQ_yes(self):
+        self.cpu.cc.Z = 1
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x10, 0x27, 0x07, 0xe4, # LBEQ +2020    ; ea = $1004 + 2020 = $17e8
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x17e8)
+
+    def test_BGE_LBGE(self):
+        for n, v in itertools.product(range(2), repeat=2): # -> [(0, 0), (0, 1), (1, 0), (1, 1)]
+            # print n, v, (n ^ v) == 0, n == v
+            self.cpu.cc.N = n
+            self.cpu.cc.V = v
+            self.cpu_test_run2(start=0x1000, count=1, mem=[
+                0x2c, 0xf4, # BGE -12    ; ea = $1002 + -12 = $ff6
+            ])
+            if (n ^ v) == 0:
+                self.assertEqualHex(self.cpu.program_counter, 0xff6)
+            else:
+                self.assertEqualHex(self.cpu.program_counter, 0x1002)
+
+            self.cpu_test_run2(start=0x1000, count=1, mem=[
+                0x10, 0x2c, 0x07, 0xe4, # LBGE +2020    ; ea = $1004 + 2020 = $17e8
+            ])
+            if (n ^ v) == 0:
+                self.assertEqualHex(self.cpu.program_counter, 0x17e8)
+            else:
+                self.assertEqualHex(self.cpu.program_counter, 0x1004)
+
+    def test_BGT_LBGT(self):
+        for n, v, z in itertools.product(range(2), repeat=3):
+            # -> [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), ..., (1, 1, 1)]
+            # print n, v, (n ^ v) == 0, n == v
+            self.cpu.cc.N = n
+            self.cpu.cc.V = v
+            self.cpu.cc.Z = z
+            self.cpu_test_run2(start=0x1000, count=1, mem=[
+                0x2e, 0xf4, # BGT -12    ; ea = $1002 + -12 = $ff6
+            ])
+            if n == v and z == 0:
+                self.assertEqualHex(self.cpu.program_counter, 0xff6)
+            else:
+                self.assertEqualHex(self.cpu.program_counter, 0x1002)
+
+            self.cpu_test_run2(start=0x1000, count=1, mem=[
+                0x10, 0x2e, 0x07, 0xe4, # LBGT +2020    ; ea = $1004 + 2020 = $17e8
+            ])
+            if n == v and z == 0:
+                self.assertEqualHex(self.cpu.program_counter, 0x17e8)
+            else:
+                self.assertEqualHex(self.cpu.program_counter, 0x1004)
+
+    def test_BHI_LBHI(self):
+        for c, z in itertools.product(range(2), repeat=2): # -> [(0, 0), (0, 1), (1, 0), (1, 1)]
+            self.cpu.cc.C = c
+            self.cpu.cc.Z = z
+            self.cpu_test_run2(start=0x1000, count=1, mem=[
+                0x22, 0xf4, # BHI -12    ; ea = $1002 + -12 = $ff6
+            ])
+            if c == 0 and z == 0:
+                self.assertEqualHex(self.cpu.program_counter, 0xff6)
+            else:
+                self.assertEqualHex(self.cpu.program_counter, 0x1002)
+
+            self.cpu_test_run2(start=0x1000, count=1, mem=[
+                0x10, 0x22, 0x07, 0xe4, # LBHI +2020    ; ea = $1004 + 2020 = $17e8
+            ])
+            if c == 0 and z == 0:
+                self.assertEqualHex(self.cpu.program_counter, 0x17e8)
+            else:
+                self.assertEqualHex(self.cpu.program_counter, 0x1004)
+
+    def test_BHS_no(self):
+        self.cpu.cc.Z = 0
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x2f, 0xf4, # BHS -12
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x1002)
+
+    def test_BHS_yes(self):
+        self.cpu.cc.Z = 1
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x2f, 0xf4, # BHS -12    ; ea = $1002 + -12 = $ff6
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0xff6)
+
+    def test_LBHS_no(self):
+        self.cpu.cc.Z = 0
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x10, 0x2f, 0x07, 0xe4, # LBHS +2020    ; ea = $1004 + 2020 = $17e8
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x1004)
+
+    def test_LBHS_yes(self):
+        self.cpu.cc.Z = 1
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x10, 0x2f, 0x07, 0xe4, # LBHS +2020    ; ea = $1004 + 2020 = $17e8
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x17e8)
+
+
 if __name__ == '__main__':
     log = logging.getLogger("DragonPy")
     log.setLevel(
@@ -861,9 +1043,10 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
+#             "Test6809_BranchInstructions",
 #             "Test6809_Register"
 #             "Test6809_ZeroFlag",
-            "Test6809_CarryFlag",
+#             "Test6809_CarryFlag",
 #             "Test6809_CC",
 #             "Test6809_Ops",
 #             "Test6809_Ops.test_TFR03",
