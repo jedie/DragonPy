@@ -22,13 +22,16 @@ class Multicomp6809Cfg(BaseConfig):
     http://searle.hostei.com/grant/Multicomp/
     """
     RAM_START = 0x0000
-    RAM_END = 0x7FFF
-    RAM_SIZE = 0x8000 # 32768 Bytes
+    RAM_END = 0x03FF # 1KB
+    # RAM_END = 0x07FF # 2KB
+    # RAM_END = 0x0FFF # 4KB
+    # RAM_END = 0x1FFF # 8KB
+    # RAM_END = 0x3FFF # 16KB
+    # RAM_END = 0x7FFF # 32KB
 
     # The intended layout:
     ROM_START = 0xE000
     ROM_END = 0xFFFF
-    ROM_SIZE = 0x2000 # 8192 Bytes
 
     # To match the addresses in basic.asm:
 #     ROM_START = 0xA000
@@ -48,6 +51,7 @@ class Multicomp6809Cfg(BaseConfig):
 
     def __init__(self, cmd_args):
         self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
+        self.RAM_SIZE = (self.RAM_END - self.RAM_START) + 1
         super(Multicomp6809Cfg, self).__init__(cmd_args)
 
 #         if self.verbosity <= logging.INFO:
@@ -55,3 +59,10 @@ class Multicomp6809Cfg(BaseConfig):
 
         self.periphery_class = Multicomp6809Periphery
 
+if __name__ == "__main__":
+    from tests.test_base import UnittestCmdArgs
+
+    cmd_args = UnittestCmdArgs
+    cfg = Multicomp6809Cfg(cmd_args)
+    print "RAM Size:", cfg.RAM_SIZE, cfg.RAM_SIZE / 1024
+    print "RAM End: $%04x" % cfg.RAM_END
