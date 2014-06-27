@@ -11,68 +11,23 @@ import sys
 import unittest
 import itertools
 
-from cpu6809 import CPU
+
 from Dragon32.config import Dragon32Cfg
 from Dragon32.mem_info import DragonMemInfo
 from tests.test_base import TextTestRunner2
-from tests.test_config import TestCfg
 
 
-class UnittestCmdArgs(object):
-    bus_socket_host = None
-    bus_socket_port = None
-    ram = None
-    rom = None
-    verbosity = None
-    max = None
-    area_debug_active = None
-    area_debug_cycles = None
 
-    # print CPU cycle/sec while running
-    display_cycle = False
-
-    # Compare with XRoar/v09 trace file? (see README)
-    compare_trace = False
+log = logging.getLogger("DragonPy")
 
 
-class BaseTestCase(unittest.TestCase):
-    def setUp(self):
-        cmd_args = UnittestCmdArgs
-        cfg = TestCfg(cmd_args)
-        self.cpu = CPU(cfg)
 
-    def cpu_test_run(self, start, end, mem):
-        for cell in mem:
-            self.assertLess(-1, cell, "$%x < 0" % cell)
-            self.assertGreater(0x100, cell, "$%x > 0xff" % cell)
-        log.debug("memory load at $%x: %s", start,
-            ", ".join(["$%x" % i for i in mem])
-        )
-        self.cpu.memory.load(start, mem)
-        if end is None:
-            end = start + len(mem)
-        self.cpu.test_run(start, end)
 
-    def cpu_test_run2(self, start, count, mem):
-        for cell in mem:
-            self.assertLess(-1, cell, "$%x < 0" % cell)
-            self.assertGreater(0x100, cell, "$%x > 0xff" % cell)
-        self.cpu.memory.load(start, mem)
-        self.cpu.test_run2(start, count)
 
-    def assertEqualHex(self, first, second):
-        msg = "$%02x != $%02x" % (first, second)
-        self.assertEqual(first, second, msg)
 
-    def assertMemory(self, start, mem):
-        for index, should_byte in enumerate(mem):
-            address = start + index
-            is_byte = self.cpu.memory.read_byte(address)
 
-            msg = "$%02x is not $%02x at address $%04x (index: %i)" % (
-                is_byte, should_byte, address, index
-            )
-            self.assertEqual(is_byte, should_byte, msg)
+
+
 
 
 class BaseDragon32TestCase(BaseTestCase):
@@ -1095,7 +1050,6 @@ class Test6809_BranchInstructions(BaseTestCase):
 
 
 if __name__ == '__main__':
-    log = logging.getLogger("DragonPy")
     log.setLevel(
 #         1
 #         10 # DEBUG

@@ -11,12 +11,13 @@
 import unittest
 
 from test_base import BaseTestCase, TestCPU
+import logging
+import sys
+from tests.test_base import TextTestRunner2
+from cpu_utils.MC6809_registers import signed8
 
 
 class CCTestCase(BaseTestCase):
-    def setUp(self):
-        self.cpu = TestCPU()
-
     def test_set_get(self):
         for i in xrange(256):
             self.cpu.cc.set(i)
@@ -98,6 +99,30 @@ class CCTestCase(BaseTestCase):
 
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2)
+    log = logging.getLogger("DragonPy")
+    log.setLevel(
+#        1
+#         10 # DEBUG
+#         20 # INFO
+#         30 # WARNING
+        40 # ERROR
+#         50 # CRITICAL/FATAL
+    )
+    log.addHandler(logging.StreamHandler())
+
+    # XXX: Disable hacked XRoar trace
+    import cpu6809; cpu6809.trace_file = None
+
+    unittest.main(
+        argv=(
+            sys.argv[0],
+#            "CCTestCase.test_HNZVC_8",
+
+        ),
+        testRunner=TextTestRunner2,
+#         verbosity=1,
+        verbosity=2,
+#         failfast=True,
+    )
 
 

@@ -187,10 +187,10 @@ class ConditionCodeRegister(object):
         if self.H == 0:
             r2 = (a ^ b ^ r) & 0x10
             self.H = 0 if r2 == 0 else 1
-#            log.debug("\tset_H(): set half-carry flag to %i: ($%x ^ $%x ^ $%x) & 0x10 = $%x",
+#            log.debug("\tset_H(): set half-carry flag to %i: ($%02x ^ $%02x ^ $%02x) & 0x10 = $%02x",
 #                self.H, a, b, r, r2
 #            )
-#         else:
+#        else:
 #            log.debug("\rset_H(): leave old value 1")
 
     def set_Z8(self, r):
@@ -200,7 +200,7 @@ class ConditionCodeRegister(object):
 #            log.debug("\tset_Z8(): set zero flag to %i: $%02x & 0xff = $%02x",
 #                self.Z, r, r2
 #            )
-#         else:
+#        else:
 #            log.debug("\tset_Z8(): leave old value 1")
 
     def set_Z16(self, r):
@@ -210,7 +210,7 @@ class ConditionCodeRegister(object):
 #            log.debug("\tset_Z16(): set zero flag to %i: $%04x & 0xffff = $%04x",
 #                self.Z, r, r2
 #            )
-#         else:
+#        else:
 #            log.debug("\tset_Z16(): leave old value 1")
 
     def set_N8(self, r):
@@ -220,7 +220,7 @@ class ConditionCodeRegister(object):
 #            log.debug("\tset_N8(): set negative flag to %i: ($%02x & 0x80) = $%02x",
 #                self.N, r, r2
 #            )
-#         else:
+#        else:
 #            log.debug("\tset_N8(): leave old value 1")
 
     def set_N16(self, r):
@@ -230,7 +230,7 @@ class ConditionCodeRegister(object):
 #            log.debug("\tset_N16(): set negative flag to %i: ($%04x & 0x8000) = $%04x",
 #                self.N, r, r2
 #            )
-#         else:
+#        else:
 #            log.debug("\tset_N16(): leave old value 1")
 
     def set_C8(self, r):

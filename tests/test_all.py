@@ -19,10 +19,12 @@ from test_base import TextTestRunner2
 if __name__ == '__main__':
     log = logging.getLogger("DragonPy")
     log.setLevel(
-#         logging.ERROR
-#         logging.INFO
-#         logging.WARNING
-        logging.DEBUG
+#         1
+#         10 # DEBUG
+#         20 # INFO
+#         30 # WARNING
+#         40 # ERROR
+        50 # CRITICAL/FATAL
     )
     log.addHandler(logging.StreamHandler())
 
