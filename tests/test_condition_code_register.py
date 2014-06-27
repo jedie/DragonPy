@@ -14,7 +14,7 @@ import sys
 
 from test_base import BaseTestCase
 from tests.test_base import TextTestRunner2
-from cpu_utils.MC6809_registers import signed8
+from cpu_utils.signed import signed8
 
 
 class CCTestCase(BaseTestCase):
@@ -29,7 +29,7 @@ class CCTestCase(BaseTestCase):
             self.cpu.cc.set(0x00)
             r = i + 1 # e.g. ADDA 1 loop
             self.cpu.cc.update_HNZVC_8(a=i, b=1, r=r)
-            #print r, self.cpu.cc.get_info
+            # print r, self.cpu.cc.get_info
 
             # test half carry
             if r % 16 == 0:
@@ -65,7 +65,7 @@ class CCTestCase(BaseTestCase):
             self.cpu.cc.set(0xff)
             r = i + 1 # e.g. ADDA 1 loop
             self.cpu.cc.update_HNZVC_8(a=i, b=1, r=r)
-            #print "+++", r, self.cpu.cc.get_info
+            # print "+++", r, self.cpu.cc.get_info
             self.assertEqualHex(self.cpu.cc.get(), 0xff)
 
 

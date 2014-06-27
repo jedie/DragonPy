@@ -7,34 +7,14 @@
     some code is borrowed from:
     XRoar emulator by Ciaran Anscomb (GPL license) more info, see README
 
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 import logging
 
+
 log = logging.getLogger("DragonPy")
-
-
-def signed8(x):
-    """ convert to signed 8-bit """
-    if x > 0x7f: # 0x7f ==  2**7-1 == 127
-        x = x - 0x100 # 0x100 == 2**8 == 256
-    return x
-
-
-def unsigned8(x):
-    """ convert a signed 8-Bit value into a unsigned value """
-    if x < 0:
-        x = x + 0x0100 # 0x100 == 2**8 == 256
-    return x
-
-
-def signed16(x):
-    """ convert to signed 16-bit """
-    if x > 0x7fff: # 0x7fff ==  2**15-1 == 32767
-        x = x - 0x10000 # 0x100 == 2**16 == 65536
-    return x
 
 
 class ValueStorage(object):

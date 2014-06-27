@@ -12,7 +12,7 @@
         http://www.burgins.com/m6809.html
         http://koti.mbnet.fi/~atjs/mc6809/
 
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 
     Based on:
@@ -23,12 +23,12 @@
 
 import inspect
 import logging
+import os
 import select
 import socket
 import sys
 import time
 
-# sys.path.append("..")
 
 import MC6809data.MC6809_data_raw2 as MC6809_data
 from MC6809data.MC6809_data_raw2 import (
@@ -37,11 +37,12 @@ from MC6809data.MC6809_data_raw2 import (
 from components.memory import Memory
 from cpu_utils.MC6809_registers import (
     ValueStorage8Bit, ConcatenatedAccumulator,
-    ValueStorage16Bit, ConditionCodeRegister, unsigned8, cc_value2txt
+    ValueStorage16Bit, ConditionCodeRegister, cc_value2txt
 )
 from utils.simple_debugger import print_exc_plus
 from core.cpu_control_server import get_http_control_server
 from DragonPy_CLI import get_cli
+from cpu_utils.signed import signed8, signed16, signed5, unsigned8
 
 
 
@@ -71,23 +72,7 @@ def activate_full_debug_logging():
     log.critical("Activate full debug logging in %s!", __file__)
 
 
-def signed5(x):
-    """ convert to signed 5-bit """
-    if x > 0xf: # 0xf == 2**4-1 == 15
-        x = x - 0x20 # 0x20 == 2**5 == 32
-    return x
 
-def signed8(x):
-    """ convert to signed 8-bit """
-    if x > 0x7f: # 0x7f ==  2**7-1 == 127
-        x = x - 0x100 # 0x100 == 2**8 == 256
-    return x
-
-def signed16(x):
-    """ convert to signed 16-bit """
-    if x > 0x7fff: # 0x7fff ==  2**15-1 == 32767
-        x = x - 0x10000 # 0x100 == 2**16 == 65536
-    return x
 
 
 def byte2bit_string(data):
@@ -112,8 +97,6 @@ def opcode(*opcodes):
         return func
     return decorator
 
-
-import os
 
 
 
@@ -207,8 +190,8 @@ class Instruction(object):
 
         func_name = self.instr_func.__name__
         if func_name not in self.CALLED:
-            log.error("%04x| called the first time: %s (CPU cycles: %i)",
-                self.cpu.last_op_address, func_name, self.cpu.cycles
+            log.error("%04x| called the first time: $%02x %s (CPU cycles: %i)",
+                self.cpu.last_op_address, self.op_kwargs["opcode"], func_name, self.cpu.cycles
             )
             self.CALLED[func_name] = None
 
