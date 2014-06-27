@@ -623,6 +623,9 @@ loop:
             else:
                 self.assertEqual(self.cpu.cc.C, 0)
 
+    def test_NEG(self):
+        raise NotImplementedError("TODO: add test for NEG memory!")
+
     def test_ABX_01(self):
         self.cpu.cc.set(0xff)
         self.cpu.accu_b.set(0x0f)

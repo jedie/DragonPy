@@ -1207,15 +1207,14 @@ class CPU(object):
         """
         assert register.WIDTH == 8
         x1 = register.get()
-#         x2 = signed8(x1)
         r1 = x1 + m
         r2 = unsigned8(r1)
         register.set(r2)
-#        log.debug("$%x %02x %02x ADD8 %s: %i + %i = %i (signed: %i)" % (
-#            self.program_counter, opcode, m,
-#            register.name,
-#            x1, m, r2, r1,
-#        ))
+        log.debug("$%x %02x %02x ADD8 %s: $%02x + $%02x = $%02x (%s == $%02x)" % (
+            self.program_counter, opcode, m,
+            register.name,
+            x1, m, r2, register.name, register.get()
+        ))
         self.cc.clear_HNZVC()
         self.cc.update_HNZVC_8(x1, m, r1)
 
@@ -1238,9 +1237,9 @@ class CPU(object):
         register.set(r)
         self.cc.clear_NZV()
         self.cc.update_NZ_8(r)
-#        log.debug("\tAND %s: %i & %i = %i",
-#            register.name, a, m, r
-#        )
+        log.debug("\tAND %s: %i & %i = %i",
+            register.name, a, m, r
+        )
 
     @opcode(# AND condition code register
         0x1c, # ANDCC (immediate)
@@ -2268,53 +2267,17 @@ class CPU(object):
                 raise RuntimeError, "Wrong PC ???"
         else:
             self._wrong_NEG = 0
-        m2 = signed8(m)
-        r1 = m2 * -1
-        r2 = unsigned8(r1)
 
-#        log.debug("$%x NEG memory addr: $%x with unsigned:$%x (signed:$%x) to unsigned:$%x (signed:$%x) \t| %s" % (
-#            self.program_counter,
-#            ea,
-#            m, m2, r1, r2,
-#            self.cfg.mem_info.get_shortest(ea)
-#        ))
+        r = m * -1 # same as: r = ~m + 1
+
+        log.debug("$%04x NEG $%02x from %04x to $%02x" % (
+            self.program_counter, m, ea, r,
+        ))
         self.cc.clear_NZVC()
-        self.cc.update_NZVC_8(0, m, r2)
+        self.cc.update_NZVC_8(0, m, r)
 
-        return ea, r2
+        return ea, r
 
-#     @opcode([
-#         0x40, # NEGA
-#         0x50, # NEGB
-#         0x00, 0x60, 0x70 # NEG
-#     ])
-#     def NEG(self):
-#         """
-#         Negate (Twos Complement) a Byte in Memory
-#         Number of Program Bytes: 2
-#         Addressing Mode: direct
-#         """
-#         self.cycles += 6
-#         reg_type = divmod(self.opcode, 16)[0]
-#         reg_dict = {
-#             0x0: self.direct,
-#             0x4: "accu.A",
-#             0x5: "accu.B",
-#             0x6: self.indexed,
-#             0x7: self.extended,
-#         }
-#         ea, txt = reg_dict[reg_type]
-#
-
-#         value = -ea
-#         self.cc.set_NZVC8(0, ea, value)
-#
-#         if reg_type == 0x4:
-#             self.accu.A = value
-#         elif reg_type == 0x5:
-#             self.accu.B = value
-#         else:
-#             self.memory.write_byte(ea, value)
 
     @opcode(0x12) # NOP (inherent)
     def instruction_NOP(self, opcode):
