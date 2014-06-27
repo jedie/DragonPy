@@ -2085,30 +2085,25 @@ class CPU(object):
         Calculates the effective address from the indexed addressing mode and
         places the address in an indexable register.
 
-        LEAX and LEAY affect the Z (zero) bit to allow use of these registers
-        as counters and for MC6800 INX/DEX compatibility.
-
         LEAU and LEAS do not affect the Z bit to allow cleaning up the stack
         while returning the Z bit as a parameter to a calling routine, and also
         for MC6800 INS/DES compatibility.
 
-        Instruction Operation Comment Instruction  Operation  Comment LEAX 10,X
-        X+10 -> X Adds 5-bit constant 10 to X LEAX 500,X X+500 -> X Adds 16-bit
-        constant 500 to X LEAY A,Y Y+A -> Y Adds 8-bit accumulator to Y LEAY D,Y
-        Y+D -> Y Adds 16-bit D accumulator to Y LEAU -10,U U-10 -> U Subtracts
-        10 from U LEAS -10,S S-10 -> S Used to reserve area on stack LEAS 10,S
-        S+10 -> S Used to 'clean up' stack LEAX 5,S S+5 -> X Transfers as well
-        as adds
+        LEAU -10,U   U-10 -> U     Subtracts 10 from U
+        LEAS -10,S   S-10 -> S     Used to reserve area on stack
+        LEAS 10,S    S+10 -> S     Used to 'clean up' stack
+        LEAX 5,S     S+5 -> X      Transfers as well as adds
 
-        source code forms: LEAX, LEAY, LEAS, LEAU
+        source code forms: LEAS, LEAU
 
         CC bits "HNZVC": -----
         """
-#        log.debug("$%x LEA %s: Set %s and Z to $%x \t| %s" % (
-#            self.program_counter,
-#            register.name, register.name, ea,
-#            self.cfg.mem_info.get_shortest(ea)
-#        ))
+#         log.debug(
+#             "$%04x LEA %s: Set %s to $%04x \t| %s" % (
+#             self.program_counter,
+#             register.name, register.name, ea,
+#             self.cfg.mem_info.get_shortest(ea)
+#         ))
         register.set(ea)
 
     @opcode(# Load effective address into an indexable register
@@ -2118,13 +2113,23 @@ class CPU(object):
     def instruction_LEA_register(self, opcode, ea, register):
         """ see instruction_LEA_pointer
 
+        LEAX and LEAY affect the Z (zero) bit to allow use of these registers
+        as counters and for MC6800 INX/DEX compatibility.
+
+        LEAX 10,X    X+10 -> X     Adds 5-bit constant 10 to X
+        LEAX 500,X   X+500 -> X    Adds 16-bit constant 500 to X
+        LEAY A,Y     Y+A -> Y      Adds 8-bit accumulator to Y
+        LEAY D,Y     Y+D -> Y      Adds 16-bit D accumulator to Y
+
+        source code forms: LEAX, LEAY
+
         CC bits "HNZVC": --a--
         """
-#        log.debug("$%x LEA %s: Set %s to $%x \t| %s" % (
-#            self.program_counter,
-#            register.name, register.name, ea,
-#            self.cfg.mem_info.get_shortest(ea)
-#        ))
+#         log.debug("$%04x LEA %s: Set %s to $%04x \t| %s" % (
+#             self.program_counter,
+#             register.name, register.name, ea,
+#             self.cfg.mem_info.get_shortest(ea)
+#         ))
         register.set(ea)
         self.cc.Z = 0
         self.cc.set_Z16(ea)
@@ -2308,10 +2313,10 @@ class CPU(object):
         r = a | m
         register.set(r)
         self.cc.clear_NZV()
-        self.cc.update_NZ0_8(r)
-#        log.debug("\tOR %s: %i | %i = %i",
-#            register.name, a, m, r
-#        )
+        self.cc.update_NZ_8(r)
+#         log.debug("$%04x OR %s: %02x | %02x = %02x",
+#             self.program_counter, register.name, a, m, r
+#         )
 
     @opcode(# OR condition code register
         0x1a, # ORCC (immediate)
@@ -2327,7 +2332,7 @@ class CPU(object):
 
         CC bits "HNZVC": ddddd
         """
-        old_cc_info = self.cc.get_info
+#         old_cc_info = self.cc.get_info
         cc = old_cc = register.get()
         cc |= m
         register.set(cc)

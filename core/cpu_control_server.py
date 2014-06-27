@@ -27,6 +27,7 @@ log = logging.getLogger("DragonPy.cpu_control_server")
 class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def __init__(self, request, client_address, server, cpu, cfg):
+        log.error("ControlHandler %s %s %s", request, client_address, server)
         self.cpu = cpu
         self.cfg = cfg
 
@@ -43,6 +44,7 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             r"/memory/(\s+)(-(\s+))?/raw/$": self.post_memory_raw,
             r"/quit/$": self.post_quit,
             r"/reset/$": self.post_reset,
+            r"/debug/$": self.post_debug,
         }
 
         BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, request, client_address, server)
@@ -84,6 +86,7 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.response(html)
 
     def response_404(self, txt):
+        log.error(txt)
         html = (
             "<!DOCTYPE html><html><body>"
             "<h1>DragonPy - 6809 CPU control server</h1>"
@@ -94,6 +97,7 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.response(html, status_code=404)
 
     def response_500(self, err, tb_txt):
+        log.error(err, tb_txt)
         html = (
             "<!DOCTYPE html><html><body>"
             "<h1>DragonPy - 6809 CPU control server</h1>"
@@ -109,7 +113,7 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.dispatch(self.get_urls)
 
     def do_POST(self):
-        log.critical("do_POST()")
+        log.critical("do_POST() %s", self.path)
         self.dispatch(self.post_urls)
 
     def get_index(self, m):

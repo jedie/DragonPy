@@ -886,6 +886,46 @@ class Test6809_Code(BaseTestCase):
             mem=[0x55]
         )
 
+    def test_code_LEAU_01(self):
+        self.cpu.user_stack_pointer.set(0xff)
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            0x33, 0x41, #                  0000|            LEAU   1,U
+        ])
+        self.assertEqualHex(self.cpu.user_stack_pointer.get(), 0x100)
+
+    def test_code_LEAU_02(self):
+        self.cpu.user_stack_pointer.set(0xff)
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            0xCE, 0x00, 0x00, #                       LDU   #$0000
+            0x33, 0xC9, 0x1A, 0xBC, #                 LEAU  $1abc,U
+        ])
+        self.assertEqualHex(self.cpu.user_stack_pointer.get(), 0x1abc)
+
+    def test_code_LDU_01(self):
+        self.cpu.user_stack_pointer.set(0xff)
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            0xCE, 0x12, 0x34, #                       LDU   #$0000
+        ])
+        self.assertEqualHex(self.cpu.user_stack_pointer.get(), 0x1234)
+
+    def test_code_ORA_01(self):
+        self.cpu.cc.set(0xff)
+        self.cpu.accu_a.set(0x12)
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            0x8A, 0x21, #                             ORA   $21
+        ])
+        self.assertEqualHex(self.cpu.accu_a.get(), 0x33)
+        self.assertEqual(self.cpu.cc.N, 0)
+        self.assertEqual(self.cpu.cc.Z, 0)
+        self.assertEqual(self.cpu.cc.V, 0)
+
+    def test_code_ORCC_01(self):
+        self.cpu.cc.set(0x12)
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            0x1A, 0x21, #                             ORCC   $21
+        ])
+        self.assertEqualHex(self.cpu.cc.get(), 0x33)
+
 
 
 class TestSimple6809ROM(BaseTestCase):
@@ -1090,6 +1130,34 @@ class Test6809_BranchInstructions(BaseTestCase):
         ])
         self.assertEqualHex(self.cpu.program_counter, 0x17e8)
 
+    def test_BPL_no(self):
+        self.cpu.cc.N = 1
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x2a, 0xf4, # BPL -12
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x1002)
+
+    def test_BPL_yes(self):
+        self.cpu.cc.N = 0
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x2a, 0xf4, # BPL -12    ; ea = $1002 + -12 = $ff6
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0xff6)
+
+    def test_LBPL_no(self):
+        self.cpu.cc.N = 1
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x10, 0x2a, 0x07, 0xe4, # LBPL +2020    ; ea = $1004 + 2020 = $17e8
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x1004)
+
+    def test_LBPL_yes(self):
+        self.cpu.cc.N = 0
+        self.cpu_test_run2(start=0x1000, count=1, mem=[
+            0x10, 0x2a, 0x07, 0xe4, # LBPL +2020    ; ea = $1004 + 2020 = $17e8
+        ])
+        self.assertEqualHex(self.cpu.program_counter, 0x17e8)
+
 
 if __name__ == '__main__':
     log.setLevel(
@@ -1125,6 +1193,7 @@ if __name__ == '__main__':
 #              "Test6809_Stack.test_PushPullSystemStack_03",
 #             "TestSimple6809ROM",
 #             "Test6809_Code",
+            "Test6809_BranchInstructions",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
