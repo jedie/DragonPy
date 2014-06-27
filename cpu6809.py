@@ -1602,20 +1602,20 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        # FIXME:
-        if self.cfg.__class__.__name__ == "Simple6809Cfg":
-            if self.program_counter == 0xdb79 and ea == 0xdb6a: # RAM size test loop
-#                 msg = repr(["%x" % x for x in [self.program_counter, ea, m, self.index_x.get()]])
-#                 raise RuntimeError(msg)
-                new_x = 0x7ffd
-                new_ea = 0xdb79
-#                log.warn(
-#                    "Speedup Simple6809 RAM test: Set X to $%x and goto $%x" % (
-#                        new_x, new_ea
-#                ))
-                self.index_x.set(new_x)
-                self.program_counter = new_ea
-                return
+        # FIXME: remove speedup Simple6809 RAM test
+#         if self.cfg.__class__.__name__ == "Simple6809Cfg":
+#             if self.program_counter == 0xdb79 and ea == 0xdb6a: # RAM size test loop
+# #                 msg = repr(["%x" % x for x in [self.program_counter, ea, m, self.index_x.get()]])
+# #                 raise RuntimeError(msg)
+#                 new_x = 0x7ffd
+#                 new_ea = 0xdb79
+#                 log.warn(
+#                     "Speedup Simple6809 RAM test: Set X to $%x and goto $%x" % (
+#                         new_x, new_ea
+#                 ))
+#                 self.index_x.set(new_x)
+#                 self.program_counter = new_ea
+#                 return
 
 #        log.debug("$%x BRA branch to $%x \t| %s" % (
 #            self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
