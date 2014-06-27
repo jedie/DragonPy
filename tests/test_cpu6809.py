@@ -623,8 +623,53 @@ loop:
             else:
                 self.assertEqual(self.cpu.cc.C, 0)
 
-    def test_NEG(self):
-        raise NotImplementedError("TODO: add test for NEG memory!")
+    def test_NEG_memory(self):
+        excpected_values = [0] + range(255, 0, -1)
+        address = 0x10
+
+        for a in xrange(256):
+            self.cpu.cc.set(0x00)
+
+            self.cpu.memory.write_byte(address, a)
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0x00, address, # NEG address
+            ])
+            r = self.cpu.memory.read_byte(address)
+#             print "%03s - a=%02x r=%02x -> %s" % (
+#                 a, a, r, self.cpu.cc.get_info
+#             )
+
+            excpected_value = excpected_values[a]
+
+            # test NEG result
+            self.assertEqual(r, excpected_value)
+
+            # test half carry is uneffected!
+            self.assertEqual(self.cpu.cc.H, 0)
+
+            # test negative: 0x01 <= a <= 0x80
+            if 1 <= a <= 128:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero | a==0 and r==0
+            if r == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow | a==128 and r==128
+            if r == 128:
+                self.assertEqual(self.cpu.cc.V, 1)
+            else:
+                self.assertEqual(self.cpu.cc.V, 0)
+
+            # test carry is set if r=1-255 (hex: r=$01 - $ff)
+            if r >= 1:
+                self.assertEqual(self.cpu.cc.C, 1)
+            else:
+                self.assertEqual(self.cpu.cc.C, 0)
 
     def test_ABX_01(self):
         self.cpu.cc.set(0xff)
@@ -1165,7 +1210,7 @@ if __name__ == '__main__':
 #        10 # DEBUG
 #         20 # INFO
 #         30 # WARNING
-#        40 # ERROR
+#         40 # ERROR
         50 # CRITICAL/FATAL
     )
     log.addHandler(logging.StreamHandler())
@@ -1182,7 +1227,7 @@ if __name__ == '__main__':
 #             "Test6809_CarryFlag",
 #            "Test6809_CC.test_ADDA",
 #             "Test6809_Ops",
-#             "Test6809_Ops.test_TFR03",
+#             "Test6809_Ops.test_NEG_memory",
 #             "Test6809_Ops.test_CMPX_extended",
 #            "Test6809_Ops.test_NEGA",
 #              "Test6809_TestInstructions",
@@ -1193,7 +1238,7 @@ if __name__ == '__main__':
 #              "Test6809_Stack.test_PushPullSystemStack_03",
 #             "TestSimple6809ROM",
 #             "Test6809_Code",
-            "Test6809_BranchInstructions",
+#             "Test6809_BranchInstructions",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,

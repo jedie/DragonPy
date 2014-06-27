@@ -2280,9 +2280,7 @@ class CPU(object):
         ))
         self.cc.clear_NZVC()
         self.cc.update_NZVC_8(0, m, r)
-
         return ea, r
-
 
     @opcode(0x12) # NOP (inherent)
     def instruction_NOP(self, opcode):
