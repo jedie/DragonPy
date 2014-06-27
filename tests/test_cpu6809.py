@@ -11,23 +11,13 @@ import sys
 import unittest
 import itertools
 
-
+from cpu6809 import CPU
 from Dragon32.config import Dragon32Cfg
 from Dragon32.mem_info import DragonMemInfo
-from tests.test_base import TextTestRunner2
-
+from tests.test_base import TextTestRunner2, BaseTestCase, UnittestCmdArgs
 
 
 log = logging.getLogger("DragonPy")
-
-
-
-
-
-
-
-
-
 
 
 class BaseDragon32TestCase(BaseTestCase):
@@ -44,6 +34,7 @@ class BaseDragon32TestCase(BaseTestCase):
 
         self.cpu._system_stack_pointer.set(self.INITIAL_SYSTEM_STACK_ADDR)
         self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
+
 
 class Test6809_AddressModes(BaseTestCase):
     def test_base_page_direct01(self):
@@ -1099,11 +1090,11 @@ class Test6809_BranchInstructions(BaseTestCase):
 
 if __name__ == '__main__':
     log.setLevel(
-#         1
-#         10 # DEBUG
+#        1
+#        10 # DEBUG
 #         20 # INFO
 #         30 # WARNING
-#         40 # ERROR
+#        40 # ERROR
         50 # CRITICAL/FATAL
     )
     log.addHandler(logging.StreamHandler())
