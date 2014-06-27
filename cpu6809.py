@@ -2249,18 +2249,14 @@ class CPU(object):
 
         CC bits "HNZVC": uaaaa
         """
-        x1 = register.get()
-        x2 = signed8(x1)
-        r1 = x2 * -1
-        r2 = unsigned8(r1)
-        register.set(r2)
-#        log.debug("$%x NEG %s unsigned:$%x (signed:$%x) to unsigned:$%x (signed:$%x) \t| %s" % (
-#            self.program_counter,
-#            register.name, x1, x2, r1, r2,
-#            self.cfg.mem_info.get_shortest(r2)
+        x = register.get()
+        r = x * -1 # same as: r = ~x + 1
+        register.set(r)
+#        log.debug("$%04x NEG %s $%02x to $%02x" % (
+#            self.program_counter, register.name, x, r,
 #        ))
         self.cc.clear_NZVC()
-        self.cc.update_NZVC_8(0, x1, r2)
+        self.cc.update_NZVC_8(0, x, r)
 
     _wrong_NEG = 0
     @opcode(0x0, 0x60, 0x70) # NEG (direct, indexed, extended)

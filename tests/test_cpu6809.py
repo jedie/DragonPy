@@ -219,14 +219,6 @@ class Test6809_CarryFlag(BaseTestCase):
         self.assertEqual(self.cpu.cc.C, 0)
         self.assertEqual(self.cpu.cc.Z, 1)
 
-    def test_NEGA(self):
-        self.assertEqual(self.cpu.cc.C, 0)
-        self.cpu_test_run(start=0x4000, end=None, mem=[
-            0x86, 0xff, # LDA $ff
-            0x40, #       NEGA
-        ])
-        self.assertEqual(self.cpu.cc.C, 0)
-
     def test_LSLA(self):
         self.assertEqual(self.cpu.cc.C, 0)
         self.cpu_test_run(start=0x4000, end=None, mem=[
@@ -269,10 +261,6 @@ class Test6809_CC(BaseTestCase):
         excpected_values = range(1, 256)
         excpected_values += range(0, 5)
 
-        half_carry = (# range(0, 255, 16)
-            0, 16, 32, 48, 64, 80, 96, 112, 128, 144, 160, 176, 192, 208, 224, 240
-        )
-
         self.cpu.accu_a.set(0x00) # start value
         for i in xrange(260):
             self.cpu.cc.set(0x00) # Clear all CC flags
@@ -287,7 +275,7 @@ class Test6809_CC(BaseTestCase):
             self.assertEqual(a, excpected_value)
 
             # test half carry
-            if a in half_carry:
+            if a % 16 == 0:
                 self.assertEqual(self.cpu.cc.H, 1)
             else:
                 self.assertEqual(self.cpu.cc.H, 0)
@@ -565,41 +553,101 @@ class Test6809_Ops(BaseTestCase):
         self.assertEqual(self.cpu.cc.get(), 0x04)
         self.assertEqual(self.cpu.cc.C, 1)
 
-    def test_NEGA_01(self):
-        self.cpu.accu_a.set(0x0) # source
+    def test_NEGA(self):
+        """
+        Example assembler code to test NEGA
 
+        CLRB        ; B is always 0
+        TFR B,U     ; clear U
+loop:
+        TFR U,A     ; for next NEGA
+        TFR B,CC    ; clear CC
+        NEGA
+        LEAU 1,U    ; inc U
+        JMP loop
+
+
+0000   5F                     CLRB   ; B is always 0
+0001   1F 93                  TFR   B,U   ; clear U
+0003                LOOP:
+0003   1F 38                  TFR   U,A   ; for next NEGA
+0005   1F 9A                  TFR   B,CC   ; clear CC
+0007   40                     NEGA
+0008   33 41                  LEAU   1,U   ; inc U
+000A   0E 03                  JMP   loop
+
+        """
+        excpected_values = [0] + range(255, 0, -1)
+
+        for a in xrange(256):
+            self.cpu.cc.set(0x00)
+
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x86, a, # LDA   #$i
+                0x40, # NEGA (inherent)
+            ])
+            r = self.cpu.accu_a.get()
+#            print "%03s - a=%02x r=%02x -> %s" % (
+#                a, a, r, self.cpu.cc.get_info
+#            )
+
+            excpected_value = excpected_values[a]
+
+            """
+            xroar NEG CC - input for NEG values:
+            H = uneffected
+            N = dez: 1-128      | hex: $01 - $80
+            Z = dez: 0          | hex: $00
+            V = dez: 128        | hex: $80
+            C = dez: 1-255      | hex: $01 - $ff
+            """
+
+            # test NEG result
+            self.assertEqual(r, excpected_value)
+
+            # test half carry is uneffected!
+            self.assertEqual(self.cpu.cc.H, 0)
+
+            # test negative: 0x01 <= a <= 0x80
+            if 1 <= a <= 128:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero | a==0 and r==0
+            if r == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow | a==128 and r==128
+            if r == 128:
+                self.assertEqual(self.cpu.cc.V, 1)
+            else:
+                self.assertEqual(self.cpu.cc.V, 0)
+
+            # test carry is set if r=1-255 (hex: r=$01 - $ff)
+            if r >= 1:
+                self.assertEqual(self.cpu.cc.C, 1)
+            else:
+                self.assertEqual(self.cpu.cc.C, 0)
+
+    def test_ABX_01(self):
+        self.cpu.cc.set(0xff)
+        self.cpu.accu_b.set(0x0f)
+        self.cpu.index_x.set(0x00f0)
         self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x40, # NEGA (inherent)
+            0x3A, # ABX
         ])
-        self.assertEqual(self.cpu.accu_a.get(), 0x0)
-        self.assertEqual(self.cpu.cc.N, 0)
-        self.assertEqual(self.cpu.cc.Z, 1)
-        self.assertEqual(self.cpu.cc.V, 0)
-        self.assertEqual(self.cpu.cc.C, 0)
+        self.assertEqualHex(self.cpu.index_x.get(), 0x00ff)
+        self.assertEqualHex(self.cpu.cc.get(), 0xff)
 
-    def test_NEGA_02(self):
-        self.cpu.accu_a.set(0x80) # source: 0x80 == 128 signed: -128 $-80
-
+        self.cpu.cc.set(0x00)
         self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x40, # NEGA (inherent)
+            0x3A, # ABX
         ])
-        self.assertEqual(self.cpu.accu_a.get(), 0x80)
-        self.assertEqual(self.cpu.cc.N, 1)
-        self.assertEqual(self.cpu.cc.Z, 0)
-        self.assertEqual(self.cpu.cc.V, 1) # FIXME
-        self.assertEqual(self.cpu.cc.C, 0)
-
-    def test_NEGA_03(self):
-        self.cpu.accu_a.set(0x1) # source: signed: 1 == unsigned: 1
-
-        self.cpu_test_run(start=0x1000, end=None, mem=[
-            0x40, # NEGA (inherent)
-        ])
-        self.assertEqual(self.cpu.accu_a.get(), 0xff) # signed: -1 -> unsigned: 255 == 0xff
-        self.assertEqual(self.cpu.cc.N, 1)
-        self.assertEqual(self.cpu.cc.Z, 0)
-        self.assertEqual(self.cpu.cc.V, 0) # FIXME
-        self.assertEqual(self.cpu.cc.C, 0)
+        self.assertEqualHex(self.cpu.index_x.get(), 0x010E)
+        self.assertEqualHex(self.cpu.cc.get(), 0x00)
 
 
 class Test6809_TestInstructions(BaseTestCase):
@@ -1070,12 +1118,12 @@ if __name__ == '__main__':
 #             "Test6809_Register"
 #             "Test6809_ZeroFlag",
 #             "Test6809_CarryFlag",
-#             "Test6809_CC",
+#            "Test6809_CC.test_ADDA",
 #             "Test6809_Ops",
 #             "Test6809_Ops.test_TFR03",
 #             "Test6809_Ops.test_CMPX_extended",
-#             "Test6809_Ops.test_NEGA_02",
-             "Test6809_TestInstructions",
+#            "Test6809_Ops.test_NEGA",
+#              "Test6809_TestInstructions",
 #             "Test6809_AddressModes",
 #             "Test6809_Ops2",
 #             "Test6809_Ops2.test_TFR_CC_B",
