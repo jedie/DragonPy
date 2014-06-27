@@ -48,9 +48,13 @@ class PeripheryBase(object):
                 self.user_input_queue.put(char)
 
     def request_cpu(self, url):
-        log.critical("request %s:%s%s", self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT, url)
+#         log.critical(
+        log.error(
+            "request %s:%s%s", self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT, url
+        )
         conn = httplib.HTTPConnection(
-            self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT,
+            host=self.cfg.CPU_CONTROL_ADDR,
+            port=self.cfg.CPU_CONTROL_PORT,
             timeout=1
         )
         conn.request("POST", url)
@@ -61,7 +65,7 @@ class PeripheryBase(object):
         else:
             print response.status, response.reason
 
-        raise "FIXME: Doesn't work!!!"
+        log.error("FIXME: request_cpu in %s", __file__)
 
     def exit(self):
         self.running = False

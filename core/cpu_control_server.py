@@ -20,6 +20,8 @@ import json
 import re
 import logging
 import traceback
+import webbrowser
+import sys
 
 log = logging.getLogger("DragonPy.cpu_control_server")
 
@@ -109,11 +111,11 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.response(html, status_code=500)
 
     def do_GET(self):
-        log.critical("do_GET()")
+        log.critical("do_GET(): %r", self.path)
         self.dispatch(self.get_urls)
 
     def do_POST(self):
-        log.critical("do_POST() %s", self.path)
+        log.critical("do_POST(): %r", self.path)
         self.dispatch(self.post_urls)
 
     def get_index(self, m):
@@ -201,10 +203,10 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def post_quit(self, m):
         self.cpu.quit = True
-        self.response("")
+        self.response_html(headline="CPU quit")
 
     def post_reset(self, m):
-        self.response_html(headline="CPU quit")
+        self.response_html(headline="CPU reset")
         # self.cpu.reset()
         self.cpu.running = True
 
@@ -223,7 +225,31 @@ def get_http_control_server(cpu, cfg):
         return None
 
     control_handler = ControlHandlerFactory(cpu, cfg)
-    control_server = BaseHTTPServer.HTTPServer(
-        (cfg.CPU_CONTROL_ADDR, cfg.CPU_CONTROL_PORT), control_handler
-    )
+
+    server_address = (cfg.CPU_CONTROL_ADDR, cfg.CPU_CONTROL_PORT)
+
+    control_server = BaseHTTPServer.HTTPServer(server_address, control_handler)
+    url = "http://%s:%s" % server_address
+    log.error("Start http control server on: %s", url)
+    webbrowser.open(url)
     return control_server
+
+
+def test_run():
+    import subprocess
+    cmd_args = [sys.executable,
+        "DragonPy_CLI.py",
+#         "--verbosity=5",
+#         "--verbosity=10", # DEBUG
+#         "--verbosity=20", # INFO
+        "--verbosity=30", # WARNING
+#         "--verbosity=40", # ERROR
+#         "--verbosity=50", # CRITICAL/FATAL
+
+        "--cfg=Multicomp6809",
+    ]
+    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    subprocess.Popen(cmd_args, cwd="..").wait()
+
+if __name__ == "__main__":
+    test_run()
