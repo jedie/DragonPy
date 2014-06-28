@@ -2498,6 +2498,7 @@ class CPU(object):
         r = (a << 1) | self.cc.C
         self.cc.clear_NZVC()
         self.cc.update_NZVC_8(a, a, r)
+        r = r & 0xff
         return r
 
     @opcode(0x9, 0x69, 0x79) # ROL (direct, indexed, extended)

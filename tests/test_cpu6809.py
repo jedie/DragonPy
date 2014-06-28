@@ -908,6 +908,71 @@ loop:
             else:
                 self.assertEqual(self.cpu.cc.C, 1)
 
+    def assertROL(self, src, dst, source_carry):
+            src_bit_str = '{0:08b}'.format(src)
+            dst_bit_str = '{0:08b}'.format(dst)
+#             print "%02x %s > ROLA > %02x %s -> %s" % (
+#                 src, src_bit_str,
+#                 dst, dst_bit_str,
+#                 self.cpu.cc.get_info
+#             )
+
+            # Carry was cleared and moved into bit 0
+            excpeted_bits = "%s%s" % (src_bit_str[1:], source_carry)
+            self.assertEqual(dst_bit_str, excpeted_bits)
+
+            # test negative
+            if dst >= 0x80:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if dst == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow
+            source_bit6 = 0 if src & 2 ** 6 == 0 else 1
+            source_bit7 = 0 if src & 2 ** 7 == 0 else 1
+            if source_bit6 == source_bit7: # V = bit 6 XOR bit 7
+                self.assertEqual(self.cpu.cc.V, 0)
+            else:
+                self.assertEqual(self.cpu.cc.V, 1)
+
+            # test carry
+            if 0x80 <= src <= 0xff: # if bit 7 was set
+                self.assertEqual(self.cpu.cc.C, 1)
+            else:
+                self.assertEqual(self.cpu.cc.C, 0)
+
+    def test_ROL_with_clear_carry(self):
+        for a in xrange(256):
+            self.cpu.cc.set(0x00) # clear all CC flags
+            a = self.cpu.accu_a.set(a)
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0x49, # ROLA
+            ])
+            r = self.cpu.accu_a.get()
+            self.assertROL(a, r, source_carry=0)
+
+            # test half carry is uneffected!
+            self.assertEqual(self.cpu.cc.H, 0)
+
+    def test_ROL_with_set_carry(self):
+        for a in xrange(256):
+            self.cpu.cc.set(0xff) # set all CC flags
+            a = self.cpu.accu_a.set(a)
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0x49, #       ROLA
+            ])
+            r = self.cpu.accu_a.get()
+            self.assertROL(a, r, source_carry=1)
+
+            # test half carry is uneffected!
+            self.assertEqual(self.cpu.cc.H, 1)
+
     def test_ABX_01(self):
         self.cpu.cc.set(0xff)
         self.cpu.accu_b.set(0x0f)
