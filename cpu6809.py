@@ -1943,6 +1943,7 @@ class CPU(object):
         """
         a = register.get()
         r = register.set(a + 1)
+        self.cc.clear_NZV()
         self.cc.update_NZV_8(a=a, b=1, r=r)
 
 
@@ -1961,12 +1962,13 @@ class CPU(object):
 
         CC bits "HNZVC": -aaa-
         """
-        r = m + 1
+        r = m + 1 & 0xff
 #        log.debug("$%x INC memory value $%x +1 = $%x and write it to $%x \t| %s" % (
 #            self.program_counter,
 #            m, r, ea,
 #            self.cfg.mem_info.get_shortest(ea)
 #        ))
+        self.cc.clear_NZV()
         self.cc.update_NZV_8(a=m, b=1, r=r)
         return ea, r
 
