@@ -1695,16 +1695,15 @@ class CPU(object):
 
         CC bits "HNZVC": -aaaa
         """
-        a = register.get()
-        b = m
-        r = a - b
-#        log.debug("$%x CMP16 %s $%x - $%x = $%x" % (
-#            self.program_counter,
-#            register.name,
-#            a, b, r
-#        ))
+        r = register.get()
+        r_new = r - m
+        log.warn("$%x CMP16 %s $%x - $%x = $%x" % (
+            self.program_counter,
+            register.name,
+            r, m, r_new,
+        ))
         self.cc.clear_NZVC()
-        self.cc.update_NZVC_16(a, b, r)
+        self.cc.update_NZVC_16(r, m, r_new)
 
     @opcode(# Compare memory from accumulator
         0x81, 0x91, 0xa1, 0xb1, # CMPA (immediate, direct, indexed, extended)
@@ -1722,16 +1721,16 @@ class CPU(object):
 
         CC bits "HNZVC": uaaaa
         """
-        a = register.get()
-        b = m
-        r = a - b
-#        log.debug("$%x CMP8 %s $%x - $%x = $%x" % (
-#            self.program_counter,
-#            register.name,
-#            a, b, r
-#        ))
-        self.cc.clear_HNZVC()
-        self.cc.update_HNZVC_8(a, b, r)
+        r = register.get()
+        r_new = r - m
+        log.warn("$%x CMP8 %s $%x - $%x = $%x" % (
+            self.program_counter,
+            register.name,
+            r, m, r_new,
+        ))
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_8(r, m, r_new)
+
 
     def COM(self, value):
         """
@@ -2697,21 +2696,20 @@ class CPU(object):
 
         CC bits "HNZVC": uaaaa
         """
-        x1 = register.get()
-        r1 = x1 - m
-        register.set(r1)
+        r = register.get()
+        r_new = r - m
+        register.set(r_new)
 #        log.debug("$%x SUB8 %s: %i - %i = %i" % (
 #            self.program_counter,
 #            register.name,
-#            x1, m, r1,
+#            r, m, r_new,
 #        ))
-        # XXX: normaly half-carry is "undefined"
-        self.cc.clear_HNZVC()
+        self.cc.clear_NZVC()
         if register.WIDTH == 8:
-            self.cc.update_HNZVC_8(x1, m, r1)
+            self.cc.update_NZVC_8(r, m, r_new)
         else:
             assert register.WIDTH == 16
-            self.cc.update_HNZVC_16(x1, m, r1)
+            self.cc.update_NZVC_16(r, m, r_new)
 
     @opcode(# Software interrupt (absolute indirect)
         0x3f, # SWI (inherent)

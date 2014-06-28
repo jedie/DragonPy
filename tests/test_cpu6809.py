@@ -530,20 +530,6 @@ class Test6809_Ops(BaseTestCase):
         self.assertEqual(self.cpu.cc.get(), 0x04)
         self.assertEqual(self.cpu.accu_a.get(), 0x00)
 
-    def test_CMPX_extended(self):
-        """
-        Compare M:M+1 from X
-        Addressing Mode: extended
-        """
-        self.cpu.accu_a.set(0x0) # source
-
-        self.cpu_test_run(start=0x1000, end=0x1003, mem=[
-            0xbc, # CMPX extended
-            0x10, 0x20 # word to add on accu A
-        ])
-        self.assertEqual(self.cpu.cc.get(), 0x04)
-        self.assertEqual(self.cpu.cc.C, 1)
-
     def test_NEGA(self):
         """
         Example assembler code to test NEGA
@@ -670,6 +656,131 @@ loop:
                 self.assertEqual(self.cpu.cc.C, 1)
             else:
                 self.assertEqual(self.cpu.cc.C, 0)
+
+    def test_CMPU_immediate(self):
+        u = 0x80
+        self.cpu.user_stack_pointer.set(u)
+        for m in xrange(0x7e, 0x83):
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0x11, 0x83, # CMPU (immediate word)
+                0x00, m # the word that CMP reads
+            ])
+            r = u - m
+            """
+            80 - 7e = 02 -> ........
+            80 - 7f = 01 -> ........
+            80 - 80 = 00 -> .....Z..
+            80 - 81 = -1 -> ....N..C
+            80 - 82 = -2 -> ....N..C
+            """
+#             print "%02x - %02x = %02x -> %s" % (
+#                 u, m, r, self.cpu.cc.get_info
+#             )
+
+            # test negative: 0x01 <= a <= 0x80
+            if r < 0:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if r == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow
+            self.assertEqual(self.cpu.cc.V, 0)
+
+            # test carry is set if r=1-255 (hex: r=$01 - $ff)
+            if r < 0:
+                self.assertEqual(self.cpu.cc.C, 1)
+            else:
+                self.assertEqual(self.cpu.cc.C, 0)
+
+    def test_CMPA_immediate_byte(self):
+        a = 0x80
+        self.cpu.accu_a.set(a)
+        for m in xrange(0x7e, 0x83):
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0x81, m # CMPA (immediate byte)
+            ])
+            r = a - m
+            """
+            80 - 7e = 02 -> ......V.
+            80 - 7f = 01 -> ......V.
+            80 - 80 = 00 -> .....Z..
+            80 - 81 = -1 -> ....N..C
+            80 - 82 = -2 -> ....N..C
+            """
+#             print "%02x - %02x = %02x -> %s" % (
+#                 a, m, r, self.cpu.cc.get_info
+#             )
+
+            # test negative: 0x01 <= a <= 0x80
+            if r < 0:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if r == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow
+            if r > 0:
+                self.assertEqual(self.cpu.cc.V, 1)
+            else:
+                self.assertEqual(self.cpu.cc.V, 0)
+
+            # test carry is set if r=1-255 (hex: r=$01 - $ff)
+            if r < 0:
+                self.assertEqual(self.cpu.cc.C, 1)
+            else:
+                self.assertEqual(self.cpu.cc.C, 0)
+
+    def test_CMPX_immediate_word(self):
+        x = 0x80
+        self.cpu.index_x.set(x)
+        for m in xrange(0x7e, 0x83):
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0x8c, 0x00, m # CMPX (immediate word)
+            ])
+            r = x - m
+            """
+            80 - 7e = 02 -> ........
+            80 - 7f = 01 -> ........
+            80 - 80 = 00 -> .....Z..
+            80 - 81 = -1 -> ....N..C
+            80 - 82 = -2 -> ....N..C
+            """
+#             print "%02x - %02x = %02x -> %s" % (
+#                 x, m, r, self.cpu.cc.get_info
+#             )
+
+            # test negative: 0x01 <= a <= 0x80
+            if r < 0:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if r == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow
+            self.assertEqual(self.cpu.cc.V, 0)
+
+            # test carry is set if r=1-255 (hex: r=$01 - $ff)
+            if r < 0:
+                self.assertEqual(self.cpu.cc.C, 1)
+            else:
+                self.assertEqual(self.cpu.cc.C, 0)
+
 
     def test_ABX_01(self):
         self.cpu.cc.set(0xff)
