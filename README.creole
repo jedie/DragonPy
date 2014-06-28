@@ -116,8 +116,10 @@ The v09 trace file here: **~/v09_trace.txt**
 sbc09 works quite well almost:
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/DragonPy_sbc09_01.png}}
 
-The Simple6809 config works a little bit. First GUI used a simple Tkinter windows.
-Looks like this:
+Simple6809 and Multicomp6809 ROMs works a little bit.
+
+First GUI used a simple Tkinter windows.
+Looks like this (outdated):
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/Simple6809_TK_03.PNG}}
 
 Current running output:
@@ -126,27 +128,10 @@ Current running output:
 (C) 1982 BY MICROSOFT
 
 OK
-PRINT "DOES NOT WORK"
-
-
-BREAK
-OK
-PRINT 123
-
-
-BREAK
-OK
-10 PRINT 123
-LIST
-OK
-RUN
-
-BREAK
-OK
-FOR I=1 to 3:PRINT I:NEXT I
-?SN ERROR
-OK
+PRINT "HELLO WORLD!"
+HELLO WORLD!
 }}}
+Other commands thant print a string results currently into a loop.
 
 === performance
 
