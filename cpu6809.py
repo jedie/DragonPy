@@ -2130,9 +2130,8 @@ class CPU(object):
         CC bits "HNZVC": naaas
         """
         r = a << 1
-        # XXX: normaly half-carry is "undefined"
-        self.cc.clear_HNZVC()
-        self.cc.update_HNZVC_8(a, a, r)
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_8(a, a, r)
         return r
 
     @opcode(0x8, 0x68, 0x78) # LSL/ASL (direct, indexed, extended)

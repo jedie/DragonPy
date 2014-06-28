@@ -210,14 +210,6 @@ class Test6809_CarryFlag(BaseTestCase):
         self.assertEqual(self.cpu.cc.C, 0)
         self.assertEqual(self.cpu.cc.Z, 1)
 
-    def test_LSLA(self):
-        self.assertEqual(self.cpu.cc.C, 0)
-        self.cpu_test_run(start=0x4000, end=None, mem=[
-            0x86, 0x99, # LDA $99
-            0x48, #       LSLA
-        ])
-        self.assertEqual(self.cpu.cc.C, 1)
-
     def test_LSRA(self):
         self.assertEqual(self.cpu.cc.C, 0)
         self.cpu_test_run(start=0x4000, end=None, mem=[
@@ -781,6 +773,47 @@ loop:
             else:
                 self.assertEqual(self.cpu.cc.C, 0)
 
+
+    def test_LSLA(self):
+        for a1 in xrange(256):
+            self.cpu.accu_a.set(a1)
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0x48, #       LSLA
+            ])
+            a2 = self.cpu.accu_a.get()
+#             print "%02x %s > LSLA > %02x %s -> %s" % (
+#                 a1, '{0:08b}'.format(a1),
+#                 a2, '{0:08b}'.format(a2),
+#                 self.cpu.cc.get_info
+#             )
+
+            r = a1 << 1 # shift left
+            r = r & 0xff # wrap around
+            self.assertEqualHex(a2, r)
+
+            # test negative
+            if r >= 0x80:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if r == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow
+            if 0x40 <= a1 <= 0xbf:
+                self.assertEqual(self.cpu.cc.V, 1)
+            else:
+                self.assertEqual(self.cpu.cc.V, 0)
+
+            # test carry
+            if a1 < 0x80: # if Bit 7 set
+                self.assertEqual(self.cpu.cc.C, 0)
+            else:
+                self.assertEqual(self.cpu.cc.C, 1)
 
     def test_ABX_01(self):
         self.cpu.cc.set(0xff)
