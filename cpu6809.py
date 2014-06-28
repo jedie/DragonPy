@@ -1609,7 +1609,7 @@ class CPU(object):
         0x21, # BRN (relative)
         0x1021, # LBRN (relative)
     )
-    def instruction_BRN(self, opcode, ea, m):
+    def instruction_BRN(self, opcode, ea):
         """
         Does not cause a branch. This instruction is essentially a no operation,
         but has a bit pattern logically related to branch always.
@@ -1618,13 +1618,13 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BRN" % opcode)
+        pass
 
     @opcode(# Branch if valid twos complement result
         0x28, # BVC (relative)
         0x1028, # LBVC (relative)
     )
-    def instruction_BVC(self, opcode, ea, m):
+    def instruction_BVC(self, opcode, ea):
         """
         Tests the state of the V (overflow) bit and causes a branch if it is
         clear. That is, branch if the twos complement result was valid. When
@@ -1635,13 +1635,21 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BVC" % opcode)
+        if self.cc.V == 0:
+#            log.debug("$%x BVC branch to $%x, because V==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+            self.program_counter = ea
+#         else:
+#            log.debug("$%x BVC: don't branch to $%x, because V==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Branch if invalid twos complement result
         0x29, # BVS (relative)
         0x1029, # LBVS (relative)
     )
-    def instruction_BVS(self, opcode, ea, m):
+    def instruction_BVS(self, opcode, ea):
         """
         Tests the state of the V (overflow) bit and causes a branch if it is
         set. That is, branch if the twos complement result was invalid. When
@@ -1652,7 +1660,15 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x BVS" % opcode)
+        if self.cc.V == 1:
+#            log.debug("$%x BVS branch to $%x, because V==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+            self.program_counter = ea
+#         else:
+#            log.debug("$%x BVS: don't branch to $%x, because V==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(0xf, 0x6f, 0x7f) # CLR (direct, indexed, extended)
     def instruction_CLR_memory(self, opcode, ea):
