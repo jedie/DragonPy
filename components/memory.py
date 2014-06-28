@@ -174,11 +174,12 @@ class Memory(object):
 #            )
         self.cpu.cycles += 1
 
-#         assert 0x0 <= value <= 0xff, "Write out of range value $%x to $%x" % (value, address)
-        if not (0x0 <= value <= 0xff):
-            log.error("Write out of range value $%x to $%x", value, address)
-            value = value & 0xff
-            log.error(" ^^^^ wrap around to $%x", value)
+        assert value >= 0, "Write negative byte hex:%00x dez:%i to $%04x" % (value, value, address)
+        assert value <= 0xff, "Write out of range byte hex:%02x dez:%i to $%04x" % (value, value, address)
+#         if not (0x0 <= value <= 0xff):
+#             log.error("Write out of range value $%02x to $%04x", value, address)
+#             value = value & 0xff
+#             log.error(" ^^^^ wrap around to $%x", value)
 
 
         if address in self.cfg.bus_addr_areas:
@@ -200,6 +201,9 @@ class Memory(object):
             info = self.cfg.bus_addr_areas[address]
 #            log.log(5, "\twrite word at $%x to bus: %s" % (address, info))
             return self.bus_write_word(address, value)
+
+        assert value >= 0, "Write negative word hex:%04x dez:%i to $%04x" % (value, value, address)
+        assert value <= 0xffff, "Write out of range word hex:%04x dez:%i to $%04x" % (value, value, address)
 
         # 6809 is Big-Endian
         self.write_byte(address, value >> 8)

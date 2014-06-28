@@ -1862,10 +1862,12 @@ class CPU(object):
         CC bits "HNZVC": -aaa-
         """
         r = a - 1
+#         r = r & 0xff # XXX: here?
         self.cc.clear_NZV()
         self.cc.update_NZ_8(r)
         if r == 0x7f:
             self.cc.V = 1
+        r = r & 0xff # XXX: here?
         return r
 
     @opcode(0xa, 0x6a, 0x7a) # DEC (direct, indexed, extended)
@@ -2273,12 +2275,14 @@ class CPU(object):
             self._wrong_NEG = 0
 
         r = m * -1 # same as: r = ~m + 1
+#         r = r & 0xff # XXX: 0xff here?
 
         log.debug("$%04x NEG $%02x from %04x to $%02x" % (
             self.program_counter, m, ea, r,
         ))
         self.cc.clear_NZVC()
         self.cc.update_NZVC_8(0, m, r)
+        r = r & 0xff # XXX: 0xff here?
         return ea, r
 
     @opcode(0x12) # NOP (inherent)
