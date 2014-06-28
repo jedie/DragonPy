@@ -1163,18 +1163,16 @@ class CPU(object):
         CC bits "HNZVC": -aaaa
         """
         assert register.WIDTH == 16
-        x1 = register.get()
-#         x2 = signed8(x1)
-        r1 = x1 + m
-        r2 = unsigned8(r1)
-        register.set(r2)
-#        log.debug("$%x %02x %02x ADD16 %s: %i + %i = %i (signed: %i)" % (
+        old = register.get()
+        r = old + m
+        register.set(r)
+#        log.debug("$%x %02x %02x ADD16 %s: $%02x + $%02x = $%02x" % (
 #            self.program_counter, opcode, m,
 #            register.name,
-#            x1, m, r2, r1,
+#            old, m, r
 #        ))
         self.cc.clear_NZVC()
-        self.cc.update_NZVC_16(x1, m, r1)
+        self.cc.update_NZVC_16(old, m, r)
 
     @opcode(# Add memory to accumulator
         0x8b, 0x9b, 0xab, 0xbb, # ADDA (immediate, direct, indexed, extended)
@@ -1189,17 +1187,16 @@ class CPU(object):
         CC bits "HNZVC": aaaaa
         """
         assert register.WIDTH == 8
-        x1 = register.get()
-        r1 = x1 + m
-        r2 = unsigned8(r1)
-        register.set(r2)
-        log.debug("$%x %02x %02x ADD8 %s: $%02x + $%02x = $%02x (%s == $%02x)" % (
-            self.program_counter, opcode, m,
-            register.name,
-            x1, m, r2, register.name, register.get()
-        ))
+        old = register.get()
+        r = old + m
+        register.set(r)
+#         log.debug("$%x %02x %02x ADD8 %s: $%02x + $%02x = $%02x" % (
+#             self.program_counter, opcode, m,
+#             register.name,
+#             old, m, r
+#         ))
         self.cc.clear_HNZVC()
-        self.cc.update_HNZVC_8(x1, m, r1)
+        self.cc.update_HNZVC_8(old, m, r)
 
     @opcode(# AND memory with accumulator
         0x84, 0x94, 0xa4, 0xb4, # ANDA (immediate, direct, indexed, extended)

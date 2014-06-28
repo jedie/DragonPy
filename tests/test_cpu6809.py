@@ -584,6 +584,37 @@ class Test6809_Ops(BaseTestCase):
         self.assertEqual(self.cpu.cc.get(), 0x04)
         self.assertEqual(self.cpu.accu_a.get(), 0x00)
 
+    def test_ADDA1(self):
+        for i in xrange(260):
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x8B, 0x01, # ADDA   #$01
+            ])
+            r = self.cpu.accu_a.get()
+#             print "$%02x > ADD 1 > $%02x | CC:%s" % (
+#                 i, r, self.cpu.cc.get_info
+#             )
+
+            # test INC value from RAM
+            self.assertEqualHex(i + 1 & 0xff, r) # expected values are: 1 up to 255 then wrap around to 0 and up to 4
+
+            # test negative
+            if 128 <= r <= 255:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if r == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow
+            if r == 0x80:
+                self.assertEqual(self.cpu.cc.V, 1)
+            else:
+                self.assertEqual(self.cpu.cc.V, 0)
+
     def test_NEGA(self):
         """
         Example assembler code to test NEGA
