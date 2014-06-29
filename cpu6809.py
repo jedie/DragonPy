@@ -1260,7 +1260,7 @@ class CPU(object):
 #            m, r, ea,
 #            self.cfg.mem_info.get_shortest(ea)
 #        ))
-        return ea, r
+        return ea, r & 0xff
 
     @opcode(0x47, 0x57) # ASRA/ASRB (inherent)
     def instruction_ASR_register(self, opcode, register):
@@ -1749,7 +1749,8 @@ class CPU(object):
         """
         CC bits "HNZVC": -aa01
         """
-        value = unsigned8(~value) # the bits of m inverted
+        # value = unsigned8(~value) # the bits of m inverted
+        value = ~value # the bits of m inverted
         self.cc.clear_NZ()
         self.cc.update_NZ01_8(value)
         return value
@@ -1766,7 +1767,7 @@ class CPU(object):
 #        log.debug("$%x COM memory $%x to $%x" % (
 #            self.program_counter, m, r,
 #        ))
-        return ea, r
+        return ea, r & 0xff
 
     @opcode(# Complement accumulator
         0x43, # COMA (inherent)
@@ -1859,12 +1860,10 @@ class CPU(object):
         CC bits "HNZVC": -aaa-
         """
         r = a - 1
-#         r = r & 0xff # XXX: here?
         self.cc.clear_NZV()
         self.cc.update_NZ_8(r)
         if r == 0x7f:
             self.cc.V = 1
-        r = r & 0xff # XXX: here?
         return r
 
     @opcode(0xa, 0x6a, 0x7a) # DEC (direct, indexed, extended)
@@ -1876,7 +1875,7 @@ class CPU(object):
 #            m, r, ea,
 #            self.cfg.mem_info.get_shortest(ea)
 #        ))
-        return ea, r
+        return ea, r & 0xff
 
     @opcode(0x4a, 0x5a) # DECA / DECB (inherent)
     def instruction_DEC_register(self, opcode, register):
@@ -1977,7 +1976,8 @@ class CPU(object):
 
         CC bits "HNZVC": -aaa-
         """
-        r = m + 1 & 0xff
+        r = m + 1 & 0xff # &0xff here, so that update_NZV_8() will set V on $80, too!
+
 #        log.debug("$%x INC memory value $%x +1 = $%x and write it to $%x \t| %s" % (
 #            self.program_counter,
 #            m, r, ea,
@@ -2149,7 +2149,7 @@ class CPU(object):
         r = a << 1
         self.cc.clear_NZVC()
         self.cc.update_NZVC_8(a, a, r)
-        return r
+        return r # XXX: & 0xff
 
     @opcode(0x8, 0x68, 0x78) # LSL/ASL (direct, indexed, extended)
     def instruction_LSL_memory(self, opcode, ea, m):
@@ -2162,7 +2162,7 @@ class CPU(object):
 #            m, r, ea,
 #            self.cfg.mem_info.get_shortest(ea)
 #        ))
-        return ea, r
+        return ea, r & 0xff
 
     @opcode(0x48, 0x58) # LSLA/ASLA / LSLB/ASLB (inherent)
     def instruction_LSL_register(self, opcode, register):
@@ -2190,7 +2190,7 @@ class CPU(object):
         self.cc.clear_NZC()
         self.cc.C |= (a & 1) # XXX: ok?
         self.cc.set_Z8(r)
-        return r
+        return r # XXX: & 0xff
 
     @opcode(0x4, 0x64, 0x74) # LSR (direct, indexed, extended)
     def instruction_LSR_memory(self, opcode, ea, m):
@@ -2201,7 +2201,7 @@ class CPU(object):
 #            m, r, ea,
 #            self.cfg.mem_info.get_shortest(ea)
 #        ))
-        return ea, r
+        return ea, r & 0xff
 
     @opcode(0x44, 0x54) # LSRA / LSRB (inherent)
     def instruction_LSR_register(self, opcode, register):
@@ -2279,8 +2279,7 @@ class CPU(object):
         ))
         self.cc.clear_NZVC()
         self.cc.update_NZVC_8(0, m, r)
-        r = r & 0xff # XXX: 0xff here?
-        return ea, r
+        return ea, r & 0xff
 
     @opcode(0x12) # NOP (inherent)
     def instruction_NOP(self, opcode):
@@ -2498,7 +2497,6 @@ class CPU(object):
         r = (a << 1) | self.cc.C
         self.cc.clear_NZVC()
         self.cc.update_NZVC_8(a, a, r)
-        r = r & 0xff
         return r
 
     @opcode(0x9, 0x69, 0x79) # ROL (direct, indexed, extended)
@@ -2510,7 +2508,7 @@ class CPU(object):
 #            m, r, ea,
 #            self.cfg.mem_info.get_shortest(ea)
 #        ))
-        return ea, r
+        return ea, r & 0xff
 
     @opcode(0x49, 0x59) # ROLA / ROLB (inherent)
     def instruction_ROL_register(self, opcode, register):
@@ -2535,7 +2533,7 @@ class CPU(object):
         r = (a >> 1) | self.cc.C
         self.cc.clear_NZC()
         self.cc.update_NZ_8(r)
-        return r
+        return r # XXX: & 0xff
 
     @opcode(0x6, 0x66, 0x76) # ROR (direct, indexed, extended)
     def instruction_ROR_memory(self, opcode, ea, m):
@@ -2546,7 +2544,7 @@ class CPU(object):
 #            m, r, ea,
 #            self.cfg.mem_info.get_shortest(ea)
 #        ))
-        return ea, r
+        return ea, r & 0xff
 
     @opcode(0x46, 0x56) # RORA/RORB (inherent)
     def instruction_ROR_register(self, opcode, register):
@@ -2612,12 +2610,13 @@ class CPU(object):
         """
         a = register.get()
         r = a - m - self.cc.C
+        register.set(r)
 #        log.debug("$%x %02x SBC %s: %i - %i - %i = %i (=$%x)" % (
 #            self.program_counter, opcode, register.name,
 #            a, m, self.cc.C, r, r
 #        ))
-        self.cc.clear_HNZVC()
-        self.cc.update_HNZVC_8(a, m, r) # FIXME: or NZVC instead of HNZVC ?
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_8(a, m, r)
 
     @opcode(# Sign Extend B accumulator into A accumulator
         0x1d, # SEX (inherent)
