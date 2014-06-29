@@ -615,6 +615,83 @@ class Test6809_Ops(BaseTestCase):
             else:
                 self.assertEqual(self.cpu.cc.V, 0)
 
+    def test_ADDD1(self):
+        areas = range(0, 3) + ["..."] + range(0x7ffd, 0x8002) + ["..."] + range(0xfffd, 0x10002)
+        for i in areas:
+            if i == "...":
+#                 print "..."
+                continue
+            self.cpu.accu_d.set(i)
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0xc3, 0x00, 0x01, # ADDD   #$01
+            ])
+            r = self.cpu.accu_d.get()
+#             print "%5s $%04x > ADDD 1 > $%04x | CC:%s" % (
+#                 i, i, r, self.cpu.cc.get_info
+#             )
+
+            # test INC value from RAM
+            self.assertEqualHex(i + 1 & 0xffff, r)
+
+            # test negative
+            if 0x8000 <= r <= 0xffff:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if r == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow
+            if r == 0x8000:
+                self.assertEqual(self.cpu.cc.V, 1)
+            else:
+                self.assertEqual(self.cpu.cc.V, 0)
+
+    def test_DECA(self):
+        for a in xrange(256):
+            self.cpu.cc.set(0x00)
+            self.cpu.accu_a.set(a)
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x4a, # DECA
+            ])
+            r = self.cpu.accu_a.get()
+#             print "%03s - a=%02x r=%02x -> %s" % (
+#                 a, a, r, self.cpu.cc.get_info
+#             )
+#             continue
+
+            excpected_value = a - 1 & 0xff
+
+            # test result
+            self.assertEqual(r, excpected_value)
+
+            # test half carry and carry is uneffected!
+            self.assertEqual(self.cpu.cc.H, 0)
+            self.assertEqual(self.cpu.cc.C, 0)
+
+            # test negative:
+            if r >= 0x80:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if r == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow
+            if a == 0x80:
+                self.assertEqual(self.cpu.cc.V, 1)
+            else:
+                self.assertEqual(self.cpu.cc.V, 0)
+
+
     def test_NEGA(self):
         """
         Example assembler code to test NEGA
