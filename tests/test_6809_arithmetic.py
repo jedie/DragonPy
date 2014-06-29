@@ -327,7 +327,9 @@ loop:
             ])
             r = self.cpu.memory.read_byte(0x4500)
             excpected_value = excpected_values[i]
-#             print i, r, excpected_value, self.cpu.cc.get_info
+#             print "%5s $%02x > INC > $%02x | CC:%s" % (
+#                 i, i, r, self.cpu.cc.get_info
+#             )
 
             # test INC value from RAM
             self.assertEqualHex(r, excpected_value)
@@ -530,6 +532,7 @@ if __name__ == '__main__':
 #             "Test6809_Arithmetic.test_DECA",
 #             "Test6809_Arithmetic.test_NEG_memory",
 #            "Test6809_Arithmetic.test_NEGA",
+            "Test6809_Arithmetic.test_INC_memory",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,

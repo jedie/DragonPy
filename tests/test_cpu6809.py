@@ -31,10 +31,13 @@ class BaseDragon32TestCase(BaseTestCase):
         cfg = Dragon32Cfg(cmd_args)
         self.assertFalse(cfg.use_bus)
         cfg.mem_info = DragonMemInfo(log.debug)
-        self.cpu = CPU(cfg)
-
-        self.cpu._system_stack_pointer.set(self.INITIAL_SYSTEM_STACK_ADDR)
-        self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
+        try:
+            self.cpu = CPU(cfg)
+        except IOError, err:
+            log.error("Missing ROM? %s", err)
+        else:
+            self.cpu._system_stack_pointer.set(self.INITIAL_SYSTEM_STACK_ADDR)
+            self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
 
 
 class Test6809_AddressModes(BaseTestCase):
@@ -193,16 +196,6 @@ class Test6809_ZeroFlag(BaseTestCase):
 
 
 
-class Test6809_CarryFlag(BaseTestCase):
-    def test_LSRA(self):
-        self.assertEqual(self.cpu.cc.C, 0)
-        self.cpu_test_run(start=0x4000, end=None, mem=[
-            0x86, 0x99, # LDA $99
-            0x44, #       LSRA
-        ])
-        self.assertEqual(self.cpu.cc.C, 1)
-
-
 
 class Test6809_CC(BaseTestCase):
     """
@@ -246,48 +239,6 @@ class Test6809_CC(BaseTestCase):
                 self.assertEqual(self.cpu.cc.get(), 4)
             else:
                 self.assertEqual(self.cpu.cc.get(), 0)
-
-    def test_LSL(self):
-        excpected_values = range(0, 255, 2)
-        excpected_values += range(0, 255, 2)
-        excpected_values += range(0, 8, 2)
-
-        for i in xrange(260):
-            self.cpu.accu_a.set(i)
-            self.cpu.cc.set(0x00) # Clear all CC flags
-            self.cpu_test_run(start=0x1000, end=None, mem=[
-                0x48, # LSLA/ASLA
-            ])
-            r = self.cpu.accu_a.get()
-            excpected_value = excpected_values[i]
-#             print "{0:08b} -> {1:08b}".format(i, r), self.cpu.cc.get_info, i, r, self.cpu.cc.get()
-
-            # test LSL result
-            self.assertEqual(r, excpected_value)
-
-            # test negative
-            if 128 <= r <= 255:
-                self.assertEqual(self.cpu.cc.N, 1)
-            else:
-                self.assertEqual(self.cpu.cc.N, 0)
-
-            # test zero
-            if r == 0:
-                self.assertEqual(self.cpu.cc.Z, 1)
-            else:
-                self.assertEqual(self.cpu.cc.Z, 0)
-
-            # test overflow
-            if 64 <= i <= 191:
-                self.assertEqual(self.cpu.cc.V, 1)
-            else:
-                self.assertEqual(self.cpu.cc.V, 0)
-
-            # test carry
-            if 128 <= i <= 255:
-                self.assertEqual(self.cpu.cc.C, 1)
-            else:
-                self.assertEqual(self.cpu.cc.C, 0)
 
 
 class Test6809_Ops(BaseTestCase):
@@ -441,112 +392,6 @@ class Test6809_Ops(BaseTestCase):
                 self.assertEqual(self.cpu.cc.C, 1)
             else:
                 self.assertEqual(self.cpu.cc.C, 0)
-
-    def test_LSLA(self):
-        for a1 in xrange(256):
-            self.cpu.accu_a.set(a1)
-            self.cpu_test_run(start=0x0000, end=None, mem=[
-                0x48, #       LSLA
-            ])
-            a2 = self.cpu.accu_a.get()
-#             print "%02x %s > LSLA > %02x %s -> %s" % (
-#                 a1, '{0:08b}'.format(a1),
-#                 a2, '{0:08b}'.format(a2),
-#                 self.cpu.cc.get_info
-#             )
-
-            r = a1 << 1 # shift left
-            r = r & 0xff # wrap around
-            self.assertEqualHex(a2, r)
-
-            # test negative
-            if r >= 0x80:
-                self.assertEqual(self.cpu.cc.N, 1)
-            else:
-                self.assertEqual(self.cpu.cc.N, 0)
-
-            # test zero
-            if r == 0:
-                self.assertEqual(self.cpu.cc.Z, 1)
-            else:
-                self.assertEqual(self.cpu.cc.Z, 0)
-
-            # test overflow
-            if 0x40 <= a1 <= 0xbf:
-                self.assertEqual(self.cpu.cc.V, 1)
-            else:
-                self.assertEqual(self.cpu.cc.V, 0)
-
-            # test carry
-            if a1 < 0x80: # if Bit 7 set
-                self.assertEqual(self.cpu.cc.C, 0)
-            else:
-                self.assertEqual(self.cpu.cc.C, 1)
-
-    def assertROL(self, src, dst, source_carry):
-            src_bit_str = '{0:08b}'.format(src)
-            dst_bit_str = '{0:08b}'.format(dst)
-#             print "%02x %s > ROLA > %02x %s -> %s" % (
-#                 src, src_bit_str,
-#                 dst, dst_bit_str,
-#                 self.cpu.cc.get_info
-#             )
-
-            # Carry was cleared and moved into bit 0
-            excpeted_bits = "%s%s" % (src_bit_str[1:], source_carry)
-            self.assertEqual(dst_bit_str, excpeted_bits)
-
-            # test negative
-            if dst >= 0x80:
-                self.assertEqual(self.cpu.cc.N, 1)
-            else:
-                self.assertEqual(self.cpu.cc.N, 0)
-
-            # test zero
-            if dst == 0:
-                self.assertEqual(self.cpu.cc.Z, 1)
-            else:
-                self.assertEqual(self.cpu.cc.Z, 0)
-
-            # test overflow
-            source_bit6 = 0 if src & 2 ** 6 == 0 else 1
-            source_bit7 = 0 if src & 2 ** 7 == 0 else 1
-            if source_bit6 == source_bit7: # V = bit 6 XOR bit 7
-                self.assertEqual(self.cpu.cc.V, 0)
-            else:
-                self.assertEqual(self.cpu.cc.V, 1)
-
-            # test carry
-            if 0x80 <= src <= 0xff: # if bit 7 was set
-                self.assertEqual(self.cpu.cc.C, 1)
-            else:
-                self.assertEqual(self.cpu.cc.C, 0)
-
-    def test_ROL_with_clear_carry(self):
-        for a in xrange(256):
-            self.cpu.cc.set(0x00) # clear all CC flags
-            a = self.cpu.accu_a.set(a)
-            self.cpu_test_run(start=0x0000, end=None, mem=[
-                0x49, # ROLA
-            ])
-            r = self.cpu.accu_a.get()
-            self.assertROL(a, r, source_carry=0)
-
-            # test half carry is uneffected!
-            self.assertEqual(self.cpu.cc.H, 0)
-
-    def test_ROL_with_set_carry(self):
-        for a in xrange(256):
-            self.cpu.cc.set(0xff) # set all CC flags
-            a = self.cpu.accu_a.set(a)
-            self.cpu_test_run(start=0x0000, end=None, mem=[
-                0x49, #       ROLA
-            ])
-            r = self.cpu.accu_a.get()
-            self.assertROL(a, r, source_carry=1)
-
-            # test half carry is uneffected!
-            self.assertEqual(self.cpu.cc.H, 1)
 
     def test_ABX_01(self):
         self.cpu.cc.set(0xff)
@@ -890,15 +735,9 @@ if __name__ == '__main__':
             sys.argv[0],
 #             "Test6809_Register"
 #             "Test6809_ZeroFlag",
-#             "Test6809_CarryFlag",
-#             "Test6809_CC.test_INC_memory",
-#             "Test6809_CC.test_INCB",
 #             "Test6809_Ops",
 #             "Test6809_Ops.test_CMPA_immediate_byte",
 #              "Test6809_Ops.test_CMPX_immediate_word",
-#             "Test6809_Ops.test_LSLA",
-#             "Test6809_Ops.test_ROL_with_clear_carry",
-#             "Test6809_Ops.test_ROL_with_set_carry",
 #              "Test6809_TestInstructions",
 #             "Test6809_AddressModes",
 #             "Test6809_Ops2",
