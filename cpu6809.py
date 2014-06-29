@@ -1710,11 +1710,11 @@ class CPU(object):
         """
         r = register.get()
         r_new = r - m
-        log.warn("$%x CMP16 %s $%x - $%x = $%x" % (
-            self.program_counter,
-            register.name,
-            r, m, r_new,
-        ))
+#         log.warn("$%x CMP16 %s $%x - $%x = $%x" % (
+#             self.program_counter,
+#             register.name,
+#             r, m, r_new,
+#         ))
         self.cc.clear_NZVC()
         self.cc.update_NZVC_16(r, m, r_new)
 
@@ -1736,11 +1736,11 @@ class CPU(object):
         """
         r = register.get()
         r_new = r - m
-        log.warn("$%x CMP8 %s $%x - $%x = $%x" % (
-            self.program_counter,
-            register.name,
-            r, m, r_new,
-        ))
+#         log.warn("$%x CMP8 %s $%x - $%x = $%x" % (
+#             self.program_counter,
+#             register.name,
+#             r, m, r_new,
+#         ))
         self.cc.clear_NZVC()
         self.cc.update_NZVC_8(r, m, r_new)
 
