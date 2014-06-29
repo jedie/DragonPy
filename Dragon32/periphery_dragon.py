@@ -136,7 +136,10 @@ class Dragon32Periphery(PeripheryBase):
         else:
             return func(address)
 
-        raise NotImplementedError
+        raise NotImplementedError(
+            "TODO: Periphery.read_word from $%x (cpu_cycles: %i)" % (
+            address, cpu_cycles
+        ))
 
     def write_byte(self, cpu_cycles, op_address, address, value):
         log.debug(" *** write to periphery at $%x the value $%x" % (address, value))
@@ -196,9 +199,9 @@ def test_run():
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
 #         "--verbosity=5",
-        "--verbosity=10", # DEBUG
+#         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-#         "--verbosity=30", # WARNING
+        "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
 #         "--verbosity=50", # CRITICAL/FATAL
 #

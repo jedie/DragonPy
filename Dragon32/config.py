@@ -25,8 +25,12 @@ class Dragon32Cfg(BaseConfig):
      * http://dragon32.info/info/romref.html
     """
     RAM_START = 0x0000
-    RAM_END = 0x7FFF
-    RAM_SIZE = 0x8000 # 32768 Bytes
+#     RAM_END = 0x03FF # 1KB
+#     RAM_END = 0x07FF # 2KB
+    RAM_END = 0x0FFF # 4KB
+    # RAM_END = 0x1FFF # 8KB
+    # RAM_END = 0x3FFF # 16KB
+    # RAM_END = 0x7FFF # 32KB
 
     ROM_START = 0x8000
     ROM_END = 0xBFFF
@@ -54,9 +58,11 @@ class Dragon32Cfg(BaseConfig):
     )
 
     def __init__(self, cmd_args):
+        self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
+        self.RAM_SIZE = (self.RAM_END - self.RAM_START) + 1
         super(Dragon32Cfg, self).__init__(cmd_args)
 
-        if self.verbosity <= logging.INFO:
+        if self.verbosity <= logging.ERROR:
             self.mem_info = get_dragon_meminfo()
 
         self.periphery_class = Dragon32Periphery
