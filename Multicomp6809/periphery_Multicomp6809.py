@@ -95,18 +95,30 @@ class Multicomp6809PeripheryTk(TkPeripheryBase, Multicomp6809PeripheryBase):
     TITLE = "DragonPy - Multicomp 6809"
     GEOMETRY = "+500+300"
     INITAL_INPUT = (
-        'PRINT "HELLO"\r\n'
-        'PRINT 123\r\n'
-        '10 PRINT 123\r\nLIST\r\nRUN\r\n'
-        'FOR I=1 to 3:PRINT I:NEXT I\r\n'
-        'PRINT "NOTHING WORKS :("\r\n'
+        '? 3\r\n'
+        '? "HELLO?"\r\n'
+        'PRINT "HELLO WORLD!"\r\n'
+        'PRINT 1\r\n'
+#         'PRINT "HELLO"\r\n'
+#         'PRINT 123\r\n'
+#         '10 PRINT 123\r\nLIST\r\nRUN\r\n'
+#         'FOR I=1 to 3:PRINT I:NEXT I\r\n'
     )
 
     def event_return(self, event):
         self.user_input_queue.put("\r")
 #         self.user_input_queue.put("\n")
 
-
+    _STOP_AFTER_OK_COUNT = None
+#     _STOP_AFTER_OK_COUNT = 2
+    def update(self, cpu_cycles):
+        is_empty = self.output_queue.empty()
+        super(Multicomp6809PeripheryTk, self).update(cpu_cycles)
+        if self._STOP_AFTER_OK_COUNT is not None and not is_empty:
+            txt = self.text.get(1.0, Tkinter.END)
+            if txt.count("OK\r\n") >= self._STOP_AFTER_OK_COUNT:
+                log.error("-> exit!")
+                self.destroy()
 
 
 # Multicomp6809Periphery = Multicomp6809PeripherySerial

@@ -61,26 +61,26 @@ class Simple6809PeripheryBase(PeripheryBase):
 
         char = self.user_input_queue.get()
         value = ord(char)
-        log.error("%04x| (%i) read from ACIA-data, send back %r $%x",
+        log.info("%04x| (%i) read from ACIA-data, send back %r $%x",
             op_address, cpu_cycles, char, value
         )
         return value
 
     def write_acia_data(self, cpu_cycles, op_address, address, value):
         char = chr(value)
-#        log.error("*"*79)
-#        log.error("Write to screen: %s ($%x)" , repr(char), value)
-#        log.error("*"*79)
+#        log.info("*"*79)
+#        log.info("Write to screen: %s ($%x)" , repr(char), value)
+#        log.info("*"*79)
 
         if value >= 0x90: # FIXME: Why?
             value -= 0x60
             char = chr(value)
-#            log.error("convert value -= 0x30 to %s ($%x)" , repr(char), value)
+#            log.info("convert value -= 0x30 to %s ($%x)" , repr(char), value)
 
         if value <= 9: # FIXME: Why?
             value += 0x41
             char = chr(value)
-#            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
+#            log.info("convert value += 0x41 to %s ($%x)" , repr(char), value)
 
         self.output_queue.put(char)
 
@@ -159,7 +159,7 @@ class Simple6809PeripherySerial(Simple6809PeripheryBase):
         $1f  31  US  (Unit Seperator)
         $20  32  BLA (Blank)
         """
-        log.error("%04x| (%i) read from RS232 address: $%x",
+        log.info("%04x| (%i) read from RS232 address: $%x",
             op_address, cpu_cycles, address,
         )
         if address == 0xa000:
@@ -173,7 +173,7 @@ class Simple6809PeripherySerial(Simple6809PeripheryBase):
         else:
             value = ord(char)
 
-        log.error("%04x| (%i) get from RS232 (address: $%x): %r ($%x)",
+        log.info("%04x| (%i) get from RS232 (address: $%x): %r ($%x)",
             op_address, cpu_cycles, address, char, value
         )
         return value
@@ -181,16 +181,16 @@ class Simple6809PeripherySerial(Simple6809PeripheryBase):
     def write_rs232_interface(self, cpu_cycles, op_address, address, value):
         if value == 0x95:
             # RTS low:
-            log.error("%04x| (%i) set RTS low",
+            log.info("%04x| (%i) set RTS low",
                 op_address, cpu_cycles
             )
             try:
                 self.serial.setRTS(True)
             except Exception, err:
-                log.error("Error while serial.setRTS: %s" % err)
+                log.info("Error while serial.setRTS: %s" % err)
             return
 
-        log.error("%04x| (%i) write to RS232 address: $%x value: $%x (dez.: %i) ASCII: %r" % (
+        log.info("%04x| (%i) write to RS232 address: $%x value: $%x (dez.: %i) ASCII: %r" % (
             op_address, cpu_cycles, address, value, value, chr(value)
         ))
         self.serial.write(chr(value)) # write to pty
@@ -200,35 +200,111 @@ class Simple6809PeripherySerial(Simple6809PeripheryBase):
 class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
     TITLE = "DragonPy - Simple 6809"
     GEOMETRY = "+500+300"
-    INITAL_INPUT = (
-        'PRINT "HELLO"\r\n'
+    INITAL_INPUT2 = (
+#         '? "HELLO?"\r\n' # OK
+#         'PRINT "HELLO WORLD!"\r\n' # OK
+#         '? 0\r\n' # OK
+#         '? "FOO"+"BAR"\r\n' # OK
+#         '10 PRINT "HELLO"\r\n20 PRINT "WORLD!"\r\nRUN\r\n' # OK
+        'A=0\r\n? A\r\n'
+#
+#         'PRINT MEM\r\n' # failed
+        '10 PRINT "A"\r\nLIST\r\nRUN\r\n'
+        'PRINT 2\r\n'
 #         'PRINT 123\r\n'
-#         '10 PRINT 123\r\nLIST\r\nRUN\r\n'
 #         'FOR I=1 to 3:PRINT I:NEXT I\r\n'
-#         'PRINT "NOTHING WORKS :("\r\n'
     )
+    INITAL_INPUT = "\r\n".join([
+        # 'FOR I=1 TO 3:PRINT "X":NEXT I',
+
+#         '10 FOR I=1 TO 3',
+#         '20 PRINT "X"',
+#         '30 NEXT I',
+#         'RUN',
+
+#         '10 ? "X"',
+#         'RUN', # OK
+
+#         'A="B"', # TM ERROR
+
+        # OK:
+        '10 A=0',
+        '20 B=0',
+        '30 PRINT A',
+        '40 ? B',
+        '50 PRINT "H E L L O "+"WORLD!"',
+        '60 PRINT "X"+STR$(A)',
+        'RUN',
+
+        '',
+        'A=4',
+        'B=55',
+        'X=9318',
+        '?B',
+        '?X',
+#         'I=3',
+#         '? I',
+
+#         '? -4\r\n', # result in a loop
+#         '? 3', # result in a loop
+#         'PRINT 1', # result in a loop
+    ]) + "\r\n"
 
     def event_return(self, event):
         self.user_input_queue.put("\r")
 #         self.user_input_queue.put("\n")
 
-    _state = 0
+    _STOP_AFTER_OK_COUNT = None
+#     _STOP_AFTER_OK_COUNT = 4
     def update(self, cpu_cycles):
         is_empty = self.output_queue.empty()
         super(Simple6809PeripheryTk, self).update(cpu_cycles)
-        if not is_empty:
-            if self._state == 0 and "OK\r\n" in self.text.get(1.0, Tkinter.END):
-                self._state = 1
-                self.activate_full_debug_logging()
-                log.error("OK found -> turn debug on!")
-
-            if self._state == 1 and "BREAK" in self.text.get(1.0, Tkinter.END):
-                log.error("BREAK found -> exit!")
+        if self._STOP_AFTER_OK_COUNT is not None and not is_empty:
+            txt = self.text.get(1.0, Tkinter.END)
+            if txt.count("OK\r\n") >= self._STOP_AFTER_OK_COUNT:
+                log.critical("-> exit!")
                 self.destroy()
 
 
 # Simple6809Periphery = Simple6809PeripherySerial
 Simple6809Periphery = Simple6809PeripheryTk
+
+"""
+? -4
+
+ec8e| called the first time: $08 instruction_LSL_memory (CPU cycles: 635174)
+ec90| called the first time: $09 instruction_ROL_memory (CPU cycles: 635184)
+reading outside memory area (PC:$e3d1): $1a01
+eec1| called the first time: $50 instruction_NEG_register (CPU cycles: 636466)
+f050| called the first time: $2e instruction_BGT (CPU cycles: 636478)
+eddc| called the first time: $00 instruction_NEG_memory (CPU cycles: 636705)
+ed98| called the first time: $28 instruction_BVC (CPU cycles: 636746)
+ee2f| called the first time: $92 instruction_SBC (CPU cycles: 636980)
+ee0d| called the first time: $0a instruction_DEC_memory (CPU cycles: 637850)
+
+
+
+PRINT 1
+
+ec8e| called the first time: $08 instruction_LSL_memory (CPU cycles: 440822)
+ec90| called the first time: $09 instruction_ROL_memory (CPU cycles: 440832)
+eec1| called the first time: $50 instruction_NEG_register (CPU cycles: 441951)
+f050| called the first time: $2e instruction_BGT (CPU cycles: 441963)
+eddc| called the first time: $00 instruction_NEG_memory (CPU cycles: 442190)
+ed98| called the first time: $28 instruction_BVC (CPU cycles: 442231)
+ee2f| called the first time: $92 instruction_SBC (CPU cycles: 442465)
+ee0d| called the first time: $0a instruction_DEC_memory (CPU cycles: 443335)
+
+
+I=5
+?I
+
+f050| called the first time: $2e instruction_BGT (CPU cycles: 523845)
+eddc| called the first time: $00 instruction_NEG_memory (CPU cycles: 524072)
+ed98| called the first time: $28 instruction_BVC (CPU cycles: 524113)
+ee2f| called the first time: $92 instruction_SBC (CPU cycles: 524331)
+ee0d| called the first time: $0a instruction_DEC_memory (CPU cycles: 524988)
+"""
 
 
 def test_run():
@@ -238,15 +314,14 @@ def test_run():
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-#         "--verbosity=30", # WARNING
+        "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-        "--verbosity=50", # CRITICAL/FATAL
+#         "--verbosity=50", # CRITICAL/FATAL
 
 #         "--area_debug_cycles=23383", # First OK after copyright info
 
         "--cfg=Simple6809",
-        "--max=500000",
-#         "--max=30000",
+#         "--max=500000",
 #         "--max=20000",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
