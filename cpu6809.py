@@ -1315,7 +1315,11 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        if self.cc.N == self.cc.V: # the same as: (self.cc.N ^ self.cc.V) == 0:
+        # Note these variantes are the same:
+        #    self.cc.N == self.cc.V
+        #    (self.cc.N ^ self.cc.V) == 0
+        #    not operator.xor(self.cc.N, self.cc.V)
+        if self.cc.N == self.cc.V:
 #             log.debug("$%x BGE branch to $%x, because N XOR V == 0 \t| %s" % (
 #                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
 #             ))
@@ -1347,7 +1351,7 @@ class CPU(object):
         #    not ((self.cc.N ^ self.cc.V) | self.cc.Z)
         #    self.cc.N == self.cc.V and self.cc.Z == 0
         # ;)
-        if self.cc.N == self.cc.V and self.cc.Z == 0:
+        if not self.cc.Z and self.cc.N == self.cc.V:
 #            log.debug("$%x BGT branch to $%x, because (N==V and Z==0) \t| %s" % (
 #                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
 #            ))
@@ -1480,7 +1484,7 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        if (self.cc.N ^ self.cc.V) == 1:
+        if (self.cc.N ^ self.cc.V) == 1: # N xor V
 #            log.debug("$%x BLT branch to $%x, because N XOR V == 1 \t| %s" % (
 #                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
 #            ))

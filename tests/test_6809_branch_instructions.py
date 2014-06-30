@@ -7,10 +7,11 @@
 """
 
 
+import itertools
 import logging
+import operator
 import sys
 import unittest
-import itertools
 
 from tests.test_base import TextTestRunner2, BaseTestCase
 
@@ -114,7 +115,8 @@ class Test6809_BranchInstructions(BaseTestCase):
             self.cpu_test_run2(start=0x1000, count=1, mem=[
                 0x2c, 0xf4, # BGE -12    ; ea = $1002 + -12 = $ff6
             ])
-            if (n ^ v) == 0:
+#            print "%s - $%04x" % (self.cpu.cc.get_info, self.cpu.program_counter)
+            if not operator.xor(n, v): # same as: (n ^ v) == 0:
                 self.assertEqualHex(self.cpu.program_counter, 0xff6)
             else:
                 self.assertEqualHex(self.cpu.program_counter, 0x1002)
@@ -157,6 +159,7 @@ class Test6809_BranchInstructions(BaseTestCase):
             self.cpu_test_run2(start=0x1000, count=1, mem=[
                 0x22, 0xf4, # BHI -12    ; ea = $1002 + -12 = $ff6
             ])
+#            print "%s - $%04x" % (self.cpu.cc.get_info, self.cpu.program_counter)
             if c == 0 and z == 0:
                 self.assertEqualHex(self.cpu.program_counter, 0xff6)
             else:
@@ -226,10 +229,31 @@ class Test6809_BranchInstructions(BaseTestCase):
         ])
         self.assertEqualHex(self.cpu.program_counter, 0x17e8)
 
+    def test_BLT_LBLT(self):
+        for n, v in itertools.product(range(2), repeat=2): # -> [(0, 0), (0, 1), (1, 0), (1, 1)]
+            self.cpu.cc.N = n
+            self.cpu.cc.V = v
+            self.cpu_test_run2(start=0x1000, count=1, mem=[
+                0x2d, 0xf4, # BLT -12    ; ea = $1002 + -12 = $ff6
+            ])
+#            print "%s - $%04x" % (self.cpu.cc.get_info, self.cpu.program_counter)
+            if operator.xor(n, v): # same as: n ^ v == 1
+                self.assertEqualHex(self.cpu.program_counter, 0xff6)
+            else:
+                self.assertEqualHex(self.cpu.program_counter, 0x1002)
+
+            self.cpu_test_run2(start=0x1000, count=1, mem=[
+                0x10, 0x2d, 0x07, 0xe4, # LBLT +2020    ; ea = $1004 + 2020 = $17e8
+            ])
+            if operator.xor(n, v):
+                self.assertEqualHex(self.cpu.program_counter, 0x17e8)
+            else:
+                self.assertEqualHex(self.cpu.program_counter, 0x1004)
+
 
 if __name__ == '__main__':
     log.setLevel(
-#         1
+#        1
 #        10 # DEBUG
 #         20 # INFO
 #         30 # WARNING
@@ -244,7 +268,8 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-#             "Test6809_BranchInstructions",
+#            "Test6809_BranchInstructions",
+#            "Test6809_BranchInstructions.test_BLT_LBLT",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
