@@ -15,8 +15,9 @@
 import logging
 import sys
 import unittest
+from decimal import Decimal
 
-from tests.test_base import TextTestRunner2, BaseTestCase, BaseStackTestCase
+from tests.test_base import TextTestRunner2, BaseStackTestCase
 
 
 log = logging.getLogger("DragonPy")
@@ -68,21 +69,31 @@ class Test6809_Program(BaseStackTestCase):
         crc16 = self._crc16("DragonPy works?!?")
         self.assertEqualHex(crc16, 0xA30D)
 
-    def test_division(self):
+    def _division(self, dividend, divisor):
+        assert isinstance(dividend, int)
+        assert isinstance(divisor, int)
+        assert 0x0 <= dividend <= 0x100000000
+        assert 0x0 <= divisor <= 0x10000
+
+        a = [dividend >> (i << 3) & 0xff for i in (3, 2, 1, 0)]
+#         print "a:", [hex(i) for i in a]
+
+        b = [divisor >> (i << 3) & 0xff for i in (1, 0)]
+#         print "b:", [hex(i) for i in b]
+
         """
-        6809 32/16 divison, from Talbot System FIG Forth
-        2012-06-20 J.E. Klasek j+forth@klasek.at
-        code from: https://github.com/jedie/sbc09/blob/master/examples/uslash.asm
+        orgigin code from Talbot System FIG Forth and modifyed by J.E. Klasek j+forth@klasek.at
+        see:
+        https://github.com/6809/sbc09/blob/master/examples/uslash.asm
         """
-#        self.cpu_test_run2(start=0x0100, count=999, mem=[
         self.cpu_test_run(start=0x0100, end=None, mem=[
             #                              0100|           .ORG  $100
             #                              0100|                            ; sample parameters on stack ...
-            0xCC, 0x00, 0x00, #            0100|           LDD   #$0000     ; dividend low word
+            0xCC, a[2], a[3], #            0100|           LDD   #$....     ; dividend low word
             0x36, 0x06, #                  0103|           PSHU  d
-            0xCC, 0x58, 0x00, #            0105|           LDD   #$5800     ; dividend high word
+            0xCC, a[0], a[1], #            0105|           LDD   #$....     ; dividend high word
             0x36, 0x06, #                  0108|           PSHU  d
-            0xCC, 0x30, 0x00, #            010A|           LDD   #$3000     ; divisor
+            0xCC, b[0], b[1], #            010A|           LDD   #$....     ; divisor word
             0x36, 0x06, #                  010D|           PSHU  d
             0xEC, 0x42, #                  010F|   USLASH: LDD   2,u
             0xAE, 0x44, #                  0111|           LDX   4,u
@@ -107,14 +118,46 @@ class Test6809_Program(BaseStackTestCase):
             0xAE, 0xC4, #                  0138|           LDX   ,u         ; quotient
             0xEC, 0x42, #                  013A|           LDD   2,u        ; remainder
         ])
-        raise RuntimeError("TODO")
+        quotient = self.cpu.index_x.get()
+        remainder = self.cpu.accu_d.get()
+        return quotient, remainder
 
+    def test_division(self):
+        def test(dividend, divisor):
+            """
+            dividend / divisor = quotient
+            """
+            quotient, remainder = self._division(dividend, divisor)
+#             print quotient, remainder
+
+            a = Decimal(dividend)
+            b = Decimal(divisor)
+            expected_quotient = a // b
+            expected_remainder = a % b
+
+            first = "%i/%i=%i remainder: %i" % (dividend, divisor, quotient, remainder)
+            second = "%i/%i=%i remainder: %i" % (dividend, divisor, expected_quotient, expected_remainder)
+#             print first
+            self.assertEqual(first, second)
+
+        test(10, 5)
+        test(10, 3)
+        test(1000, 2000)
+        test(0xffff, 0x80)
+        test(0xfffff, 0x800)
+        test(0xffffff, 0x8000)
+        test(0xfffffff, 0x8000)
+        test(1, 0x8000)
+#         test(1, 0x8001) # Error: '1/32769=65534 remainder: 3' != '1/32769=0 remainder: 1'
+#         test(1, 0x9000) # Error: '10/65535=65533 remainder: 7' != '10/65535=0 remainder: 10'
+#         test(10, 0xffff) # Error: '10/65535=65533 remainder: 7' != '10/65535=0 remainder: 10'
+#         test(0xfffffff, 0xffff) # Error: '268435455/65535=57342 remainder: 57341' != '268435455/65535=4096 remainder: 4095'
 
 
 
 if __name__ == '__main__':
     log.setLevel(
-#        1
+#         1
 #        10 # DEBUG
 #         20 # INFO
 #         30 # WARNING
@@ -130,6 +173,7 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #            "Test6809_Program.test_crc16",
+#             "Test6809_Program.test_division",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
