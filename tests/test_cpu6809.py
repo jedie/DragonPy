@@ -15,7 +15,8 @@ import itertools
 from cpu6809 import CPU
 from Dragon32.config import Dragon32Cfg
 from Dragon32.mem_info import DragonMemInfo
-from tests.test_base import TextTestRunner2, BaseTestCase, UnittestCmdArgs
+from tests.test_base import TextTestRunner2, BaseTestCase, UnittestCmdArgs, \
+    BaseStackTestCase
 
 
 log = logging.getLogger("DragonPy")
@@ -514,7 +515,7 @@ class Test6809_Ops2(BaseTestCase):
         self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
 
 
-class Test6809_Stack(BaseDragon32TestCase):
+class Test6809_Stack(BaseStackTestCase):
     def test_PushPullSytemStack_01(self):
         self.assertEqualHex(
             self.cpu.system_stack_pointer,

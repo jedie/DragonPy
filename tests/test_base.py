@@ -80,6 +80,16 @@ class BaseTestCase(unittest.TestCase):
             )
             self.assertEqual(is_byte, should_byte, msg)
 
+
+class BaseStackTestCase(BaseTestCase):
+    INITIAL_SYSTEM_STACK_ADDR = 0x1000
+    INITIAL_USER_STACK_ADDR = 0x2000
+    def setUp(self):
+        super(BaseStackTestCase, self).setUp()
+        self.cpu._system_stack_pointer.set(self.INITIAL_SYSTEM_STACK_ADDR)
+        self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
+
+
 class TextTestResult2(unittest.TextTestResult):
     def startTest(self, test):
         if not self.showAll:
