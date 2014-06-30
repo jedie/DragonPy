@@ -45,6 +45,8 @@ class ROM(object):
         ))
 
     def load(self, address, data):
+        if isinstance(data, basestring):
+            data = [ord(c) for c in data]
         log.debug("ROM load at $%04x: %s", address,
             ", ".join(["$%02x" % i for i in data])
         )
