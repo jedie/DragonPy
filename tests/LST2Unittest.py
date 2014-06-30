@@ -3,14 +3,36 @@
 
 # copy&paste .lst content from e.g.: http://www.asm80.com/
 lst = """
-0000   5F                     CLRB   ; B is always 0
-0001   1F 93                  TFR   B,U   ; clear U
-0003                LOOP:
-0003   DF 18                  STU   $0018   ; for next NEGA
-0005   1F 9A                  TFR   B,CC   ; clear CC
-0007   00 18                  NEG   $0018
-0009   33 41                  LEAU   1,U   ; inc U
-000B   0E 03                  JMP   loop
+0100                          .ORG   $100
+0100                          ; sample parameters on stack ...
+0100   CC 00 00               LDD   #$0000   ; dividend low word
+0103   36 06                  PSHU   d
+0105   CC 58 00               LDD   #$5800   ; dividend high word
+0108   36 06                  PSHU   d
+010A   CC 30 00               LDD   #$3000   ; divisor
+010D   36 06                  PSHU   d
+010F   EC 42        USLASH:   LDD   2,u
+0111   AE 44                  LDX   4,u
+0113   AF 42                  STX   2,u
+0115   ED 44                  STD   4,u
+0117   68 43                  ASL   3,u   ; initial shift of L word
+0119   69 42                  ROL   2,u
+011B   8E 00 10               LDX   #$10
+011E   69 45        USL1:     ROL   5,u   ; shift H word
+0120   69 44                  ROL   4,u
+0122   EC 44                  LDD   4,u
+0124   A3 C4                  SUBD   ,u   ; does divisor fit?
+0126   1C FE                  ANDCC   #$FE   ; clc - clear carry flag
+0128   2B 04                  BMI   USL2
+012A   ED 44                  STD   4,u   ; fits -> quotient = 1
+012C   1A 01                  ORCC   #$01   ; sec - Set Carry flag
+012E   69 43        USL2:     ROL   3,u   ; L word/quotient
+0130   69 42                  ROL   2,u
+0132   30 1F                  LEAX   -1,x
+0134   26 E8                  BNE   USL1
+0136   33 42                  LEAU   2,u
+0138   AE C4                  LDX   ,u   ; quotient
+013A   EC 42                  LDD   2,u   ; remainder
 """
 
 """
@@ -60,8 +82,11 @@ for line in lst.strip().splitlines():
     else:
         hex_list += "#"
 
-    line = "            %-30s %s|%10s %-5s %-10s %s" % (
-        hex_list, address, lable, code1, code2, doc
+#    line = "            %-30s %s|%10s %-5s %-10s %s" % (
+#        hex_list, address, lable, code1, code2, doc
+#    )
+    line = "            %-30s %10s %-5s %-10s %s" % (
+        hex_list, lable, code1, code2, doc
     )
     print line.rstrip()
 

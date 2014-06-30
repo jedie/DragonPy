@@ -68,6 +68,48 @@ class Test6809_Program(BaseStackTestCase):
         crc16 = self._crc16("DragonPy works?!?")
         self.assertEqualHex(crc16, 0xA30D)
 
+    def test_division(self):
+        """
+        6809 32/16 divison, from Talbot System FIG Forth
+        2012-06-20 J.E. Klasek j+forth@klasek.at
+        code from: https://github.com/jedie/sbc09/blob/master/examples/uslash.asm
+        """
+#        self.cpu_test_run2(start=0x0100, count=999, mem=[
+        self.cpu_test_run(start=0x0100, end=None, mem=[
+            #                              0100|           .ORG  $100
+            #                              0100|                            ; sample parameters on stack ...
+            0xCC, 0x00, 0x00, #            0100|           LDD   #$0000     ; dividend low word
+            0x36, 0x06, #                  0103|           PSHU  d
+            0xCC, 0x58, 0x00, #            0105|           LDD   #$5800     ; dividend high word
+            0x36, 0x06, #                  0108|           PSHU  d
+            0xCC, 0x30, 0x00, #            010A|           LDD   #$3000     ; divisor
+            0x36, 0x06, #                  010D|           PSHU  d
+            0xEC, 0x42, #                  010F|   USLASH: LDD   2,u
+            0xAE, 0x44, #                  0111|           LDX   4,u
+            0xAF, 0x42, #                  0113|           STX   2,u
+            0xED, 0x44, #                  0115|           STD   4,u
+            0x68, 0x43, #                  0117|           ASL   3,u        ; initial shift of L word
+            0x69, 0x42, #                  0119|           ROL   2,u
+            0x8E, 0x00, 0x10, #            011B|           LDX   #$10
+            0x69, 0x45, #                  011E|     USL1: ROL   5,u        ; shift H word
+            0x69, 0x44, #                  0120|           ROL   4,u
+            0xEC, 0x44, #                  0122|           LDD   4,u
+            0xA3, 0xC4, #                  0124|           SUBD  ,u         ; does divisor fit?
+            0x1C, 0xFE, #                  0126|           ANDCC #$FE       ; clc - clear carry flag
+            0x2B, 0x04, #                  0128|           BMI   USL2
+            0xED, 0x44, #                  012A|           STD   4,u        ; fits -> quotient = 1
+            0x1A, 0x01, #                  012C|           ORCC  #$01       ; sec - Set Carry flag
+            0x69, 0x43, #                  012E|     USL2: ROL   3,u        ; L word/quotient
+            0x69, 0x42, #                  0130|           ROL   2,u
+            0x30, 0x1F, #                  0132|           LEAX  -1,x
+            0x26, 0xE8, #                  0134|           BNE   USL1
+            0x33, 0x42, #                  0136|           LEAU  2,u
+            0xAE, 0xC4, #                  0138|           LDX   ,u         ; quotient
+            0xEC, 0x42, #                  013A|           LDD   2,u        ; remainder
+        ])
+        raise RuntimeError("TODO")
+
+
 
 
 if __name__ == '__main__':
