@@ -507,6 +507,38 @@ loop:
                 self.assertEqual(self.cpu.cc.V, 1)
             else:
                 self.assertEqual(self.cpu.cc.V, 0)
+
+    def test_SBCA_immediate_01(self):
+        a = 0x80
+        self.cpu.cc.set(0x00) # CC:........
+        self.cpu.accu_a.set(a)
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0x82, 0x40, # SBC
+        ])
+        r = self.cpu.accu_a.get()
+        print "%02x > SBC > %02x | CC:%s" % (
+            a, r, self.cpu.cc.get_info
+        )
+        self.assertEqualHex(r, 0x80 - 0x40 - 0x00)
+        self.assertEqual(self.cpu.cc.get_info, "......V.")
+
+    def test_SBCA_immediate_02(self):
+        a = 0x40
+        self.cpu.cc.set(0xff) # CC:EFHINZVC
+        self.cpu.accu_a.set(a)
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0x82, 0x20, # SBC
+        ])
+        r = self.cpu.accu_a.get()
+        print "%02x > SBC > %02x | CC:%s" % (
+            a, r, self.cpu.cc.get_info
+        )
+        self.assertEqualHex(r, 0x40 - 0x20 - 0x01)
+        # half-carry is undefined
+        self.assertEqual(self.cpu.cc.get_info, "EFHI....")
+
+
+
 if __name__ == '__main__':
     log.setLevel(
 #         1
