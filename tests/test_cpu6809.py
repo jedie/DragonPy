@@ -609,6 +609,33 @@ class Test6809_Stack(BaseStackTestCase):
         ])
         self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
 
+    def test_PushPullUserStack_01(self):
+        self.assertEqualHex(
+            self.cpu.user_stack_pointer.get(),
+            self.INITIAL_USER_STACK_ADDR
+        )
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0xcc, 0x12, 0x34, # LDD D=$1234
+            0x36, 0x06, # PSHU B,A
+            0xcc, 0xab, 0xcd, # LDD D=$abcd
+            0x36, 0x06, # PSHU B,A
+            0xcc, 0x54, 0x32, # LDD D=$5432
+        ])
+        self.assertEqualHex(self.cpu.accu_d.get(), 0x5432)
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x37, 0x06, # PULU B,A
+        ])
+        self.assertEqualHex(self.cpu.accu_d.get(), 0xabcd)
+        self.assertEqualHex(self.cpu.accu_a.get(), 0xab)
+        self.assertEqualHex(self.cpu.accu_b.get(), 0xcd)
+
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x37, 0x06, # PULU B,A
+        ])
+        self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
+
 
 class Test6809_Code(BaseTestCase):
     """
