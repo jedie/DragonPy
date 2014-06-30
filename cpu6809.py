@@ -666,9 +666,13 @@ class CPU(object):
 
             if mnemonic in DEBUG_INSTR:
                 pc = self.program_counter
-                log.debug(
-                    "\t new PC: %x -> $%x\t| %s",
-                    op_address, pc, self.cfg.mem_info.get_shortest(pc)
+                log.warn(
+                    "debug instruction $%02x %s:\n"
+                    "\tOp Addr: %s\n"
+                    "\tpc.....: %s",
+                    op_address, mnemonic,
+                    self.cfg.mem_info.get_shortest(op_address),
+                    self.cfg.mem_info.get_shortest(pc),
                 )
 
             log.debug("-"*79)
