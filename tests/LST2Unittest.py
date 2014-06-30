@@ -4,35 +4,41 @@
 # copy&paste .lst content from e.g.: http://www.asm80.com/
 lst = """
 0100                          .ORG   $100
-0100                          ; sample parameters on stack ...
-0100   CC 00 00               LDD   #$0000   ; dividend low word
-0103   36 06                  PSHU   d
-0105   CC 58 00               LDD   #$5800   ; dividend high word
-0108   36 06                  PSHU   d
-010A   CC 30 00               LDD   #$3000   ; divisor
-010D   36 06                  PSHU   d
-010F   EC 42        USLASH:   LDD   2,u
-0111   AE 44                  LDX   4,u
-0113   AF 42                  STX   2,u
-0115   ED 44                  STD   4,u
-0117   68 43                  ASL   3,u   ; initial shift of L word
-0119   69 42                  ROL   2,u
-011B   8E 00 10               LDX   #$10
-011E   69 45        USL1:     ROL   5,u   ; shift H word
-0120   69 44                  ROL   4,u
-0122   EC 44                  LDD   4,u
-0124   A3 C4                  SUBD   ,u   ; does divisor fit?
-0126   1C FE                  ANDCC   #$FE   ; clc - clear carry flag
-0128   2B 04                  BMI   USL2
-012A   ED 44                  STD   4,u   ; fits -> quotient = 1
-012C   1A 01                  ORCC   #$01   ; sec - Set Carry flag
-012E   69 43        USL2:     ROL   3,u   ; L word/quotient
-0130   69 42                  ROL   2,u
-0132   30 1F                  LEAX   -1,x
-0134   26 E8                  BNE   USL1
-0136   33 42                  LEAU   2,u
-0138   AE C4                  LDX   ,u   ; quotient
-013A   EC 42                  LDD   2,u   ; remainder
+0100                CRCHH:    EQU   $ED
+0100                CRCHL:    EQU   $B8
+0100                CRCLH:    EQU   $83
+0100                CRCLL:    EQU   $20
+0100                CRCINITH:   EQU   $FFFF
+0100                CRCINITL:   EQU   $FFFF
+0100                BL:
+0100   E8 C0                  EORB   ,u+   ; XOR with lowest byte
+0102   10 8E 00 08            LDY   #8   ; bit counter
+0106                RL:
+0106   1E 01                  EXG   d,x
+0108                RL1:
+0108   44                     LSRA   ; shift CRC right, beginning with high word
+0109   56                     RORB
+010A   1E 01                  EXG   d,x
+010C   46                     RORA   ; low word
+010D   56                     RORB
+010E   24 12                  BCC   cl
+0110                          ; CRC=CRC XOR polynomic
+0110   88 83                  EORA   #CRCLH   ; apply CRC polynomic low word
+0112   C8 20                  EORB   #CRCLL
+0114   1E 01                  EXG   d,x
+0116   88 ED                  EORA   #CRCHH   ; apply CRC polynomic high word
+0118   C8 B8                  EORB   #CRCHL
+011A   31 3F                  LEAY   -1,y   ; bit count down
+011C   26 EA                  BNE   rl1
+011E   1E 01                  EXG   d,x   ; CRC: restore correct order
+0120   27 04                  BEQ   el   ; leave bit loop
+0122                CL:
+0122   31 3F                  LEAY   -1,y   ; bit count down
+0124   26 E0                  BNE   rl   ; bit loop
+0126                EL:
+0126   11 A3 E4               CMPU   ,s   ; end address reached?
+0129   26 D5                  BNE   bl   ; byte loop
+
 """
 
 """
@@ -82,12 +88,12 @@ for line in lst.strip().splitlines():
     else:
         hex_list += "#"
 
-#    line = "            %-30s %s|%10s %-5s %-10s %s" % (
-#        hex_list, address, lable, code1, code2, doc
-#    )
-    line = "            %-30s %10s %-5s %-10s %s" % (
-        hex_list, lable, code1, code2, doc
+    line = "            %-30s %s|%10s %-5s %-10s %s" % (
+        hex_list, address, lable, code1, code2, doc
     )
+#     line = "            %-30s %10s %-5s %-10s %s" % (
+#         hex_list, lable, code1, code2, doc
+#     )
     print line.rstrip()
 
 print "        ])"

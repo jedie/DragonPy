@@ -69,6 +69,90 @@ class Test6809_Program(BaseStackTestCase):
         crc16 = self._crc16("DragonPy works?!?")
         self.assertEqualHex(crc16, 0xA30D)
 
+    def _crc32(self, data):
+        """
+        origin code by Johann E. Klasek, j AT klasek at
+
+    ; Calculate a ZIP 32-bit CRC from data in memory. This code is as
+    ; tight and nearly as fast as it can be, moving as much code out of inner
+    ; loops as possible. With the included optimisation, moving the whole
+    ; CRC in registers, the performane gain on average data is only slight
+    ; (estimated 2% but at losing clarity of implementation;
+    ; worst case gain is 18%, best case worsens at 29%)
+    ;
+    ; On entry, crc..crc+3  = incoming CRC
+    ;           reg. U      = start address of data
+    ;           reg. X      = number of bytes
+    ; On exit,  crc..crc+3  = updated CRC
+    ;           reg. U      = points to first byte behind data
+    ;           reg. X      = 0
+    ;        reg. Y      = 0
+    ;
+    ; Value order in memory is H,L (big endian)
+    ;
+    ; Multiple passes over data in memory can be made to update the CRC.
+    ; For ZIP, initial CRC must be $FFFFFFFF, and the final CRC must
+    ; be EORed with $FFFFFFFF before being stored in the ZIP file.
+    ; Total 47 bytes (if above parameters are located in direct page).
+    ;
+    ; ZIP polynomic, reflected (bit reversed) from $04C11DB7
+        """
+        data_address = 0x1000
+        print "data:", ",".join([i for i in data])
+        self.cpu.memory.load(data_address, data)
+        self.cpu.user_stack_pointer.set(data_address)
+        self.cpu.index_x.set(len(data) + 1)
+        self.cpu.accu_d.set(0xffff)
+
+        self.cpu_test_run2(start=0x0100, count=2000, mem=[
+#         self.cpu_test_run(start=0x0100, end=None, mem=[
+            #                              0100|           .ORG  $100
+            #                              0100|    CRCHH: EQU   $ED
+            #                              0100|    CRCHL: EQU   $B8
+            #                              0100|    CRCLH: EQU   $83
+            #                              0100|    CRCLL: EQU   $20
+            #                              0100| CRCINITH: EQU   $FFFF
+            #                              0100| CRCINITL: EQU   $FFFF
+            #                              0100|       BL:
+            0xE8, 0xC0, #                  0100|           EORB  ,u+        ; XOR with lowest byte
+            0x10, 0x8E, 0x00, 0x08, #      0102|           LDY   #8         ; bit counter
+            #                              0106|       RL:
+            0x1E, 0x01, #                  0106|           EXG   d,x
+            #                              0108|      RL1:
+
+# FIXME: check this loop:
+            0x44, #                        0108|           LSRA             ; shift CRC right, beginning with high word
+            0x56, #                        0109|           RORB
+            0x1E, 0x01, #                  010A|           EXG   d,x
+            0x46, #                        010C|           RORA             ; low word
+            0x56, #                        010D|           RORB
+            0x24, 0x12, #                  010E|           BCC   cl
+# to this ^^^
+            #                              0110|                            ; CRC=CRC XOR polynomic
+            0x88, 0x83, #                  0110|           EORA  #CRCLH     ; apply CRC polynomic low word
+            0xC8, 0x20, #                  0112|           EORB  #CRCLL
+            0x1E, 0x01, #                  0114|           EXG   d,x
+            0x88, 0xED, #                  0116|           EORA  #CRCHH     ; apply CRC polynomic high word
+            0xC8, 0xB8, #                  0118|           EORB  #CRCHL
+            0x31, 0x3F, #                  011A|           LEAY  -1,y       ; bit count down
+            0x26, 0xEA, #                  011C|           BNE   rl1
+            0x1E, 0x01, #                  011E|           EXG   d,x        ; CRC: restore correct order
+            0x27, 0x04, #                  0120|           BEQ   el         ; leave bit loop
+            #                              0122|       CL:
+            0x31, 0x3F, #                  0122|           LEAY  -1,y       ; bit count down
+            0x26, 0xE0, #                  0124|           BNE   rl         ; bit loop
+            #                              0126|       EL:
+            0x11, 0xA3, 0xE4, #            0126|           CMPU  ,s         ; end address reached?
+            0x26, 0xD5, #                  0129|           BNE   bl         ; byte loop
+        ])
+        crc32 = self.cpu.accu_d.get()
+        return crc32
+
+    def test_crc32_01(self):
+        crc32 = self._crc32("Z")
+        raise RuntimeError("FIXME")
+        self.assertEqualHex(crc32, 0xfffffff)
+
     def _division(self, dividend, divisor):
         assert isinstance(dividend, int)
         assert isinstance(divisor, int)
@@ -148,6 +232,7 @@ class Test6809_Program(BaseStackTestCase):
         test(0xffffff, 0x8000)
         test(0xfffffff, 0x8000)
         test(1, 0x8000)
+
 #         test(1, 0x8001) # Error: '1/32769=65534 remainder: 3' != '1/32769=0 remainder: 1'
 #         test(1, 0x9000) # Error: '10/65535=65533 remainder: 7' != '10/65535=0 remainder: 10'
 #         test(10, 0xffff) # Error: '10/65535=65533 remainder: 7' != '10/65535=0 remainder: 10'
@@ -158,11 +243,11 @@ class Test6809_Program(BaseStackTestCase):
 if __name__ == '__main__':
     log.setLevel(
 #         1
-#        10 # DEBUG
+        10 # DEBUG
 #         20 # INFO
 #         30 # WARNING
 #         40 # ERROR
-        50 # CRITICAL/FATAL
+#         50 # CRITICAL/FATAL
     )
     log.addHandler(logging.StreamHandler())
 
@@ -172,7 +257,8 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-#            "Test6809_Program.test_crc16",
+#            "Test6809_Program.test_crc16_01",
+            "Test6809_Program.test_crc32_01",
 #             "Test6809_Program.test_division",
         ),
         testRunner=TextTestRunner2,
