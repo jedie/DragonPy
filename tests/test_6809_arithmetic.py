@@ -146,47 +146,6 @@ class Test6809_Arithmetic(BaseTestCase):
             else:
                 self.assertEqual(self.cpu.cc.V, 0)
 
-    def test_DECA(self):
-        for a in xrange(256):
-            self.cpu.cc.set(0x00)
-            self.cpu.accu_a.set(a)
-            self.cpu_test_run(start=0x1000, end=None, mem=[
-                0x4a, # DECA
-            ])
-            r = self.cpu.accu_a.get()
-#             print "%03s - a=%02x r=%02x -> %s" % (
-#                 a, a, r, self.cpu.cc.get_info
-#             )
-#             continue
-
-            excpected_value = a - 1 & 0xff
-
-            # test result
-            self.assertEqual(r, excpected_value)
-
-            # test half carry and carry is uneffected!
-            self.assertEqual(self.cpu.cc.H, 0)
-            self.assertEqual(self.cpu.cc.C, 0)
-
-            # test negative:
-            if r >= 0x80:
-                self.assertEqual(self.cpu.cc.N, 1)
-            else:
-                self.assertEqual(self.cpu.cc.N, 0)
-
-            # test zero
-            if r == 0:
-                self.assertEqual(self.cpu.cc.Z, 1)
-            else:
-                self.assertEqual(self.cpu.cc.Z, 0)
-
-            # test overflow
-            if a == 0x80:
-                self.assertEqual(self.cpu.cc.V, 1)
-            else:
-                self.assertEqual(self.cpu.cc.V, 0)
-
-
     def test_NEGA(self):
         """
         Example assembler code to test NEGA
@@ -466,7 +425,7 @@ loop:
             else:
                 self.assertEqual(self.cpu.cc.C, 0)
 
-    def test_DEC(self):
+    def test_DEC_extended(self):
         # expected values are: 254 down to 0 than wrap around to 255 and down to 252
         excpected_values = range(254, -1, -1)
         excpected_values += range(255, 250, -1)
@@ -509,6 +468,45 @@ loop:
             # carry bit is not affected in DEC
             self.assertEqual(self.cpu.cc.C, 0)
 
+    def test_DECA(self):
+        for a in xrange(256):
+            self.cpu.cc.set(0x00)
+            self.cpu.accu_a.set(a)
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x4a, # DECA
+            ])
+            r = self.cpu.accu_a.get()
+#            print "%03s - %02x > DEC > %02x | CC:%s" % (
+#                a, a, r, self.cpu.cc.get_info
+#            )
+#             continue
+
+            excpected_value = a - 1 & 0xff
+
+            # test result
+            self.assertEqual(r, excpected_value)
+
+            # test half carry and carry is uneffected!
+            self.assertEqual(self.cpu.cc.H, 0)
+            self.assertEqual(self.cpu.cc.C, 0)
+
+            # test negative:
+            if r >= 0x80:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if r == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow
+            if a == 0x80:
+                self.assertEqual(self.cpu.cc.V, 1)
+            else:
+                self.assertEqual(self.cpu.cc.V, 0)
 if __name__ == '__main__':
     log.setLevel(
 #         1
