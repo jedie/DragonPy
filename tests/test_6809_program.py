@@ -139,26 +139,21 @@ class Test6809_Program(BaseStackTestCase):
         self.assertEqual(hex1, hex2)
 
     def test_crc32_01(self):
-        self._test_crc32("F") # $4dbd0b28
+        self._test_crc32("a09") # $3617c6fe
 
     def test_crc32_02(self):
         self._test_crc32("DragonPy test!") # $570e3666
 
-    # following tests works too but takes some time to run:
-#    def test_crc32_03(self):
-#        self._test_crc32("DragonPy Integration testing...") # $728b1186
-#    def test_crc32_04(self):
-#        self._test_crc32("An Arbitrary String") # $6fbeaae7
-#    def test_crc32_05(self):
-#        self._test_crc32("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789") # $749f0b1a
+    def test_crc32_03(self):
+        self._test_crc32("ZYXWVUTSRQPONMLKJIHGFEDBCA") # $99cdfdb2
 
-    def test_crc32_06(self): # FIXME: This failed:
-        self._test_crc32("ZYXWVUTSRQPONMLKJIHGFEDBCA")
-        """
-        result:
-            python..: $99cdfdb2
-            crc32...: $-6632024e
-        """
+    # following tests works too but takes some time to run:
+#    def test_crc32_04(self):
+#        self._test_crc32("DragonPy Integration testing...") # $728b1186
+#    def test_crc32_05(self):
+#        self._test_crc32("An Arbitrary String") # $6fbeaae7
+#    def test_crc32_06(self):
+#        self._test_crc32("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789") # $749f0b1a
 
     def _division(self, dividend, divisor):
         assert isinstance(dividend, int)
