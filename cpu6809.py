@@ -1225,21 +1225,6 @@ class CPU(object):
             register.name, a, m, r
         )
 
-    @opcode(# AND condition code register
-        0x1c, # ANDCC (immediate)
-    )
-    def instruction_ANDCC(self, opcode, m, register):
-        """
-        Performs a logical AND between the condition code register and the
-        immediate byte specified in the instruction and places the result in the
-        condition code register.
-
-        source code forms: ANDCC #xx
-
-        CC bits "HNZVC": ddddd
-        """
-        register.logical_and(m)
-
     def ASR(self, a):
         """
         Shifts all bits of the register one place to the right. Bit seven is held
@@ -1463,7 +1448,7 @@ class CPU(object):
 #        )
         # self.cc.update_NZ0()
 
-    @opcode(# Exchange Rl with R2
+    @opcode(# Exchange R1 with R2
         0x1e, # EXG (immediate)
     )
     def instruction_EXG(self, opcode, m):
@@ -1762,29 +1747,6 @@ class CPU(object):
 #         log.debug("$%04x OR %s: %02x | %02x = %02x",
 #             self.program_counter, register.name, a, m, r
 #         )
-
-    @opcode(# OR condition code register
-        0x1a, # ORCC (immediate)
-    )
-    def instruction_ORCC(self, opcode, m, register):
-        """
-        Performs an inclusive OR operation between the contents of the condition
-        code registers and the immediate value, and the result is placed in the
-        condition code register. This instruction may be used to set interrupt
-        masks (disable interrupts) or any other bit(s).
-
-        source code forms: ORCC #XX
-
-        CC bits "HNZVC": ddddd
-        """
-#         old_cc_info = self.cc.get_info
-        cc = old_cc = register.get()
-        cc |= m
-        register.set(cc)
-#        log.debug("\tORCC: $%x |= $%x ; set CC to $%x (from %r to %r)",
-#            old_cc, m, cc, old_cc_info, self.cc.get_info
-#        )
-
 
 
     @opcode(# Push A, B, CC, DP, D, X, Y, U, or PC onto stack
@@ -2158,6 +2120,54 @@ class CPU(object):
 
         # TODO: Update CC bits: ccccc ?
 
+
+    # ---- CC manipulation ----
+
+
+    @opcode(# AND condition code register
+        0x1c, # ANDCC (immediate)
+    )
+    def instruction_ANDCC(self, opcode, m, register):
+        """
+        Performs a logical AND between the condition code register and the
+        immediate byte specified in the instruction and places the result in the
+        condition code register.
+
+        source code forms: ANDCC #xx
+
+        CC bits "HNZVC": ddddd
+        """
+        assert register == self.cc
+
+        old_cc = self.cc.get()
+        new_cc = old_cc & m
+        self.cc.set(new_cc)
+        log.debug("\tANDCC: $%x AND $%x = $%x | set CC to %s",
+            old_cc, m, new_cc, self.cc.get_info
+        )
+
+    @opcode(# OR condition code register
+        0x1a, # ORCC (immediate)
+    )
+    def instruction_ORCC(self, opcode, m, register):
+        """
+        Performs an inclusive OR operation between the contents of the condition
+        code registers and the immediate value, and the result is placed in the
+        condition code register. This instruction may be used to set interrupt
+        masks (disable interrupts) or any other bit(s).
+
+        source code forms: ORCC #XX
+
+        CC bits "HNZVC": ddddd
+        """
+        assert register == self.cc
+
+        old_cc = self.cc.get()
+        new_cc = old_cc | m
+        self.cc.set(new_cc)
+        log.debug("\tORCC: $%x OR $%x = $%x | set CC to %s",
+            old_cc, m, new_cc, self.cc.get_info
+        )
 
     # ---- Test Instructions ----
 

@@ -134,15 +134,6 @@ class ConditionCodeRegister(object):
             self.F << 6 | \
             self.E << 7
 
-    def logical_and(self, value):
-        old_status = self.get_info
-        status = self.get()
-        status &= value
-        self.set(status)
-#        log.debug("\tlogical AND CC & $%x: %s -> %s",
-#            value, old_status, self.get_info
-#        )
-
     @property
     def get_info(self):
         return cc_value2txt(self.get())
