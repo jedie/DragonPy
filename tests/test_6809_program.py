@@ -12,10 +12,11 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+from decimal import Decimal
+import binascii
 import logging
 import sys
 import unittest
-from decimal import Decimal
 
 from tests.test_base import TextTestRunner2, BaseStackTestCase
 
@@ -28,17 +29,10 @@ class Test6809_Program(BaseStackTestCase):
         """
         origin code by Johann E. Klasek, j AT klasek at
         """
-        # On entry, reg. D   = incoming CRC
-        #           reg. U   = start address of data
-        #           reg. X   = number of bytes
-        # On exit,  reg. D   = updated CRC
-        #           reg. U   = points to first byte behind data
-        #           reg. X   = 0
-        #        reg. Y   = 0
-        data_address = 0x1000
-        self.cpu.memory.load(data_address, data)
-        self.cpu.user_stack_pointer.set(data_address)
-        self.cpu.index_x.set(len(data))
+        data_address = 0x1000 # position of the test data
+        self.cpu.memory.load(data_address, data) # write test data into RAM
+        self.cpu.user_stack_pointer.set(data_address) # start address of data
+        self.cpu.index_x.set(len(data)) # number of bytes
 
         self.cpu_test_run(start=0x0100, end=None, mem=[
             #                                         .ORG  $100
@@ -71,87 +65,100 @@ class Test6809_Program(BaseStackTestCase):
 
     def _crc32(self, data):
         """
-        origin code by Johann E. Klasek, j AT klasek at
-
-    ; Calculate a ZIP 32-bit CRC from data in memory. This code is as
-    ; tight and nearly as fast as it can be, moving as much code out of inner
-    ; loops as possible. With the included optimisation, moving the whole
-    ; CRC in registers, the performane gain on average data is only slight
-    ; (estimated 2% but at losing clarity of implementation;
-    ; worst case gain is 18%, best case worsens at 29%)
-    ;
-    ; On entry, crc..crc+3  = incoming CRC
-    ;           reg. U      = start address of data
-    ;           reg. X      = number of bytes
-    ; On exit,  crc..crc+3  = updated CRC
-    ;           reg. U      = points to first byte behind data
-    ;           reg. X      = 0
-    ;        reg. Y      = 0
-    ;
-    ; Value order in memory is H,L (big endian)
-    ;
-    ; Multiple passes over data in memory can be made to update the CRC.
-    ; For ZIP, initial CRC must be $FFFFFFFF, and the final CRC must
-    ; be EORed with $FFFFFFFF before being stored in the ZIP file.
-    ; Total 47 bytes (if above parameters are located in direct page).
-    ;
-    ; ZIP polynomic, reflected (bit reversed) from $04C11DB7
+        Calculate a ZIP 32-bit CRC from data in memory.
+        Origin code by Johann E. Klasek, j AT klasek at
         """
-        data_address = 0x1000
-        print "data:", ",".join([i for i in data])
-        self.cpu.memory.load(data_address, data)
-        self.cpu.user_stack_pointer.set(data_address)
-        self.cpu.index_x.set(len(data) + 1)
-        self.cpu.accu_d.set(0xffff)
+        data_address = 0x1000 # position of the test data
+        self.cpu.memory.load(data_address, data)  # write test data into RAM
+        self.cpu.index_x.set(data_address + len(data)) # end address
+        addr_hi, addr_lo = divmod(data_address, 0x100) # start address
 
-        self.cpu_test_run2(start=0x0100, count=2000, mem=[
-#         self.cpu_test_run(start=0x0100, end=None, mem=[
+        self.cpu_test_run(start=0x0100, end=None, mem=[
             #                              0100|           .ORG  $100
-            #                              0100|    CRCHH: EQU   $ED
-            #                              0100|    CRCHL: EQU   $B8
-            #                              0100|    CRCLH: EQU   $83
-            #                              0100|    CRCLL: EQU   $20
-            #                              0100| CRCINITH: EQU   $FFFF
-            #                              0100| CRCINITL: EQU   $FFFF
-            #                              0100|       BL:
-            0xE8, 0xC0, #                  0100|           EORB  ,u+        ; XOR with lowest byte
-            0x10, 0x8E, 0x00, 0x08, #      0102|           LDY   #8         ; bit counter
-            #                              0106|       RL:
-            0x1E, 0x01, #                  0106|           EXG   d,x
-            #                              0108|      RL1:
-
-# FIXME: check this loop:
-            0x44, #                        0108|           LSRA             ; shift CRC right, beginning with high word
-            0x56, #                        0109|           RORB
-            0x1E, 0x01, #                  010A|           EXG   d,x
-            0x46, #                        010C|           RORA             ; low word
-            0x56, #                        010D|           RORB
-            0x24, 0x12, #                  010E|           BCC   cl
-# to this ^^^
-            #                              0110|                            ; CRC=CRC XOR polynomic
-            0x88, 0x83, #                  0110|           EORA  #CRCLH     ; apply CRC polynomic low word
-            0xC8, 0x20, #                  0112|           EORB  #CRCLL
-            0x1E, 0x01, #                  0114|           EXG   d,x
-            0x88, 0xED, #                  0116|           EORA  #CRCHH     ; apply CRC polynomic high word
-            0xC8, 0xB8, #                  0118|           EORB  #CRCHL
-            0x31, 0x3F, #                  011A|           LEAY  -1,y       ; bit count down
-            0x26, 0xEA, #                  011C|           BNE   rl1
-            0x1E, 0x01, #                  011E|           EXG   d,x        ; CRC: restore correct order
-            0x27, 0x04, #                  0120|           BEQ   el         ; leave bit loop
-            #                              0122|       CL:
-            0x31, 0x3F, #                  0122|           LEAY  -1,y       ; bit count down
-            0x26, 0xE0, #                  0124|           BNE   rl         ; bit loop
-            #                              0126|       EL:
-            0x11, 0xA3, 0xE4, #            0126|           CMPU  ,s         ; end address reached?
-            0x26, 0xD5, #                  0129|           BNE   bl         ; byte loop
+            0x10, 0xCE, 0x40, 0x00, #      0100|           LDS   #$4000
+            #                              0104|    CRCHH: EQU   $ED
+            #                              0104|    CRCHL: EQU   $B8
+            #                              0104|    CRCLH: EQU   $83
+            #                              0104|    CRCLL: EQU   $20
+            #                              0104| CRCINITH: EQU   $FFFF
+            #                              0104| CRCINITL: EQU   $FFFF
+            #                              0104|                            ; CRC 32 bit in DP (4 bytes)
+            #                              0104|      CRC: EQU   $80
+            0xCE, addr_hi, addr_lo, #      0104|           LDU   #....      ; start address in u
+            0x34, 0x10, #                  010C|           PSHS  x          ; end address +1 to TOS
+            0xCC, 0xFF, 0xFF, #            010E|           LDD   #CRCINITL
+            0xDD, 0x82, #                  0111|           STD   crc+2
+            0x8E, 0xFF, 0xFF, #            0113|           LDX   #CRCINITH
+            0x9F, 0x80, #                  0116|           STX   crc
+            #                              0118|                            ; d/x contains the CRC
+            #                              0118|       BL:
+            0xE8, 0xC0, #                  0118|           EORB  ,u+        ; XOR with lowest byte
+            0x10, 0x8E, 0x00, 0x08, #      011A|           LDY   #8         ; bit counter
+            #                              011E|       RL:
+            0x1E, 0x01, #                  011E|           EXG   d,x
+            #                              0120|      RL1:
+            0x44, #                        0120|           LSRA             ; shift CRC right, beginning with high word
+            0x56, #                        0121|           RORB
+            0x1E, 0x01, #                  0122|           EXG   d,x
+            0x46, #                        0124|           RORA             ; low word
+            0x56, #                        0125|           RORB
+            0x24, 0x12, #                  0126|           BCC   cl
+            #                              0128|                            ; CRC=CRC XOR polynomic
+            0x88, 0x83, #                  0128|           EORA  #CRCLH     ; apply CRC polynomic low word
+            0xC8, 0x20, #                  012A|           EORB  #CRCLL
+            0x1E, 0x01, #                  012C|           EXG   d,x
+            0x88, 0xED, #                  012E|           EORA  #CRCHH     ; apply CRC polynomic high word
+            0xC8, 0xB8, #                  0130|           EORB  #CRCHL
+            0x31, 0x3F, #                  0132|           LEAY  -1,y       ; bit count down
+            0x26, 0xEA, #                  0134|           BNE   rl1
+            0x1E, 0x01, #                  0136|           EXG   d,x        ; CRC: restore correct order
+            0x27, 0x04, #                  0138|           BEQ   el         ; leave bit loop
+            #                              013A|       CL:
+            0x31, 0x3F, #                  013A|           LEAY  -1,y       ; bit count down
+            0x26, 0xE0, #                  013C|           BNE   rl         ; bit loop
+            #                              013E|       EL:
+            0x11, 0xA3, 0xE4, #            013E|           CMPU  ,s         ; end address reached?
+            0x26, 0xD5, #                  0141|           BNE   bl         ; byte loop
+            0xDD, 0x82, #                  0143|           STD   crc+2      ; CRC low word
+            0x9F, 0x80, #                  0145|           STX   crc        ; CRC high word
         ])
-        crc32 = self.cpu.accu_d.get()
-        return crc32
+        d = self.cpu.accu_d.get()
+        x = self.cpu.index_x.get()
+        crc32 = x * 0x10000 + d
+        return crc32 ^ 0xFFFFFFFF
+
+    def _test_crc32(self, txt):
+        crc32 = self._crc32(txt)
+        excpected_crc32 = binascii.crc32(txt)
+        hex1 = "$%08x" % crc32
+        hex2 = "$%08x" % excpected_crc32
+#        print
+#        print "Test String: %s" % repr(txt)
+#        print "\tpython..:", hex1
+#        print "\tcrc32...:", hex2
+        self.assertEqual(hex1, hex2)
 
     def test_crc32_01(self):
-        crc32 = self._crc32("Z")
-        raise RuntimeError("FIXME")
-        self.assertEqualHex(crc32, 0xfffffff)
+        self._test_crc32("F") # $4dbd0b28
+
+    def test_crc32_02(self):
+        self._test_crc32("DragonPy test!") # $570e3666
+
+    # following tests works too but takes some time to run:
+#    def test_crc32_03(self):
+#        self._test_crc32("DragonPy Integration testing...") # $728b1186
+#    def test_crc32_04(self):
+#        self._test_crc32("An Arbitrary String") # $6fbeaae7
+#    def test_crc32_05(self):
+#        self._test_crc32("ABCDEFGHIJKLMNOPQRSTUVWXYZ abcdefghijklmnopqrstuvwxyz 0123456789") # $749f0b1a
+
+    def test_crc32_06(self): # FIXME: This failed:
+        self._test_crc32("ZYXWVUTSRQPONMLKJIHGFEDBCA")
+        """
+        result:
+            python..: $99cdfdb2
+            crc32...: $-6632024e
+        """
 
     def _division(self, dividend, divisor):
         assert isinstance(dividend, int)
@@ -242,12 +249,12 @@ class Test6809_Program(BaseStackTestCase):
 
 if __name__ == '__main__':
     log.setLevel(
-#         1
-        10 # DEBUG
+#        1
+#        10 # DEBUG
 #         20 # INFO
 #         30 # WARNING
 #         40 # ERROR
-#         50 # CRITICAL/FATAL
+        50 # CRITICAL/FATAL
     )
     log.addHandler(logging.StreamHandler())
 
@@ -258,7 +265,7 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #            "Test6809_Program.test_crc16_01",
-            "Test6809_Program.test_crc32_01",
+#            "Test6809_Program.test_crc32_01",
 #             "Test6809_Program.test_division",
         ),
         testRunner=TextTestRunner2,
