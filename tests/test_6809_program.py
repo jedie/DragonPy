@@ -129,7 +129,7 @@ class Test6809_Program(BaseStackTestCase):
 
     def _test_crc32(self, txt):
         crc32 = self._crc32(txt)
-        excpected_crc32 = binascii.crc32(txt)
+        excpected_crc32 = binascii.crc32(txt) & 0xffffffff
         hex1 = "$%08x" % crc32
         hex2 = "$%08x" % excpected_crc32
 #        print
