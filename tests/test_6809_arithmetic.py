@@ -10,12 +10,8 @@
 import logging
 import sys
 import unittest
-import itertools
 
-from cpu6809 import CPU
-from Dragon32.config import Dragon32Cfg
-from Dragon32.mem_info import DragonMemInfo
-from tests.test_base import TextTestRunner2, BaseTestCase, UnittestCmdArgs
+from tests.test_base import TextTestRunner2, BaseTestCase
 
 
 log = logging.getLogger("DragonPy")
@@ -536,6 +532,36 @@ loop:
         self.assertEqualHex(r, 0x40 - 0x20 - 0x01)
         # half-carry is undefined
         self.assertEqual(self.cpu.cc.get_info, "EFHI....")
+
+    def test_ORCC(self):
+        steps = 32
+        for a in xrange(0, 256, steps):
+            for b in xrange(0, 256, steps):
+                self.cpu.cc.set(a)
+                self.cpu_test_run(start=0x1000, end=None, mem=[
+                    0x1a, b # ORCC $a
+                ])
+                r = self.cpu.cc.get()
+                expected_value = a | b
+#                print "%02x OR %02x = %02x | CC:%s" % (
+#                    a, b, r, self.cpu.cc.get_info
+#                )
+                self.assertEqualHex(r, expected_value)
+
+    def test_ANDCC(self):
+        steps = 32
+        for a in xrange(0, 256, steps):
+            for b in xrange(0, 256, steps):
+                self.cpu.cc.set(a)
+                self.cpu_test_run(start=0x1000, end=None, mem=[
+                    0x1c, b # ANDCC $a
+                ])
+                r = self.cpu.cc.get()
+                expected_value = a & b
+#                print "%02x AND %02x = %02x | CC:%s" % (
+#                    a, b, r, self.cpu.cc.get_info
+#                )
+                self.assertEqualHex(r, expected_value)
 
 
 
