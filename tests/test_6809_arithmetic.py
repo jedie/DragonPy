@@ -516,9 +516,9 @@ loop:
             0x82, 0x40, # SBC
         ])
         r = self.cpu.accu_a.get()
-        print "%02x > SBC > %02x | CC:%s" % (
-            a, r, self.cpu.cc.get_info
-        )
+#        print "%02x > SBC > %02x | CC:%s" % (
+#            a, r, self.cpu.cc.get_info
+#        )
         self.assertEqualHex(r, 0x80 - 0x40 - 0x00)
         self.assertEqual(self.cpu.cc.get_info, "......V.")
 
@@ -530,9 +530,9 @@ loop:
             0x82, 0x20, # SBC
         ])
         r = self.cpu.accu_a.get()
-        print "%02x > SBC > %02x | CC:%s" % (
-            a, r, self.cpu.cc.get_info
-        )
+#        print "%02x > SBC > %02x | CC:%s" % (
+#            a, r, self.cpu.cc.get_info
+#        )
         self.assertEqualHex(r, 0x40 - 0x20 - 0x01)
         # half-carry is undefined
         self.assertEqual(self.cpu.cc.get_info, "EFHI....")
