@@ -2,6 +2,11 @@
 # encoding:utf-8
 
 """
+    6809 unittests
+    ~~~~~~~~~~~~~~
+
+    Test shift / rotate
+
     :created: 2013-2014 by Jens Diemer - www.jensdiemer.de
     :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
@@ -10,21 +15,22 @@
 import logging
 import sys
 import unittest
-import itertools
 
-from cpu6809 import CPU
-from Dragon32.config import Dragon32Cfg
-from Dragon32.mem_info import DragonMemInfo
-from tests.test_base import TextTestRunner2, BaseTestCase, UnittestCmdArgs
+from tests.test_base import TextTestRunner2, BaseTestCase
 
 
 log = logging.getLogger("DragonPy")
 
 
-class Test6809_ArithmeticShift(BaseTestCase):
-    def test_ASRA_inherent(self):
+class Test6809_LogicalShift(BaseTestCase):
+    """
+    unittests for:
+        * LSL (Logical Shift Left) alias ASL (Arithmetic Shift Left)
+        * LSR (Logical Shift Right) alias ASR (Arithmetic Shift Right)
+    """
+    def test_LSRA_inherent(self):
         """
-        Example assembler code to test ASRA
+        Example assembler code to test LSRA/ASRA
 
         CLRB        ; B is always 0
         TFR B,U     ; clear U
@@ -73,7 +79,7 @@ loop:
             source_bit0 = 0 if i & 2 ** 0 == 0 else 1
             self.assertEqual(self.cpu.cc.C, source_bit0)
 
-    def test_ASLA_inherent(self):
+    def test_LSLA_inherent(self):
         for i in xrange(260):
             self.cpu.accu_a.set(i)
             self.cpu.cc.set(0x00) # Clear all CC flags
@@ -115,6 +121,13 @@ loop:
                 self.assertEqual(self.cpu.cc.C, 1)
             else:
                 self.assertEqual(self.cpu.cc.C, 0)
+
+class Test6809_Rotate(BaseTestCase):
+    """
+    unittests for:
+        * ROL (Rotate Left) alias
+        * ROR (Rotate Right) alias
+    """
 
     def assertROL(self, src, dst, source_carry):
             src_bit_str = '{0:08b}'.format(src)
@@ -181,6 +194,67 @@ loop:
             # test half carry is uneffected!
             self.assertEqual(self.cpu.cc.H, 1)
 
+    def assertROR(self, src, dst, source_carry):
+            src_bit_str = '{0:08b}'.format(src)
+            dst_bit_str = '{0:08b}'.format(dst)
+#            print "%02x %s > RORA > %02x %s -> %s" % (
+#                src, src_bit_str,
+#                dst, dst_bit_str,
+#                self.cpu.cc.get_info
+#            )
+
+            # Carry was cleared and moved into bit 0
+            excpeted_bits = "%s%s" % (source_carry, src_bit_str[:-1])
+            self.assertEqual(dst_bit_str, excpeted_bits)
+
+            # test negative
+            if dst >= 0x80:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if dst == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test carry
+            source_bit0 = 0 if src & 2 ** 0 == 0 else 1
+            if source_bit0: # if bit 0 was set
+                self.assertEqual(self.cpu.cc.C, 1)
+            else:
+                self.assertEqual(self.cpu.cc.C, 0)
+
+    def test_RORA_with_clear_carry(self):
+        for a in xrange(0x100):
+            self.cpu.cc.set(0x00) # clear all CC flags
+            a = self.cpu.accu_a.set(a)
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0x46, # RORA
+            ])
+            r = self.cpu.accu_a.get()
+            self.assertROR(a, r, source_carry=0)
+
+            # test half carry and overflow, they are uneffected!
+            self.assertEqual(self.cpu.cc.H, 0)
+            self.assertEqual(self.cpu.cc.V, 0)
+
+    def test_RORA_with_set_carry(self):
+        for a in xrange(0x100):
+            self.cpu.cc.set(0xff) # set all CC flags
+            a = self.cpu.accu_a.set(a)
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0x46, # RORA
+            ])
+            r = self.cpu.accu_a.get()
+            self.assertROR(a, r, source_carry=1)
+
+            # test half carry and overflow, they are uneffected!
+            self.assertEqual(self.cpu.cc.H, 1)
+            self.assertEqual(self.cpu.cc.V, 1)
+
+
 if __name__ == '__main__':
     log.setLevel(
 #         1
@@ -198,7 +272,7 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-#             "Test6809_ArithmeticShift.test_LSL",
+#            "Test6809_Rotate",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,

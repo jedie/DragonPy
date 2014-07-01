@@ -2141,87 +2141,6 @@ class CPU(object):
         self.cc.Z = 0
         self.cc.set_Z16(ea)
 
-    def LSL(self, a):
-        """
-        Shifts all bits of accumulator A or B or memory location M one place to
-        the left. Bit zero is loaded with a zero. Bit seven of accumulator A or
-        B or memory location M is shifted into the C (carry) bit.
-
-        This is a duplicate assembly-language mnemonic for the single machine
-        instruction ASL.
-
-        source code forms: LSL Q; LSLA; LSLB
-
-        CC bits "HNZVC": naaas
-        """
-        r = a << 1
-        self.cc.clear_NZVC()
-        self.cc.update_NZVC_8(a, a, r)
-        return r # XXX: & 0xff
-
-    @opcode(0x8, 0x68, 0x78) # LSL/ASL (direct, indexed, extended)
-    def instruction_LSL_memory(self, opcode, ea, m):
-        """
-        Logical shift left memory location / Arithmetic shift of memory left
-        """
-        r = self.LSL(m)
-#        log.debug("$%x LSL memory value $%x << 1 = $%x and write it to $%x \t| %s" % (
-#            self.program_counter,
-#            m, r, ea,
-#            self.cfg.mem_info.get_shortest(ea)
-#        ))
-        return ea, r & 0xff
-
-    @opcode(0x48, 0x58) # LSLA/ASLA / LSLB/ASLB (inherent)
-    def instruction_LSL_register(self, opcode, register):
-        """
-        Logical shift left accumulator / Arithmetic shift of accumulator
-        """
-        a = register.get()
-        r = self.LSL(a)
-#        log.debug("$%x LSL %s value $%x << 1 = $%x" % (
-#            self.program_counter,
-#            register.name, a, r
-#        ))
-        register.set(r)
-
-    def LSR(self, a):
-        """
-        Performs a logical shift right on the register. Shifts a zero into bit
-        seven and bit zero into the C (carry) bit.
-
-        source code forms: LSR Q; LSRA; LSRB
-
-        CC bits "HNZVC": -0a-s
-        """
-        r = a >> 1
-        self.cc.clear_NZC()
-        self.cc.C |= (a & 1) # XXX: ok?
-        self.cc.set_Z8(r)
-        return r # XXX: & 0xff
-
-    @opcode(0x4, 0x64, 0x74) # LSR (direct, indexed, extended)
-    def instruction_LSR_memory(self, opcode, ea, m):
-        """ Logical shift right memory location """
-        r = self.LSR(m)
-#        log.debug("$%x LSR memory value $%x >> 1 = $%x and write it to $%x \t| %s" % (
-#            self.program_counter,
-#            m, r, ea,
-#            self.cfg.mem_info.get_shortest(ea)
-#        ))
-        return ea, r & 0xff
-
-    @opcode(0x44, 0x54) # LSRA / LSRB (inherent)
-    def instruction_LSR_register(self, opcode, register):
-        """ Logical shift right accumulator """
-        a = register.get()
-        r = self.LSR(a)
-#        log.debug("$%x LSR %s value $%x >> 1 = $%x" % (
-#            self.program_counter,
-#            register.name, a, r
-#        ))
-        register.set(r)
-
     @opcode(# Unsigned multiply (A * B ? D)
         0x3d, # MUL (inherent)
     )
@@ -2484,87 +2403,6 @@ class CPU(object):
         raise NotImplementedError("$%x RESET" % opcode)
         # Update CC bits: *****
 
-    def ROL(self, a):
-        """
-        Rotates all bits of the register one place left through the C (carry)
-        bit. This is a 9-bit rotation.
-
-        source code forms: ROL Q; ROLA; ROLB
-
-        CC bits "HNZVC": -aaas
-
-        static uint8_t op_rol(struct MC6809 *cpu, uint8_t in) {
-            unsigned out = (in << 1) | (REG_CC & 1);
-            CLR_NZVC;
-            SET_NZVC8(in, in, out);
-            return out;
-        }
-
-        case 0x9: tmp1 = op_rol(cpu, tmp1); break; // ROL, ROLA, ROLB
-        """
-        r = (a << 1) | self.cc.C
-        self.cc.clear_NZVC()
-        self.cc.update_NZVC_8(a, a, r)
-        return r
-
-    @opcode(0x9, 0x69, 0x79) # ROL (direct, indexed, extended)
-    def instruction_ROL_memory(self, opcode, ea, m):
-        """ Rotate memory left """
-        r = self.ROL(m)
-#        log.debug("$%x ROL memory value $%x << 1 | Carry = $%x and write it to $%x \t| %s" % (
-#            self.program_counter,
-#            m, r, ea,
-#            self.cfg.mem_info.get_shortest(ea)
-#        ))
-        return ea, r & 0xff
-
-    @opcode(0x49, 0x59) # ROLA / ROLB (inherent)
-    def instruction_ROL_register(self, opcode, register):
-        """ Rotate accumulator left """
-        a = register.get()
-        r = self.ROL(a)
-#        log.debug("$%x ROL %s value $%x << 1 | Carry = $%x" % (
-#            self.program_counter,
-#            register.name, a, r
-#        ))
-        register.set(r)
-
-    def ROR(self, a):
-        """
-        Rotates all bits of the register one place right through the C (carry)
-        bit. This is a 9-bit rotation.
-
-        source code forms: ROR Q; RORA; RORB
-
-        CC bits "HNZVC": -aa-s
-        """
-        r = (a >> 1) | self.cc.C
-        self.cc.clear_NZC()
-        self.cc.update_NZ_8(r)
-        return r # XXX: & 0xff
-
-    @opcode(0x6, 0x66, 0x76) # ROR (direct, indexed, extended)
-    def instruction_ROR_memory(self, opcode, ea, m):
-        """ Rotate memory right """
-        r = self.ROR(m)
-#        log.debug("$%x ROR memory value $%x >> 1 | Carry = $%x and write it to $%x \t| %s" % (
-#            self.program_counter,
-#            m, r, ea,
-#            self.cfg.mem_info.get_shortest(ea)
-#        ))
-        return ea, r & 0xff
-
-    @opcode(0x46, 0x56) # RORA/RORB (inherent)
-    def instruction_ROR_register(self, opcode, register):
-        """ Rotate accumulator right """
-        a = register.get()
-        r = self.ROR(a)
-#        log.debug("$%x ROR %s value $%x >> 1 | Carry = $%x" % (
-#            self.program_counter,
-#            register.name, a, r
-#        ))
-        register.set(r)
-
     @opcode(# Return from interrupt
         0x3b, # RTI (inherent)
     )
@@ -2594,11 +2432,11 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         ea = self.pull_word(self._system_stack_pointer)
-#        log.info("%x|\tRTS to $%x \t| %s" % (
-#            self.last_op_address,
-#            ea,
-#            self.cfg.mem_info.get_shortest(ea)
-#        ))
+        log.info("%x|\tRTS to $%x \t| %s" % (
+            self.last_op_address,
+            ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
         self.program_counter = ea
 
     @opcode(# Subtract memory from accumulator with borrow
@@ -2867,6 +2705,180 @@ class CPU(object):
 #         ))
         self.cc.clear_NZV()
         self.cc.update_NZ_8(m)
+
+
+    # ---- Logical shift: LSL, LSR ----
+
+
+    def LSL(self, a):
+        """
+        Shifts all bits of accumulator A or B or memory location M one place to
+        the left. Bit zero is loaded with a zero. Bit seven of accumulator A or
+        B or memory location M is shifted into the C (carry) bit.
+
+        This is a duplicate assembly-language mnemonic for the single machine
+        instruction ASL.
+
+        source code forms: LSL Q; LSLA; LSLB
+
+        CC bits "HNZVC": naaas
+        """
+        r = a << 1
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_8(a, a, r)
+        return r # XXX: & 0xff
+
+    @opcode(0x8, 0x68, 0x78) # LSL/ASL (direct, indexed, extended)
+    def instruction_LSL_memory(self, opcode, ea, m):
+        """
+        Logical shift left memory location / Arithmetic shift of memory left
+        """
+        r = self.LSL(m)
+        log.debug("$%x LSL memory value $%x << 1 = $%x and write it to $%x \t| %s" % (
+            self.program_counter,
+            m, r, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        return ea, r & 0xff
+
+    @opcode(0x48, 0x58) # LSLA/ASLA / LSLB/ASLB (inherent)
+    def instruction_LSL_register(self, opcode, register):
+        """
+        Logical shift left accumulator / Arithmetic shift of accumulator
+        """
+        a = register.get()
+        r = self.LSL(a)
+        log.debug("$%x LSL %s value $%x << 1 = $%x" % (
+            self.program_counter,
+            register.name, a, r
+        ))
+        register.set(r)
+
+    def LSR(self, a):
+        """
+        Performs a logical shift right on the register. Shifts a zero into bit
+        seven and bit zero into the C (carry) bit.
+
+        source code forms: LSR Q; LSRA; LSRB
+
+        CC bits "HNZVC": -0a-s
+        """
+        r = a >> 1
+        self.cc.clear_NZC()
+        self.cc.C |= (a & 1) # XXX: ok?
+        self.cc.set_Z8(r)
+        return r # XXX: & 0xff
+
+    @opcode(0x4, 0x64, 0x74) # LSR (direct, indexed, extended)
+    def instruction_LSR_memory(self, opcode, ea, m):
+        """ Logical shift right memory location """
+        r = self.LSR(m)
+        log.debug("$%x LSR memory value $%x >> 1 = $%x and write it to $%x \t| %s" % (
+            self.program_counter,
+            m, r, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        return ea, r & 0xff
+
+    @opcode(0x44, 0x54) # LSRA / LSRB (inherent)
+    def instruction_LSR_register(self, opcode, register):
+        """ Logical shift right accumulator """
+        a = register.get()
+        r = self.LSR(a)
+        log.debug("$%x LSR %s value $%x >> 1 = $%x" % (
+            self.program_counter,
+            register.name, a, r
+        ))
+        register.set(r)
+
+
+    # ---- Rotate: ROL, ROR ----
+
+
+    def ROL(self, a):
+        """
+        Rotates all bits of the register one place left through the C (carry)
+        bit. This is a 9-bit rotation.
+
+        source code forms: ROL Q; ROLA; ROLB
+
+        CC bits "HNZVC": -aaas
+
+        static uint8_t op_rol(struct MC6809 *cpu, uint8_t in) {
+            unsigned out = (in << 1) | (REG_CC & 1);
+            CLR_NZVC;
+            SET_NZVC8(in, in, out);
+            return out;
+        }
+
+        case 0x9: tmp1 = op_rol(cpu, tmp1); break; // ROL, ROLA, ROLB
+        """
+        r = (a << 1) | self.cc.C
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_8(a, a, r)
+        return r
+
+    @opcode(0x9, 0x69, 0x79) # ROL (direct, indexed, extended)
+    def instruction_ROL_memory(self, opcode, ea, m):
+        """ Rotate memory left """
+        r = self.ROL(m)
+        log.debug("$%x ROL memory value $%x << 1 | Carry = $%x and write it to $%x \t| %s" % (
+            self.program_counter,
+            m, r, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        return ea, r & 0xff
+
+    @opcode(0x49, 0x59) # ROLA / ROLB (inherent)
+    def instruction_ROL_register(self, opcode, register):
+        """ Rotate accumulator left """
+        a = register.get()
+        r = self.ROL(a)
+        log.debug("$%x ROL %s value $%x << 1 | Carry = $%x" % (
+            self.program_counter,
+            register.name, a, r
+        ))
+        register.set(r)
+
+    def ROR(self, a):
+        """
+        Rotates all bits of the register one place right through the C (carry)
+        bit. This is a 9-bit rotation.
+
+        moved the carry flag into bit 8
+        moved bit 7 into carry flag
+
+        source code forms: ROR Q; RORA; RORB
+
+        CC bits "HNZVC": -aa-s
+        """
+        r = (a >> 1) | (self.cc.C << 7)
+        self.cc.clear_NZ()
+        self.cc.update_NZ_8(r)
+        self.cc.C = a & 1
+        return r # XXX: & 0xff
+
+    @opcode(0x6, 0x66, 0x76) # ROR (direct, indexed, extended)
+    def instruction_ROR_memory(self, opcode, ea, m):
+        """ Rotate memory right """
+        r = self.ROR(m)
+        log.debug("$%x ROR memory value $%x >> 1 | Carry = $%x and write it to $%x \t| %s" % (
+            self.program_counter,
+            m, r, ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        return ea, r & 0xff
+
+    @opcode(0x46, 0x56) # RORA/RORB (inherent)
+    def instruction_ROR_register(self, opcode, register):
+        """ Rotate accumulator right """
+        a = register.get()
+        r = self.ROR(a)
+        log.debug("$%x ROR %s value $%x >> 1 | Carry = $%x" % (
+            self.program_counter,
+            register.name, a, r
+        ))
+        register.set(r)
 
 
 def test_run():
