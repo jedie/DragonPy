@@ -1277,404 +1277,6 @@ class CPU(object):
 #        ))
         register.set(r)
 
-    @opcode(# Branch if equal
-        0x27, # BEQ (relative)
-        0x1027, # LBEQ (relative)
-    )
-    def instruction_BEQ(self, opcode, ea):
-        """
-        Tests the state of the Z (zero) bit and causes a branch if it is set.
-        When used after a subtract or compare operation, this instruction will
-        branch if the compared values, signed or unsigned, were exactly the
-        same.
-
-        source code forms: BEQ dd; LBEQ DDDD
-
-        CC bits "HNZVC": -----
-        """
-        if self.cc.Z == 1:
-#            log.debug("$%x BEQ branch to $%x, because Z==1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-            self.program_counter = ea
-#         else:
-#            log.debug("$%x BEQ: don't branch to $%x, because Z==0 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-
-    @opcode(# Branch if greater than or equal (signed)
-        0x2c, # BGE (relative)
-        0x102c, # LBGE (relative)
-    )
-    def instruction_BGE(self, opcode, ea):
-        """
-        Causes a branch if the N (negative) bit and the V (overflow) bit are
-        either both set or both clear. That is, branch if the sign of a valid
-        twos complement result is, or would be, positive. When used after a
-        subtract or compare operation on twos complement values, this
-        instruction will branch if the register was greater than or equal to the
-        memory register.
-
-        source code forms: BGE dd; LBGE DDDD
-
-        CC bits "HNZVC": -----
-        """
-        # Note these variantes are the same:
-        #    self.cc.N == self.cc.V
-        #    (self.cc.N ^ self.cc.V) == 0
-        #    not operator.xor(self.cc.N, self.cc.V)
-        if self.cc.N == self.cc.V:
-#             log.debug("$%x BGE branch to $%x, because N XOR V == 0 \t| %s" % (
-#                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#             ))
-            self.program_counter = ea
-#         else:
-#             log.debug("$%x BGE: don't branch to $%x, because N XOR V != 0 \t| %s" % (
-#                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#             ))
-
-    @opcode(# Branch if greater (signed)
-        0x2e, # BGT (relative)
-        0x102e, # LBGT (relative)
-    )
-    def instruction_BGT(self, opcode, ea):
-        """
-        Causes a branch if the N (negative) bit and V (overflow) bit are either
-        both set or both clear and the Z (zero) bit is clear. In other words,
-        branch if the sign of a valid twos complement result is, or would be,
-        positive and not zero. When used after a subtract or compare operation
-        on twos complement values, this instruction will branch if the register
-        was greater than the memory register.
-
-        source code forms: BGT dd; LBGT DDDD
-
-        CC bits "HNZVC": -----
-        """
-        # Note these variantes are the same:
-        #    not ((self.cc.N ^ self.cc.V) == 1 or self.cc.Z == 1)
-        #    not ((self.cc.N ^ self.cc.V) | self.cc.Z)
-        #    self.cc.N == self.cc.V and self.cc.Z == 0
-        # ;)
-        if not self.cc.Z and self.cc.N == self.cc.V:
-#            log.debug("$%x BGT branch to $%x, because (N==V and Z==0) \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-            self.program_counter = ea
-#         else:
-#            log.debug("$%x BGT: don't branch to $%x, because (N==V and Z==0) is False \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-
-    @opcode(# Branch if higher (unsigned)
-        0x22, # BHI (relative)
-        0x1022, # LBHI (relative)
-    )
-    def instruction_BHI(self, opcode, ea):
-        """
-        Causes a branch if the previous operation caused neither a carry nor a
-        zero result. When used after a subtract or compare operation on unsigned
-        binary values, this instruction will branch if the register was higher
-        than the memory register.
-
-        Generally not useful after INC/DEC, LD/TST, and TST/CLR/COM
-        instructions.
-
-        source code forms: BHI dd; LBHI DDDD
-
-        CC bits "HNZVC": -----
-        """
-        if self.cc.C == 0 and self.cc.Z == 0:
-#            log.debug("$%x BHI branch to $%x, because C==0 and Z==0 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-            self.program_counter = ea
-#         else:
-#            log.debug("$%x BHI: don't branch to $%x, because C and Z not 0 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-
-    @opcode(# Bit test memory with accumulator
-        0x85, 0x95, 0xa5, 0xb5, # BITA (immediate, direct, indexed, extended)
-        0xc5, 0xd5, 0xe5, 0xf5, # BITB (immediate, direct, indexed, extended)
-    )
-    def instruction_BIT(self, opcode, m, register):
-        """
-        Performs the logical AND of the contents of accumulator A or B and the
-        contents of memory location M and modifies the condition codes
-        accordingly. The contents of accumulator A or B and memory location M
-        are not affected.
-
-        source code forms: BITA P; BITB P
-
-        CC bits "HNZVC": -aa0-
-        """
-        x = register.get()
-        r = m & x
-#        log.debug("$%x BIT update CC with $%x (m:%i & %s:%i)" % (
-#            self.program_counter,
-#            r, m, register.name, x
-#        ))
-        self.cc.clear_NZV()
-        self.cc.update_NZ_8(r)
-
-    @opcode(# Branch if less than or equal (signed)
-        0x2f, # BLE (relative)
-        0x102f, # LBLE (relative)
-    )
-    def instruction_BLE(self, opcode, ea):
-        """
-        Causes a branch if the exclusive OR of the N (negative) and V (overflow)
-        bits is 1 or if the Z (zero) bit is set. That is, branch if the sign of
-        a valid twos complement result is, or would be, negative. When used
-        after a subtract or compare operation on twos complement values, this
-        instruction will branch if the register was less than or equal to the
-        memory register.
-
-        source code forms: BLE dd; LBLE DDDD
-
-        CC bits "HNZVC": -----
-        """
-        if (self.cc.N ^ self.cc.V) == 1 or self.cc.Z == 1:
-#            log.debug("$%x BLE branch to $%x, because N^V==1 or Z==1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-            self.program_counter = ea
-#         else:
-#            log.debug("$%x BLE: don't branch to $%x, because N^V!=1 and Z!=1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-
-    @opcode(# Branch if lower or same (unsigned)
-        0x23, # BLS (relative)
-        0x1023, # LBLS (relative)
-    )
-    def instruction_BLS(self, opcode, ea):
-        """
-        Causes a branch if the previous operation caused either a carry or a
-        zero result. When used after a subtract or compare operation on unsigned
-        binary values, this instruction will branch if the register was lower
-        than or the same as the memory register.
-
-        Generally not useful after INC/DEC, LD/ST, and TST/CLR/COM instructions.
-
-        source code forms: BLS dd; LBLS DDDD
-
-        CC bits "HNZVC": -----
-        """
-#         if (self.cc.C|self.cc.Z) == 0:
-        if self.cc.C == 1 or self.cc.Z == 1:
-#            log.debug("$%x BLS branch to $%x, because C|Z==1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-            self.program_counter = ea
-#         else:
-#            log.debug("$%x BLS: don't branch to $%x, because C|Z!=1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-
-    @opcode(# Branch if less than (signed)
-        0x2d, # BLT (relative)
-        0x102d, # LBLT (relative)
-    )
-    def instruction_BLT(self, opcode, ea):
-        """
-        Causes a branch if either, but not both, of the N (negative) or V
-        (overflow) bits is set. That is, branch if the sign of a valid twos
-        complement result is, or would be, negative. When used after a subtract
-        or compare operation on twos complement binary values, this instruction
-        will branch if the register was less than the memory register.
-
-        source code forms: BLT dd; LBLT DDDD
-
-        CC bits "HNZVC": -----
-        """
-        if (self.cc.N ^ self.cc.V) == 1: # N xor V
-#            log.debug("$%x BLT branch to $%x, because N XOR V == 1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-            self.program_counter = ea
-#         else:
-#            log.debug("$%x BLT: don't branch to $%x, because N XOR V != 1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-
-    @opcode(# Branch if minus
-        0x2b, # BMI (relative)
-        0x102b, # LBMI (relative)
-    )
-    def instruction_BMI(self, opcode, ea):
-        """
-        Tests the state of the N (negative) bit and causes a branch if set. That
-        is, branch if the sign of the twos complement result is negative.
-
-        When used after an operation on signed binary values, this instruction
-        will branch if the result is minus. It is generally preferred to use the
-        LBLT instruction after signed operations.
-
-        source code forms: BMI dd; LBMI DDDD
-
-        CC bits "HNZVC": -----
-        """
-        if self.cc.N == 1:
-#            log.debug("$%x BMI branch to $%x, because N==1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-            self.program_counter = ea
-#         else:
-#            log.debug("$%x BMI: don't branch to $%x, because N==0 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-
-    @opcode(# Branch if not equal
-        0x26, # BNE (relative)
-        0x1026, # LBNE (relative)
-    )
-    def instruction_BNE(self, opcode, ea):
-        """
-        Tests the state of the Z (zero) bit and causes a branch if it is clear.
-        When used after a subtract or compare operation on any binary values,
-        this instruction will branch if the register is, or would be, not equal
-        to the memory register.
-
-        source code forms: BNE dd; LBNE DDDD
-
-        CC bits "HNZVC": -----
-        """
-        if self.cc.Z == 0:
-#            log.debug("$%x BNE branch to $%x, because Z==0 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-            self.program_counter = ea
-#         else:
-#            log.debug("$%x BNE: don't branch to $%x, because Z==1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-
-    @opcode(# Branch if plus
-        0x2a, # BPL (relative)
-        0x102a, # LBPL (relative)
-    )
-    def instruction_BPL(self, opcode, ea):
-        """
-        Tests the state of the N (negative) bit and causes a branch if it is
-        clear. That is, branch if the sign of the twos complement result is
-        positive.
-
-        When used after an operation on signed binary values, this instruction
-        will branch if the result (possibly invalid) is positive. It is
-        generally preferred to use the BGE instruction after signed operations.
-
-        source code forms: BPL dd; LBPL DDDD
-
-        CC bits "HNZVC": -----
-        """
-        if self.cc.N == 0:
-#            log.debug("$%x BPL branch to $%x, because N==0 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-            self.program_counter = ea
-#         else:
-#            log.debug("$%x BPL: don't branch to $%x, because N==1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-
-    @opcode(# Branch always
-        0x20, # BRA (relative)
-        0x16, # LBRA (relative)
-    )
-    def instruction_BRA(self, opcode, ea):
-        """
-        Causes an unconditional branch.
-
-        source code forms: BRA dd; LBRA DDDD
-
-        CC bits "HNZVC": -----
-        """
-        # FIXME: remove speedup Simple6809 RAM test
-#         if self.cfg.__class__.__name__ == "Simple6809Cfg":
-#             if self.program_counter == 0xdb79 and ea == 0xdb6a: # RAM size test loop
-# #                 msg = repr(["%x" % x for x in [self.program_counter, ea, m, self.index_x.get()]])
-# #                 raise RuntimeError(msg)
-#                 new_x = 0x7ffd
-#                 new_ea = 0xdb79
-#                 log.warn(
-#                     "Speedup Simple6809 RAM test: Set X to $%x and goto $%x" % (
-#                         new_x, new_ea
-#                 ))
-#                 self.index_x.set(new_x)
-#                 self.program_counter = new_ea
-#                 return
-
-#        log.debug("$%x BRA branch to $%x \t| %s" % (
-#            self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#        ))
-        self.program_counter = ea
-
-    @opcode(# Branch never
-        0x21, # BRN (relative)
-        0x1021, # LBRN (relative)
-    )
-    def instruction_BRN(self, opcode, ea):
-        """
-        Does not cause a branch. This instruction is essentially a no operation,
-        but has a bit pattern logically related to branch always.
-
-        source code forms: BRN dd; LBRN DDDD
-
-        CC bits "HNZVC": -----
-        """
-        pass
-
-    @opcode(# Branch if valid twos complement result
-        0x28, # BVC (relative)
-        0x1028, # LBVC (relative)
-    )
-    def instruction_BVC(self, opcode, ea):
-        """
-        Tests the state of the V (overflow) bit and causes a branch if it is
-        clear. That is, branch if the twos complement result was valid. When
-        used after an operation on twos complement binary values, this
-        instruction will branch if there was no overflow.
-
-        source code forms: BVC dd; LBVC DDDD
-
-        CC bits "HNZVC": -----
-        """
-        if self.cc.V == 0:
-#            log.debug("$%x BVC branch to $%x, because V==0 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-            self.program_counter = ea
-#         else:
-#            log.debug("$%x BVC: don't branch to $%x, because V==1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-
-    @opcode(# Branch if invalid twos complement result
-        0x29, # BVS (relative)
-        0x1029, # LBVS (relative)
-    )
-    def instruction_BVS(self, opcode, ea):
-        """
-        Tests the state of the V (overflow) bit and causes a branch if it is
-        set. That is, branch if the twos complement result was invalid. When
-        used after an operation on twos complement binary values, this
-        instruction will branch if there was an overflow.
-
-        source code forms: BVS dd; LBVS DDDD
-
-        CC bits "HNZVC": -----
-        """
-        if self.cc.V == 1:
-#            log.debug("$%x BVS branch to $%x, because V==1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-            self.program_counter = ea
-#         else:
-#            log.debug("$%x BVS: don't branch to $%x, because V==0 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-
     @opcode(0xf, 0x6f, 0x7f) # CLR (direct, indexed, extended)
     def instruction_CLR_memory(self, opcode, ea):
         """
@@ -1695,63 +1297,6 @@ class CPU(object):
         """
         register.set(0x00)
         self.cc.update_0100()
-
-    @opcode(# Compare memory from stack pointer
-        0x1083, 0x1093, 0x10a3, 0x10b3, # CMPD (immediate, direct, indexed, extended)
-        0x118c, 0x119c, 0x11ac, 0x11bc, # CMPS (immediate, direct, indexed, extended)
-        0x1183, 0x1193, 0x11a3, 0x11b3, # CMPU (immediate, direct, indexed, extended)
-        0x8c, 0x9c, 0xac, 0xbc, # CMPX (immediate, direct, indexed, extended)
-        0x108c, 0x109c, 0x10ac, 0x10bc, # CMPY (immediate, direct, indexed, extended)
-    )
-    def instruction_CMP16(self, opcode, m, register):
-        """
-        Compares the 16-bit contents of the concatenated memory locations M:M+1
-        to the contents of the specified register and sets the appropriate
-        condition codes. Neither the memory locations nor the specified register
-        is modified unless autoincrement or autodecrement are used. The carry
-        flag represents a borrow and is set to the inverse of the resulting
-        binary carry.
-
-        source code forms: CMPD P; CMPX P; CMPY P; CMPU P; CMPS P
-
-        CC bits "HNZVC": -aaaa
-        """
-        r = register.get()
-        r_new = r - m
-#         log.warn("$%x CMP16 %s $%x - $%x = $%x" % (
-#             self.program_counter,
-#             register.name,
-#             r, m, r_new,
-#         ))
-        self.cc.clear_NZVC()
-        self.cc.update_NZVC_16(r, m, r_new)
-
-    @opcode(# Compare memory from accumulator
-        0x81, 0x91, 0xa1, 0xb1, # CMPA (immediate, direct, indexed, extended)
-        0xc1, 0xd1, 0xe1, 0xf1, # CMPB (immediate, direct, indexed, extended)
-    )
-    def instruction_CMP8(self, opcode, m, register):
-        """
-        Compares the contents of memory location to the contents of the
-        specified register and sets the appropriate condition codes. Neither
-        memory location M nor the specified register is modified. The carry flag
-        represents a borrow and is set to the inverse of the resulting binary
-        carry.
-
-        source code forms: CMPA P; CMPB P
-
-        CC bits "HNZVC": uaaaa
-        """
-        r = register.get()
-        r_new = r - m
-#         log.warn("$%x CMP8 %s $%x - $%x = $%x" % (
-#             self.program_counter,
-#             register.name,
-#             r, m, r_new,
-#         ))
-        self.cc.clear_NZVC()
-        self.cc.update_NZVC_8(r, m, r_new)
-
 
     def COM(self, value):
         """
@@ -2012,31 +1557,7 @@ class CPU(object):
 #        ))
         self.program_counter = ea
 
-    @opcode(
-        # Branch to subroutine:
-        0x8d, # BSR (relative)
-        0x17, # LBSR (relative)
-        # Jump to subroutine:
-        0x9d, 0xad, 0xbd, # JSR (direct, indexed, extended)
-    )
-    def instruction_BSR_JSR(self, opcode, ea):
-        """
-        Program control is transferred to the effective address after storing
-        the return address on the hardware stack.
 
-        A return from subroutine (RTS) instruction is used to reverse this
-        process and must be the last instruction executed in a subroutine.
-
-        source code forms: BSR dd; LBSR DDDD; JSR EA
-
-        CC bits "HNZVC": -----
-        """
-#        log.info("%x|\tJSR/BSR to $%x \t| %s" % (
-#            self.last_op_address,
-#            ea, self.cfg.mem_info.get_shortest(ea)
-#        ))
-        self.push_word(self._system_stack_pointer, self.program_counter)
-        self.program_counter = ea
 
     @opcode(# Load register from memory
         0xcc, 0xdc, 0xec, 0xfc, # LDD (immediate, direct, indexed, extended)
@@ -2264,43 +1785,7 @@ class CPU(object):
 #            old_cc, m, cc, old_cc_info, self.cc.get_info
 #        )
 
-    @opcode(# Branch if lower (unsigned)
-        0x25, # BLO/BCS (relative)
-        0x1025, # LBLO/LBCS (relative)
-    )
-    def instruction_BLO(self, opcode, ea):
-        """
-        CC bits "HNZVC": -----
-        case 0x5: cond = REG_CC & CC_C; break; // BCS, BLO, LBCS, LBLO
-        """
-        if self.cc.C == 1:
-#            log.debug("$%x BLO/BCS/LBLO/LBCS branch to $%x, because C==1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-            self.program_counter = ea
-#         else:
-#            log.debug("$%x BLO/BCS/LBLO/LBCS: don't branch to $%x, because C==0 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
 
-    @opcode(# Branch if lower (unsigned)
-        0x24, # BHS/BCC (relative)
-        0x1024, # LBHS/LBCC (relative)
-    )
-    def instruction_BHS(self, opcode, ea):
-        """
-        CC bits "HNZVC": -----
-        case 0x4: cond = !(REG_CC & CC_C); break; // BCC, BHS, LBCC, LBHS
-        """
-        if self.cc.C == 0:
-#            log.debug("$%x BHS/BCC/LBHS/LBCC branch to $%x, because C==0 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
-            self.program_counter = ea
-#         else:
-#            log.debug("$%x BHS/BCC/LBHS/LBCC: don't branch to $%x, because C==1 \t| %s" % (
-#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-#            ))
 
     @opcode(# Push A, B, CC, DP, D, X, Y, U, or PC onto stack
         0x36, # PSHU (immediate)
@@ -2674,6 +2159,90 @@ class CPU(object):
         # TODO: Update CC bits: ccccc ?
 
 
+    # ---- Test Instructions ----
+
+
+    @opcode(# Compare memory from stack pointer
+        0x1083, 0x1093, 0x10a3, 0x10b3, # CMPD (immediate, direct, indexed, extended)
+        0x118c, 0x119c, 0x11ac, 0x11bc, # CMPS (immediate, direct, indexed, extended)
+        0x1183, 0x1193, 0x11a3, 0x11b3, # CMPU (immediate, direct, indexed, extended)
+        0x8c, 0x9c, 0xac, 0xbc, # CMPX (immediate, direct, indexed, extended)
+        0x108c, 0x109c, 0x10ac, 0x10bc, # CMPY (immediate, direct, indexed, extended)
+    )
+    def instruction_CMP16(self, opcode, m, register):
+        """
+        Compares the 16-bit contents of the concatenated memory locations M:M+1
+        to the contents of the specified register and sets the appropriate
+        condition codes. Neither the memory locations nor the specified register
+        is modified unless autoincrement or autodecrement are used. The carry
+        flag represents a borrow and is set to the inverse of the resulting
+        binary carry.
+
+        source code forms: CMPD P; CMPX P; CMPY P; CMPU P; CMPS P
+
+        CC bits "HNZVC": -aaaa
+        """
+        r = register.get()
+        r_new = r - m
+        log.warn("$%x CMP16 %s $%x - $%x = $%x" % (
+            self.program_counter,
+            register.name,
+            r, m, r_new,
+        ))
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_16(r, m, r_new)
+
+    @opcode(# Compare memory from accumulator
+        0x81, 0x91, 0xa1, 0xb1, # CMPA (immediate, direct, indexed, extended)
+        0xc1, 0xd1, 0xe1, 0xf1, # CMPB (immediate, direct, indexed, extended)
+    )
+    def instruction_CMP8(self, opcode, m, register):
+        """
+        Compares the contents of memory location to the contents of the
+        specified register and sets the appropriate condition codes. Neither
+        memory location M nor the specified register is modified. The carry flag
+        represents a borrow and is set to the inverse of the resulting binary
+        carry.
+
+        source code forms: CMPA P; CMPB P
+
+        CC bits "HNZVC": uaaaa
+        """
+        r = register.get()
+        r_new = r - m
+#         log.warn("$%x CMP8 %s $%x - $%x = $%x" % (
+#             self.program_counter,
+#             register.name,
+#             r, m, r_new,
+#         ))
+        self.cc.clear_NZVC()
+        self.cc.update_NZVC_8(r, m, r_new)
+
+
+    @opcode(# Bit test memory with accumulator
+        0x85, 0x95, 0xa5, 0xb5, # BITA (immediate, direct, indexed, extended)
+        0xc5, 0xd5, 0xe5, 0xf5, # BITB (immediate, direct, indexed, extended)
+    )
+    def instruction_BIT(self, opcode, m, register):
+        """
+        Performs the logical AND of the contents of accumulator A or B and the
+        contents of memory location M and modifies the condition codes
+        accordingly. The contents of accumulator A or B and memory location M
+        are not affected.
+
+        source code forms: BITA P; BITB P
+
+        CC bits "HNZVC": -aa0-
+        """
+        x = register.get()
+        r = m & x
+#        log.debug("$%x BIT update CC with $%x (m:%i & %s:%i)" % (
+#            self.program_counter,
+#            r, m, register.name, x
+#        ))
+        self.cc.clear_NZV()
+        self.cc.update_NZ_8(r)
+    
     @opcode(# Test accumulator
         0x4d, # TSTA (inherent)
         0x5d, # TSTB (inherent)
@@ -2705,6 +2274,446 @@ class CPU(object):
 #         ))
         self.cc.clear_NZV()
         self.cc.update_NZ_8(m)
+    
+    # ---- Branch Instructions ----
+
+    @opcode(# Branch if equal
+        0x27, # BEQ (relative)
+        0x1027, # LBEQ (relative)
+    )
+    def instruction_BEQ(self, opcode, ea):
+        """
+        Tests the state of the Z (zero) bit and causes a branch if it is set.
+        When used after a subtract or compare operation, this instruction will
+        branch if the compared values, signed or unsigned, were exactly the
+        same.
+
+        source code forms: BEQ dd; LBEQ DDDD
+
+        CC bits "HNZVC": -----
+        """
+        if self.cc.Z == 1:
+#            log.info("$%x BEQ branch to $%x, because Z==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+            self.program_counter = ea
+#        else:
+#            log.debug("$%x BEQ: don't branch to $%x, because Z==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+
+    @opcode(# Branch if greater than or equal (signed)
+        0x2c, # BGE (relative)
+        0x102c, # LBGE (relative)
+    )
+    def instruction_BGE(self, opcode, ea):
+        """
+        Causes a branch if the N (negative) bit and the V (overflow) bit are
+        either both set or both clear. That is, branch if the sign of a valid
+        twos complement result is, or would be, positive. When used after a
+        subtract or compare operation on twos complement values, this
+        instruction will branch if the register was greater than or equal to the
+        memory register.
+
+        source code forms: BGE dd; LBGE DDDD
+
+        CC bits "HNZVC": -----
+        """
+        # Note these variantes are the same:
+        #    self.cc.N == self.cc.V
+        #    (self.cc.N ^ self.cc.V) == 0
+        #    not operator.xor(self.cc.N, self.cc.V)
+        if self.cc.N == self.cc.V:
+#            log.info("$%x BGE branch to $%x, because N XOR V == 0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+            self.program_counter = ea
+#         else:
+#             log.debug("$%x BGE: don't branch to $%x, because N XOR V != 0 \t| %s" % (
+#                 self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#             ))
+
+    @opcode(# Branch if greater (signed)
+        0x2e, # BGT (relative)
+        0x102e, # LBGT (relative)
+    )
+    def instruction_BGT(self, opcode, ea):
+        """
+        Causes a branch if the N (negative) bit and V (overflow) bit are either
+        both set or both clear and the Z (zero) bit is clear. In other words,
+        branch if the sign of a valid twos complement result is, or would be,
+        positive and not zero. When used after a subtract or compare operation
+        on twos complement values, this instruction will branch if the register
+        was greater than the memory register.
+
+        source code forms: BGT dd; LBGT DDDD
+
+        CC bits "HNZVC": -----
+        """
+        # Note these variantes are the same:
+        #    not ((self.cc.N ^ self.cc.V) == 1 or self.cc.Z == 1)
+        #    not ((self.cc.N ^ self.cc.V) | self.cc.Z)
+        #    self.cc.N == self.cc.V and self.cc.Z == 0
+        # ;)
+        if not self.cc.Z and self.cc.N == self.cc.V:
+#            log.info("$%x BGT branch to $%x, because (N==V and Z==0) \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+            self.program_counter = ea
+#         else:
+#            log.debug("$%x BGT: don't branch to $%x, because (N==V and Z==0) is False \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+
+    @opcode(# Branch if higher (unsigned)
+        0x22, # BHI (relative)
+        0x1022, # LBHI (relative)
+    )
+    def instruction_BHI(self, opcode, ea):
+        """
+        Causes a branch if the previous operation caused neither a carry nor a
+        zero result. When used after a subtract or compare operation on unsigned
+        binary values, this instruction will branch if the register was higher
+        than the memory register.
+
+        Generally not useful after INC/DEC, LD/TST, and TST/CLR/COM
+        instructions.
+
+        source code forms: BHI dd; LBHI DDDD
+
+        CC bits "HNZVC": -----
+        """
+        if self.cc.C == 0 and self.cc.Z == 0:
+#            log.info("$%x BHI branch to $%x, because C==0 and Z==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+            self.program_counter = ea
+#         else:
+#            log.debug("$%x BHI: don't branch to $%x, because C and Z not 0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+
+    @opcode(# Branch if less than or equal (signed)
+        0x2f, # BLE (relative)
+        0x102f, # LBLE (relative)
+    )
+    def instruction_BLE(self, opcode, ea):
+        """
+        Causes a branch if the exclusive OR of the N (negative) and V (overflow)
+        bits is 1 or if the Z (zero) bit is set. That is, branch if the sign of
+        a valid twos complement result is, or would be, negative. When used
+        after a subtract or compare operation on twos complement values, this
+        instruction will branch if the register was less than or equal to the
+        memory register.
+
+        source code forms: BLE dd; LBLE DDDD
+
+        CC bits "HNZVC": -----
+        """
+        if (self.cc.N ^ self.cc.V) == 1 or self.cc.Z == 1:
+#            log.info("$%x BLE branch to $%x, because N^V==1 or Z==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+            self.program_counter = ea
+#         else:
+#            log.debug("$%x BLE: don't branch to $%x, because N^V!=1 and Z!=1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+
+    @opcode(# Branch if lower or same (unsigned)
+        0x23, # BLS (relative)
+        0x1023, # LBLS (relative)
+    )
+    def instruction_BLS(self, opcode, ea):
+        """
+        Causes a branch if the previous operation caused either a carry or a
+        zero result. When used after a subtract or compare operation on unsigned
+        binary values, this instruction will branch if the register was lower
+        than or the same as the memory register.
+
+        Generally not useful after INC/DEC, LD/ST, and TST/CLR/COM instructions.
+
+        source code forms: BLS dd; LBLS DDDD
+
+        CC bits "HNZVC": -----
+        """
+#         if (self.cc.C|self.cc.Z) == 0:
+        if self.cc.C == 1 or self.cc.Z == 1:
+            log.info("$%x BLS branch to $%x, because C|Z==1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+#         else:
+#            log.debug("$%x BLS: don't branch to $%x, because C|Z!=1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+
+    @opcode(# Branch if less than (signed)
+        0x2d, # BLT (relative)
+        0x102d, # LBLT (relative)
+    )
+    def instruction_BLT(self, opcode, ea):
+        """
+        Causes a branch if either, but not both, of the N (negative) or V
+        (overflow) bits is set. That is, branch if the sign of a valid twos
+        complement result is, or would be, negative. When used after a subtract
+        or compare operation on twos complement binary values, this instruction
+        will branch if the register was less than the memory register.
+
+        source code forms: BLT dd; LBLT DDDD
+
+        CC bits "HNZVC": -----
+        """
+        if (self.cc.N ^ self.cc.V) == 1: # N xor V
+            log.info("$%x BLT branch to $%x, because N XOR V == 1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+#         else:
+#            log.debug("$%x BLT: don't branch to $%x, because N XOR V != 1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+
+    @opcode(# Branch if minus
+        0x2b, # BMI (relative)
+        0x102b, # LBMI (relative)
+    )
+    def instruction_BMI(self, opcode, ea):
+        """
+        Tests the state of the N (negative) bit and causes a branch if set. That
+        is, branch if the sign of the twos complement result is negative.
+
+        When used after an operation on signed binary values, this instruction
+        will branch if the result is minus. It is generally preferred to use the
+        LBLT instruction after signed operations.
+
+        source code forms: BMI dd; LBMI DDDD
+
+        CC bits "HNZVC": -----
+        """
+        if self.cc.N == 1:
+            log.info("$%x BMI branch to $%x, because N==1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+#         else:
+#            log.debug("$%x BMI: don't branch to $%x, because N==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+
+    @opcode(# Branch if not equal
+        0x26, # BNE (relative)
+        0x1026, # LBNE (relative)
+    )
+    def instruction_BNE(self, opcode, ea):
+        """
+        Tests the state of the Z (zero) bit and causes a branch if it is clear.
+        When used after a subtract or compare operation on any binary values,
+        this instruction will branch if the register is, or would be, not equal
+        to the memory register.
+
+        source code forms: BNE dd; LBNE DDDD
+
+        CC bits "HNZVC": -----
+        """
+        if self.cc.Z == 0:
+            log.info("$%x BNE branch to $%x, because Z==0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BNE: don't branch to $%x, because Z==1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+
+    @opcode(# Branch if plus
+        0x2a, # BPL (relative)
+        0x102a, # LBPL (relative)
+    )
+    def instruction_BPL(self, opcode, ea):
+        """
+        Tests the state of the N (negative) bit and causes a branch if it is
+        clear. That is, branch if the sign of the twos complement result is
+        positive.
+
+        When used after an operation on signed binary values, this instruction
+        will branch if the result (possibly invalid) is positive. It is
+        generally preferred to use the BGE instruction after signed operations.
+
+        source code forms: BPL dd; LBPL DDDD
+
+        CC bits "HNZVC": -----
+        """
+        if self.cc.N == 0:
+            log.info("$%x BPL branch to $%x, because N==0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+#         else:
+#            log.debug("$%x BPL: don't branch to $%x, because N==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+
+    @opcode(# Branch always
+        0x20, # BRA (relative)
+        0x16, # LBRA (relative)
+    )
+    def instruction_BRA(self, opcode, ea):
+        """
+        Causes an unconditional branch.
+
+        source code forms: BRA dd; LBRA DDDD
+
+        CC bits "HNZVC": -----
+        """
+        # FIXME: remove speedup Simple6809 RAM test
+#         if self.cfg.__class__.__name__ == "Simple6809Cfg":
+#             if self.program_counter == 0xdb79 and ea == 0xdb6a: # RAM size test loop
+# #                 msg = repr(["%x" % x for x in [self.program_counter, ea, m, self.index_x.get()]])
+# #                 raise RuntimeError(msg)
+#                 new_x = 0x7ffd
+#                 new_ea = 0xdb79
+#                 log.warn(
+#                     "Speedup Simple6809 RAM test: Set X to $%x and goto $%x" % (
+#                         new_x, new_ea
+#                 ))
+#                 self.index_x.set(new_x)
+#                 self.program_counter = new_ea
+#                 return
+
+        log.info("$%x BRA branch to $%x \t| %s" % (
+            self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.program_counter = ea
+
+    @opcode(# Branch never
+        0x21, # BRN (relative)
+        0x1021, # LBRN (relative)
+    )
+    def instruction_BRN(self, opcode, ea):
+        """
+        Does not cause a branch. This instruction is essentially a no operation,
+        but has a bit pattern logically related to branch always.
+
+        source code forms: BRN dd; LBRN DDDD
+
+        CC bits "HNZVC": -----
+        """
+        pass
+
+    @opcode(# Branch if valid twos complement result
+        0x28, # BVC (relative)
+        0x1028, # LBVC (relative)
+    )
+    def instruction_BVC(self, opcode, ea):
+        """
+        Tests the state of the V (overflow) bit and causes a branch if it is
+        clear. That is, branch if the twos complement result was valid. When
+        used after an operation on twos complement binary values, this
+        instruction will branch if there was no overflow.
+
+        source code forms: BVC dd; LBVC DDDD
+
+        CC bits "HNZVC": -----
+        """
+        if self.cc.V == 0:
+            log.info("$%x BVC branch to $%x, because V==0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+#         else:
+#            log.debug("$%x BVC: don't branch to $%x, because V==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+
+    @opcode(# Branch if invalid twos complement result
+        0x29, # BVS (relative)
+        0x1029, # LBVS (relative)
+    )
+    def instruction_BVS(self, opcode, ea):
+        """
+        Tests the state of the V (overflow) bit and causes a branch if it is
+        set. That is, branch if the twos complement result was invalid. When
+        used after an operation on twos complement binary values, this
+        instruction will branch if there was an overflow.
+
+        source code forms: BVS dd; LBVS DDDD
+
+        CC bits "HNZVC": -----
+        """
+        if self.cc.V == 1:
+            log.info("$%x BVS branch to $%x, because V==1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+#         else:
+#            log.debug("$%x BVS: don't branch to $%x, because V==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+
+    @opcode(
+        # Branch to subroutine:
+        0x8d, # BSR (relative)
+        0x17, # LBSR (relative)
+        # Jump to subroutine:
+        0x9d, 0xad, 0xbd, # JSR (direct, indexed, extended)
+    )
+    def instruction_BSR_JSR(self, opcode, ea):
+        """
+        Program control is transferred to the effective address after storing
+        the return address on the hardware stack.
+
+        A return from subroutine (RTS) instruction is used to reverse this
+        process and must be the last instruction executed in a subroutine.
+
+        source code forms: BSR dd; LBSR DDDD; JSR EA
+
+        CC bits "HNZVC": -----
+        """
+        log.info("%x|\tJSR/BSR to $%x \t| %s" % (
+            self.last_op_address,
+            ea, self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.push_word(self._system_stack_pointer, self.program_counter)
+        self.program_counter = ea
+
+    @opcode(# Branch if lower (unsigned)
+        0x25, # BLO/BCS (relative)
+        0x1025, # LBLO/LBCS (relative)
+    )
+    def instruction_BLO(self, opcode, ea):
+        """
+        CC bits "HNZVC": -----
+        case 0x5: cond = REG_CC & CC_C; break; // BCS, BLO, LBCS, LBLO
+        """
+        if self.cc.C == 1:
+            log.info("$%x BLO/BCS/LBLO/LBCS branch to $%x, because C==1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+#         else:
+#            log.debug("$%x BLO/BCS/LBLO/LBCS: don't branch to $%x, because C==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
+
+    @opcode(# Branch if lower (unsigned)
+        0x24, # BHS/BCC (relative)
+        0x1024, # LBHS/LBCC (relative)
+    )
+    def instruction_BHS(self, opcode, ea):
+        """
+        CC bits "HNZVC": -----
+        case 0x4: cond = !(REG_CC & CC_C); break; // BCC, BHS, LBCC, LBHS
+        """
+        if self.cc.C == 0:
+            log.info("$%x BHS/BCC/LBHS/LBCC branch to $%x, because C==0 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
+            self.program_counter = ea
+        else:
+            log.debug("$%x BHS/BCC/LBHS/LBCC: don't branch to $%x, because C==1 \t| %s" % (
+                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+            ))
 
 
     # ---- Logical shift: LSL, LSR ----
