@@ -130,8 +130,26 @@ Current running output:
 OK
 PRINT "HELLO WORLD!"
 HELLO WORLD!
+OK
+
+10 FOR I=1 TO 3
+20 PRINT STR$(I)+" DRAGONPY"
+30 NEXT I
+RUN
+ .0/////909 DRAGONPY
+ .0/////909 DRAGONPY
+OK
+
+A="B"
+?TM ERROR
+OK
+
+LIST
+0./////909 FOR I=1 TO 3
+0./////909 PRINT STR$(I)+" DRAGONPY"
+0.///90909 NEXT I
+OK
 }}}
-Other commands thant print a string results currently into a loop.
 
 === performance
 
