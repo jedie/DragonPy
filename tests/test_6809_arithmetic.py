@@ -534,9 +534,16 @@ loop:
         self.assertEqual(self.cpu.cc.get_info, "EFHI....")
 
     def test_ORCC(self):
-        steps = 32
-        for a in xrange(0, 256, steps):
-            for b in xrange(0, 256, steps):
+        a_areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
+        b_areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
+        for a in a_areas:
+            if a == "...":
+#                print "..."
+                continue
+            for b in b_areas:
+                if b == "...":
+#                    print "..."
+                    continue
                 self.cpu.cc.set(a)
                 self.cpu_test_run(start=0x1000, end=None, mem=[
                     0x1a, b # ORCC $a
@@ -549,9 +556,16 @@ loop:
                 self.assertEqualHex(r, expected_value)
 
     def test_ANDCC(self):
-        steps = 32
-        for a in xrange(0, 256, steps):
-            for b in xrange(0, 256, steps):
+        a_areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
+        b_areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
+        for a in a_areas:
+            if a == "...":
+#                print "..."
+                continue
+            for b in b_areas:
+                if b == "...":
+#                    print "..."
+                    continue
                 self.cpu.cc.set(a)
                 self.cpu_test_run(start=0x1000, end=None, mem=[
                     0x1c, b # ANDCC $a
@@ -564,18 +578,27 @@ loop:
                 self.assertEqualHex(r, expected_value)
 
     def test_ABX(self):
-        steps = 32
         self.cpu.cc.set(0xff)
-        for x in xrange(0, 0x10000 + steps, steps * 100):
-            for b in xrange(0, 256, steps):
+
+        x_areas = range(0, 3) + ["..."] + range(0x7ffd, 0x8002) + ["..."] + range(0xfffd, 0x10000)
+        b_areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
+
+        for x in x_areas:
+            if x == "...":
+#                print "..."
+                continue
+            for b in b_areas:
+                if b == "...":
+#                    print "..."
+                    continue
                 self.cpu.index_x.set(x)
                 self.cpu.accu_b.set(b)
                 self.cpu_test_run(start=0x1000, end=None, mem=[
                     0x3a, # ABX (inherent)
                 ])
                 r = self.cpu.index_x.get()
-                expected_value = x + b
-#                print "%04x + %02x = %02x | CC:%s" % (
+                expected_value = x + b & 0xffff
+#                print "%04x + %02x = %04x | CC:%s" % (
 #                    x, b, r, self.cpu.cc.get_info
 #                )
                 self.assertEqualHex(r, expected_value)
@@ -587,7 +610,7 @@ loop:
 
 if __name__ == '__main__':
     log.setLevel(
-#         1
+#        1
 #        10 # DEBUG
 #         20 # INFO
 #         30 # WARNING
@@ -602,13 +625,8 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-#             "Test6809_Arithmetic",
-#             "Test6809_Arithmetic.test_ADDA1",
-#             "Test6809_Arithmetic.test_ADDD1",
-#             "Test6809_Arithmetic.test_DECA",
-#             "Test6809_Arithmetic.test_NEG_memory",
-#            "Test6809_Arithmetic.test_NEGA",
-            "Test6809_Arithmetic.test_INC_memory",
+#            "Test6809_Arithmetic",
+#            "Test6809_Arithmetic.test_ABX",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
