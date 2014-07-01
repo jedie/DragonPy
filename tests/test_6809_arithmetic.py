@@ -563,6 +563,26 @@ loop:
 #                )
                 self.assertEqualHex(r, expected_value)
 
+    def test_ABX(self):
+        steps = 32
+        self.cpu.cc.set(0xff)
+        for x in xrange(0, 0x10000 + steps, steps * 100):
+            for b in xrange(0, 256, steps):
+                self.cpu.index_x.set(x)
+                self.cpu.accu_b.set(b)
+                self.cpu_test_run(start=0x1000, end=None, mem=[
+                    0x3a, # ABX (inherent)
+                ])
+                r = self.cpu.index_x.get()
+                expected_value = x + b
+#                print "%04x + %02x = %02x | CC:%s" % (
+#                    x, b, r, self.cpu.cc.get_info
+#                )
+                self.assertEqualHex(r, expected_value)
+
+                # CC complet uneffected:
+                self.assertEqualHex(self.cpu.cc.get(), 0xff)
+
 
 
 if __name__ == '__main__':
