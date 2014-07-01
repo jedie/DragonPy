@@ -1202,31 +1202,11 @@ class CPU(object):
         self.cc.clear_HNZVC()
         self.cc.update_HNZVC_8(old, m, r)
 
-    @opcode(# AND memory with accumulator
-        0x84, 0x94, 0xa4, 0xb4, # ANDA (immediate, direct, indexed, extended)
-        0xc4, 0xd4, 0xe4, 0xf4, # ANDB (immediate, direct, indexed, extended)
-    )
-    def instruction_AND(self, opcode, m, register):
-        """
-        Performs the logical AND operation between the contents of an
-        accumulator and the contents of memory location M and the result is
-        stored in the accumulator.
-
-        source code forms: ANDA P; ANDB P
-
-        CC bits "HNZVC": -aa0-
-        """
-        a = register.get()
-        r = a & m
-        register.set(r)
-        self.cc.clear_NZV()
-        self.cc.update_NZ_8(r)
-        log.debug("\tAND %s: %i & %i = %i",
-            register.name, a, m, r
-        )
 
     def ASR(self, a):
         """
+        ASR (Arithmetic Shift Right) alias LSR (Logical Shift Right)
+
         Shifts all bits of the register one place to the right. Bit seven is held
         constant. Bit zero is shifted into the C (carry) bit.
 
@@ -1236,7 +1216,7 @@ class CPU(object):
         """
         r = (a >> 1) | (a & 0x80)
         self.cc.clear_NZC()
-        self.cc.C |= (a & 1) # XXX: ok?
+        self.cc.C |= (a & 1)
         self.cc.update_NZ_8(r)
         return r
 
@@ -1426,27 +1406,6 @@ class CPU(object):
 #        ))
         register.set(r)
 
-    @opcode(# Exclusive OR memory with accumulator
-        0x88, 0x98, 0xa8, 0xb8, # EORA (immediate, direct, indexed, extended)
-        0xc8, 0xd8, 0xe8, 0xf8, # EORB (immediate, direct, indexed, extended)
-    )
-    def instruction_EOR(self, opcode, m, register):
-        """
-        The contents of memory location M is exclusive ORed into an 8-bit
-        register.
-
-        source code forms: EORA P; EORB P
-
-        CC bits "HNZVC": -aa0-
-        """
-        a = register.get()
-        r = a ^ m
-        register.set(r)
-        self.cc.update_NZ0_8(r)
-#        log.debug("\tEOR %s: %i ^ %i = %i",
-#            register.name, a, m, r
-#        )
-        # self.cc.update_NZ0()
 
     @opcode(# Exchange R1 with R2
         0x1e, # EXG (immediate)
@@ -1725,28 +1684,6 @@ class CPU(object):
         """
 #        log.debug("\tNOP")
 
-    @opcode(# OR memory with accumulator
-        0x8a, 0x9a, 0xaa, 0xba, # ORA (immediate, direct, indexed, extended)
-        0xca, 0xda, 0xea, 0xfa, # ORB (immediate, direct, indexed, extended)
-    )
-    def instruction_OR(self, opcode, m, register):
-        """
-        Performs an inclusive OR operation between the contents of accumulator A
-        or B and the contents of memory location M and the result is stored in
-        accumulator A or B.
-
-        source code forms: ORA P; ORB P
-
-        CC bits "HNZVC": -aa0-
-        """
-        a = register.get()
-        r = a | m
-        register.set(r)
-        self.cc.clear_NZV()
-        self.cc.update_NZ_8(r)
-#         log.debug("$%04x OR %s: %02x | %02x = %02x",
-#             self.program_counter, register.name, a, m, r
-#         )
 
 
     @opcode(# Push A, B, CC, DP, D, X, Y, U, or PC onto stack
@@ -2121,6 +2058,78 @@ class CPU(object):
         # TODO: Update CC bits: ccccc ?
 
 
+    # ---- Logical Operations ----
+
+
+    @opcode(# AND memory with accumulator
+        0x84, 0x94, 0xa4, 0xb4, # ANDA (immediate, direct, indexed, extended)
+        0xc4, 0xd4, 0xe4, 0xf4, # ANDB (immediate, direct, indexed, extended)
+    )
+    def instruction_AND(self, opcode, m, register):
+        """
+        Performs the logical AND operation between the contents of an
+        accumulator and the contents of memory location M and the result is
+        stored in the accumulator.
+
+        source code forms: ANDA P; ANDB P
+
+        CC bits "HNZVC": -aa0-
+        """
+        a = register.get()
+        r = a & m
+        register.set(r)
+        self.cc.clear_NZV()
+        self.cc.update_NZ_8(r)
+#        log.debug("\tAND %s: %i & %i = %i",
+#            register.name, a, m, r
+#        )
+
+    @opcode(# Exclusive OR memory with accumulator
+        0x88, 0x98, 0xa8, 0xb8, # EORA (immediate, direct, indexed, extended)
+        0xc8, 0xd8, 0xe8, 0xf8, # EORB (immediate, direct, indexed, extended)
+    )
+    def instruction_EOR(self, opcode, m, register):
+        """
+        The contents of memory location M is exclusive ORed into an 8-bit
+        register.
+
+        source code forms: EORA P; EORB P
+
+        CC bits "HNZVC": -aa0-
+        """
+        a = register.get()
+        r = a ^ m
+        register.set(r)
+        self.cc.clear_NZV()
+        self.cc.update_NZ_8(r)
+#        log.debug("\tEOR %s: %i ^ %i = %i",
+#            register.name, a, m, r
+#        )
+
+    @opcode(# OR memory with accumulator
+        0x8a, 0x9a, 0xaa, 0xba, # ORA (immediate, direct, indexed, extended)
+        0xca, 0xda, 0xea, 0xfa, # ORB (immediate, direct, indexed, extended)
+    )
+    def instruction_OR(self, opcode, m, register):
+        """
+        Performs an inclusive OR operation between the contents of accumulator A
+        or B and the contents of memory location M and the result is stored in
+        accumulator A or B.
+
+        source code forms: ORA P; ORB P
+
+        CC bits "HNZVC": -aa0-
+        """
+        a = register.get()
+        r = a | m
+        register.set(r)
+        self.cc.clear_NZV()
+        self.cc.update_NZ_8(r)
+#         log.debug("$%04x OR %s: %02x | %02x = %02x",
+#             self.program_counter, register.name, a, m, r
+#         )
+
+
     # ---- CC manipulation ----
 
 
@@ -2252,7 +2261,7 @@ class CPU(object):
 #        ))
         self.cc.clear_NZV()
         self.cc.update_NZ_8(r)
-    
+
     @opcode(# Test accumulator
         0x4d, # TSTA (inherent)
         0x5d, # TSTB (inherent)
@@ -2284,7 +2293,7 @@ class CPU(object):
 #         ))
         self.cc.clear_NZV()
         self.cc.update_NZ_8(m)
-    
+
     # ---- Branch Instructions ----
 
     @opcode(# Branch if equal

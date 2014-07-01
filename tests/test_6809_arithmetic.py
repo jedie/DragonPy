@@ -606,6 +606,9 @@ loop:
                 # CC complet uneffected:
                 self.assertEqualHex(self.cpu.cc.get(), 0xff)
 
+    def test_XOR(self):
+        raise NotImplementedError("TODO")
+
 
 
 if __name__ == '__main__':
