@@ -2778,7 +2778,7 @@ class CPU(object):
     @opcode(# AND condition code register, then wait for interrupt
         0x3c, # CWAI (immediate)
     )
-    def instruction_CWAI(self, opcode, ea, m):
+    def instruction_CWAI(self, opcode, m):
         """
         This instruction ANDs an immediate byte with the condition code register
         which may clear the interrupt mask bits I and F, stacks the entire
@@ -2799,7 +2799,7 @@ class CPU(object):
 
         CC bits "HNZVC": ddddd
         """
-        raise NotImplementedError("$%x CWAI" % opcode)
+        log.error("$%x CWAI not implemented, yet!", opcode)
         # Update CC bits: ddddd
 
     @opcode(# Undocumented opcode!
