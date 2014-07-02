@@ -195,11 +195,6 @@ class Test6809_CC(BaseTestCase):
             status_byte = self.cpu.cc.get()
             self.assertEqual(status_byte, i)
 
-    def test_set_register01(self):
-        self.cpu.set_register(0x00, 0x1e12)
-        self.assertEqual(self.cpu.accu_a.get(), 0x1e)
-        self.assertEqual(self.cpu.accu_b.get(), 0x12)
-
     def test_AND(self):
         excpected_values = range(0, 128)
         excpected_values += range(0, 128)
@@ -464,21 +459,7 @@ class Test6809_TestInstructions(BaseTestCase):
 
 
 
-class Test6809_Ops2(BaseTestCase):
-    def test_TFR_CC_B(self):
-        self.cpu_test_run(start=0x4000, end=None, mem=[
-            0x7E, 0x40, 0x04, # JMP $4004
-            0xfe, # $12 value for A
-            0xB6, 0x40, 0x03, # LDA $4003
-            0x8B, 0x01, # ADDA 1
-            0x1F, 0xA9, # TFR CC,B
-            0xF7, 0x50, 0x01, # STB $5001
-            0xB7, 0x50, 0x00, # STA $5000
-        ])
-        self.assertEqualHex(self.cpu.accu_a.get(), 0xff)
-        self.assertEqualHex(self.cpu.accu_b.get(), 0x8) # N=1
-        self.assertEqualHex(self.cpu.memory.read_byte(0x5000), 0xff) # A
-        self.assertEqualHex(self.cpu.memory.read_byte(0x5001), 0x8) # B == CC
+
 
 #TODO:
 #        self.cpu_test_run(start=0x4000, end=None, mem=[0x4F]) # CLRA

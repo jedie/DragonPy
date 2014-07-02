@@ -38,7 +38,7 @@ from components.memory import Memory
 from cpu_utils.MC6809_registers import (
     ValueStorage8Bit, ConcatenatedAccumulator,
     ValueStorage16Bit, ConditionCodeRegister, cc_value2txt
-)
+, UndefinedRegister)
 from utils.simple_debugger import print_exc_plus
 from core.cpu_control_server import get_http_control_server
 from DragonPy_CLI import get_cli
@@ -238,6 +238,8 @@ class IllegalInstruction(object):
         raise RuntimeError(msg)
 
 
+undefined_reg = UndefinedRegister()
+
 class CPU(object):
 
     def __init__(self, cfg):
@@ -305,6 +307,8 @@ class CPU(object):
 
             REG_DP: self.direct_page,
             REG_CC: self.cc,
+
+            undefined_reg.name: undefined_reg, # for TFR, EXG
         }
 
         self.cycles = 0
@@ -392,41 +396,6 @@ class CPU(object):
                 raise
 
             self.opcode_dict[opcode] = instruction
-
-    ####
-
-    REGISTER_BIT2STR = {
-        0x00: REG_D, # 0000 - 16 bit concatenated reg.(A B)
-        0x01: REG_X, # 0001 - 16 bit index register
-        0x02: REG_Y, # 0010 - 16 bit index register
-        0x03: REG_U, # 0011 - 16 bit user-stack pointer
-        0x04: REG_S, # 0100 - 16 bit system-stack pointer
-        0x05: REG_PC, # 0101 - 16 bit program counter register
-        0x08: REG_A, # 1000 - 8 bit accumulator
-        0x09: REG_B, # 1001 - 8 bit accumulator
-        0x0a: REG_CC, # 1010 - 8 bit condition code register as flags
-        0x0b: REG_DP, # 1011 - 8 bit direct page register
-    }
-
-    def _get_register_obj(self, addr):
-        addr_str = self.REGISTER_BIT2STR[addr]
-        reg_obj = self.register_str2object[addr_str]
-#         log.debug("get register obj: addr: $%x addr_str: %s -> register: %s" % (
-#             addr, addr_str, reg_obj.name
-#         ))
-#         log.debug(repr(self.register_str2object))
-        return reg_obj
-
-    def get_register(self, addr):
-        reg_obj = self._get_register_obj(addr)
-        value = reg_obj.get()
-#        log.debug("\tget register value $%x from %s ($%x)" % (value, reg_obj.name, addr))
-        return value
-
-    def set_register(self, addr, value):
-        reg_obj = self._get_register_obj(addr)
-#        log.debug("\tset register %s ($%x) to $%x" % (reg_obj.name, addr, value))
-        return reg_obj.set(value)
 
     ####
 
@@ -1379,36 +1348,6 @@ class CPU(object):
 #        ))
         register.set(r)
 
-
-    @opcode(# Exchange R1 with R2
-        0x1e, # EXG (immediate)
-    )
-    def instruction_EXG(self, opcode, m):
-        """
-        0000 = A:B 1000 = A 0001 = X 1001 = B 0010 = Y 1010 = CCR 0011 = US 1011
-        = DPR 0100 = SP 1100 = Undefined 0101 = PC 1101 = Undefined 0110 =
-        Undefined 1110 = Undefined 0111 = Undefined 1111 = Undefined
-
-        source code forms: EXG R1,R2
-
-        CC bits "HNZVC": ccccc
-        """
-        high, low = divmod(m, 16)
-        # TODO: check if source and dest has the same size?
-        r1 = self._get_register_obj(high)
-        r2 = self._get_register_obj(low)
-
-        r1_value = r1.get()
-        r2_value = r2.get()
-
-        r1.set(r2_value)
-        r2.set(r1_value)
-
-#        log.debug("\tEXG: %s($%x) <-> %s($%x)",
-#            r1.name, r1_value, r2.name, r2_value
-#        )
-
-
     @opcode(# Increment accumulator
         0x4c, # INCA (inherent)
         0x5c, # INCB (inherent)
@@ -1809,38 +1748,81 @@ class CPU(object):
             self.cc.update_NZVC_16(r, m, r_new)
 
 
+    # ---- Register Changes - FIXME: Better name for this section?!? ----
+
+    REGISTER_BIT2STR = {
+        0x0: REG_D, # 0000 - 16 bit concatenated reg.(A B)
+        0x1: REG_X, # 0001 - 16 bit index register
+        0x2: REG_Y, # 0010 - 16 bit index register
+        0x3: REG_U, # 0011 - 16 bit user-stack pointer
+        0x4: REG_S, # 0100 - 16 bit system-stack pointer
+        0x5: REG_PC, # 0101 - 16 bit program counter register
+        0x6: undefined_reg.name, # undefined
+        0x7: undefined_reg.name, # undefined
+        0x8: REG_A, # 1000 - 8 bit accumulator
+        0x9: REG_B, # 1001 - 8 bit accumulator
+        0xa: REG_CC, # 1010 - 8 bit condition code register as flags
+        0xb: REG_DP, # 1011 - 8 bit direct page register
+        0xc: undefined_reg.name, # undefined
+        0xd: undefined_reg.name, # undefined
+        0xe: undefined_reg.name, # undefined
+        0xf: undefined_reg.name, # undefined
+    }
+
+    def _get_register_obj(self, addr):
+        addr_str = self.REGISTER_BIT2STR[addr]
+        reg_obj = self.register_str2object[addr_str]
+#         log.debug("get register obj: addr: $%x addr_str: %s -> register: %s" % (
+#             addr, addr_str, reg_obj.name
+#         ))
+#         log.debug(repr(self.register_str2object))
+        return reg_obj
+
+    def _get_register_and_value(self, addr):
+        reg = self._get_register_obj(addr)
+        reg_value = reg.get()
+
+        # From XRoar:
+        if addr in (0x8, 0x9): # A or B
+            reg_value = reg_value | 0xff00
+        elif addr in (0xa, 0xb): # CC or DP
+            # verify this behaviour
+            reg_value = reg_value << 8
+
+        return reg, reg_value
+
     @opcode(0x1f) # TFR (immediate)
     def instruction_TFR(self, opcode, m):
         """
-        0000 = A:B
-        1000 = A
-        0001 = X
-        1001 = B
-        0010 = Y
-        1010 = CCR
-        0011 = US
-        1011 = DPR
-        0100 = SP
-        1100 = Undefined
-        0101 = PC
-        1101 = Undefined
-        0110 = Undefined
-        1110 = Undefined
-        0111 = Undefined
-        1111 = Undefined
-
         source code forms: TFR R1, R2
-
         CC bits "HNZVC": ccccc
         """
         high, low = divmod(m, 16)
-#        log.debug("$%x TFR: post byte: $%x -> high: $%x low: $%x" % (
-#            self.program_counter, m, high, low
-#        ))
-        # TODO: check if source and dest has the same size?
-        source = self.get_register(high)
-        self.set_register(low, source)
+        src_reg, value = self._get_register_and_value(high)
+        dst_reg = self._get_register_obj(low)
+        dst_reg.set(value)
 
+        log.debug("\tTFR: Set %s to $%x from %s",
+            dst_reg, value, src_reg.name
+        )
+
+    @opcode(# Exchange R1 with R2
+        0x1e, # EXG (immediate)
+    )
+    def instruction_EXG(self, opcode, m):
+        """
+        source code forms: EXG R1,R2
+        CC bits "HNZVC": ccccc
+        """
+        high, low = divmod(m, 0x10)
+        reg1, reg1_value = self._get_register_and_value(high)
+        reg2, reg2_value = self._get_register_and_value(low)
+        reg1.set(reg2_value)
+        reg2.set(reg1_value)
+
+        log.debug("\tEXG: %s($%x) <-> %s($%x)",
+            reg1.name, reg1_value, reg2.name, reg2_value
+        )
 
     # ---- Store / Load ----
 

@@ -39,6 +39,21 @@ class ValueStorage(object):
     __repr__ = __str__
 
 
+class UndefinedRegister(ValueStorage):
+    # used in TFR and EXG
+    WIDTH = 16 # 16 Bit
+    name = "undefined!"
+    value = 0xffff
+    def __init__(self):
+        pass
+    def set(self, v):
+        log.warn("Set value to 'undefined' register!")
+        pass
+
+    def get(self):
+        return 0xffff
+
+
 class ValueStorage8Bit(ValueStorage):
     WIDTH = 8 # 8 Bit
 
