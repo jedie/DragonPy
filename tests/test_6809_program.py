@@ -241,6 +241,118 @@ class Test6809_Program(BaseStackTestCase):
 #         test(0xfffffff, 0xffff) # Error: '268435455/65535=57342 remainder: 57341' != '268435455/65535=4096 remainder: 4095'
 
 
+class Test6809_Program_Division2(BaseStackTestCase):
+    def _division(self, dividend, divisor):
+        assert isinstance(dividend, int)
+        assert isinstance(divisor, int)
+        assert 0x0 <= dividend <= 0x100000000
+        assert 0x0 <= divisor <= 0x10000
+
+        a = [dividend >> (i << 3) & 0xff for i in (3, 2, 1, 0)]
+#         print "a:", [hex(i) for i in a]
+
+        b = [divisor >> (i << 3) & 0xff for i in (1, 0)]
+#         print "b:", [hex(i) for i in b]
+
+        """
+        code from https://github.com/6809/sbc09
+        written by J.E. Klasek, replacing high-level variant in eFORTH.
+
+        Handles 2 special cases:
+           1. overflow: quotient overflow if dividend is to great (remainder = divisor),
+               remainder is set to $FFFF.
+               This is checked also right before the main loop.
+           2. underflow: divisor does not fit into dividend -> remainder
+               get the value of the dividend.
+        """
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            #                   0000|  EFORTH:
+            #                   0000|                        ; sample parameters on forth parameter stack (S) ...
+            0xCC, a[2], a[3], # 0000|          LDD   #$....  ; dividend low word
+            0x34, 0x06, #       0003|          PSHS  d
+            0xCC, a[0], a[1], # 0005|          LDD   #$....  ; dividend high word
+            0x34, 0x06, #       0008|          PSHS  d
+            0xCC, b[0], b[1], # 000A|          LDD   #$....  ; divisor
+            0x34, 0x06, #       000D|          PSHS  d
+            #                   000F| USLASH2:
+            0x8E, 0x00, 0x10, # 000F|          LDX   #16
+            0xEC, 0x62, #       0012|          LDD   2,s     ; udh
+            0x10, 0xA3, 0xE4, # 0014|          CMPD  ,s      ; dividend to great?
+            0x24, 0x24, #       0017|          BHS   UMMODOV ; quotient overflow!
+            0x68, 0x65, #       0019|          ASL   5,s     ; udl low
+            0x69, 0x64, #       001B|          ROL   4,s     ; udl high
+            0x59, #             001D|  UMMOD1: ROLB          ; got one bit from udl
+            0x49, #             001E|          ROLA
+            0x25, 0x09, #       001F|          BCS   UMMOD2  ; bit 16 means always greater as divisor
+            0x10, 0xA3, 0xE4, # 0021|          CMPD  ,s      ; divide by un
+            0x24, 0x04, #       0024|          BHS   UMMOD2  ; higher or same as divisor?
+            0x1C, 0xFE, #       0026|          ANDCC #$fe    ; clc - clear carry flag
+            0x20, 0x04, #       0028|          BRA   UMMOD3
+            0xA3, 0xE4, #       002A|  UMMOD2: SUBD  ,s
+            0x1A, 0x01, #       002C|          ORCC  #$01    ; sec - set carry flag
+            0x69, 0x65, #       002E|  UMMOD3: ROL   5,s     ; udl, quotient shifted in
+            0x69, 0x64, #       0030|          ROL   4,s
+            0x30, 0x1F, #       0032|          LEAX  -1,x
+            0x26, 0xE7, #       0034|          BNE   UMMOD1
+            0xAE, 0x64, #       0036|          LDX   4,s     ; quotient
+            0x10, 0xA3, 0xE4, # 0038|          CMPD  ,s      ; remainder >= divisor -> overflow
+            0x25, 0x03, #       003B|          BLO   UMMOD4
+            0xCC, 0xFF, 0xFF, # 003D| UMMODOV: LDD   #$FFFF  ; remainder = FFFF (-1) marks overflow
+            #                   0040|                        ; (case 1)
+            #                   0040|  UMMOD4:
+            0x8C, 0x00, 0x00, # 0040|          CMPX  #0      ; quotient = 0 (underflow) ?
+            0x26, 0x02, #       0043|          BNE   UMMOD5
+            0xEC, 0x62, #       0045|          LDD   2,s     ; yes -> remainder = dividend low
+            #                   0047|                        ; (case 2)
+            #                   0047|  UMMOD5:
+            0x32, 0x62, #       0047|          LEAS  2,s     ; un (divisor thrown away)
+            0xAF, 0xE4, #       0049|          STX   ,s      ; quotient to TOS
+            0xED, 0x62, #       004B|          STD   2,s     ; remainder 2nd
+            0x20, 0x02, #       004D|          BRA   $0      ; bra realexit
+            0x37, 0x80, #       004F|          PULU  pc      ; not reached -> eFORTH NEXT
+            #                   0051|    EXIT:
+        ])
+        quotient = self.cpu.index_x.get()
+        remainder = self.cpu.accu_d.get()
+        return quotient, remainder
+
+    def test_division(self):
+        def test(dividend, divisor):
+            """
+            dividend / divisor = quotient
+            """
+            quotient, remainder = self._division(dividend, divisor)
+#            print quotient, remainder
+
+            a = Decimal(dividend)
+            b = Decimal(divisor)
+            expected_quotient = a // b
+            expected_remainder = a % b
+#            print "%x / %x" % (dividend, divisor)
+            first = "%i/%i=%i remainder: %i" % (dividend, divisor, quotient, remainder)
+            second = "%i/%i=%i remainder: %i" % (dividend, divisor, expected_quotient, expected_remainder)
+#            if first != second:
+#                print "ERROR: %r sould be: %r\n" % (first, second)
+#            else:
+#                print "OK: %s\n" % first
+            self.assertEqual(first, second)
+
+        test(10, 10) # OK: 10/10=1 remainder: 0
+        test(10, 5) # OK: 10/5=2 remainder: 0
+        test(10, 3) # OK: 10/3=3 remainder: 1
+        test(0xffff, 0x80) # OK: 65535/128=511 remainder: 127
+        test(0xffff, 0xff) # OK: 65535/255=257 remainder: 0
+        test(0xfffff, 0x800) # OK: 1048575/2048=511 remainder: 2047
+        test(0xffffff, 0x8000) # OK: 16777215/32768=511 remainder: 32767
+        test(0xfffffff, 0x8000) # OK: 268435455/32768=8191 remainder: 32767
+        test(0xfffffff, 0xffff) # OK: 268435455/65535=4096 remainder: 4095
+
+#        test(1, 0x8000) # ERROR: '1/32768=0 remainder: 0' sould be: '1/32768=0 remainder: 1'
+#        test(1, 0x8001) # ERROR: '1/32769=0 remainder: 0' sould be: '1/32769=0 remainder: 1'
+#        test(1, 0x9000) # ERROR: '1/36864=0 remainder: 0' sould be: '1/36864=0 remainder: 1'
+#        test(10, 0xffff) # ERROR: '10/65535=0 remainder: 0' sould be: '10/65535=0 remainder: 10'
+#        test(0x10000000, 0x10000) # ERROR: '268435456/65536=16 remainder: 65535' sould be: '268435456/65536=4096 remainder: 0'
+
 
 if __name__ == '__main__':
     log.setLevel(
@@ -262,6 +374,7 @@ if __name__ == '__main__':
 #            "Test6809_Program.test_crc16_01",
 #            "Test6809_Program.test_crc32_01",
 #             "Test6809_Program.test_division",
+#            "Test6809_Program_Division2",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
