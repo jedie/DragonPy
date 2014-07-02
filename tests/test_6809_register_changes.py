@@ -79,7 +79,7 @@ class Test6809_TFR(BaseTestCase):
         self.cpu_test_run(start=0x4000, end=None, mem=[
             0x1F, 0x29, # TFR Y,B
         ])
-        self.assertEqualHexWord(self.cpu.index_x.get(), 0x0000)
+        self.assertEqualHexWord(self.cpu.index_y.get(), 0x1234)
         self.assertEqualHexByte(self.cpu.accu_b.get(), 0x34)
 
     def test_TFR_undefined_A(self):

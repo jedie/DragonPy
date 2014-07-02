@@ -154,7 +154,7 @@ class Test6809_AddressModes_Indexed(BaseTestCase):
         self.cpu.index_x.set(x)
         self.cpu.index_y.set(y)
         self.cpu_test_run(start=0x2000, end=None, mem=[
-            0xAF, 0xA9, offset_hi, offset_lo, # STX $30,Y  ; store X at Y -80 = $50
+            0xAF, 0xA9, offset_hi, offset_lo, # STX $8001,Y   ; store X at Y + $-7fff
         ])
         self.assertEqualHexWord(self.cpu.index_y.get(), y)
         self.assertEqualHexWord(self.cpu.memory.read_word(0x50), x) # $804f + $-7fff = $50
@@ -180,7 +180,48 @@ class Test6809_AddressModes_Indexed(BaseTestCase):
         # $804f + $-7fff = $50
         self.assertEqualHexWord(self.cpu.memory.read_word(0x50), x) # $804f + $-7fff = $50
 
+    def test_pc_offset_8bit_positive(self):
+        x = 0xabcd
+        self.cpu.index_x.set(x)
+        self.cpu_test_run(start=0x2000, end=None, mem=[
+            0xAF, 0x8C, 0x12, # STX 12,PC
+        ])
+        self.assertEqualHexWord(self.cpu.index_x.get(), x)
+        # ea = pc($2003) + $12 = $2015
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x2015), x)
 
+    def test_pc_offset_8bit_negative(self):
+        a = 0x56
+        self.cpu.accu_a.set(a)
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0xA7, 0x8C, 0x80, # STA 12,PC
+        ])
+        self.assertEqualHexByte(self.cpu.accu_a.get(), a)
+        # ea = pc($1003) + $-80 = $f83
+        self.assertEqualHexByte(self.cpu.memory.read_byte(0x0f83), a)
+
+    def test_pc_offset_16bit_positive(self):
+        x = 0xabcd
+        self.cpu.index_x.set(x)
+        self.cpu_test_run(start=0x2000, end=None, mem=[
+            0xAF, 0x8D, 0x0a, 0xb0, # STX 1234,PC
+        ])
+        self.assertEqualHexWord(self.cpu.index_x.get(), x)
+        # ea = pc($2004) + $ab0 = $2ab4
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x2ab4), x)
+
+    def test_pc_offset_16bit_negative(self):
+        a = 0x56
+        self.cpu.accu_a.set(a)
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0xA7, 0x8D, 0xf0, 0x10, # STA 12,PC
+        ])
+        self.assertEqualHexByte(self.cpu.accu_a.get(), a)
+        # ea = pc($1004) + $-ff0 = $14
+        self.assertEqualHexByte(self.cpu.memory.read_byte(0x0014), a)
+
+    def test_indirect_addressing(self):
+        raise NotImplementedError("TODO")
 
 
 if __name__ == '__main__':
@@ -200,7 +241,7 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-            "Test6809_AddressModes_Indexed",
+#            "Test6809_AddressModes_Indexed.test_8bit_offset",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
