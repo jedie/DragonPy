@@ -1933,8 +1933,6 @@ class CPU(object):
         source = self.get_register(high)
         self.set_register(low, source)
 
-        # TODO: Update CC bits: ccccc ?
-
 
     # ---- Logical Operations ----
 
