@@ -1301,33 +1301,6 @@ class CPU(object):
 #            self.program_counter, register.name,
 #        ))
 
-    @opcode(# AND condition code register, then wait for interrupt
-        0x3c, # CWAI (immediate)
-    )
-    def instruction_CWAI(self, opcode, ea, m):
-        """
-        This instruction ANDs an immediate byte with the condition code register
-        which may clear the interrupt mask bits I and F, stacks the entire
-        machine state on the hardware stack and then looks for an interrupt.
-        When a non-masked interrupt occurs, no further machine state information
-        need be saved before vectoring to the interrupt handling routine. This
-        instruction replaced the MC6800 CLI WAI sequence, but does not place the
-        buses in a high-impedance state. A FIRQ (fast interrupt request) may
-        enter its interrupt handler with its entire machine state saved. The RTI
-        (return from interrupt) instruction will automatically return the entire
-        machine state after testing the E (entire) bit of the recovered
-        condition code register.
-
-        The following immediate values will have the following results: FF =
-        enable neither EF = enable IRQ BF = enable FIRQ AF = enable both
-
-        source code forms: CWAI #$XX E F H I N Z V C
-
-        CC bits "HNZVC": ddddd
-        """
-        raise NotImplementedError("$%x CWAI" % opcode)
-        # Update CC bits: ddddd
-
     @opcode(# Decimal adjust A accumulator
         0x19, # DAA (inherent)
     )
@@ -1771,38 +1744,6 @@ class CPU(object):
         if m & 0x40: pull(REG_U, register) # 16 bit user-stack pointer
         if m & 0x80: pull(REG_PC, register) # 16 bit program counter register
 
-
-    @opcode(# Undocumented opcode!
-        0x3e, # RESET (inherent)
-    )
-    def instruction_RESET(self, opcode):
-        """
-        Build the ASSIST09 vector table and setup monitor defaults, then invoke
-        the monitor startup routine.
-
-        source code forms:
-
-        CC bits "HNZVC": *****
-        """
-        raise NotImplementedError("$%x RESET" % opcode)
-        # Update CC bits: *****
-
-    @opcode(# Return from interrupt
-        0x3b, # RTI (inherent)
-    )
-    def instruction_RTI(self, opcode):
-        """
-        The saved machine state is recovered from the hardware stack and control
-        is returned to the interrupted program. If the recovered E (entire) bit
-        is clear, it indicates that only a subset of the machine state was saved
-        (return address and condition codes) and only that subset is recovered.
-
-        source code forms: RTI
-
-        CC bits "HNZVC": -----
-        """
-        raise NotImplementedError("$%x RTI" % opcode)
-
     @opcode(# Return from subroutine
         0x39, # RTS (inherent)
     )
@@ -1959,69 +1900,6 @@ class CPU(object):
             assert register.WIDTH == 16
             self.cc.update_NZVC_16(r, m, r_new)
 
-    @opcode(# Software interrupt (absolute indirect)
-        0x3f, # SWI (inherent)
-    )
-    def instruction_SWI(self, opcode):
-        """
-        All of the processor registers are pushed onto the hardware stack (with
-        the exception of the hardware stack pointer itself), and control is
-        transferred through the software interrupt vector. Both the normal and
-        fast interrupts are masked (disabled).
-
-        source code forms: SWI
-
-        CC bits "HNZVC": -----
-        """
-        raise NotImplementedError("$%x SWI" % opcode)
-
-    @opcode(# Software interrupt (absolute indirect)
-        0x103f, # SWI2 (inherent)
-    )
-    def instruction_SWI2(self, opcode, ea, m):
-        """
-        All of the processor registers are pushed onto the hardware stack (with
-        the exception of the hardware stack pointer itself), and control is
-        transferred through the software interrupt 2 vector. This interrupt is
-        available to the end user and must not be used in packaged software.
-        This interrupt does not mask (disable) the normal and fast interrupts.
-
-        source code forms: SWI2
-
-        CC bits "HNZVC": -----
-        """
-        raise NotImplementedError("$%x SWI2" % opcode)
-
-    @opcode(# Software interrupt (absolute indirect)
-        0x113f, # SWI3 (inherent)
-    )
-    def instruction_SWI3(self, opcode, ea, m):
-        """
-        All of the processor registers are pushed onto the hardware stack (with
-        the exception of the hardware stack pointer itself), and control is
-        transferred through the software interrupt 3 vector. This interrupt does
-        not mask (disable) the normal and fast interrupts.
-
-        source code forms: SWI3
-
-        CC bits "HNZVC": -----
-        """
-        raise NotImplementedError("$%x SWI3" % opcode)
-
-    @opcode(# Synchronize with interrupt line
-        0x13, # SYNC (inherent)
-    )
-    def instruction_SYNC(self, opcode):
-        """
-        FAST SYNC WAIT FOR DATA Interrupt! LDA DISC DATA FROM DISC AND CLEAR
-        INTERRUPT STA ,X+ PUT IN BUFFER DECB COUNT IT, DONE? BNE FAST GO AGAIN
-        IF NOT.
-
-        source code forms: SYNC
-
-        CC bits "HNZVC": -----
-        """
-        raise NotImplementedError("$%x SYNC" % opcode)
 
     @opcode(0x1f) # TFR (immediate)
     def instruction_TFR(self, opcode, m):
@@ -2907,6 +2785,132 @@ class CPU(object):
             register.name, a, r
         ))
         register.set(r)
+
+
+    # ---- Not Implemented, yet. ----
+
+
+    @opcode(# AND condition code register, then wait for interrupt
+        0x3c, # CWAI (immediate)
+    )
+    def instruction_CWAI(self, opcode, ea, m):
+        """
+        This instruction ANDs an immediate byte with the condition code register
+        which may clear the interrupt mask bits I and F, stacks the entire
+        machine state on the hardware stack and then looks for an interrupt.
+        When a non-masked interrupt occurs, no further machine state information
+        need be saved before vectoring to the interrupt handling routine. This
+        instruction replaced the MC6800 CLI WAI sequence, but does not place the
+        buses in a high-impedance state. A FIRQ (fast interrupt request) may
+        enter its interrupt handler with its entire machine state saved. The RTI
+        (return from interrupt) instruction will automatically return the entire
+        machine state after testing the E (entire) bit of the recovered
+        condition code register.
+
+        The following immediate values will have the following results: FF =
+        enable neither EF = enable IRQ BF = enable FIRQ AF = enable both
+
+        source code forms: CWAI #$XX E F H I N Z V C
+
+        CC bits "HNZVC": ddddd
+        """
+        raise NotImplementedError("$%x CWAI" % opcode)
+        # Update CC bits: ddddd
+
+    @opcode(# Undocumented opcode!
+        0x3e, # RESET (inherent)
+    )
+    def instruction_RESET(self, opcode):
+        """
+        Build the ASSIST09 vector table and setup monitor defaults, then invoke
+        the monitor startup routine.
+
+        source code forms:
+
+        CC bits "HNZVC": *****
+        """
+        raise NotImplementedError("$%x RESET" % opcode)
+        # Update CC bits: *****
+
+    @opcode(# Return from interrupt
+        0x3b, # RTI (inherent)
+    )
+    def instruction_RTI(self, opcode):
+        """
+        The saved machine state is recovered from the hardware stack and control
+        is returned to the interrupted program. If the recovered E (entire) bit
+        is clear, it indicates that only a subset of the machine state was saved
+        (return address and condition codes) and only that subset is recovered.
+
+        source code forms: RTI
+
+        CC bits "HNZVC": -----
+        """
+        raise NotImplementedError("$%x RTI" % opcode)
+
+    @opcode(# Software interrupt (absolute indirect)
+        0x3f, # SWI (inherent)
+    )
+    def instruction_SWI(self, opcode):
+        """
+        All of the processor registers are pushed onto the hardware stack (with
+        the exception of the hardware stack pointer itself), and control is
+        transferred through the software interrupt vector. Both the normal and
+        fast interrupts are masked (disabled).
+
+        source code forms: SWI
+
+        CC bits "HNZVC": -----
+        """
+        raise NotImplementedError("$%x SWI" % opcode)
+
+    @opcode(# Software interrupt (absolute indirect)
+        0x103f, # SWI2 (inherent)
+    )
+    def instruction_SWI2(self, opcode, ea, m):
+        """
+        All of the processor registers are pushed onto the hardware stack (with
+        the exception of the hardware stack pointer itself), and control is
+        transferred through the software interrupt 2 vector. This interrupt is
+        available to the end user and must not be used in packaged software.
+        This interrupt does not mask (disable) the normal and fast interrupts.
+
+        source code forms: SWI2
+
+        CC bits "HNZVC": -----
+        """
+        raise NotImplementedError("$%x SWI2" % opcode)
+
+    @opcode(# Software interrupt (absolute indirect)
+        0x113f, # SWI3 (inherent)
+    )
+    def instruction_SWI3(self, opcode, ea, m):
+        """
+        All of the processor registers are pushed onto the hardware stack (with
+        the exception of the hardware stack pointer itself), and control is
+        transferred through the software interrupt 3 vector. This interrupt does
+        not mask (disable) the normal and fast interrupts.
+
+        source code forms: SWI3
+
+        CC bits "HNZVC": -----
+        """
+        raise NotImplementedError("$%x SWI3" % opcode)
+
+    @opcode(# Synchronize with interrupt line
+        0x13, # SYNC (inherent)
+    )
+    def instruction_SYNC(self, opcode):
+        """
+        FAST SYNC WAIT FOR DATA Interrupt! LDA DISC DATA FROM DISC AND CLEAR
+        INTERRUPT STA ,X+ PUT IN BUFFER DECB COUNT IT, DONE? BNE FAST GO AGAIN
+        IF NOT.
+
+        source code forms: SYNC
+
+        CC bits "HNZVC": -----
+        """
+        raise NotImplementedError("$%x SYNC" % opcode)
 
 
 def test_run():
