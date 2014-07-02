@@ -332,7 +332,7 @@ class Test6809_Program_Division2(BaseStackTestCase):
             first = "%i/%i=%i remainder: %i" % (dividend, divisor, quotient, remainder)
             second = "%i/%i=%i remainder: %i" % (dividend, divisor, expected_quotient, expected_remainder)
 #            if first != second:
-#                print "ERROR: %r sould be: %r\n" % (first, second)
+#                print "ERROR: %r should be: %r\n" % (first, second)
 #            else:
 #                print "OK: %s\n" % first
             self.assertEqual(first, second)
@@ -347,11 +347,11 @@ class Test6809_Program_Division2(BaseStackTestCase):
         test(0xfffffff, 0x8000) # OK: 268435455/32768=8191 remainder: 32767
         test(0xfffffff, 0xffff) # OK: 268435455/65535=4096 remainder: 4095
 
-#        test(1, 0x8000) # ERROR: '1/32768=0 remainder: 0' sould be: '1/32768=0 remainder: 1'
-#        test(1, 0x8001) # ERROR: '1/32769=0 remainder: 0' sould be: '1/32769=0 remainder: 1'
-#        test(1, 0x9000) # ERROR: '1/36864=0 remainder: 0' sould be: '1/36864=0 remainder: 1'
-#        test(10, 0xffff) # ERROR: '10/65535=0 remainder: 0' sould be: '10/65535=0 remainder: 10'
-#        test(0x10000000, 0x10000) # ERROR: '268435456/65536=16 remainder: 65535' sould be: '268435456/65536=4096 remainder: 0'
+#        test(1, 0x8000) # ERROR: '1/32768=0 remainder: 0' should be: '1/32768=0 remainder: 1'
+#        test(1, 0x8001) # ERROR: '1/32769=0 remainder: 0' should be: '1/32769=0 remainder: 1'
+#        test(1, 0x9000) # ERROR: '1/36864=0 remainder: 0' should be: '1/36864=0 remainder: 1'
+#        test(10, 0xffff) # ERROR: '10/65535=0 remainder: 0' should be: '10/65535=0 remainder: 10'
+#        test(0x10000000, 0x10000) # ERROR: '268435456/65536=16 remainder: 65535' should be: '268435456/65536=4096 remainder: 0'
 
 
 if __name__ == '__main__':
