@@ -96,6 +96,90 @@ class Test6809_AddressModes_Indexed(BaseTestCase):
         self.assertEqualHexWord(self.cpu.memory.read_word(0x004e), 0xabcd) # 50-2
         self.assertEqualHexWord(self.cpu.memory.read_word(0x0058), 0x004e)
 
+    def test_no_offset(self):
+        self.cpu_test_run(start=0x2000, end=None, mem=[
+            0x8E, 0xAB, 0xCD, #            0000| LDX   #$abcd    ;set X to $abcd
+            0x10, 0x8E, 0x00, 0x50, #      0003| LDY   #$50      ;set Y to $0050
+            0xAF, 0xA4, #                  0007| STX   ,Y        ;store X at $50
+            0x10, 0x9F, 0x58, #            0009| STY   $58       ;store Y at $58
+        ])
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0050), 0xabcd) # X
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0058), 0x0050) # Y
+
+    def test_B_offset(self):
+        self.cpu_test_run(start=0x2000, end=None, mem=[
+            0xC6, 0x03, #             LDB   #$3        ; set B to $3
+            0x8E, 0xAB, 0xCD, #       LDX   #$abcd     ; set X to $abcd
+            0x10, 0x8E, 0x00, 0x50, # LDY   #$50       ; set Y to $50
+            0xAF, 0xA5, #             STX   B,Y        ; store X at Y and B
+            0x10, 0x9F, 0x58, #       STY   $58        ; store Y
+        ])
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0050 + 0x03), 0xabcd) # 53
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0058), 0x0050) # Y
+
+    def test_A_offset(self):
+        self.cpu_test_run(start=0x2000, end=None, mem=[
+            0x86, 0xFC, #             LDA   #$-4       ; set A to $-4
+            0x8E, 0xAB, 0xCD, #       LDX   #$abcd     ; set X to $abcd
+            0x10, 0x8E, 0x00, 0x50, # LDY   #$50       ; set Y to $50
+            0xAF, 0xA6, #             STX   A,Y        ; store X at Y and A
+            0x10, 0x9F, 0x58, #       STY   $58        ; store Y
+        ])
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0050 - 0x04), 0xabcd) # 4c
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0058), 0x0050) # Y
+
+    def test_8bit_offset(self):
+        x = 0xabcd
+        y = 0x00d0
+        offset = 0x80 # signed = $-80
+        self.cpu.index_x.set(x)
+        self.cpu.index_y.set(y)
+        self.cpu_test_run(start=0x2000, end=None, mem=[
+            0xAF, 0xA8, offset, #       STX   $30,Y      ; store X at Y -80 = $50
+        ])
+        self.assertEqualHexWord(self.cpu.index_y.get(), y)
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x50), x) # $d0 + $-80 = $50
+
+    def test_16bit_offset(self):
+        """
+        LDX #$abcd   ; set X to $abcd
+        LDY #$804f   ; set Y to $804f
+        STX $8001,Y  ; store X at Y + $-7fff
+        STY $20      ; store Y at $20
+        """
+        x = 0xabcd
+        y = 0x804f
+        offset = 0x8001 # signed = $-7fff
+        offset_hi, offset_lo = divmod(offset, 0x100)
+        self.cpu.index_x.set(x)
+        self.cpu.index_y.set(y)
+        self.cpu_test_run(start=0x2000, end=None, mem=[
+            0xAF, 0xA9, offset_hi, offset_lo, # STX $30,Y  ; store X at Y -80 = $50
+        ])
+        self.assertEqualHexWord(self.cpu.index_y.get(), y)
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x50), x) # $804f + $-7fff = $50
+
+    def test_D_offset(self):
+        """
+        LDX #$abcd   ; set X to $abcd
+        LDY #$804f   ; set Y to $804f
+        LDD #$8001   ; set D to $8001 signed = $-7fff
+        STX D,Y      ; store X at $50 (Y + D)
+        STY $20      ; store Y at $20
+        """
+        x = 0xabcd
+        y = 0x804f
+        d = 0x8001 # signed = $-7fff
+        self.cpu.index_x.set(x)
+        self.cpu.index_y.set(y)
+        self.cpu.accu_d.set(d)
+        self.cpu_test_run(start=0x2000, end=None, mem=[
+            0xAF, 0xAB, # STX D,Y  ; store X at Y + D
+        ])
+        self.assertEqualHexWord(self.cpu.index_x.get(), x)
+        # $804f + $-7fff = $50
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x50), x) # $804f + $-7fff = $50
+
 
 
 
