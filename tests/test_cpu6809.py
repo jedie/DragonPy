@@ -480,22 +480,12 @@ class Test6809_Ops2(BaseTestCase):
         self.assertEqualHex(self.cpu.memory.read_byte(0x5000), 0xff) # A
         self.assertEqualHex(self.cpu.memory.read_byte(0x5001), 0x8) # B == CC
 
-    def test_LD16_ST16_CLR(self):
-        self.cpu.accu_d.set(0)
-        self.cpu_test_run(start=0x4000, end=None, mem=[0xCC, 0x12, 0x34]) # LDD $1234 (Immediate)
-        self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
-
-        self.cpu_test_run(start=0x4000, end=None, mem=[0xFD, 0x50, 0x00]) # STD $5000 (Extended)
-        self.assertEqualHex(self.cpu.memory.read_word(0x5000), 0x1234)
-
-        self.cpu_test_run(start=0x4000, end=None, mem=[0x4F]) # CLRA
-        self.assertEqualHex(self.cpu.accu_d.get(), 0x34)
-
-        self.cpu_test_run(start=0x4000, end=None, mem=[0x5F]) # CLRB
-        self.assertEqualHex(self.cpu.accu_d.get(), 0x0)
-
-        self.cpu_test_run(start=0x4000, end=None, mem=[0xFC, 0x50, 0x00]) # LDD $5000 (Extended)
-        self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
+#TODO:
+#        self.cpu_test_run(start=0x4000, end=None, mem=[0x4F]) # CLRA
+#        self.assertEqualHex(self.cpu.accu_d.get(), 0x34)
+#
+#        self.cpu_test_run(start=0x4000, end=None, mem=[0x5F]) # CLRB
+#        self.assertEqualHex(self.cpu.accu_d.get(), 0x0)
 
 
 class Test6809_Stack(BaseStackTestCase):

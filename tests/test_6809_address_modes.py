@@ -29,21 +29,21 @@ class Test6809_AddressModes_LowLevel(BaseTestCase):
         self.cpu.direct_page.set(0xab)
 
         ea = self.cpu.get_ea_direct()
-        self.assertEqualHex(ea, 0xab12)
+        self.assertEqualHexWord(ea, 0xab12)
 
         ea = self.cpu.get_ea_direct()
-        self.assertEqualHex(ea, 0xab34)
+        self.assertEqualHexWord(ea, 0xab34)
 
         self.cpu.direct_page.set(0x0)
         ea = self.cpu.get_ea_direct()
-        self.assertEqualHex(ea, 0xf)
+        self.assertEqualHexByte(ea, 0xf)
 
 class Test6809_AddressModes_Indexed(BaseTestCase):
     def test_5bit_signed_offset_01(self):
         self.cpu.index_x.set(0x0300)
         self.cpu.index_y.set(0x1234)
         self.cpu_test_run(start=0x1b5c, end=None, mem=[0x10, 0xAF, 0x04]) # STY 4,X
-        self.assertEqualHex(self.cpu.memory.read_word(0x0304), 0x1234) # $0300 + $04 = $0304
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0304), 0x1234) # $0300 + $04 = $0304
 
     def test_5bit_signed_offset_02(self):
         """
@@ -54,7 +54,7 @@ class Test6809_AddressModes_Indexed(BaseTestCase):
         self.cpu.index_x.set(0xabcd)
         self.cpu.index_y.set(0x0050)
         self.cpu_test_run(start=0x1b5c, end=None, mem=[0xAF, 0x30]) # STX -16,Y
-        self.assertEqualHex(self.cpu.memory.read_word(0x0040), 0xabcd) # $0050 + $-10 = $0040
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0040), 0xabcd) # $0050 + $-10 = $0040
 
     def test_increment_by_1(self):
         self.cpu_test_run(start=0x2000, end=None, mem=[
@@ -63,8 +63,38 @@ class Test6809_AddressModes_Indexed(BaseTestCase):
             0xAF, 0xA0, #                  0007| STX   ,Y+       ;store X at $50 and Y+1
             0x10, 0x9F, 0x58, #            0009| STY   $58       ;store Y at $58
         ])
-        self.assertEqualHex(self.cpu.memory.read_word(0x0050), 0xabcd)
-        self.assertEqualHex(self.cpu.memory.read_word(0x0058), 0x0051)
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0050), 0xabcd)
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0058), 0x0051)
+
+    def test_increment_by_2(self):
+        self.cpu_test_run(start=0x2000, end=None, mem=[
+            0x8E, 0xAB, 0xCD, #            0000| LDX   #$abcd    ;set X to $abcd
+            0x10, 0x8E, 0x00, 0x50, #      0003| LDY   #$50      ;set Y to $0050
+            0xAF, 0xA1, #                  0007| STX   ,Y++      ;store X at $50 and Y+2
+            0x10, 0x9F, 0x58, #            0009| STY   $58       ;store Y at $58
+        ])
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0050), 0xabcd)
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0058), 0x0052)
+
+    def test_decrement_by_1(self):
+        self.cpu_test_run(start=0x2000, end=None, mem=[
+            0x8E, 0xAB, 0xCD, #            0000| LDX   #$abcd    ;set X to $abcd
+            0x10, 0x8E, 0x00, 0x50, #      0003| LDY   #$50      ;set Y to $0050
+            0xAF, 0xA2, #                  0007| STX   ,-Y       ;Y-1 and store X at $50-1
+            0x10, 0x9F, 0x58, #            0009| STY   $58       ;store Y at $58
+        ])
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x004f), 0xabcd) # 50-1
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0058), 0x004f)
+
+    def test_decrement_by_2(self):
+        self.cpu_test_run(start=0x2000, end=None, mem=[
+            0x8E, 0xAB, 0xCD, #            0000| LDX   #$abcd    ;set X to $abcd
+            0x10, 0x8E, 0x00, 0x50, #      0003| LDY   #$50      ;set Y to $0050
+            0xAF, 0xA3, #                  0007| STX   ,--Y      ;Y-2 and store X at $50-1
+            0x10, 0x9F, 0x58, #            0009| STY   $58       ;store Y at $58
+        ])
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x004e), 0xabcd) # 50-2
+        self.assertEqualHexWord(self.cpu.memory.read_word(0x0058), 0x004e)
 
 
 
