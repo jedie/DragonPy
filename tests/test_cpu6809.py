@@ -41,23 +41,6 @@ class BaseDragon32TestCase(BaseTestCase):
             self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
 
 
-class Test6809_AddressModes(BaseTestCase):
-    def test_base_page_direct01(self):
-        self.cpu.memory.load(0x1000, [0x12, 0x34, 0xf])
-        self.cpu.program_counter = 0x1000
-        self.cpu.direct_page.set(0xab)
-
-        ea = self.cpu.get_ea_direct()
-        self.assertEqualHex(ea, 0xab12)
-
-        ea = self.cpu.get_ea_direct()
-        self.assertEqualHex(ea, 0xab34)
-
-        self.cpu.direct_page.set(0x0)
-        ea = self.cpu.get_ea_direct()
-        self.assertEqualHex(ea, 0xf)
-
-
 class Test6809_Register(BaseTestCase):
     def test_registerA(self):
         for i in xrange(255):
