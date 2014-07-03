@@ -226,6 +226,20 @@ It looks like this:
 # implement Dragon 32 periphery
 # use Python multiprocessing module
 
+missing unittests after coverage run:
+ 
+ * ea relative byte
+ * ea relative word
+ * ASR
+ * DAA
+ * MUL
+ * SEX
+ * BRN
+ * BVC
+ * BVS
+ * LSR memory
+ * ROR memory
+
 
 == Links
 
