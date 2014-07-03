@@ -350,6 +350,51 @@ class CPU(object):
 
         self.setup_trace_compare()
 
+    def get_state(self):
+        """
+        used in unittests
+        """
+        state = {
+            REG_X: self.index_x.get(),
+            REG_Y: self.index_y.get(),
+
+            REG_U: self.user_stack_pointer.get(),
+            REG_S: self._system_stack_pointer.get(),
+
+            REG_PC: self._program_counter.get(),
+
+            REG_A: self.accu_a.get(),
+            REG_B: self.accu_b.get(),
+
+            REG_DP: self.direct_page.get(),
+            REG_CC: self.cc.get(),
+
+            "cycles": self.cycles,
+            "RAM":self.memory.ram._mem[:], # copy of RAM
+        }
+        return state
+
+    def set_state(self, state):
+        """
+        used in unittests
+        """
+        self.index_x.set(state[REG_X])
+        self.index_y.set(state[REG_Y])
+
+        self.user_stack_pointer.set(state[REG_U])
+        self._system_stack_pointer.set(state[REG_S])
+
+        self._program_counter.set(state[REG_PC])
+
+        self.accu_a.set(state[REG_A])
+        self.accu_b.set(state[REG_B])
+
+        self.direct_page.set(state[REG_DP])
+        self.cc.set(state[REG_CC])
+        
+        self.cycles = state["cycles"]
+        self.memory.ram._mem = state["RAM"]
+
     def setup_trace_compare(self):
         self.xroar_trace_file = None
         self.v09_trace_file = None

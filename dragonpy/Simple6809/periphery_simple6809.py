@@ -66,11 +66,14 @@ class Simple6809PeripheryBase(PeripheryBase):
         )
         return value
 
+    def new_output_char(self, char):
+        self.output_queue.put(char)
+
     def write_acia_data(self, cpu_cycles, op_address, address, value):
         char = chr(value)
-#        log.info("*"*79)
-#        log.info("Write to screen: %s ($%x)" , repr(char), value)
-#        log.info("*"*79)
+        log.info("*"*79)
+        log.info("Write to screen: %s ($%x)" , repr(char), value)
+        log.info("*"*79)
 
         if value >= 0x90: # FIXME: Why?
             value -= 0x60
@@ -82,7 +85,8 @@ class Simple6809PeripheryBase(PeripheryBase):
             char = chr(value)
 #            log.info("convert value += 0x41 to %s ($%x)" , repr(char), value)
 
-        self.output_queue.put(char)
+        self.new_output_char(char)
+
 
 
 
@@ -200,23 +204,24 @@ class Simple6809PeripherySerial(Simple6809PeripheryBase):
 class Simple6809PeripheryUnittest(Simple6809PeripheryBase):
     def __init__(self, *args, **kwargs):
         super(Simple6809PeripheryUnittest, self).__init__(*args, **kwargs)
-        self.output = ""
+        self._out_buffer = ""
+        self.out_lines = []
 
-    def update(self, cpu_cycles):
-        is_empty = self.output_queue.empty()
-        if not is_empty:
-            new_output = self.output_queue.get()
-            self.output += new_output
+    def new_output_char(self, char):
+        sys.stdout.write(char)
+        sys.stdout.flush()
 
-            sys.stdout.write(new_output)
-            sys.stdout.flush()
+        self._out_buffer += char
+        if char == "\n":
+            self.out_lines.append(self._out_buffer)
+            self._out_buffer = ""
 
 
 class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
     TITLE = "DragonPy - Simple 6809"
     GEOMETRY = "+500+300"
     INITAL_INPUT2 = (
-#         '? "HELLO?"\r\n' # OK
+         '? "HELLO?"\r\n' # OK
 #         'PRINT "HELLO WORLD!"\r\n' # OK
 #         '? 0\r\n' # OK
 #         '? "FOO"+"BAR"\r\n' # OK
@@ -269,7 +274,7 @@ class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
         self.user_input_queue.put("\r")
 #         self.user_input_queue.put("\n")
 
-    _STOP_AFTER_OK_COUNT = None
+#     _STOP_AFTER_OK_COUNT = None
     _STOP_AFTER_OK_COUNT = 1
 #    _STOP_AFTER_OK_COUNT = 4
     def update(self, cpu_cycles):
@@ -332,10 +337,10 @@ def test_run():
         "DragonPy_CLI.py",
 #        "--verbosity=5",
 #         "--verbosity=10", # DEBUG
-#         "--verbosity=20", # INFO
+        "--verbosity=20", # INFO
 #        "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-        "--verbosity=50", # CRITICAL/FATAL
+#         "--verbosity=50", # CRITICAL/FATAL
 
 #         "--area_debug_cycles=23383", # First OK after copyright info
 
