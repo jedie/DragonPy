@@ -156,14 +156,26 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
         )
         self.assertEqual(op_call_count, 11229)
 
-#     def test_MUL(self): # will faile, yet...
-#         self.periphery.add_to_input_queue('? 2*3\r\n')
-#         op_call_count, cycles, output = self._run_until_OK()
-# #         print op_call_count, cycles, output
-#         self.assertEqual(output,
-#             ['? 2*3\r\n', ' 6\r\n', 'OK\r\n']
-#         )
-#         self.assertEqual(op_call_count, 11229)
+    def test_print_string_variable(self):
+        self.periphery.add_to_input_queue(
+            'A$="B"\r\n'
+            '?A$\r\n'
+        )
+        op_call_count, cycles, output = self._run_until_OK(
+            OK_count=2, max_ops=8500
+        )
+        print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['A$="B"\r\n', 'OK\r\n', '?A$\r\n', 'B\r\n', 'OK\r\n']
+        )
+
+    def test_TM_Error(self):
+        self.periphery.add_to_input_queue('X="Y"\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=3500)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['X="Y"\r\n', '?TM ERROR\r\n', 'OK\r\n']
+        )
 
 #     def test_PRINT04(self):  # will faile, yet...
 #         self.periphery.add_to_input_queue('?2\r\n')
@@ -172,7 +184,15 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
 #         self.assertEqual(output,
 #             ['?2\r\n', ' 2 \r\n', 'OK\r\n']
 #         )
-# #         self.assertEqual(op_call_count, 11229)
+
+#     def test_MUL(self): # will faile, yet...
+#         self.periphery.add_to_input_queue('?2*3\r\n')
+#         op_call_count, cycles, output = self._run_until_OK()
+# #         print op_call_count, cycles, output
+#         self.assertEqual(output,
+#             ['?2*3\r\n', ' 6\r\n', 'OK\r\n']
+#         )
+
 
 
 if __name__ == '__main__':
@@ -189,7 +209,7 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-#            "Test6809_Program.test_crc16_01",
+            "Test6809_BASIC_simple6809_Base.test_TM_Error",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
