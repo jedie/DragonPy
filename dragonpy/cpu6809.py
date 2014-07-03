@@ -1245,46 +1245,6 @@ class CPU(object):
         self.cc.clear_HNZVC()
         self.cc.update_HNZVC_8(old, m, r)
 
-
-    def ASR(self, a):
-        """
-        ASR (Arithmetic Shift Right) alias LSR (Logical Shift Right)
-
-        Shifts all bits of the register one place to the right. Bit seven is held
-        constant. Bit zero is shifted into the C (carry) bit.
-
-        source code forms: ASR Q; ASRA; ASRB
-
-        CC bits "HNZVC": uaa-s
-        """
-        r = (a >> 1) | (a & 0x80)
-        self.cc.clear_NZC()
-        self.cc.C |= (a & 1)
-        self.cc.update_NZ_8(r)
-        return r
-
-    @opcode(0x7, 0x67, 0x77) # ASR (direct, indexed, extended)
-    def instruction_ASR_memory(self, opcode, ea, m):
-        """ Arithmetic shift memory right """
-        r = self.ASR(m)
-#        log.debug("$%x ASR memory value $%x >> 1 | Carry = $%x and write it to $%x \t| %s" % (
-#            self.program_counter,
-#            m, r, ea,
-#            self.cfg.mem_info.get_shortest(ea)
-#        ))
-        return ea, r & 0xff
-
-    @opcode(0x47, 0x57) # ASRA/ASRB (inherent)
-    def instruction_ASR_register(self, opcode, register):
-        """ Arithmetic shift accumulator right """
-        a = register.get()
-        r = self.ASR(a)
-#        log.debug("$%x ASR %s value $%x >> 1 | Carry = $%x" % (
-#            self.program_counter,
-#            register.name, a, r
-#        ))
-        register.set(r)
-
     @opcode(0xf, 0x6f, 0x7f) # CLR (direct, indexed, extended)
     def instruction_CLR_memory(self, opcode, ea):
         """
@@ -2754,6 +2714,45 @@ class CPU(object):
             self.program_counter,
             register.name, a, r
         ))
+        register.set(r)
+
+    def ASR(self, a):
+        """
+        ASR (Arithmetic Shift Right) alias LSR (Logical Shift Right)
+
+        Shifts all bits of the register one place to the right. Bit seven is held
+        constant. Bit zero is shifted into the C (carry) bit.
+
+        source code forms: ASR Q; ASRA; ASRB
+
+        CC bits "HNZVC": uaa-s
+        """
+        r = (a >> 1) | (a & 0x80)
+        self.cc.clear_NZC()
+        self.cc.C |= (a & 1)
+        self.cc.update_NZ_8(r)
+        return r
+
+    @opcode(0x7, 0x67, 0x77) # ASR (direct, indexed, extended)
+    def instruction_ASR_memory(self, opcode, ea, m):
+        """ Arithmetic shift memory right """
+        r = self.ASR(m)
+#        log.debug("$%x ASR memory value $%x >> 1 | Carry = $%x and write it to $%x \t| %s" % (
+#            self.program_counter,
+#            m, r, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
+        return ea, r & 0xff
+
+    @opcode(0x47, 0x57) # ASRA/ASRB (inherent)
+    def instruction_ASR_register(self, opcode, register):
+        """ Arithmetic shift accumulator right """
+        a = register.get()
+        r = self.ASR(a)
+#        log.debug("$%x ASR %s value $%x >> 1 | Carry = $%x" % (
+#            self.program_counter,
+#            register.name, a, r
+#        ))
         register.set(r)
 
 
