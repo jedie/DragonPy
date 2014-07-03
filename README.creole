@@ -62,6 +62,20 @@ or:
 .../path/to/DragonPy$ python2 setup.py test
 }}}
 
+=== create coverage report ===
+
+install [[https://pypi.python.org/pypi/coverage|coverage]] for python 2:
+{{{
+~$ sudo pip2 install coverage
+}}}
+
+{{{
+.../path/to/DragonPy$ coverage2 run --source=dragonpy setup.py test
+.../path/to/DragonPy$ coverage2 coverage2 html
+# e.g.:
+.../path/to/DragonPy$ firefox htmlcov/index.html
+}}}
+
 == CLI
 
 {{{
