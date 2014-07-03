@@ -11,10 +11,10 @@
 
 import os
 
-from core.configs import BaseConfig
+from dragonpy.core.configs import BaseConfig
 
-from sbc09.mem_info import get_sbc09_meminfo
-from sbc09.periphery import SBC09Periphery
+from dragonpy.sbc09.mem_info import get_sbc09_meminfo
+from dragonpy.sbc09.periphery import SBC09Periphery
 
 
 class SBC09Cfg(BaseConfig):

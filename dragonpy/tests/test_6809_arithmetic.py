@@ -11,7 +11,7 @@ import logging
 import sys
 import unittest
 
-from tests.test_base import TextTestRunner2, BaseTestCase
+from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase
 
 
 log = logging.getLogger("DragonPy")

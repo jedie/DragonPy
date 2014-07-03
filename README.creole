@@ -9,8 +9,8 @@ DragonPy will not be a second XRoar written in Python.
 This project is primarily to lean and understand.
 
 The first target is to be able to run sbc09 and the Simple6809 design.
-sbc09 stands for Lennart Benschop 6809 Single Board Computer, read: [[https://github.com/jedie/DragonPy/tree/master/sbc09|/sbc09/README]]
-More info about Simple6809, read: [[https://github.com/jedie/DragonPy/blob/master/Simple6809/README.creole|/Simple6809/README.creole]]
+sbc09 stands for Lennart Benschop 6809 Single Board Computer, read: [[https://github.com/jedie/DragonPy/tree/master/dragonpy/sbc09|/dragonpy/sbc09/README]]
+More info about Simple6809, read: [[https://github.com/jedie/DragonPy/blob/master/dragonpy/Simple6809/README.creole|/dragonpy/Simple6809/README.creole]]
 
 Future goals are:
 * run Dragon 32 ROMs (maybe in far future: Dragon 64)
@@ -55,7 +55,11 @@ Just request http://localhost:6809 from your browser.
 === run unittests ===
 
 {{{
-.../path/to/DragonPy$ python setup.py test
+.../path/to/DragonPy$ python2 -m unittest discover
+}}}
+or:
+{{{
+.../path/to/DragonPy$ python2 setup.py test
 }}}
 
 == CLI
@@ -236,13 +240,13 @@ other resources:
 
  * Grant Searle's Multicomp FPGA project:
  ** Homepage: http://searle.hostei.com/grant/Multicomp/
- ** own [[https://github.com/jedie/DragonPy/tree/master/Simple6809#readme|Simple6809/README]]
+ ** own [[https://github.com/jedie/DragonPy/tree/master/dragonpy/Simple6809#readme|dragonpy/Simple6809/README]]
  * Lennart Benschop 6809 Single Board Computer:
  ** Homepage: http://lennartb.home.xs4all.nl/m6809.html
- ** own [[https://github.com/jedie/DragonPy/tree/master/sbc09#readme|sbc09/README]]
+ ** own [[https://github.com/jedie/DragonPy/tree/master/dragonpy/sbc09#readme|dragonpy/sbc09/README]]
  * Grant Searle's Simple 6809 design:
  ** Homepage: http://searle.hostei.com/grant/6809/Simple6809.html
- ** own [[https://github.com/jedie/DragonPy/tree/master/Multicomp6809#readme|Multicomp6809/README]]
+ ** own [[https://github.com/jedie/DragonPy/tree/master/dragonpy/Multicomp6809#readme|dragonpy/Multicomp6809/README]]
 
 
 == Credits

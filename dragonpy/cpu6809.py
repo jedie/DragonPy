@@ -34,15 +34,15 @@ import MC6809data.MC6809_data_raw2 as MC6809_data
 from MC6809data.MC6809_data_raw2 import (
     OP_DATA, REG_A, REG_B, REG_CC, REG_D , REG_DP, REG_PC, REG_S, REG_U, REG_X, REG_Y
 )
-from components.memory import Memory
-from cpu_utils.MC6809_registers import (
+from dragonpy.components.memory import Memory
+from dragonpy.cpu_utils.MC6809_registers import (
     ValueStorage8Bit, ConcatenatedAccumulator,
     ValueStorage16Bit, ConditionCodeRegister, cc_value2txt
 , UndefinedRegister)
-from utils.simple_debugger import print_exc_plus
-from core.cpu_control_server import get_http_control_server
+from dragonpy.utils.simple_debugger import print_exc_plus
+from dragonpy.core.cpu_control_server import get_http_control_server
 from DragonPy_CLI import get_cli
-from cpu_utils.signed import signed8, signed16, signed5, unsigned8
+from dragonpy.cpu_utils.signed import signed8, signed16, signed5, unsigned8
 
 
 

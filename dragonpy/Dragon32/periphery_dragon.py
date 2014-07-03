@@ -20,10 +20,10 @@ except ImportError:
     # Maybe Dragon would not be emulated ;)
     pygame = None
 
-from Dragon32.display import Display
-from Dragon32.MC6883_SAM import SAM
-from Dragon32.MC6821_PIA import PIA
-from components.periphery import PeripheryBase
+from dragonpy.Dragon32.display import Display
+from dragonpy.Dragon32.MC6883_SAM import SAM
+from dragonpy.Dragon32.MC6821_PIA import PIA
+from dragonpy.components.periphery import PeripheryBase
 
 log = logging.getLogger("DragonPy.perophery.dragon")
 

@@ -11,9 +11,9 @@
 
 import os
 
-from core.configs import BaseConfig
-from Simple6809.mem_info import get_simple6809_meminfo
-from Simple6809.periphery_simple6809 import Simple6809Periphery
+from dragonpy.core.configs import BaseConfig
+from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
+from dragonpy.Simple6809.periphery_simple6809 import Simple6809Periphery
 
 
 class Simple6809Cfg(BaseConfig):

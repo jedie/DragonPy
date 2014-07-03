@@ -21,7 +21,7 @@ except Exception, err:
     print "Error importing Tkinter: %s" % err
     Tkinter = None
 
-from components.periphery import PeripheryBase, TkPeripheryBase
+from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase
 
 log = logging.getLogger("DragonPy.Periphery")
 

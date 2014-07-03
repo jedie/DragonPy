@@ -13,8 +13,8 @@ import logging
 import sys
 
 from test_base import BaseTestCase
-from tests.test_base import TextTestRunner2
-from cpu_utils.signed import signed8
+from dragonpy.tests.test_base import TextTestRunner2
+from dragonpy.cpu_utils.signed import signed8
 
 
 class CCTestCase(BaseTestCase):

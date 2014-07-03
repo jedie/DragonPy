@@ -11,9 +11,9 @@
 
 import os
 
-from core.configs import BaseConfig
-# from Simple6809.mem_info import get_simple6809_meminfo
-from Multicomp6809.periphery_Multicomp6809 import Multicomp6809Periphery
+from dragonpy.core.configs import BaseConfig
+# from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
+from dragonpy.Multicomp6809.periphery_Multicomp6809 import Multicomp6809Periphery
 
 
 
@@ -61,7 +61,7 @@ class Multicomp6809Cfg(BaseConfig):
         self.periphery_class = Multicomp6809Periphery
 
 if __name__ == "__main__":
-    from tests.test_base import UnittestCmdArgs
+    from dragonpy.tests.test_base import UnittestCmdArgs
 
     cmd_args = UnittestCmdArgs
     cfg = Multicomp6809Cfg(cmd_args)

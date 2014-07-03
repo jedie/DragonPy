@@ -12,10 +12,10 @@ import sys
 import unittest
 import itertools
 
-from cpu6809 import CPU
-from Dragon32.config import Dragon32Cfg
-from Dragon32.mem_info import DragonMemInfo
-from tests.test_base import TextTestRunner2, BaseTestCase, UnittestCmdArgs, \
+from dragonpy.cpu6809 import CPU
+from dragonpy.Dragon32.config import Dragon32Cfg
+from dragonpy.Dragon32.mem_info import DragonMemInfo
+from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase, UnittestCmdArgs, \
     BaseStackTestCase
 
 

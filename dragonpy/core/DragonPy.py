@@ -22,7 +22,7 @@ import sys
 import logging
 import os
 
-from utils.simple_debugger import print_exc_plus
+from dragonpy.utils.simple_debugger import print_exc_plus
 
 
 log = logging.getLogger("DragonPy")

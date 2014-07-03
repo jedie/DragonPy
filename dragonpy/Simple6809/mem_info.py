@@ -11,7 +11,7 @@
 
 
 import logging
-from core.memory_info import BaseMemoryInfo
+from dragonpy.core.memory_info import BaseMemoryInfo
 
 log = logging.getLogger("DragonPy.Simple6809.mem_info")
 

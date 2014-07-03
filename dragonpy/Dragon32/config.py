@@ -12,10 +12,10 @@
 import os
 import logging
 
-from core.configs import BaseConfig
+from dragonpy.core.configs import BaseConfig
 
-from Dragon32.periphery_dragon import Dragon32Periphery
-from Dragon32.mem_info import get_dragon_meminfo
+from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
+from dragonpy.Dragon32.mem_info import get_dragon_meminfo
 
 
 class Dragon32Cfg(BaseConfig):

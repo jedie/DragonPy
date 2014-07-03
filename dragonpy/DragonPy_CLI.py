@@ -13,15 +13,15 @@
 import atexit
 import sys
 
-from core.DragonPy import Dragon
-from core.base_cli import Base_CLI
-from core.configs import configs
-from utils.simple_debugger import print_exc_plus
+from dragonpy.core.DragonPy import Dragon
+from dragonpy.core.base_cli import Base_CLI
+from dragonpy.core.configs import configs
+from dragonpy.utils.simple_debugger import print_exc_plus
 
 from Dragon32.config import Dragon32Cfg
-from Simple6809.config import Simple6809Cfg
-from Multicomp6809.config import Multicomp6809Cfg
-from sbc09.config import SBC09Cfg
+from dragonpy.Simple6809.config import Simple6809Cfg
+from dragonpy.Multicomp6809.config import Multicomp6809Cfg
+from dragonpy.sbc09.config import SBC09Cfg
 
 
 configs.register("Dragon32", Dragon32Cfg, default=True)

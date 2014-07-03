@@ -28,7 +28,7 @@ try:
 except ImportError:
     pass
 
-from components.periphery import PeripheryBase, TkPeripheryBase
+from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase
 
 
 log = logging.getLogger("DragonPy.simple6809.Periphery")

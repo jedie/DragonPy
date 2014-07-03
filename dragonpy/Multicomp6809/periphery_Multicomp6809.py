@@ -24,7 +24,7 @@ except Exception, err:
     Tkinter = None
 
 
-from components.periphery import PeripheryBase, TkPeripheryBase
+from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase
 
 
 log = logging.getLogger("DragonPy.Multicomp6809.Periphery")

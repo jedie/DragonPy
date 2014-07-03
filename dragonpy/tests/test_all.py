@@ -13,7 +13,7 @@
 import unittest
 import logging
 
-from test_base import TextTestRunner2
+from dragonpy.tests.test_base import TextTestRunner2
 
 
 if __name__ == '__main__':
@@ -32,7 +32,7 @@ if __name__ == '__main__':
     loader = unittest.TestLoader()
     tests = loader.discover('.')
 
-    #test_runner = TextTestRunner2(
+#    test_runner = TextTestRunner2(
     test_runner = unittest.TextTestRunner(
 #         verbosity=1,
         verbosity=2,

@@ -4,7 +4,7 @@
     DragonPy - Dragon 32 emulator in Python
     =======================================
 
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -12,9 +12,9 @@
 import unittest
 import logging
 
-from cpu6809 import CPU
-from cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
-from tests.test_config import TestCfg
+from dragonpy.cpu6809 import CPU
+from dragonpy.cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
+from dragonpy.tests.test_config import TestCfg
 
 
 log = logging.getLogger("DragonPy")

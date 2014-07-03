@@ -9,14 +9,12 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-try:
-    from setuptools import setup
-except ImportError:
-    from distutils.core import setup
+from setuptools import setup, find_packages
+import dragonpy
 
 setup(
     name="DragonPy",
-    version="0.1",
+    version=dragonpy.__version__,
     py_modules=["DragonPy"],
     provides=["DragonPy"],
     author="Jens Diemer",
@@ -42,5 +40,8 @@ setup(
         "Topic :: Software Development :: Assemblers",
         "Topic :: Software Development :: Testing",
     ],
-    test_suite="tests",
+    packages=find_packages(),
+    include_package_data=True,
+    zip_safe=False,
+    test_suite="dragonpy.tests",
 )

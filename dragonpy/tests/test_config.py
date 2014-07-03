@@ -9,7 +9,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from core.configs import BaseConfig
+from dragonpy.core.configs import BaseConfig
 
 
 class TestCfg(BaseConfig):
