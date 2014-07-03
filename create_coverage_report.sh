@@ -13,8 +13,13 @@ coverage2=/usr/bin/python2-coverage
 
 set -x
 
+# delete old results
+${coverage2} erase
+
 # run unittests
 ${coverage2} run --source=dragonpy setup.py test
+#~ ${coverage2} run setup.py test -s dragonpy.tests.test_BASIC_simple09
+
 
 # create coverage html resport files
 ${coverage2} html

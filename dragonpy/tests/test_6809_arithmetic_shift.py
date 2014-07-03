@@ -122,6 +122,55 @@ loop:
             else:
                 self.assertEqual(self.cpu.cc.C, 0)
 
+    def test_ASR_inherent(self):
+        """
+        Jedes Bit der Speicherzelle bzw. des Akkumulators A/B wird um eine Position nach rechts verschoben.
+        Bit 7 wird auf '0' gesetzt, und Bit 0 wird ins Carry Flag übertragen.
+        """
+        for src in xrange(0x100):
+            self.cpu.accu_b.set(src)
+            self.cpu.cc.set(0x00) # Set all CC flags
+            self.cpu_test_run(start=0x1000, end=None, mem=[
+                0x57, # ASRB/LSRB Inherent
+            ])
+            dst = self.cpu.accu_b.get()
+
+            src_bit_str = '{0:08b}'.format(src)
+            dst_bit_str = '{0:08b}'.format(dst)
+
+#             print "%02x %s > ASRB > %02x %s -> %s" % (
+#                 src, src_bit_str,
+#                 dst, dst_bit_str,
+#                 self.cpu.cc.get_info
+#             )
+
+            # test ASRB/LSRB result
+            excpeted_bits = "0%s" % src_bit_str[:-1]
+            self.assertEqual(dst_bit_str, excpeted_bits)
+
+            # test negative
+            if 128 <= dst <= 255:
+                self.assertEqual(self.cpu.cc.N, 1)
+            else:
+                self.assertEqual(self.cpu.cc.N, 0)
+
+            # test zero
+            if dst == 0:
+                self.assertEqual(self.cpu.cc.Z, 1)
+            else:
+                self.assertEqual(self.cpu.cc.Z, 0)
+
+            # test overflow (is uneffected!)
+            self.assertEqual(self.cpu.cc.V, 0)
+
+            # test carry
+            source_bit0 = 0 if src & 2 ** 0 == 0 else 1
+            if source_bit0:
+                self.assertEqual(self.cpu.cc.C, 1)
+            else:
+                self.assertEqual(self.cpu.cc.C, 0)
+
+
 class Test6809_Rotate(BaseTestCase):
     """
     unittests for:
@@ -266,12 +315,10 @@ if __name__ == '__main__':
     )
     log.addHandler(logging.StreamHandler())
 
-    # XXX: Disable hacked XRoar trace
-    import cpu6809; cpu6809.trace_file = None
-
     unittest.main(
         argv=(
             sys.argv[0],
+            "Test6809_LogicalShift.test_ASR_inherent",
 #            "Test6809_Rotate",
         ),
         testRunner=TextTestRunner2,

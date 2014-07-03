@@ -391,7 +391,7 @@ class CPU(object):
 
         self.direct_page.set(state[REG_DP])
         self.cc.set(state[REG_CC])
-        
+
         self.cycles = state["cycles"]
         self.memory.ram._mem = state["RAM"]
 
@@ -2727,7 +2727,7 @@ class CPU(object):
 
         CC bits "HNZVC": uaa-s
         """
-        r = (a >> 1) | (a & 0x80)
+        r = (a >> 1) & -0x81 # the same as: r = (a >> 1) & ~(1 << 7)
         self.cc.clear_NZC()
         self.cc.C |= (a & 1)
         self.cc.update_NZ_8(r)

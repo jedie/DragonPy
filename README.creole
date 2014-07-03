@@ -230,7 +230,6 @@ missing unittests after coverage run:
  
  * ea relative byte
  * ea relative word
- * ASR
  * DAA
  * MUL
  * SEX
