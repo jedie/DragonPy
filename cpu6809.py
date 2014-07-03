@@ -189,11 +189,19 @@ class Instruction(object):
 #         log.info("CPU cycles: %i", self.cpu.cycles)
 
         func_name = self.instr_func.__name__
-        if func_name not in self.CALLED:
-            log.error("%04x| called the first time: $%02x %s (CPU cycles: %i)",
-                self.cpu.last_op_address, self.op_kwargs["opcode"], func_name, self.cpu.cycles
+        if self.opcode not in self.CALLED:
+            log.error("\n%04x| called the first time: $%02x %s (CPU cycles: %i)",
+                self.cpu.last_op_address, self.opcode, func_name, self.cpu.cycles
             )
-            self.CALLED[func_name] = None
+            if self.get_ea_func is not None:
+                log.error("\tget ea with %s", self.get_ea_func.__name__)
+            else:
+                log.error("\tno ea needed.")
+            if self.get_m_func is not None:
+                log.error("\tget m with %s", self.get_m_func.__name__)
+            else:
+                log.error("\tno m needed.")
+            self.CALLED[self.opcode] = None
 
 #        log.debug("%04x| %s(%s)",
 #            self.cpu.last_op_address,
