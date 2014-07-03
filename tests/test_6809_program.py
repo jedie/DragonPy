@@ -245,8 +245,8 @@ class Test6809_Program_Division2(BaseStackTestCase):
     def _division(self, dividend, divisor):
         assert isinstance(dividend, int)
         assert isinstance(divisor, int)
-        assert 0x0 <= dividend <= 0x100000000
-        assert 0x0 <= divisor <= 0x10000
+        assert 0x0 <= dividend <= 0xffffffff
+        assert 0x0 <= divisor <= 0xffff
 
         a = [dividend >> (i << 3) & 0xff for i in (3, 2, 1, 0)]
 #         print "a:", [hex(i) for i in a]
@@ -258,12 +258,12 @@ class Test6809_Program_Division2(BaseStackTestCase):
         code from https://github.com/6809/sbc09
         written by J.E. Klasek, replacing high-level variant in eFORTH.
 
-        Handles 2 special cases:
+        Special cases:
            1. overflow: quotient overflow if dividend is to great (remainder = divisor),
-               remainder is set to $FFFF.
+               remainder is set to $FFFF -> special handling.
                This is checked also right before the main loop.
            2. underflow: divisor does not fit into dividend -> remainder
-               get the value of the dividend.
+               get the value of the dividend -> automatically covered.
         """
         self.cpu_test_run(start=0x0000, end=None, mem=[
             #                   0000|  EFORTH:
@@ -300,11 +300,6 @@ class Test6809_Program_Division2(BaseStackTestCase):
             0xCC, 0xFF, 0xFF, # 003D| UMMODOV: LDD   #$FFFF  ; remainder = FFFF (-1) marks overflow
             #                   0040|                        ; (case 1)
             #                   0040|  UMMOD4:
-            0x8C, 0x00, 0x00, # 0040|          CMPX  #0      ; quotient = 0 (underflow) ?
-            0x26, 0x02, #       0043|          BNE   UMMOD5
-            0xEC, 0x62, #       0045|          LDD   2,s     ; yes -> remainder = dividend low
-            #                   0047|                        ; (case 2)
-            #                   0047|  UMMOD5:
             0x32, 0x62, #       0047|          LEAS  2,s     ; un (divisor thrown away)
             0xAF, 0xE4, #       0049|          STX   ,s      ; quotient to TOS
             0xED, 0x62, #       004B|          STD   2,s     ; remainder 2nd
@@ -322,13 +317,11 @@ class Test6809_Program_Division2(BaseStackTestCase):
             dividend / divisor = quotient
             """
             quotient, remainder = self._division(dividend, divisor)
-#            print quotient, remainder
-
             a = Decimal(dividend)
             b = Decimal(divisor)
             expected_quotient = a // b
             expected_remainder = a % b
-#            print "%x / %x" % (dividend, divisor)
+#            print "$%x / $%x" % (dividend, divisor)
             first = "%i/%i=%i remainder: %i" % (dividend, divisor, quotient, remainder)
             second = "%i/%i=%i remainder: %i" % (dividend, divisor, expected_quotient, expected_remainder)
 #            if first != second:
@@ -346,12 +339,11 @@ class Test6809_Program_Division2(BaseStackTestCase):
         test(0xffffff, 0x8000) # OK: 16777215/32768=511 remainder: 32767
         test(0xfffffff, 0x8000) # OK: 268435455/32768=8191 remainder: 32767
         test(0xfffffff, 0xffff) # OK: 268435455/65535=4096 remainder: 4095
+        test(1, 0xffff) # OK: 1/65535=0 remainder: 1
+        test(1, 0x8000) # OK: 1/32768=0 remainder: 1
 
-#        test(1, 0x8000) # ERROR: '1/32768=0 remainder: 0' should be: '1/32768=0 remainder: 1'
-#        test(1, 0x8001) # ERROR: '1/32769=0 remainder: 0' should be: '1/32769=0 remainder: 1'
-#        test(1, 0x9000) # ERROR: '1/36864=0 remainder: 0' should be: '1/36864=0 remainder: 1'
-#        test(10, 0xffff) # ERROR: '10/65535=0 remainder: 0' should be: '10/65535=0 remainder: 10'
-#        test(0x10000000, 0x10000) # ERROR: '268435456/65536=16 remainder: 65535' should be: '268435456/65536=4096 remainder: 0'
+#        test(0xfffffff, 0x1) # ERROR: '268435455/1=16 remainder: 65535' should be: '268435455/1=268435455 remainder: 0'
+#        test(0x58000000, 0x3000) # ERROR: '1476395008/12288=16 remainder: 65535' should be: '1476395008/12288=120149 remainder: 4096'
 
 
 if __name__ == '__main__':
