@@ -44,6 +44,17 @@ If the CPU runs, it starts a http server.
 Just request http://localhost:6809 from your browser.
 (The Web-Page must be enhanced ;)
 
+== unittests ==
+
+[[https://travis-ci.org/jedie/DragonPy|DragonPy @ Travis CI]]: {{https://secure.travis-ci.org/jedie/DragonPy.svg?branch=master|Build Status on travis-ci.org}}
+* https://travis-ci.org/jedie/DragonPy
+
+=== run unittests ===
+
+{{{
+.../path/to/DragonPy$ python setup.py test
+}}}
+
 == CLI
 
 {{{
