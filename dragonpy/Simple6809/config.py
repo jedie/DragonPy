@@ -34,13 +34,20 @@ class Simple6809Cfg(BaseConfig):
     ROM_SIZE = 0x4000 # 16384 Bytes
 
     RESET_VECTOR = 0xBFFE
+    RESET_VECTOR_VALUE = 0xdb46 # ROM_START + 0x1b46
 
     BUS_ADDR_AREAS = (
         (0xa000, 0xbfef, "RS232 interface"),
         (0xbff0, 0xbfff, "Interrupt vectors"),
     )
 
-    DEFAULT_ROM = os.path.join("Simple6809", "ExBasROM.bin")
+    # Used in unittest for init the BASIC Interpreter:
+    STARTUP_END_ADDR = 0xdf2b # == JSR  LA390          GO GET AN INPUT LINE
+
+    DEFAULT_ROM = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        "ExBasROM.bin"
+    )
 
     def __init__(self, cmd_args):
         self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1

@@ -48,7 +48,7 @@ class Simple6809PeripheryBase(PeripheryBase):
         }
 
     def reset_vector(self, cpu_cycles, op_address, address):
-        return self.cfg.ROM_START + 0x1b46 # normaly: 0xdb46
+        return self.cfg.RESET_VECTOR_VALUE
 
     def write_acia_status(self, cpu_cycles, op_address, address, value):
         return 0xff
@@ -197,6 +197,21 @@ class Simple6809PeripherySerial(Simple6809PeripheryBase):
         self.serial.flush() # wait until all data is written
 
 
+class Simple6809PeripheryUnittest(Simple6809PeripheryBase):
+    def __init__(self, *args, **kwargs):
+        super(Simple6809PeripheryUnittest, self).__init__(*args, **kwargs)
+        self.output = ""
+
+    def update(self, cpu_cycles):
+        is_empty = self.output_queue.empty()
+        if not is_empty:
+            new_output = self.output_queue.get()
+            self.output += new_output
+
+            sys.stdout.write(new_output)
+            sys.stdout.flush()
+
+
 class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
     TITLE = "DragonPy - Simple 6809"
     GEOMETRY = "+500+300"
@@ -255,11 +270,13 @@ class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
 #         self.user_input_queue.put("\n")
 
     _STOP_AFTER_OK_COUNT = None
-#     _STOP_AFTER_OK_COUNT = 4
+    _STOP_AFTER_OK_COUNT = 1
+#    _STOP_AFTER_OK_COUNT = 4
     def update(self, cpu_cycles):
         is_empty = self.output_queue.empty()
         super(Simple6809PeripheryTk, self).update(cpu_cycles)
         if self._STOP_AFTER_OK_COUNT is not None and not is_empty:
+            print "\ncpu cycle:", cpu_cycles
             txt = self.text.get(1.0, Tkinter.END)
             if txt.count("OK\r\n") >= self._STOP_AFTER_OK_COUNT:
                 log.critical("-> exit!")
@@ -268,6 +285,8 @@ class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
 
 # Simple6809Periphery = Simple6809PeripherySerial
 Simple6809Periphery = Simple6809PeripheryTk
+
+Simple6809TestPeriphery = Simple6809PeripheryUnittest
 
 """
 ? -4
@@ -311,18 +330,19 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         "DragonPy_CLI.py",
-#         "--verbosity=5",
+#        "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-        "--verbosity=30", # WARNING
+#        "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
+        "--verbosity=50", # CRITICAL/FATAL
 
 #         "--area_debug_cycles=23383", # First OK after copyright info
 
         "--cfg=Simple6809",
 #         "--max=500000",
 #         "--max=20000",
+        "--max=1",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()

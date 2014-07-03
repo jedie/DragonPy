@@ -9,8 +9,9 @@
 """
 
 
-import unittest
 import logging
+import sys
+import unittest
 
 from dragonpy.cpu6809 import CPU
 from dragonpy.cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
@@ -138,3 +139,26 @@ class TestCPU(object):
         self.accu_b = ValueStorage8Bit("B", 0) # B - 8 bit accumulator
         # 8 bit condition code register bits: E F H I N Z V C
         self.cc = ConditionCodeRegister()
+
+
+if __name__ == '__main__':
+    log.setLevel(
+#        1
+#        10 # DEBUG
+#         20 # INFO
+#        30 # WARNING
+#         40 # ERROR
+        50 # CRITICAL/FATAL
+    )
+    log.addHandler(logging.StreamHandler())
+
+    unittest.main(
+        argv=(
+            sys.argv[0],
+            "BaseCPUTestCase",
+        ),
+        testRunner=TextTestRunner2,
+#         verbosity=1,
+        verbosity=2,
+#         failfast=True,
+    )

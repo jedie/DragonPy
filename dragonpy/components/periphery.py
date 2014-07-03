@@ -44,8 +44,11 @@ class PeripheryBase(object):
         self.write_address2func_map = None
 
         if self.INITAL_INPUT is not None:
-            for char in self.INITAL_INPUT:
-                self.user_input_queue.put(char)
+            self.add_to_input_queue(self.INITAL_INPUT)
+
+    def add_to_input_queue(self, txt):
+        for char in txt:
+            self.user_input_queue.put(char)
 
     def request_cpu(self, url):
 #         log.critical(

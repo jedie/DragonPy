@@ -245,9 +245,19 @@ class Memory(object):
 
     def _bus_read(self, structure, address):
 #         self.cpu.cycles += 1 # ???
-        self._bus_communication(structure, address)
+
         if not self.cfg.use_bus:
-            raise NotImplementedError
+            if structure == self.cfg.BUS_STRUCTURE_WORD:
+                return self.cfg.periphery.read_word(
+                    self.cpu.cycles, self.cpu.last_op_address, address
+                )
+            else:
+                return self.cfg.periphery.read_byte(
+                    self.cpu.cycles, self.cpu.last_op_address, address
+                )
+        
+        self._bus_communication(structure, address)
+
         try:
             data = self.bus.recv(self.cfg.STRUCT_MEMORY_LEN)
         except socket.error, err:
@@ -267,6 +277,16 @@ class Memory(object):
 
     def _bus_write(self, structure, address, value):
 #         self.cpu.cycles += 1 # ???
+        if not self.cfg.use_bus:
+            if structure == self.cfg.BUS_STRUCTURE_WORD:
+                self.cfg.periphery.write_word(
+                    self.cpu.cycles, self.cpu.last_op_address, address, value
+                )
+            else:
+                self.cfg.periphery.write_byte(
+                    self.cpu.cycles, self.cpu.last_op_address, address, value
+                )
+            return
         self._bus_communication(structure, address, value)
 
     def bus_read_byte(self, address):
