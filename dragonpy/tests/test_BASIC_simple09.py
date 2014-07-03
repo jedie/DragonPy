@@ -25,7 +25,6 @@ from dragonpy.cpu6809 import CPU
 import Queue
 
 
-
 log = logging.getLogger("DragonPy")
 
 def print_cpu_state_data(state):
@@ -156,6 +155,24 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
             ['A=0\r\n', 'OK\r\n', '? "A="+STR$(A)\r\n', 'A= 0\r\n', 'OK\r\n']
         )
         self.assertEqual(op_call_count, 11229)
+
+#     def test_MUL(self): # will faile, yet...
+#         self.periphery.add_to_input_queue('? 2*3\r\n')
+#         op_call_count, cycles, output = self._run_until_OK()
+# #         print op_call_count, cycles, output
+#         self.assertEqual(output,
+#             ['? 2*3\r\n', ' 6\r\n', 'OK\r\n']
+#         )
+#         self.assertEqual(op_call_count, 11229)
+
+#     def test_PRINT04(self):  # will faile, yet...
+#         self.periphery.add_to_input_queue('?2\r\n')
+#         op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
+# #         print op_call_count, cycles, output
+#         self.assertEqual(output,
+#             ['?2\r\n', ' 2 \r\n', 'OK\r\n']
+#         )
+# #         self.assertEqual(op_call_count, 11229)
 
 
 if __name__ == '__main__':
