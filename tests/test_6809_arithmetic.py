@@ -421,6 +421,22 @@ loop:
             else:
                 self.assertEqual(self.cpu.cc.C, 0)
 
+    def test_SUBA_indexed(self):
+        self.cpu.memory.load(0x1234, [0x12, 0xff])
+        self.cpu._system_stack_pointer.set(0x1234)
+        self.cpu.accu_a.set(0xff) # start value
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0xa0, 0xe0, # SUBA ,S+
+        ])
+        self.assertEqualHexByte(self.cpu.accu_a.get(), 0xed) # $ff - $12 = $ed
+        self.assertEqualHexWord(self.cpu.system_stack_pointer, 0x1235)
+
+        self.cpu_test_run(start=0x1000, end=None, mem=[
+            0xa0, 0xe0, # SUBA ,S+
+        ])
+        self.assertEqualHexByte(self.cpu.accu_a.get(), 0xed - 0xff & 0xff) # $ee
+        self.assertEqualHexWord(self.cpu.system_stack_pointer, 0x1236)
+
     def test_DEC_extended(self):
         # expected values are: 254 down to 0 than wrap around to 255 and down to 252
         excpected_values = range(254, -1, -1)

@@ -1756,9 +1756,9 @@ class CPU(object):
         r = register.get()
         r_new = r - m
         register.set(r_new)
-#        log.debug("$%x SUB8 %s: %i - %i = %i" % (
-#            self.program_counter,
-#            register.name,
+#        log.debug("$%x SUB8 %s: $%x - $%x = $%x (dez.: %i - %i = %i)" % (
+#            self.program_counter, register.name,
+#            r, m, r_new,
 #            r, m, r_new,
 #        ))
         self.cc.clear_NZVC()
