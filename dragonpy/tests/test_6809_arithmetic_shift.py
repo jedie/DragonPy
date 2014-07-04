@@ -243,6 +243,32 @@ class Test6809_Rotate(BaseTestCase):
             # test half carry is uneffected!
             self.assertEqual(self.cpu.cc.H, 1)
 
+    def test_ROL_memory_with_clear_carry(self):
+        for a in xrange(0x100):
+            self.cpu.cc.set(0x00) # clear all CC flags
+            self.cpu.memory.write_byte(0x0050, a)
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0x09, 0x50, # ROL #$50
+            ])
+            r = self.cpu.memory.read_byte(0x0050)
+            self.assertROL(a, r, source_carry=0)
+
+            # test half carry is uneffected!
+            self.assertEqual(self.cpu.cc.H, 0)
+
+    def test_ROL_memory_with_set_carry(self):
+        for a in xrange(0x100):
+            self.cpu.cc.set(0xff) # set all CC flags
+            self.cpu.memory.write_byte(0x0050, a)
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0x09, 0x50, # ROL #$50
+            ])
+            r = self.cpu.memory.read_byte(0x0050)
+            self.assertROL(a, r, source_carry=1)
+
+            # test half carry is uneffected!
+            self.assertEqual(self.cpu.cc.H, 1)
+
     def assertROR(self, src, dst, source_carry):
             src_bit_str = '{0:08b}'.format(src)
             dst_bit_str = '{0:08b}'.format(dst)
@@ -297,6 +323,34 @@ class Test6809_Rotate(BaseTestCase):
                 0x46, # RORA
             ])
             r = self.cpu.accu_a.get()
+            self.assertROR(a, r, source_carry=1)
+
+            # test half carry and overflow, they are uneffected!
+            self.assertEqual(self.cpu.cc.H, 1)
+            self.assertEqual(self.cpu.cc.V, 1)
+
+    def test_ROR_memory_with_clear_carry(self):
+        for a in xrange(0x100):
+            self.cpu.cc.set(0x00) # clear all CC flags
+            self.cpu.memory.write_byte(0x0050, a)
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0x06, 0x50,# ROR #$50
+            ])
+            r = self.cpu.memory.read_byte(0x0050)
+            self.assertROR(a, r, source_carry=0)
+
+            # test half carry and overflow, they are uneffected!
+            self.assertEqual(self.cpu.cc.H, 0)
+            self.assertEqual(self.cpu.cc.V, 0)
+
+    def test_ROR_memory_with_set_carry(self):
+        for a in xrange(0x100):
+            self.cpu.cc.set(0xff) # set all CC flags
+            self.cpu.memory.write_byte(0x0050, a)
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0x06, 0x50,# ROR #$50
+            ])
+            r = self.cpu.memory.read_byte(0x0050)
             self.assertROR(a, r, source_carry=1)
 
             # test half carry and overflow, they are uneffected!
