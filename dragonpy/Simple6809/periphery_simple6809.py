@@ -47,9 +47,6 @@ class Simple6809PeripheryBase(PeripheryBase):
             0xa001: self.write_acia_data, # Data port of ACIA
         }
 
-    def reset_vector(self, cpu_cycles, op_address, address):
-        return self.cfg.RESET_VECTOR_VALUE
-
     def write_acia_status(self, cpu_cycles, op_address, address, value):
         return 0xff
     def read_acia_status(self, cpu_cycles, op_address, address):

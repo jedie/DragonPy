@@ -67,9 +67,6 @@ class SBC09PeripheryBase(PeripheryBase):
             0xe001: self.write_acia_data, # Data port of ACIA
         }
 
-    def reset_vector(self, cpu_cycles, op_address, address):
-        return 0xe400
-
     def write_acia_status(self, cpu_cycles, op_address, address, value):
         return 0xff
     def read_acia_status(self, cpu_cycles, op_address, address):
@@ -108,6 +105,9 @@ class SBC09PeripheryBase(PeripheryBase):
 class SBC09PeripheryTk(SBC09PeripheryBase, TkPeripheryBase):
     GEOMETRY = "+500+300"
 
+    INITAL_INPUT = "\r\n".join([
+        "UE400"
+    ]) + "\r\n"
 
 
 class DummyStdout(object):
