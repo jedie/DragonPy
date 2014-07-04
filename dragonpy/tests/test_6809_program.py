@@ -296,15 +296,18 @@ class Test6809_Program_Division2(BaseStackTestCase):
             0x26, 0xE7, #       0034|          BNE   UMMOD1
             0xAE, 0x64, #       0036|          LDX   4,s     ; quotient
             0x10, 0xA3, 0xE4, # 0038|          CMPD  ,s      ; remainder >= divisor -> overflow
-            0x25, 0x03, #       003B|          BLO   UMMOD4
-            0xCC, 0xFF, 0xFF, # 003D| UMMODOV: LDD   #$FFFF  ; remainder = FFFF (-1) marks overflow
-            #                   0040|                        ; (case 1)
-            #                   0040|  UMMOD4:
-            0x32, 0x62, #       0047|          LEAS  2,s     ; un (divisor thrown away)
-            0xAF, 0xE4, #       0049|          STX   ,s      ; quotient to TOS
-            0xED, 0x62, #       004B|          STD   2,s     ; remainder 2nd
-            0x20, 0x02, #       004D|          BRA   $0      ; bra realexit
-            0x37, 0x80, #       004F|          PULU  pc      ; not reached -> eFORTH NEXT
+            0x25, 0x05, #       003B|          BLO   UMMOD4
+            #                   003D| UMMODOV:
+            0xEC, 0xE4, #       003D|          LDD   ,s      ; remainder set to divisor
+            0x8E, 0xFF, 0xFF, # 003F|          LDX   #$FFFF  ; quotient = FFFF (-1) marks overflow
+            #                   0042|                        ; (case 1)
+            #                   0042|  UMMOD4:
+            0x32, 0x62, #       0042|          LEAS  2,s     ; un (divisor thrown away)
+            0xAF, 0xE4, #       0044|          STX   ,s      ; quotient to TOS
+            0xED, 0x62, #       0046|          STD   2,s     ; remainder 2nd
+            0x20, 0x02, #       0048|          BRA   $0      ;realexit
+            #                   004A|                        ; not reached
+            0x37, 0x80, #       004A|          PULU  pc      ; eFORTH NEXT
             #                   0051|    EXIT:
         ])
         quotient = self.cpu.index_x.get()
@@ -321,13 +324,19 @@ class Test6809_Program_Division2(BaseStackTestCase):
             b = Decimal(divisor)
             expected_quotient = a // b
             expected_remainder = a % b
-#            print "$%x / $%x" % (dividend, divisor)
-            first = "%i/%i=%i remainder: %i" % (dividend, divisor, quotient, remainder)
-            second = "%i/%i=%i remainder: %i" % (dividend, divisor, expected_quotient, expected_remainder)
-#            if first != second:
-#                print "ERROR: %r should be: %r\n" % (first, second)
-#            else:
-#                print "OK: %s\n" % first
+#             print "$%x / $%x" % (dividend, divisor)
+            first = "%i/%i=%i remainder: %i (hex: q:$%x r:=$%x)" % (
+                dividend, divisor, quotient, remainder,
+                quotient, remainder,
+            )
+            second = "%i/%i=%i remainder: %i (hex: q:$%x r:=$%x)" % (
+                dividend, divisor, expected_quotient, expected_remainder,
+                expected_quotient, expected_remainder
+            )
+#             if first != second:
+#                 print "ERROR: %r should be: %r\n" % (first, second)
+#             else:
+#                 print "OK: %s\n" % first
             self.assertEqual(first, second)
 
         test(10, 10) # OK: 10/10=1 remainder: 0
@@ -342,8 +351,20 @@ class Test6809_Program_Division2(BaseStackTestCase):
         test(1, 0xffff) # OK: 1/65535=0 remainder: 1
         test(1, 0x8000) # OK: 1/32768=0 remainder: 1
 
-#        test(0xfffffff, 0x1) # ERROR: '268435455/1=16 remainder: 65535' should be: '268435455/1=268435455 remainder: 0'
-#        test(0x58000000, 0x3000) # ERROR: '1476395008/12288=16 remainder: 65535' should be: '1476395008/12288=120149 remainder: 4096'
+    def test_overflow(self):
+        """
+        overflow (quotient is > $FFFF)
+        quotient = $FFFF, remainder = divisor
+        """
+        quotient, remainder = self._division(0x10000, 0x1)
+        self.assertEqualHexWord(quotient, 0xffff)
+        self.assertEqualHexWord(remainder, 0x1)
+
+    def test_division_by_zero(self):
+        quotient, remainder = self._division(0x1, 0x0)
+        self.assertEqualHexWord(quotient, 0xffff)
+        self.assertEqualHexWord(remainder, 0)
+
 
 
 if __name__ == '__main__':
@@ -357,16 +378,13 @@ if __name__ == '__main__':
     )
     log.addHandler(logging.StreamHandler())
 
-    # XXX: Disable hacked XRoar trace
-    import cpu6809; cpu6809.trace_file = None
-
     unittest.main(
         argv=(
             sys.argv[0],
 #            "Test6809_Program.test_crc16_01",
 #            "Test6809_Program.test_crc32_01",
 #             "Test6809_Program.test_division",
-#            "Test6809_Program_Division2",
+            "Test6809_Program_Division2",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
