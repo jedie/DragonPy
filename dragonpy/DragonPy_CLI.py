@@ -5,22 +5,20 @@
     DragonPy - CLI
     ~~~~~~~~~~~~~~
 
-    :created: 2013 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :created: 2013-2014 by Jens Diemer - www.jensdiemer.de
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 import atexit
 import sys
 
+from Dragon32.config import Dragon32Cfg
+from dragonpy.Multicomp6809.config import Multicomp6809Cfg
+from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.core.DragonPy import Dragon
 from dragonpy.core.base_cli import Base_CLI
 from dragonpy.core.configs import configs
-from dragonpy.utils.simple_debugger import print_exc_plus
-
-from Dragon32.config import Dragon32Cfg
-from dragonpy.Simple6809.config import Simple6809Cfg
-from dragonpy.Multicomp6809.config import Multicomp6809Cfg
 from dragonpy.sbc09.config import SBC09Cfg
 
 
@@ -113,11 +111,5 @@ def get_cli():
     return cli
 
 if __name__ == "__main__":
-    try:
-        cli = get_cli()
-        cli.run()
-    except SystemExit:
-        pass
-    except:
-        print_exc_plus()
+    print "ERROR: Use .../DragonPy/DragonPy_CLI.py instead of this file!"
 

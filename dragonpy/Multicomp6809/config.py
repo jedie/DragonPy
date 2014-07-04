@@ -48,7 +48,10 @@ class Multicomp6809Cfg(BaseConfig):
         (0xBFF0, 0xBFFF, "Interrupt vectors"),
     )
 
-    DEFAULT_ROM = os.path.join("Multicomp6809", "EXT_BASIC_NO_USING.bin")
+    DEFAULT_ROM = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        "EXT_BASIC_NO_USING.bin"
+    )
 
     def __init__(self, cmd_args):
         self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1

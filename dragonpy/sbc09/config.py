@@ -40,7 +40,10 @@ class SBC09Cfg(BaseConfig):
         (0xFFF2, 0xFFFE, "Interrupt vectors"),
     )
 
-    DEFAULT_ROM = os.path.join("sbc09", "sbc09", "v09.rom") # Source for this is monitor.asm
+    DEFAULT_ROM = os.path.join(
+        os.path.abspath(os.path.dirname(__file__)),
+        "sbc09", "v09.rom" # Source for this is monitor.asm
+    )
 
     def __init__(self, cmd_args):
         self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1

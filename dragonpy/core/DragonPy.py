@@ -11,6 +11,10 @@
         James Tauber / http://jtauber.com/ / https://github.com/jtauber/applepy
         originally written 2001, updated 2011
         origin source code licensed under MIT License
+
+    :created: 2013-2014 by Jens Diemer - www.jensdiemer.de
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
+    :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 
@@ -22,6 +26,8 @@ import sys
 import logging
 import os
 
+from dragonpy import cpu6809
+import dragonpy
 from dragonpy.utils.simple_debugger import print_exc_plus
 
 
@@ -51,18 +57,26 @@ class Dragon(object):
         listener.listen(0)
 
         bus_socket_host, bus_socket_port = listener.getsockname()
+
         cmd_args = [
             sys.executable,
-            "cpu6809.py",
+            "-m", "dragonpy.cpu6809",
+#            os.path.abspath(cpu6809.__file__),
              "--bus_socket_host=%s" % bus_socket_host,
              "--bus_socket_port=%i" % bus_socket_port,
         ]
         cmd_args += sys.argv[1:]
-        print "Startup CPU with: %s" % " ".join(cmd_args)
 
+        root_path = os.path.abspath(
+            os.path.join(os.path.dirname(dragonpy.__file__), "..")
+        )
+
+        print "Startup CPU with: %s in %s" % (" ".join(cmd_args), root_path)
         try:
             # XXX: use multiprocessing module here?
-            self.core = subprocess.Popen(cmd_args)
+            self.core = subprocess.Popen(cmd_args,
+                cwd=root_path
+            )
         except:
             print_exc_plus()
 

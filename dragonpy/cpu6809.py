@@ -41,9 +41,7 @@ from dragonpy.cpu_utils.MC6809_registers import (
 , UndefinedRegister)
 from dragonpy.utils.simple_debugger import print_exc_plus
 from dragonpy.core.cpu_control_server import get_http_control_server
-from DragonPy_CLI import get_cli
 from dragonpy.cpu_utils.signed import signed8, signed16, signed5, unsigned8
-
 
 
 log = logging.getLogger("DragonPy.cpu6809")
@@ -2972,9 +2970,10 @@ class CPU(object):
 
 
 def test_run():
+    print "test run..."
     import subprocess
     cmd_args = [sys.executable,
-        "DragonPy_CLI.py",
+        os.path.join("..", "DragonPy_CLI.py"),
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
@@ -3005,12 +3004,13 @@ def test_run():
 
 
 if __name__ == "__main__":
+    from dragonpy.DragonPy_CLI import get_cli
     cli = get_cli()
 
     if not cli.cfg.use_bus:
+        print "DragonPy cpu core"
+        print "Run DragonPy_CLI.py instead"
         test_run()
-#         print "DragonPy cpu core"
-#         print "Run DragonPy_CLI.py instead"
         sys.exit(0)
 
     bus_socket_addr = cli.cfg.bus_socket_addr
