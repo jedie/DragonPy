@@ -1,15 +1,22 @@
 #!/bin/bash
 
-# needs https://pypi.python.org/pypi/coverage
-# e.g.:
-#   $ sudo apt install python-coverage
-# or:
-#   $ sudo apt install python-pip
-#   $ sudo pip2 install coverage
-# etc.
+coverage2=$(which coverage2) # e.g.: installed via pip
+if [ $? != 0 ]; then
+    coverage2=/usr/bin/python2-coverage
+fi
 
-coverage2=/usr/bin/python2-coverage
-#coverage2=coverage2
+if [ ! -x ${coverage2} ]; then
+    echo "Error: coverage2 not found!"
+    echo "Please install: https://pypi.python.org/pypi/coverage"
+    echo "e.g.:"
+    echo "  $ sudo apt install python-coverage"
+    echo "or:"
+    echo "  $ sudo apt install python-pip"
+    echo "  $ sudo pip2 install coverage"
+    echo "etc."
+    read -p ENTER ENTER
+    exit 1
+fi
 
 set -x
 
