@@ -101,6 +101,11 @@ class DragonPyCLI(Base_CLI):
         self.cfg.config_name = config_name
 
     def run(self):
+        # TODO:
+        # if self.cfg.use_bus:
+        #     url = "http://%s:%s" % (self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT)
+        #     webbrowser.open(url)
+
         dragon = Dragon(self.cfg)
         dragon.run()
 

@@ -20,7 +20,6 @@ import json
 import re
 import logging
 import traceback
-import webbrowser
 import sys
 
 log = logging.getLogger("DragonPy.cpu_control_server")
@@ -77,7 +76,7 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(s)))
         self.end_headers()
         self.wfile.write(s)
-    
+
     def response_html(self, headline, text=""):
         html = (
             "<!DOCTYPE html><html><body>"
@@ -225,13 +224,10 @@ def get_http_control_server(cpu, cfg):
         return None
 
     control_handler = ControlHandlerFactory(cpu, cfg)
-
     server_address = (cfg.CPU_CONTROL_ADDR, cfg.CPU_CONTROL_PORT)
-
     control_server = BaseHTTPServer.HTTPServer(server_address, control_handler)
     url = "http://%s:%s" % server_address
     log.error("Start http control server on: %s", url)
-    webbrowser.open(url)
     return control_server
 
 
