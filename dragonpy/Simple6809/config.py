@@ -59,4 +59,73 @@ class Simple6809Cfg(BaseConfig):
 
         self.periphery_class = Simple6809Periphery
 
+        """
+0077                         ** FLOATING POINT ACCUMULATOR #0                      
+0078 004f                    FP0EXP    RMB  1              *PV FLOATING POINT ACCUMULATOR #0 EXPONENT 
+0079 0050                    FPA0      RMB  4              *PV FLOATING POINT ACCUMULATOR #0 MANTISSA 
+0080 0054                    FP0SGN    RMB  1              *PV FLOATING POINT ACCUMULATOR #0 SIGN 
+0081 0055                    COEFCT    RMB  1              POLYNOMIAL COEFFICIENT COUNTER 
+0082 0056                    STRDES    RMB  5              TEMPORARY STRING DESCRIPTOR 
+0083 005b                    FPCARY    RMB  1              FLOATING POINT CARRY BYTE 
+0084                         ** FLOATING POINT ACCUMULATOR #1                      
+0085 005c                    FP1EXP    RMB  1              *PV FLOATING POINT ACCUMULATOR #1 EXPONENT 
+0086 005d                    FPA1      RMB  4              *PV FLOATING POINT ACCUMULATOR #1 MANTISSA 
+0087 0061                    FP1SGN    RMB  1              *PV FLOATING POINT ACCUMULATOR #1 SIGN 
+0088 0062                    RESSGN    RMB  1              SIGN OF RESULT OF FLOATING POINT OPERATION 
+        """
+        self.memory_callbacks = {
+            (0x004f, 0x0054): (None, self.float_accu_write0),
+            (0x005c, 0x0061): (None, self.float_accu_write1),
+        }
+#         self.float_accu0_exponent=0x00
+#         self.float_accu0_matissa=0x00
+#         self.float_accu0_sign=0x00
+    
+    def dump(self, mem, start, end):
+        end += 1
+        print mem[start:end]
+        for addr in xrange(start, end):
+            print "\t$%04x - $%x" % (addr, mem[addr])
 
+    def float_accu_write0(self, cpu, addr, value):
+        print "%04x| Write float accu 0 $%x to $%x %s" % (
+            cpu.last_op_address, value, addr,
+            self.mem_info.get_shortest(addr)
+        )
+
+#         exponent = cpu.memory.ram._mem[0x004f]
+#         matissa =  cpu.memory.ram._mem[0x0050]
+
+        self.dump(cpu.memory.ram._mem, 0x004f, 0x0054)
+
+    def float_accu_write1(self, cpu, addr, value):
+        print "%04x| Write float accu 1 $%x to $%x %s" % (
+            cpu.last_op_address, value, addr,
+            self.mem_info.get_shortest(addr)
+        )
+        self.dump(cpu.memory.ram._mem, 0x005c, 0x0061)
+
+
+def test_run():
+    import sys, subprocess
+    cmd_args = [sys.executable,
+        os.path.join("..", "DragonPy_CLI.py"),
+#        "--verbosity=5",
+#         "--verbosity=10", # DEBUG
+#         "--verbosity=20", # INFO
+#        "--verbosity=30", # WARNING
+#         "--verbosity=40", # ERROR
+        "--verbosity=50", # CRITICAL/FATAL
+
+#         "--area_debug_cycles=23383", # First OK after copyright info
+
+        "--cfg=Simple6809",
+#         "--max=500000",
+#         "--max=20000",
+        "--max=1",
+    ]
+    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    subprocess.Popen(cmd_args, cwd="..").wait()
+
+if __name__ == "__main__":
+    test_run()

@@ -4,14 +4,13 @@
     DragonPy - Dragon 32 emulator in Python
     =======================================
 
+    TODO:
+        Maybe "merge" ROM, RAM,
+        so the offset calulation in ROM is not needed.
+
     6809 is Big-Endian
 
-    Links:
-        http://dragondata.worldofdragon.org/Publications/inside-dragon.htm
-        http://www.burgins.com/m6809.html
-        http://koti.mbnet.fi/~atjs/mc6809/
-
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 
     Based on:
@@ -111,6 +110,20 @@ class Memory(object):
         if cfg and cfg.ram:
             self.ram.load_file(cfg.RAM_START, cfg.ram)
 
+        self._read_callbacks = {}
+        self._write_callbacks = {}
+        for addr_range, functions in cfg.memory_callbacks.items():
+            start_addr, end_addr = addr_range
+            for addr in xrange(start_addr, end_addr):
+                read_func, write_func = functions
+                if read_func:
+                    self._read_callbacks[addr] = read_func
+                if write_func:
+                    self._write_callbacks[addr] = write_func
+        print "memory read callbacks:", self._read_callbacks
+        print "memory write callbacks:", self._write_callbacks
+
+
     def load(self, address, data):
         if address < self.cfg.RAM_END:
             self.ram.load(address, data)
@@ -123,6 +136,9 @@ class Memory(object):
 
     def read_byte(self, address):
         self.cpu.cycles += 1
+
+        if address in self._read_callbacks:
+            self._read_callbacks[address](self.cpu, address)
 
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
@@ -166,14 +182,6 @@ class Memory(object):
         return self.read_byte(address + 1) + (self.read_byte(address) << 8)
 
     def write_byte(self, address, value):
-#        log.log(5, "%04x| (%i) write byte $%x at $%x",
-#            self.cpu.last_op_address, self.cpu.cycles, value, address
-#        )
-#         if 32 <= value <= 126:
-#         if 65 <= value <= 90:
-#            log.info("%04x| (%i) write char %r ($%x) at $%x",
-#                self.cpu.last_op_address, self.cpu.cycles, chr(value), value, address
-#            )
         self.cpu.cycles += 1
 
         assert value >= 0, "Write negative byte hex:%00x dez:%i to $%04x" % (value, value, address)
@@ -182,7 +190,6 @@ class Memory(object):
 #             log.error("Write out of range value $%02x to $%04x", value, address)
 #             value = value & 0xff
 #             log.error(" ^^^^ wrap around to $%x", value)
-
 
         if address in self.cfg.bus_addr_areas:
             info = self.cfg.bus_addr_areas[address]
@@ -199,6 +206,9 @@ class Memory(object):
             msg2 = "%s: $%x" % (msg, address)
             log.warn(msg2)
 #             raise RuntimeError(msg2)
+
+        if address in self._write_callbacks:
+            self._write_callbacks[address](self.cpu, address, value)
 
     def write_word(self, address, value):
         if address in self.cfg.bus_addr_areas:
@@ -255,7 +265,7 @@ class Memory(object):
                 return self.cfg.periphery.read_byte(
                     self.cpu.cycles, self.cpu.last_op_address, address
                 )
-        
+
         self._bus_communication(structure, address)
 
         try:

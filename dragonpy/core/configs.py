@@ -131,6 +131,7 @@ class BaseConfig(object):
         self.area_debug_cycles = cmd_args.area_debug_cycles
 
         self.mem_info = DummyMemInfo()
+        self.memory_callbacks = {}
 
     def _get_initial_Memory(self, size):
         return [0x00] * size
@@ -140,7 +141,6 @@ class BaseConfig(object):
 
     def get_initial_ROM(self):
         return self._get_initial_Memory(self.ROM_SIZE)
-
 
 #     def get_initial_ROM(self):
 #         start=cfg.ROM_START, size=cfg.ROM_SIZE
