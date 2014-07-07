@@ -16,16 +16,27 @@ import logging
 import sys
 import unittest
 import time
+import Queue
+import os
+import tempfile
+
+import cPickle as pickle
 
 from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase, \
     UnittestCmdArgs
 from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809TestPeriphery
 from dragonpy.cpu6809 import CPU
-import Queue
+
 
 
 log = logging.getLogger("DragonPy")
+
+TEMP_FILE = os.path.join(tempfile.gettempdir(), "BASIC_simple09_unittests.dat")
+print "CPU state pickle file: %r" % TEMP_FILE
+#os.remove(TEMP_FILE);print "Delete CPU date file!"
+
+
 
 def print_cpu_state_data(state):
     for k, v in sorted(state.items()):
@@ -50,28 +61,40 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
 
         cpu = CPU(cfg)
         cpu.reset()
-        print "init machine..."
-        init_start = time.time()
-        cpu.test_run(
-            start=cpu.program_counter,
-            end=cfg.STARTUP_END_ADDR,
-        )
-        duration = time.time() - init_start
-        print "done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
-            duration, float(cpu.cycles / duration), cpu.cycles
-        )
         cls.cpu = cpu
 
-        # Check if machine is ready
-        assert cls.periphery.out_lines == [
-            '6809 EXTENDED BASIC\r\n',
-            '(C) 1982 BY MICROSOFT\r\n',
-            '\r\n',
-            'OK\r\n'
-        ]
-        # Save CPU state
-        cls._init_state = cpu.get_state()
-#         print_cpu_state_data(cls._init_state)
+        try:
+            temp_file = open(TEMP_FILE, "rb")
+        except IOError:
+            print "init machine..."
+            init_start = time.time()
+            cpu.test_run(
+                start=cpu.program_counter,
+                end=cfg.STARTUP_END_ADDR,
+            )
+            duration = time.time() - init_start
+            print "done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
+                duration, float(cpu.cycles / duration), cpu.cycles
+            )
+
+            # Check if machine is ready
+            assert cls.periphery.out_lines == [
+                '6809 EXTENDED BASIC\r\n',
+                '(C) 1982 BY MICROSOFT\r\n',
+                '\r\n',
+                'OK\r\n'
+            ]
+            # Save CPU state
+            init_state = cpu.get_state()
+            with open(TEMP_FILE, "wb") as f:
+                pickle.dump(init_state, f)
+                print "Save CPU init state to: %r" % TEMP_FILE
+            cls._init_state = init_state
+        else:
+            print "Load CPU init state from: %r" % TEMP_FILE
+            cls._init_state = pickle.load(temp_file)
+
+#        print_cpu_state_data(cls._init_state)
 
     def setUp(self):
         """ restore CPU/Periphery state to a fresh startup. """
@@ -209,7 +232,7 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-            "Test6809_BASIC_simple6809_Base.test_TM_Error",
+            "Test6809_BASIC_simple6809_Base.test_print01",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
