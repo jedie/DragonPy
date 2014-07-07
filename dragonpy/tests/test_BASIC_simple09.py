@@ -236,14 +236,55 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
 
         )
 
+"""
+WIP:
+    def test_evaluate_number01(self):
+#        b = ord("%s" % 6) # number 6 ist in hex: 0x36
+#        self.cpu.accu_b.set(b)
+
+        # $e777 = CONVERT THE VALUE IN ACCB INTO A FP NUMBER IN FPA0
+        # $e778 = CONVERT THE VALUE IN ACCD INTO A FLOATING POINT NUMBER IN FPA0
+
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            0xC6, 0x36, #                   LDB   #$36 # ASCII code of the number 6
+            0xBD, 0xE7, 0x77, #             JSR   $e777 - CONVERT THE VALUE IN ACCB INTO A FP NUMBER IN FPA0
+        ])
+        self.cpu.memory.ram.print_dump(0x004f, 0x0054)
+
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            0xBD, 0xE9, 0x92, #             JSR   $e992 - CONVERT FPA0 TO INTEGER IN ACCD
+        ])
+        print "D:", self.cpu.accu_d.get()
+
+
+    def test_floating_point_routines01(self):
+        # $ee5d = "FPA0 load: MOVE (X) TO FPA0"
+
+        self.periphery.add_to_input_queue('F=6\r\n')
+        try:
+            op_call_count, cycles, output = self._run_until_OK(max_ops=5000)
+            print op_call_count, cycles, output
+        except Exception, err:
+            print "Abort: %s" % err
+
+        self.cpu.memory.ram.print_dump(0x004f, 0x0054)
+        return
+
+        self.cpu_test_run(start=0x0100, end=None, mem=[
+            #                        FLOAD: EQU   $ee5d
+#            0x8E, 0x61, 0x00, #             LDX   #$6100
+            0xBD, 0xee, 0x5d, #       JSR   FLOAD
+        ])
+"""
+
 
 if __name__ == '__main__':
     log.setLevel(
 #        1
 #        10 # DEBUG
 #         20 # INFO
-#         30 # WARNING
-#         40 # ERROR
+#        30 # WARNING
+#        40 # ERROR
         50 # CRITICAL/FATAL
     )
     log.addHandler(logging.StreamHandler())
@@ -251,7 +292,9 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-            "Test6809_BASIC_simple6809_Base.test_print01",
+            "Test6809_BASIC_simple6809_Base.test_transfer_fpa0_to_fpa1",
+#            "Test6809_BASIC_simple6809_Base.test_evaluate_number01",
+#            "Test6809_BASIC_simple6809_Base.test_floating_point_routines01",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,

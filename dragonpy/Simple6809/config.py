@@ -77,34 +77,20 @@ class Simple6809Cfg(BaseConfig):
             (0x004f, 0x0054): (None, self.float_accu_write0),
             (0x005c, 0x0061): (None, self.float_accu_write1),
         }
-#         self.float_accu0_exponent=0x00
-#         self.float_accu0_matissa=0x00
-#         self.float_accu0_sign=0x00
     
-    def dump(self, mem, start, end):
-        end += 1
-        print mem[start:end]
-        for addr in xrange(start, end):
-            print "\t$%04x - $%x" % (addr, mem[addr])
-
     def float_accu_write0(self, cpu, addr, value):
         print "%04x| Write float accu 0 $%x to $%x %s" % (
             cpu.last_op_address, value, addr,
             self.mem_info.get_shortest(addr)
         )
-
-#         exponent = cpu.memory.ram._mem[0x004f]
-#         matissa =  cpu.memory.ram._mem[0x0050]
-
-        self.dump(cpu.memory.ram._mem, 0x004f, 0x0054)
+        cpu.memory.ram.print_dump(0x004f, 0x0054)
 
     def float_accu_write1(self, cpu, addr, value):
         print "%04x| Write float accu 1 $%x to $%x %s" % (
             cpu.last_op_address, value, addr,
             self.mem_info.get_shortest(addr)
         )
-        self.dump(cpu.memory.ram._mem, 0x005c, 0x0061)
-
+        cpu.memory.ram.print_dump(0x005c, 0x0061)
 
 def test_run():
     import sys, subprocess

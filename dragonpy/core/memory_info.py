@@ -32,7 +32,7 @@ class BaseMemoryInfo(object):
 
         start, end, txt = shortest
         if start == end:
-            return "$%x: $%x - %s" % (addr, start, txt)
+            return "$%x: %s" % (addr, txt)
         else:
             return "$%x: $%x-$%x - %s" % (addr, start, end, txt)
 
