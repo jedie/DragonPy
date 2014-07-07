@@ -74,6 +74,21 @@ class ROM(object):
 #         self.cfg.mem_info(address, "read byte")
         return byte
 
+    def get_dump(self, start, end):
+        dump_lines = []
+        for addr in xrange(start, end + 1):
+            value = self.read_byte(addr)
+            msg = "$%04x: $%02x (dez: %i)" % (addr, value, value)
+            msg = "%-25s| %s" % (
+                msg, self.cfg.mem_info.get_shortest(addr)
+            )
+            dump_lines.append(msg)
+        return dump_lines
+
+    def print_dump(self, start, end):
+        print "Memory dump from $%04x to $%04x:" % (start, end)
+        dump_lines = self.get_dump(start, end)
+        print "\n".join(["\t%s" % line for line in dump_lines])
 
 class RAM(ROM):
     def write_byte(self, address, value):
@@ -120,8 +135,8 @@ class Memory(object):
                     self._read_callbacks[addr] = read_func
                 if write_func:
                     self._write_callbacks[addr] = write_func
-        print "memory read callbacks:", self._read_callbacks
-        print "memory write callbacks:", self._write_callbacks
+        log.debug("memory read callbacks: %s", self._read_callbacks)
+        log.debug("memory write callbacks: %s", self._write_callbacks)
 
 
     def load(self, address, data):

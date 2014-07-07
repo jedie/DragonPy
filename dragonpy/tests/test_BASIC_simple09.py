@@ -216,6 +216,25 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
 #             ['?2*3\r\n', ' 6\r\n', 'OK\r\n']
 #         )
 
+    def test_transfer_fpa0_to_fpa1(self):
+        self.cpu.memory.ram.load(0x004f, data=[
+            0x12, # FPA 0 - exponent
+            0x34, # FPA 0 - MS
+            0x56, # FPA 0 - NMS
+            0x78, # FPA 0 - NLS
+            0x9a, # FPA 0 - LS
+            0xbc, # FPA 0 - sign
+        ])
+        self.cpu_test_run(start=0x0000, end=None, mem=[
+            0xBD, 0xee, 0xa8, # JSR   $eea8
+        ])
+#        self.cpu.memory.ram.print_dump(0x004f, 0x0054) # FPA0
+#        self.cpu.memory.ram.print_dump(0x005c, 0x0061) # FPA1
+        self.assertEqual(
+            self.cpu.memory.ram._mem[0x004f:0x0055],
+            self.cpu.memory.ram._mem[0x005c:0x0062],
+
+        )
 
 
 if __name__ == '__main__':

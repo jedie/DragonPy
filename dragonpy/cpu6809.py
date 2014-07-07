@@ -45,6 +45,8 @@ from dragonpy.cpu_utils.signed import signed8, signed16, signed5, unsigned8
 
 
 log = logging.getLogger("DragonPy.cpu6809")
+#HTML_TRACE = True
+HTML_TRACE = False
 
 
 def get_opdata():
@@ -95,15 +97,6 @@ def opcode(*opcodes):
         return func
     return decorator
 
-
-
-
-DEBUG_INSTR = ("BCC", "BCS", "BEQ", "BGE", "BGT", "BHI", "BHS", "BLE", "BLO",
-    "BLS", "BLT", "BMI", "BNE", "BPL", "BRA", "BRN", "BSR", "BVC", "BVS", "JMP",
-    "JSR", "LBCC", "LBCS", "LBEQ", "LBGE", "LBGT", "LBHI", "LBHS", "LBLE", "LBLO",
-    "LBLS", "LBLT", "LBMI", "LBNE", "LBPL", "LBRA", "LBRN", "LBSR", "LBVC", "LBVS",
-    "PSHS", "PSHU", "PULS", "PULU", "RTI", "RTS", "SWI", "SWI2", "SWI3", "SYNC"
-)
 
 class Instruction(object):
     def __init__(self, cpu, memory, opcode, opcode_data, instr_func):
@@ -169,7 +162,6 @@ class Instruction(object):
     def __repr__(self):
         return "<Instruction $%x %s>" % (self.opcode, repr(self.data))
 
-    CALLED = {}
     def call_instr_func(self):
         self.op_kwargs = self.static_kwargs.copy()
 
@@ -185,26 +177,6 @@ class Instruction(object):
                 self.op_kwargs["m"] = self.get_m_func()
 
 #         log.info("CPU cycles: %i", self.cpu.cycles)
-
-        func_name = self.instr_func.__name__
-        if self.opcode not in self.CALLED:
-            log.error("\n%04x| called the first time: $%02x %s (CPU cycles: %i)",
-                self.cpu.last_op_address, self.opcode, func_name, self.cpu.cycles
-            )
-            if self.get_ea_func is not None:
-                log.error("\tget ea with %s", self.get_ea_func.__name__)
-            else:
-                log.error("\tno ea needed.")
-            if self.get_m_func is not None:
-                log.error("\tget m with %s", self.get_m_func.__name__)
-            else:
-                log.error("\tno m needed.")
-            self.CALLED[self.opcode] = None
-
-#        log.debug("%04x| %s(%s)",
-#            self.cpu.last_op_address,
-#            self.instr_func.__name__, hex_repr(self.op_kwargs)
-#        )
 
         result = self.instr_func(**self.op_kwargs)
         self.cpu.cycles += self.data["cycles"]
@@ -223,13 +195,6 @@ class Instruction(object):
             assert result is None, (
                 "Instruction %r doesn't write result to memory but returned: %s!"
             ) % (self.instr_func.__name__, repr(result))
-
-#         # XXX: remove this temp hack
-#         if self.cpu.cfg.__class__.__name__ == "Simple6809Cfg":
-#             if self.data["mnemonic"] == "BEQ":
-#                 if self.op_kwargs["ea"] == 0xeb10:
-#                     activate_full_debug_logging()
-
 
 
 class IllegalInstruction(object):
@@ -438,8 +403,15 @@ class CPU(object):
                 raise RuntimeError(msg)
                 continue
 
+            if HTML_TRACE:
+                # FIXME: Add as CLI argument or complete remove?
+                from dragonpy.cpu6809_html_debug import InstructionHTMLdebug
+                InstructionClass = InstructionHTMLdebug
+            else:
+                InstructionClass = Instruction
+
             try:
-                instruction = Instruction(self, self.memory, opcode, opcode_data, instr_func)
+                instruction = InstructionClass(self, self.memory, opcode, opcode_data, instr_func)
             except Exception, err:
                 print >> sys.stderr, "Error init instruction for $%x" % opcode
                 print >> sys.stderr, "opcode data: %s" % repr(opcode_data)
@@ -683,17 +655,6 @@ class CPU(object):
                         raise RuntimeError(err_msg)
 
                 log.debug("\t%s", repr(instruction.data))
-
-            if mnemonic in DEBUG_INSTR:
-                pc = self.program_counter
-                log.warn(
-                    "debug instruction $%02x %s:\n"
-                    "\tOp Addr: %s\n"
-                    "\tpc.....: %s",
-                    op_address, mnemonic,
-                    self.cfg.mem_info.get_shortest(op_address),
-                    self.cfg.mem_info.get_shortest(pc),
-                )
 
             log.debug("-"*79)
 
@@ -1607,23 +1568,25 @@ class CPU(object):
             register_obj = self.register_str2object[register_str]
             data = register_obj.get()
 
+            log.debug("\tpush %s with data $%x", register_obj.name, data)
+
             if register_obj.WIDTH == 8:
                 self.push_byte(register, data)
             else:
                 assert register_obj.WIDTH == 16
                 self.push_word(register, data)
 
-#        log.debug("$%x PSH%s:", self.program_counter, register.name)
+        log.debug("$%x PSH%s post byte: $%x", self.program_counter, register.name, m)
 
         # m = postbyte
         if m & 0x80: push(REG_PC, register) # 16 bit program counter register
-        if m & 0x40: push(REG_U, register) # 16 bit user-stack pointer
-        if m & 0x20: push(REG_Y, register) # 16 bit index register
-        if m & 0x10: push(REG_X, register) # 16 bit index register
-        if m & 0x08: push(REG_DP, register) # 8 bit direct page register
-        if m & 0x04: push(REG_B, register) # 8 bit accumulator
-        if m & 0x02: push(REG_A, register) # 8 bit accumulator
-        if m & 0x01: push(REG_CC, register) # 8 bit condition code register
+        if m & 0x40: push(REG_U, register) #  16 bit user-stack pointer
+        if m & 0x20: push(REG_Y, register) #  16 bit index register
+        if m & 0x10: push(REG_X, register) #  16 bit index register
+        if m & 0x08: push(REG_DP, register) #  8 bit direct page register
+        if m & 0x04: push(REG_B, register) #   8 bit accumulator
+        if m & 0x02: push(REG_A, register) #   8 bit accumulator
+        if m & 0x01: push(REG_CC, register) #  8 bit condition code register
 
 
     @opcode(# Pull A, B, CC, DP, D, X, Y, U, or PC from stack
@@ -2765,15 +2728,6 @@ class CPU(object):
         source code forms: ROL Q; ROLA; ROLB
 
         CC bits "HNZVC": -aaas
-
-        static uint8_t op_rol(struct MC6809 *cpu, uint8_t in) {
-            unsigned out = (in << 1) | (REG_CC & 1);
-            CLR_NZVC;
-            SET_NZVC8(in, in, out);
-            return out;
-        }
-
-        case 0x9: tmp1 = op_rol(cpu, tmp1); break; // ROL, ROLA, ROLB
         """
         r = (a << 1) | self.cc.C
         self.cc.clear_NZVC()
