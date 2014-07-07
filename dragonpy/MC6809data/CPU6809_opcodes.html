@@ -1,0 +1,1961 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+table, th, td{border-collapse:collapse;border:1px solid black;}
+th, td {padding:5px;}
+</style>
+</head>
+<body>
+<h1>6809 opcodes:</h1>
+<table>
+<tr>
+	<th>instruction</th>
+	<th>mnemonic</th>
+	<th>CC flags</th>
+	<th>example</th>
+	<th>op code</th>
+	<th>bytes</th>
+	<th>cycles</th>
+	<th>address mode</th>
+	<th>needs ea</th>
+	<th>read from memory</th>
+	<th>write to memory</th>
+	<th>register</th>
+</tr>
+	<tr>
+		<td>ABX</td>
+		<td>ABX</td>
+		<td>-----</td>
+		<td>X = B+X (Unsigned)</td>
+		<td>$3a</td>
+		<td>1</td>
+		<td>3</td>
+		<td>inherent</td>
+		<td rowspan="30" title="needs ea: no">no</td>
+		<td>no</td>
+		<td rowspan="30" title="write to memory: no">no</td>
+		<td>-</td>
+	</tr>
+	<tr>
+		<td rowspan="8" title="instruction: ADC">ADC</td>
+		<td rowspan="4" title="mnemonic: ADCA">ADCA</td>
+		<td rowspan="16" title="CC flags: aaaaa">aaaaa</td>
+		<td rowspan="4" title="example: A = A+M+C">A = A+M+C</td>
+		<td>$89</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="16" title="read from memory: byte">byte</td>
+		<td rowspan="4" title="register: A">A</td>
+	</tr>
+	<tr>
+		<td>$99</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$a9</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$b9</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: ADCB">ADCB</td>
+		<td rowspan="4" title="example: B = B+M+C">B = B+M+C</td>
+		<td>$c9</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="4" title="register: B">B</td>
+	</tr>
+	<tr>
+		<td>$d9</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$e9</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$f9</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="12" title="instruction: ADD">ADD</td>
+		<td rowspan="4" title="mnemonic: ADDA">ADDA</td>
+		<td rowspan="4" title="example: A = A+M">A = A+M</td>
+		<td>$8b</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="4" title="register: A">A</td>
+	</tr>
+	<tr>
+		<td>$9b</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$ab</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$bb</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: ADDB">ADDB</td>
+		<td rowspan="4" title="example: B = B+M">B = B+M</td>
+		<td>$cb</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="4" title="register: B">B</td>
+	</tr>
+	<tr>
+		<td>$db</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$eb</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$fb</td>
+		<td rowspan="2" title="bytes: 3">3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: ADDD">ADDD</td>
+		<td rowspan="4" title="CC flags: -aaaa">-aaaa</td>
+		<td rowspan="4" title="example: D = D+M:M+1">D = D+M:M+1</td>
+		<td>$c3</td>
+		<td>4</td>
+		<td>immediate word</td>
+		<td rowspan="4" title="read from memory: word">word</td>
+		<td rowspan="4" title="register: D">D</td>
+	</tr>
+	<tr>
+		<td>$d3</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct word</td>
+	</tr>
+	<tr>
+		<td>$e3</td>
+		<td>indexed word</td>
+	</tr>
+	<tr>
+		<td>$f3</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended word</td>
+	</tr>
+	<tr>
+		<td rowspan="9" title="instruction: AND">AND</td>
+		<td rowspan="4" title="mnemonic: ANDA">ANDA</td>
+		<td rowspan="8" title="CC flags: -aa0-">-aa0-</td>
+		<td rowspan="4" title="example: A = A && M">A = A && M</td>
+		<td>$84</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="12" title="read from memory: byte">byte</td>
+		<td rowspan="4" title="register: A">A</td>
+	</tr>
+	<tr>
+		<td>$94</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$a4</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$b4</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: ANDB">ANDB</td>
+		<td rowspan="4" title="example: B = B && M">B = B && M</td>
+		<td>$c4</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="4" title="register: B">B</td>
+	</tr>
+	<tr>
+		<td>$d4</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$e4</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$f4</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>ANDCC</td>
+		<td>ddddd</td>
+		<td>C = CC && IMM</td>
+		<td>$1c</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>3</td>
+		<td>immediate</td>
+		<td>CC</td>
+	</tr>
+	<tr>
+		<td rowspan="5" title="instruction: ASR">ASR</td>
+		<td rowspan="3" title="mnemonic: ASR">ASR</td>
+		<td rowspan="5" title="CC flags: uaa-s">uaa-s</td>
+		<td rowspan="3" title="example: M = Arithmetic shift M right">M = Arithmetic shift M right</td>
+		<td>$07</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct</td>
+		<td rowspan="3" title="needs ea: yes">yes</td>
+		<td rowspan="3" title="write to memory: byte">byte</td>
+		<td rowspan="3" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td>$67</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$77</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>ASRA</td>
+		<td>A = Arithmetic shift A right</td>
+		<td>$47</td>
+		<td rowspan="2" title="bytes: 1">1</td>
+		<td rowspan="2" title="cycles: 2">2</td>
+		<td rowspan="2" title="address mode: inherent">inherent</td>
+		<td rowspan="2" title="needs ea: no">no</td>
+		<td rowspan="12" title="read from memory: no">no</td>
+		<td rowspan="44" title="write to memory: no">no</td>
+		<td>A</td>
+	</tr>
+	<tr>
+		<td>ASRB</td>
+		<td>B = Arithmetic shift B right</td>
+		<td>$57</td>
+		<td>B</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BEQ">BEQ</td>
+		<td>BEQ</td>
+		<td rowspan="10" title="CC flags: -----">-----</td>
+		<td rowspan="10" title="example: "></td>
+		<td>$27</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+		<td rowspan="10" title="needs ea: yes">yes</td>
+		<td rowspan="10" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td>LBEQ</td>
+		<td>$1027</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BGE">BGE</td>
+		<td>BGE</td>
+		<td>$2c</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBGE</td>
+		<td>$102c</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BGT">BGT</td>
+		<td>BGT</td>
+		<td>$2e</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBGT</td>
+		<td>$102e</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BHI">BHI</td>
+		<td>BHI</td>
+		<td>$22</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBHI</td>
+		<td>$1022</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BHS">BHS</td>
+		<td>BCC</td>
+		<td>$24</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBCC</td>
+		<td>$1024</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="8" title="instruction: BIT">BIT</td>
+		<td rowspan="4" title="mnemonic: BITA">BITA</td>
+		<td rowspan="8" title="CC flags: -aa0-">-aa0-</td>
+		<td rowspan="4" title="example: Bit Test A (M&&A)">Bit Test A (M&&A)</td>
+		<td>$85</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="8" title="needs ea: no">no</td>
+		<td rowspan="8" title="read from memory: byte">byte</td>
+		<td rowspan="4" title="register: A">A</td>
+	</tr>
+	<tr>
+		<td>$95</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$a5</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$b5</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: BITB">BITB</td>
+		<td rowspan="4" title="example: Bit Test B (M&&B)">Bit Test B (M&&B)</td>
+		<td>$c5</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="4" title="register: B">B</td>
+	</tr>
+	<tr>
+		<td>$d5</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$e5</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$f5</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BLE">BLE</td>
+		<td>BLE</td>
+		<td rowspan="24" title="CC flags: -----">-----</td>
+		<td rowspan="24" title="example: "></td>
+		<td>$2f</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+		<td rowspan="27" title="needs ea: yes">yes</td>
+		<td rowspan="29" title="read from memory: no">no</td>
+		<td rowspan="27" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td>LBLE</td>
+		<td>$102f</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BLO">BLO</td>
+		<td>BLO</td>
+		<td>$25</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBCS</td>
+		<td>$1025</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BLS">BLS</td>
+		<td>BLS</td>
+		<td>$23</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBLS</td>
+		<td>$1023</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BLT">BLT</td>
+		<td>BLT</td>
+		<td>$2d</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBLT</td>
+		<td>$102d</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BMI">BMI</td>
+		<td>BMI</td>
+		<td>$2b</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBMI</td>
+		<td>$102b</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BNE">BNE</td>
+		<td>BNE</td>
+		<td>$26</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBNE</td>
+		<td>$1026</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BPL">BPL</td>
+		<td>BPL</td>
+		<td>$2a</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBPL</td>
+		<td>$102a</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BRA">BRA</td>
+		<td>BRA</td>
+		<td>$20</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBRA</td>
+		<td>$16</td>
+		<td>3</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BRN">BRN</td>
+		<td>BRN</td>
+		<td>$21</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBRN</td>
+		<td>$1021</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BSR">BSR</td>
+		<td>BSR</td>
+		<td>$8d</td>
+		<td>2</td>
+		<td>7</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBSR</td>
+		<td>$17</td>
+		<td>3</td>
+		<td>9</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BVC">BVC</td>
+		<td>BVC</td>
+		<td>$28</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBVC</td>
+		<td>$1028</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: BVS">BVS</td>
+		<td>BVS</td>
+		<td>$29</td>
+		<td>2</td>
+		<td>3</td>
+		<td>relative</td>
+	</tr>
+	<tr>
+		<td>LBVS</td>
+		<td>$1029</td>
+		<td>4</td>
+		<td>5</td>
+		<td>relative word</td>
+	</tr>
+	<tr>
+		<td rowspan="5" title="instruction: CLR">CLR</td>
+		<td rowspan="3" title="mnemonic: CLR">CLR</td>
+		<td rowspan="5" title="CC flags: -0100">-0100</td>
+		<td rowspan="3" title="example: M = 0">M = 0</td>
+		<td>$0f</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct</td>
+		<td rowspan="3" title="write to memory: byte">byte</td>
+	</tr>
+	<tr>
+		<td>$6f</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$7f</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>CLRA</td>
+		<td>A = 0</td>
+		<td>$4f</td>
+		<td rowspan="2" title="bytes: 1">1</td>
+		<td rowspan="3" title="cycles: 2">2</td>
+		<td rowspan="2" title="address mode: inherent">inherent</td>
+		<td rowspan="30" title="needs ea: no">no</td>
+		<td rowspan="30" title="write to memory: no">no</td>
+		<td>A</td>
+	</tr>
+	<tr>
+		<td>CLRB</td>
+		<td>B = 0</td>
+		<td>$5f</td>
+		<td>B</td>
+	</tr>
+	<tr>
+		<td rowspan="28" title="instruction: CMP">CMP</td>
+		<td rowspan="4" title="mnemonic: CMPA">CMPA</td>
+		<td rowspan="8" title="CC flags: uaaaa">uaaaa</td>
+		<td rowspan="4" title="example: Compare M from A">Compare M from A</td>
+		<td>$81</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>immediate</td>
+		<td rowspan="8" title="read from memory: byte">byte</td>
+		<td rowspan="4" title="register: A">A</td>
+	</tr>
+	<tr>
+		<td>$91</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$a1</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$b1</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: CMPB">CMPB</td>
+		<td rowspan="4" title="example: Compare M from B">Compare M from B</td>
+		<td>$c1</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="4" title="register: B">B</td>
+	</tr>
+	<tr>
+		<td>$d1</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$e1</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$f1</td>
+		<td>3</td>
+		<td rowspan="2" title="cycles: 5">5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: CMPD">CMPD</td>
+		<td rowspan="20" title="CC flags: -aaaa">-aaaa</td>
+		<td rowspan="4" title="example: Compare M:M+1 from D">Compare M:M+1 from D</td>
+		<td>$1083</td>
+		<td>4</td>
+		<td>immediate word</td>
+		<td rowspan="20" title="read from memory: word">word</td>
+		<td rowspan="4" title="register: D">D</td>
+	</tr>
+	<tr>
+		<td>$1093</td>
+		<td rowspan="2" title="bytes: 3">3</td>
+		<td rowspan="2" title="cycles: 7">7</td>
+		<td>direct word</td>
+	</tr>
+	<tr>
+		<td>$10a3</td>
+		<td>indexed word</td>
+	</tr>
+	<tr>
+		<td>$10b3</td>
+		<td rowspan="2" title="bytes: 4">4</td>
+		<td>8</td>
+		<td>extended word</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: CMPS">CMPS</td>
+		<td rowspan="4" title="example: Compare M:M+1 from S">Compare M:M+1 from S</td>
+		<td>$118c</td>
+		<td>5</td>
+		<td>immediate word</td>
+		<td rowspan="4" title="register: S">S</td>
+	</tr>
+	<tr>
+		<td>$119c</td>
+		<td rowspan="2" title="bytes: 3">3</td>
+		<td rowspan="2" title="cycles: 7">7</td>
+		<td>direct word</td>
+	</tr>
+	<tr>
+		<td>$11ac</td>
+		<td>indexed word</td>
+	</tr>
+	<tr>
+		<td>$11bc</td>
+		<td rowspan="2" title="bytes: 4">4</td>
+		<td>8</td>
+		<td>extended word</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: CMPU">CMPU</td>
+		<td rowspan="4" title="example: Compare M:M+1 from U">Compare M:M+1 from U</td>
+		<td>$1183</td>
+		<td>5</td>
+		<td>immediate word</td>
+		<td rowspan="4" title="register: U">U</td>
+	</tr>
+	<tr>
+		<td>$1193</td>
+		<td rowspan="2" title="bytes: 3">3</td>
+		<td rowspan="2" title="cycles: 7">7</td>
+		<td>direct word</td>
+	</tr>
+	<tr>
+		<td>$11a3</td>
+		<td>indexed word</td>
+	</tr>
+	<tr>
+		<td>$11b3</td>
+		<td>4</td>
+		<td>8</td>
+		<td>extended word</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: CMPX">CMPX</td>
+		<td rowspan="4" title="example: Compare M:M+1 from X">Compare M:M+1 from X</td>
+		<td>$8c</td>
+		<td>3</td>
+		<td>4</td>
+		<td>immediate word</td>
+		<td rowspan="4" title="register: X">X</td>
+	</tr>
+	<tr>
+		<td>$9c</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct word</td>
+	</tr>
+	<tr>
+		<td>$ac</td>
+		<td>indexed word</td>
+	</tr>
+	<tr>
+		<td>$bc</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended word</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: CMPY">CMPY</td>
+		<td rowspan="4" title="example: Compare M:M+1 from Y">Compare M:M+1 from Y</td>
+		<td>$108c</td>
+		<td>4</td>
+		<td>5</td>
+		<td>immediate word</td>
+		<td rowspan="4" title="register: Y">Y</td>
+	</tr>
+	<tr>
+		<td>$109c</td>
+		<td rowspan="2" title="bytes: 3">3</td>
+		<td rowspan="2" title="cycles: 7">7</td>
+		<td>direct word</td>
+	</tr>
+	<tr>
+		<td>$10ac</td>
+		<td>indexed word</td>
+	</tr>
+	<tr>
+		<td>$10bc</td>
+		<td>4</td>
+		<td>8</td>
+		<td>extended word</td>
+	</tr>
+	<tr>
+		<td rowspan="5" title="instruction: COM">COM</td>
+		<td rowspan="3" title="mnemonic: COM">COM</td>
+		<td rowspan="5" title="CC flags: -aa01">-aa01</td>
+		<td rowspan="3" title="example: M = complement(M)">M = complement(M)</td>
+		<td>$03</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct</td>
+		<td rowspan="3" title="needs ea: yes">yes</td>
+		<td rowspan="3" title="read from memory: byte">byte</td>
+		<td rowspan="3" title="write to memory: byte">byte</td>
+		<td rowspan="3" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td>$63</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$73</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>COMA</td>
+		<td>A = complement(A)</td>
+		<td>$43</td>
+		<td rowspan="2" title="bytes: 1">1</td>
+		<td rowspan="2" title="cycles: 2">2</td>
+		<td rowspan="2" title="address mode: inherent">inherent</td>
+		<td rowspan="4" title="needs ea: no">no</td>
+		<td rowspan="2" title="read from memory: no">no</td>
+		<td rowspan="4" title="write to memory: no">no</td>
+		<td>A</td>
+	</tr>
+	<tr>
+		<td>COMB</td>
+		<td>B = complement(B)</td>
+		<td>$53</td>
+		<td>B</td>
+	</tr>
+	<tr>
+		<td>CWAI</td>
+		<td>CWAI</td>
+		<td>ddddd</td>
+		<td>CC = CC ^ IMM; (Wait for Interrupt)</td>
+		<td>$3c</td>
+		<td>2</td>
+		<td>21</td>
+		<td>immediate</td>
+		<td>byte</td>
+		<td rowspan="5" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td>DAA</td>
+		<td>DAA</td>
+		<td>-aa0a</td>
+		<td>Decimal Adjust A</td>
+		<td>$19</td>
+		<td>1</td>
+		<td>2</td>
+		<td>inherent</td>
+		<td>no</td>
+	</tr>
+	<tr>
+		<td rowspan="5" title="instruction: DEC">DEC</td>
+		<td rowspan="3" title="mnemonic: DEC">DEC</td>
+		<td rowspan="5" title="CC flags: -aaa-">-aaa-</td>
+		<td rowspan="3" title="example: M = M - 1">M = M - 1</td>
+		<td>$0a</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct</td>
+		<td rowspan="3" title="needs ea: yes">yes</td>
+		<td rowspan="3" title="read from memory: byte">byte</td>
+		<td rowspan="3" title="write to memory: byte">byte</td>
+	</tr>
+	<tr>
+		<td>$6a</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$7a</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>DECA</td>
+		<td>A = A - 1</td>
+		<td>$4a</td>
+		<td rowspan="2" title="bytes: 1">1</td>
+		<td rowspan="3" title="cycles: 2">2</td>
+		<td rowspan="2" title="address mode: inherent">inherent</td>
+		<td rowspan="11" title="needs ea: no">no</td>
+		<td rowspan="2" title="read from memory: no">no</td>
+		<td rowspan="11" title="write to memory: no">no</td>
+		<td>A</td>
+	</tr>
+	<tr>
+		<td>DECB</td>
+		<td>B = B - 1</td>
+		<td>$5a</td>
+		<td>B</td>
+	</tr>
+	<tr>
+		<td rowspan="8" title="instruction: EOR">EOR</td>
+		<td rowspan="4" title="mnemonic: EORA">EORA</td>
+		<td rowspan="8" title="CC flags: -aa0-">-aa0-</td>
+		<td rowspan="4" title="example: A = A XOR M">A = A XOR M</td>
+		<td>$88</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>immediate</td>
+		<td rowspan="12" title="read from memory: byte">byte</td>
+		<td rowspan="4" title="register: A">A</td>
+	</tr>
+	<tr>
+		<td>$98</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$a8</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$b8</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: EORB">EORB</td>
+		<td rowspan="4" title="example: B = M XOR B">B = M XOR B</td>
+		<td>$c8</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="4" title="register: B">B</td>
+	</tr>
+	<tr>
+		<td>$d8</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$e8</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$f8</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>EXG</td>
+		<td>EXG</td>
+		<td>ccccc</td>
+		<td>exchange R1,R2</td>
+		<td>$1e</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>8</td>
+		<td>immediate</td>
+		<td rowspan="4" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td rowspan="5" title="instruction: INC">INC</td>
+		<td rowspan="3" title="mnemonic: INC">INC</td>
+		<td rowspan="5" title="CC flags: -aaa-">-aaa-</td>
+		<td rowspan="3" title="example: M = M + 1">M = M + 1</td>
+		<td>$0c</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct</td>
+		<td rowspan="3" title="needs ea: yes">yes</td>
+		<td rowspan="3" title="write to memory: byte">byte</td>
+	</tr>
+	<tr>
+		<td>$6c</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$7c</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>INCA</td>
+		<td>A = A + 1</td>
+		<td>$4c</td>
+		<td rowspan="2" title="bytes: 1">1</td>
+		<td rowspan="2" title="cycles: 2">2</td>
+		<td rowspan="2" title="address mode: inherent">inherent</td>
+		<td rowspan="2" title="needs ea: no">no</td>
+		<td rowspan="8" title="read from memory: no">no</td>
+		<td rowspan="40" title="write to memory: no">no</td>
+		<td>A</td>
+	</tr>
+	<tr>
+		<td>INCB</td>
+		<td>B = B + 1</td>
+		<td>$5c</td>
+		<td>B</td>
+	</tr>
+	<tr>
+		<td rowspan="3" title="instruction: JMP">JMP</td>
+		<td rowspan="3" title="mnemonic: JMP">JMP</td>
+		<td rowspan="6" title="CC flags: -----">-----</td>
+		<td rowspan="3" title="example: pc = EA">pc = EA</td>
+		<td>$0e</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="3" title="cycles: 3">3</td>
+		<td>direct</td>
+		<td rowspan="6" title="needs ea: yes">yes</td>
+		<td rowspan="6" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td>$6e</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$7e</td>
+		<td>3</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="3" title="instruction: JSR">JSR</td>
+		<td rowspan="3" title="mnemonic: JSR">JSR</td>
+		<td rowspan="3" title="example: jump to subroutine">jump to subroutine</td>
+		<td>$9d</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 7">7</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$ad</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$bd</td>
+		<td>3</td>
+		<td>8</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="28" title="instruction: LD">LD</td>
+		<td rowspan="4" title="mnemonic: LDA">LDA</td>
+		<td rowspan="28" title="CC flags: -aa0-">-aa0-</td>
+		<td rowspan="4" title="example: A = M">A = M</td>
+		<td>$86</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="28" title="needs ea: no">no</td>
+		<td rowspan="8" title="read from memory: byte">byte</td>
+		<td rowspan="4" title="register: A">A</td>
+	</tr>
+	<tr>
+		<td>$96</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$a6</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$b6</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: LDB">LDB</td>
+		<td rowspan="4" title="example: B = M">B = M</td>
+		<td>$c6</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="4" title="register: B">B</td>
+	</tr>
+	<tr>
+		<td>$d6</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$e6</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$f6</td>
+		<td rowspan="2" title="bytes: 3">3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: LDD">LDD</td>
+		<td rowspan="4" title="example: D = M:M+1">D = M:M+1</td>
+		<td>$cc</td>
+		<td>3</td>
+		<td>immediate word</td>
+		<td rowspan="20" title="read from memory: word">word</td>
+		<td rowspan="4" title="register: D">D</td>
+	</tr>
+	<tr>
+		<td>$dc</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 5">5</td>
+		<td>direct word</td>
+	</tr>
+	<tr>
+		<td>$ec</td>
+		<td>indexed word</td>
+	</tr>
+	<tr>
+		<td>$fc</td>
+		<td>3</td>
+		<td>6</td>
+		<td>extended word</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: LDS">LDS</td>
+		<td rowspan="4" title="example: S = M:M+1">S = M:M+1</td>
+		<td>$10ce</td>
+		<td>4</td>
+		<td>4</td>
+		<td>immediate word</td>
+		<td rowspan="4" title="register: S">S</td>
+	</tr>
+	<tr>
+		<td>$10de</td>
+		<td rowspan="2" title="bytes: 3">3</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct word</td>
+	</tr>
+	<tr>
+		<td>$10ee</td>
+		<td>indexed word</td>
+	</tr>
+	<tr>
+		<td>$10fe</td>
+		<td>4</td>
+		<td>7</td>
+		<td>extended word</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: LDU">LDU</td>
+		<td rowspan="4" title="example: U = M:M+1">U = M:M+1</td>
+		<td>$ce</td>
+		<td>3</td>
+		<td>3</td>
+		<td>immediate word</td>
+		<td rowspan="4" title="register: U">U</td>
+	</tr>
+	<tr>
+		<td>$de</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 5">5</td>
+		<td>direct word</td>
+	</tr>
+	<tr>
+		<td>$ee</td>
+		<td>indexed word</td>
+	</tr>
+	<tr>
+		<td>$fe</td>
+		<td rowspan="2" title="bytes: 3">3</td>
+		<td>6</td>
+		<td>extended word</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: LDX">LDX</td>
+		<td rowspan="4" title="example: X = M:M+1">X = M:M+1</td>
+		<td>$8e</td>
+		<td>3</td>
+		<td>immediate word</td>
+		<td rowspan="4" title="register: X">X</td>
+	</tr>
+	<tr>
+		<td>$9e</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 5">5</td>
+		<td>direct word</td>
+	</tr>
+	<tr>
+		<td>$ae</td>
+		<td>indexed word</td>
+	</tr>
+	<tr>
+		<td>$be</td>
+		<td>3</td>
+		<td>6</td>
+		<td>extended word</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: LDY">LDY</td>
+		<td rowspan="4" title="example: Y = M:M+1">Y = M:M+1</td>
+		<td>$108e</td>
+		<td>4</td>
+		<td>4</td>
+		<td>immediate word</td>
+		<td rowspan="4" title="register: Y">Y</td>
+	</tr>
+	<tr>
+		<td>$109e</td>
+		<td rowspan="2" title="bytes: 3">3</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct word</td>
+	</tr>
+	<tr>
+		<td>$10ae</td>
+		<td>indexed word</td>
+	</tr>
+	<tr>
+		<td>$10be</td>
+		<td>4</td>
+		<td>7</td>
+		<td>extended word</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="instruction: LEA">LEA</td>
+		<td>LEAS</td>
+		<td rowspan="2" title="CC flags: -----">-----</td>
+		<td>S = EA</td>
+		<td>$32</td>
+		<td rowspan="6" title="bytes: 2">2</td>
+		<td rowspan="4" title="cycles: 4">4</td>
+		<td rowspan="4" title="address mode: indexed">indexed</td>
+		<td rowspan="7" title="needs ea: yes">yes</td>
+		<td rowspan="4" title="read from memory: no">no</td>
+		<td>S</td>
+	</tr>
+	<tr>
+		<td>LEAU</td>
+		<td>U = EA</td>
+		<td>$33</td>
+		<td>U</td>
+	</tr>
+	<tr>
+		<td>LEAX</td>
+		<td rowspan="2" title="CC flags: --a--">--a--</td>
+		<td>X = EA</td>
+		<td>$30</td>
+		<td>X</td>
+	</tr>
+	<tr>
+		<td>LEAY</td>
+		<td>Y = EA</td>
+		<td>$31</td>
+		<td>Y</td>
+	</tr>
+	<tr>
+		<td rowspan="5" title="instruction: LSL">LSL</td>
+		<td rowspan="3" title="mnemonic: LSL">LSL</td>
+		<td rowspan="5" title="CC flags: naaas">naaas</td>
+		<td rowspan="3" title="example: M = Logical shift M left">M = Logical shift M left</td>
+		<td>$08</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct</td>
+		<td rowspan="3" title="read from memory: byte">byte</td>
+		<td rowspan="3" title="write to memory: byte">byte</td>
+		<td rowspan="3" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td>$68</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$78</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>LSLA</td>
+		<td>A = Logical shift A left</td>
+		<td>$48</td>
+		<td rowspan="2" title="bytes: 1">1</td>
+		<td rowspan="2" title="cycles: 2">2</td>
+		<td rowspan="2" title="address mode: inherent">inherent</td>
+		<td rowspan="2" title="needs ea: no">no</td>
+		<td rowspan="2" title="read from memory: no">no</td>
+		<td rowspan="2" title="write to memory: no">no</td>
+		<td>A</td>
+	</tr>
+	<tr>
+		<td>LSLB</td>
+		<td>B = Logical shift B left</td>
+		<td>$58</td>
+		<td>B</td>
+	</tr>
+	<tr>
+		<td rowspan="5" title="instruction: LSR">LSR</td>
+		<td rowspan="3" title="mnemonic: LSR">LSR</td>
+		<td rowspan="5" title="CC flags: -0a-s">-0a-s</td>
+		<td rowspan="3" title="example: M = Logical shift M right">M = Logical shift M right</td>
+		<td>$04</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct</td>
+		<td rowspan="3" title="needs ea: yes">yes</td>
+		<td rowspan="3" title="read from memory: byte">byte</td>
+		<td rowspan="3" title="write to memory: byte">byte</td>
+		<td rowspan="3" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td>$64</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$74</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>LSRA</td>
+		<td>A = Logical shift A right</td>
+		<td>$44</td>
+		<td rowspan="3" title="bytes: 1">1</td>
+		<td rowspan="2" title="cycles: 2">2</td>
+		<td rowspan="3" title="address mode: inherent">inherent</td>
+		<td rowspan="3" title="needs ea: no">no</td>
+		<td rowspan="3" title="read from memory: no">no</td>
+		<td rowspan="3" title="write to memory: no">no</td>
+		<td>A</td>
+	</tr>
+	<tr>
+		<td>LSRB</td>
+		<td>B = Logical shift B right</td>
+		<td>$54</td>
+		<td>B</td>
+	</tr>
+	<tr>
+		<td>MUL</td>
+		<td>MUL</td>
+		<td>--a-a</td>
+		<td>D = A*B (Unsigned)</td>
+		<td>$3d</td>
+		<td>11</td>
+		<td rowspan="4" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td rowspan="5" title="instruction: NEG">NEG</td>
+		<td rowspan="3" title="mnemonic: NEG">NEG</td>
+		<td rowspan="5" title="CC flags: uaaaa">uaaaa</td>
+		<td rowspan="3" title="example: M = !M + 1">M = !M + 1</td>
+		<td>$00</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct</td>
+		<td rowspan="3" title="needs ea: yes">yes</td>
+		<td rowspan="3" title="read from memory: byte">byte</td>
+		<td rowspan="3" title="write to memory: byte">byte</td>
+	</tr>
+	<tr>
+		<td>$60</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$70</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>NEGA</td>
+		<td>A = !A + 1</td>
+		<td>$40</td>
+		<td rowspan="3" title="bytes: 1">1</td>
+		<td rowspan="4" title="cycles: 2">2</td>
+		<td rowspan="3" title="address mode: inherent">inherent</td>
+		<td rowspan="19" title="needs ea: no">no</td>
+		<td rowspan="3" title="read from memory: no">no</td>
+		<td rowspan="19" title="write to memory: no">no</td>
+		<td>A</td>
+	</tr>
+	<tr>
+		<td>NEGB</td>
+		<td>B = !B + 1</td>
+		<td>$50</td>
+		<td>B</td>
+	</tr>
+	<tr>
+		<td>NOP</td>
+		<td>NOP</td>
+		<td>-----</td>
+		<td>No Operation</td>
+		<td>$12</td>
+		<td>-</td>
+	</tr>
+	<tr>
+		<td rowspan="9" title="instruction: OR">OR</td>
+		<td rowspan="4" title="mnemonic: ORA">ORA</td>
+		<td rowspan="8" title="CC flags: -aa0-">-aa0-</td>
+		<td rowspan="4" title="example: A = A || M">A = A || M</td>
+		<td>$8a</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>immediate</td>
+		<td rowspan="9" title="read from memory: byte">byte</td>
+		<td rowspan="4" title="register: A">A</td>
+	</tr>
+	<tr>
+		<td>$9a</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$aa</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$ba</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: ORB">ORB</td>
+		<td rowspan="4" title="example: B = B || M">B = B || M</td>
+		<td>$ca</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="4" title="register: B">B</td>
+	</tr>
+	<tr>
+		<td>$da</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$ea</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$fa</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>ORCC</td>
+		<td>ddddd</td>
+		<td>C = CC || IMM</td>
+		<td>$1a</td>
+		<td>2</td>
+		<td>3</td>
+		<td>immediate</td>
+		<td>CC</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: PAGE">PAGE</td>
+		<td>PAGE 1</td>
+		<td rowspan="2" title="CC flags: +++++">+++++</td>
+		<td>Page 1 Instructions prefix</td>
+		<td>$10</td>
+		<td rowspan="2" title="bytes: 1">1</td>
+		<td rowspan="2" title="cycles: 1">1</td>
+		<td rowspan="2" title="address mode: None">None</td>
+		<td rowspan="2" title="read from memory: no">no</td>
+		<td rowspan="2" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td>PAGE 2</td>
+		<td>Page 2 Instructions prefix</td>
+		<td>$11</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: PSH">PSH</td>
+		<td>PSHS</td>
+		<td rowspan="2" title="CC flags: -----">-----</td>
+		<td>S -= 1: MEM(S) = R; Push Register on S Stack</td>
+		<td>$34</td>
+		<td rowspan="4" title="bytes: 2">2</td>
+		<td rowspan="4" title="cycles: 5">5</td>
+		<td rowspan="4" title="address mode: immediate">immediate</td>
+		<td rowspan="4" title="read from memory: byte">byte</td>
+		<td>S</td>
+	</tr>
+	<tr>
+		<td>PSHU</td>
+		<td>U -= 1: MEM(U) = R; Push Register on U Stack</td>
+		<td>$36</td>
+		<td>U</td>
+	</tr>
+	<tr>
+		<td rowspan="2" title="instruction: PUL">PUL</td>
+		<td>PULS</td>
+		<td rowspan="2" title="CC flags: ccccc">ccccc</td>
+		<td>R=MEM(S) : S += 1; Pull register from S Stack</td>
+		<td>$35</td>
+		<td>S</td>
+	</tr>
+	<tr>
+		<td>PULU</td>
+		<td>R=MEM(U) : U += 1; Pull register from U Stack</td>
+		<td>$37</td>
+		<td>U</td>
+	</tr>
+	<tr>
+		<td>RESET</td>
+		<td>RESET</td>
+		<td>*****</td>
+		<td>Undocumented opcode</td>
+		<td>$3e</td>
+		<td>1</td>
+		<td>-1</td>
+		<td>None</td>
+		<td>no</td>
+		<td rowspan="4" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td rowspan="5" title="instruction: ROL">ROL</td>
+		<td rowspan="3" title="mnemonic: ROL">ROL</td>
+		<td rowspan="5" title="CC flags: -aaas">-aaas</td>
+		<td rowspan="3" title="example: M = Rotate M left thru carry">M = Rotate M left thru carry</td>
+		<td>$09</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct</td>
+		<td rowspan="3" title="needs ea: yes">yes</td>
+		<td rowspan="3" title="read from memory: byte">byte</td>
+		<td rowspan="3" title="write to memory: byte">byte</td>
+	</tr>
+	<tr>
+		<td>$69</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$79</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>ROLA</td>
+		<td>A = Rotate A left thru carry</td>
+		<td>$49</td>
+		<td rowspan="2" title="bytes: 1">1</td>
+		<td rowspan="2" title="cycles: 2">2</td>
+		<td rowspan="2" title="address mode: inherent">inherent</td>
+		<td rowspan="2" title="needs ea: no">no</td>
+		<td rowspan="2" title="read from memory: no">no</td>
+		<td rowspan="2" title="write to memory: no">no</td>
+		<td>A</td>
+	</tr>
+	<tr>
+		<td>ROLB</td>
+		<td>B = Rotate B left thru carry</td>
+		<td>$59</td>
+		<td>B</td>
+	</tr>
+	<tr>
+		<td rowspan="5" title="instruction: ROR">ROR</td>
+		<td rowspan="3" title="mnemonic: ROR">ROR</td>
+		<td rowspan="5" title="CC flags: -aa-s">-aa-s</td>
+		<td rowspan="3" title="example: M = Rotate M Right thru carry">M = Rotate M Right thru carry</td>
+		<td>$06</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct</td>
+		<td rowspan="3" title="needs ea: yes">yes</td>
+		<td rowspan="3" title="read from memory: byte">byte</td>
+		<td rowspan="3" title="write to memory: byte">byte</td>
+		<td rowspan="3" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td>$66</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$76</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>RORA</td>
+		<td>A = Rotate A Right thru carry</td>
+		<td>$46</td>
+		<td rowspan="4" title="bytes: 1">1</td>
+		<td rowspan="2" title="cycles: 2">2</td>
+		<td rowspan="4" title="address mode: inherent">inherent</td>
+		<td rowspan="13" title="needs ea: no">no</td>
+		<td rowspan="4" title="read from memory: no">no</td>
+		<td rowspan="13" title="write to memory: no">no</td>
+		<td>A</td>
+	</tr>
+	<tr>
+		<td>RORB</td>
+		<td>B = Rotate B Right thru carry</td>
+		<td>$56</td>
+		<td>B</td>
+	</tr>
+	<tr>
+		<td>RTI</td>
+		<td>RTI</td>
+		<td rowspan="2" title="CC flags: -----">-----</td>
+		<td>Return from Interrupt</td>
+		<td>$3b</td>
+		<td>6</td>
+		<td rowspan="2" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td>RTS</td>
+		<td>RTS</td>
+		<td>Return from subroutine</td>
+		<td>$39</td>
+		<td>5</td>
+	</tr>
+	<tr>
+		<td rowspan="8" title="instruction: SBC">SBC</td>
+		<td rowspan="4" title="mnemonic: SBCA">SBCA</td>
+		<td rowspan="8" title="CC flags: uaaaa">uaaaa</td>
+		<td rowspan="4" title="example: A = A - M - C">A = A - M - C</td>
+		<td>$82</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="8" title="read from memory: byte">byte</td>
+		<td rowspan="4" title="register: A">A</td>
+	</tr>
+	<tr>
+		<td>$92</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$a2</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$b2</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: SBCB">SBCB</td>
+		<td rowspan="4" title="example: B = B - M - C">B = B - M - C</td>
+		<td>$c2</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="4" title="register: B">B</td>
+	</tr>
+	<tr>
+		<td>$d2</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$e2</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$f2</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>SEX</td>
+		<td>SEX</td>
+		<td rowspan="22" title="CC flags: -aa0-">-aa0-</td>
+		<td>Sign extend B into A</td>
+		<td>$1d</td>
+		<td>1</td>
+		<td>2</td>
+		<td>inherent</td>
+		<td rowspan="22" title="read from memory: no">no</td>
+		<td>-</td>
+	</tr>
+	<tr>
+		<td rowspan="21" title="instruction: ST">ST</td>
+		<td rowspan="3" title="mnemonic: STA">STA</td>
+		<td rowspan="3" title="example: M = A">M = A</td>
+		<td>$97</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+		<td rowspan="21" title="needs ea: yes">yes</td>
+		<td rowspan="6" title="write to memory: byte">byte</td>
+		<td rowspan="3" title="register: A">A</td>
+	</tr>
+	<tr>
+		<td>$a7</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$b7</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="3" title="mnemonic: STB">STB</td>
+		<td rowspan="3" title="example: M = B">M = B</td>
+		<td>$d7</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+		<td rowspan="3" title="register: B">B</td>
+	</tr>
+	<tr>
+		<td>$e7</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$f7</td>
+		<td>3</td>
+		<td rowspan="3" title="cycles: 5">5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="3" title="mnemonic: STD">STD</td>
+		<td rowspan="3" title="example: M:M+1 = D">M:M+1 = D</td>
+		<td>$dd</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td>direct</td>
+		<td rowspan="15" title="write to memory: word">word</td>
+		<td rowspan="3" title="register: D">D</td>
+	</tr>
+	<tr>
+		<td>$ed</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$fd</td>
+		<td rowspan="3" title="bytes: 3">3</td>
+		<td rowspan="3" title="cycles: 6">6</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="3" title="mnemonic: STS">STS</td>
+		<td rowspan="3" title="example: M:M+1 = S">M:M+1 = S</td>
+		<td>$10df</td>
+		<td>direct</td>
+		<td rowspan="3" title="register: S">S</td>
+	</tr>
+	<tr>
+		<td>$10ef</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$10ff</td>
+		<td>4</td>
+		<td>7</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="3" title="mnemonic: STU">STU</td>
+		<td rowspan="3" title="example: M:M+1 = U">M:M+1 = U</td>
+		<td>$df</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 5">5</td>
+		<td>direct</td>
+		<td rowspan="3" title="register: U">U</td>
+	</tr>
+	<tr>
+		<td>$ef</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$ff</td>
+		<td>3</td>
+		<td>6</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="3" title="mnemonic: STX">STX</td>
+		<td rowspan="3" title="example: M:M+1 = X">M:M+1 = X</td>
+		<td>$9f</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 5">5</td>
+		<td>direct</td>
+		<td rowspan="3" title="register: X">X</td>
+	</tr>
+	<tr>
+		<td>$af</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$bf</td>
+		<td rowspan="3" title="bytes: 3">3</td>
+		<td rowspan="3" title="cycles: 6">6</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="3" title="mnemonic: STY">STY</td>
+		<td rowspan="3" title="example: M:M+1 = Y">M:M+1 = Y</td>
+		<td>$109f</td>
+		<td>direct</td>
+		<td rowspan="3" title="register: Y">Y</td>
+	</tr>
+	<tr>
+		<td>$10af</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$10bf</td>
+		<td>4</td>
+		<td>7</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="12" title="instruction: SUB">SUB</td>
+		<td rowspan="4" title="mnemonic: SUBA">SUBA</td>
+		<td rowspan="8" title="CC flags: uaaaa">uaaaa</td>
+		<td rowspan="4" title="example: A = A - M">A = A - M</td>
+		<td>$80</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="22" title="needs ea: no">no</td>
+		<td rowspan="8" title="read from memory: byte">byte</td>
+		<td rowspan="22" title="write to memory: no">no</td>
+		<td rowspan="4" title="register: A">A</td>
+	</tr>
+	<tr>
+		<td>$90</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$a0</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$b0</td>
+		<td>3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: SUBB">SUBB</td>
+		<td rowspan="4" title="example: B = B - M">B = B - M</td>
+		<td>$c0</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>2</td>
+		<td>immediate</td>
+		<td rowspan="4" title="register: B">B</td>
+	</tr>
+	<tr>
+		<td>$d0</td>
+		<td rowspan="2" title="cycles: 4">4</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$e0</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$f0</td>
+		<td rowspan="2" title="bytes: 3">3</td>
+		<td>5</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td rowspan="4" title="mnemonic: SUBD">SUBD</td>
+		<td rowspan="4" title="CC flags: -aaaa">-aaaa</td>
+		<td rowspan="4" title="example: D = D - M:M+1">D = D - M:M+1</td>
+		<td>$83</td>
+		<td>4</td>
+		<td>immediate word</td>
+		<td rowspan="4" title="read from memory: word">word</td>
+		<td rowspan="4" title="register: D">D</td>
+	</tr>
+	<tr>
+		<td>$93</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct word</td>
+	</tr>
+	<tr>
+		<td>$a3</td>
+		<td>indexed word</td>
+	</tr>
+	<tr>
+		<td>$b3</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended word</td>
+	</tr>
+	<tr>
+		<td rowspan="3" title="instruction: SWI">SWI</td>
+		<td>SWI</td>
+		<td rowspan="4" title="CC flags: -----">-----</td>
+		<td>Software interrupt 1</td>
+		<td>$3f</td>
+		<td>1</td>
+		<td>19</td>
+		<td rowspan="4" title="address mode: inherent">inherent</td>
+		<td rowspan="4" title="read from memory: no">no</td>
+		<td rowspan="8" title="register: -">-</td>
+	</tr>
+	<tr>
+		<td>SWI2</td>
+		<td>Software interrupt 2</td>
+		<td>$103f</td>
+		<td rowspan="2" title="bytes: 2">2</td>
+		<td rowspan="2" title="cycles: 20">20</td>
+	</tr>
+	<tr>
+		<td>SWI3</td>
+		<td>Software interrupt 3</td>
+		<td>$113f</td>
+	</tr>
+	<tr>
+		<td>SYNC</td>
+		<td>SYNC</td>
+		<td>Synchronize to Interrupt</td>
+		<td>$13</td>
+		<td>1</td>
+		<td>2</td>
+	</tr>
+	<tr>
+		<td>TFR</td>
+		<td>TFR</td>
+		<td>ccccc</td>
+		<td></td>
+		<td>$1f</td>
+		<td rowspan="3" title="bytes: 2">2</td>
+		<td>7</td>
+		<td>immediate</td>
+		<td rowspan="4" title="read from memory: byte">byte</td>
+	</tr>
+	<tr>
+		<td rowspan="5" title="instruction: TST">TST</td>
+		<td rowspan="3" title="mnemonic: TST">TST</td>
+		<td rowspan="5" title="CC flags: -aa0-">-aa0-</td>
+		<td rowspan="3" title="example: Test M">Test M</td>
+		<td>$0d</td>
+		<td rowspan="2" title="cycles: 6">6</td>
+		<td>direct</td>
+	</tr>
+	<tr>
+		<td>$6d</td>
+		<td>indexed</td>
+	</tr>
+	<tr>
+		<td>$7d</td>
+		<td>3</td>
+		<td>7</td>
+		<td>extended</td>
+	</tr>
+	<tr>
+		<td>TSTA</td>
+		<td>Test A</td>
+		<td>$4d</td>
+		<td rowspan="2" title="bytes: 1">1</td>
+		<td rowspan="2" title="cycles: 2">2</td>
+		<td rowspan="2" title="address mode: inherent">inherent</td>
+		<td rowspan="2" title="read from memory: no">no</td>
+		<td>A</td>
+	</tr>
+	<tr>
+		<td>TSTB</td>
+		<td>Test B</td>
+		<td>$5d</td>
+		<td>B</td>
+	</tr>
+</table><addr>This file was generated by CPU6809_HTML_export.py</addr></body></html>
