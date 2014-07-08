@@ -3,55 +3,21 @@
 
 # copy&paste .lst content from e.g.: http://www.asm80.com/
 lst = """
-0100                          .ORG   $100
-0100                CRCHH:    EQU   $ED
-0100                CRCHL:    EQU   $B8
-0100                CRCLH:    EQU   $83
-0100                CRCLL:    EQU   $20
-0100                CRCINITH:   EQU   $FFFF
-0100                CRCINITL:   EQU   $FFFF
-0100                BL:
-0100   E8 C0                  EORB   ,u+   ; XOR with lowest byte
-0102   10 8E 00 08            LDY   #8   ; bit counter
-0106                RL:
-0106   1E 01                  EXG   d,x
-0108                RL1:
-0108   44                     LSRA   ; shift CRC right, beginning with high word
-0109   56                     RORB
-010A   1E 01                  EXG   d,x
-010C   46                     RORA   ; low word
-010D   56                     RORB
-010E   24 12                  BCC   cl
-0110                          ; CRC=CRC XOR polynomic
-0110   88 83                  EORA   #CRCLH   ; apply CRC polynomic low word
-0112   C8 20                  EORB   #CRCLL
-0114   1E 01                  EXG   d,x
-0116   88 ED                  EORA   #CRCHH   ; apply CRC polynomic high word
-0118   C8 B8                  EORB   #CRCHL
-011A   31 3F                  LEAY   -1,y   ; bit count down
-011C   26 EA                  BNE   rl1
-011E   1E 01                  EXG   d,x   ; CRC: restore correct order
-0120   27 04                  BEQ   el   ; leave bit loop
-0122                CL:
-0122   31 3F                  LEAY   -1,y   ; bit count down
-0124   26 E0                  BNE   rl   ; bit loop
-0126                EL:
-0126   11 A3 E4               CMPU   ,s   ; end address reached?
-0129   26 D5                  BNE   bl   ; byte loop
-
+0000   D6 4F                  LDB   $4f
+0002   F7 10 4F               STB   $104f
+0005   D6 50                  LDB   $50
+0007   F7 10 50               STB   $1050
+000A   D6 51                  LDB   $51
+000C   F7 10 51               STB   $1051
+000F   D6 52                  LDB   $52
+0011   F7 10 52               STB   $1052
+0014   D6 53                  LDB   $53
+0016   F7 10 53               STB   $1053
+0019   D6 54                  LDB   $54
+001B   F7 10 54               STB   $1054
 """
 
-"""
-        self.cpu_test_run(start=0x2000, end=None, mem=[
-            0x10, 0x8e, 0x30, 0x00, #       2000|       LDY $3000
-            0xcc, 0x10, 0x00, #             2004|       LDD $1000
-            0xed, 0xa4, #                   2007|       STD ,Y
-            0x86, 0x55, #                   2009|       LDA $55
-            0xA7, 0xb4, #                   200B|       STA ,[Y]
-        ])
-"""
-
-print "        self.cpu_test_run(start=0x2000, end=None, mem=["
+lines = []
 for line in lst.strip().splitlines():
     address = line[:4]
 
@@ -68,14 +34,13 @@ for line in lst.strip().splitlines():
             lable = lable.strip()
 
     hex_list = hex_list.strip().split(" ")
-    hex_list = ", ".join(["0x%s" % i for i in hex_list if i])
+    hex_list = [int(i, 16) for i in hex_list if i]
 
     code1 = line[30:].strip()
     doc = ""
     if ";" in code1:
         code1, doc = code1.split(";", 1)
         code1 = code1.strip()
-        doc = ";%s" % doc
 
     code2 = ""
     if " " in code1:
@@ -83,17 +48,105 @@ for line in lst.strip().splitlines():
         code1 = code1.strip()
         code2 = code2.strip()
 
-    if hex_list:
-        hex_list += ", #"
-    else:
-        hex_list += "#"
+    # for BASIC
+    lines.append({
+        "hex_list":hex_list,
+        "address":address,
+        "lable":lable,
+        "code1":code1,
+        "code2":code2,
+        "doc":doc,
+    })
 
-    line = "            %-30s %s|%10s %-5s %-10s %s" % (
-        hex_list, address, lable, code1, code2, doc
-    )
-#     line = "            %-30s %10s %-5s %-10s %s" % (
-#         hex_list, lable, code1, code2, doc
-#     )
-    print line.rstrip()
 
-print "        ])"
+
+
+def print_unittest1(lines):
+    print "        self.cpu_test_run(start=0x0100, end=None, mem=["
+    for line in lines:
+        hex_list = line["hex_list"]
+        address = line["address"]
+        lable = line["lable"]
+        code1 = line["code1"]
+        code2 = line["code2"]
+        doc = line["doc"]
+
+        hex_list = ", ".join(["0x%02x" % i for i in hex_list])
+        if hex_list:
+            hex_list += ", #"
+        else:
+            hex_list += "#"
+
+        line = "            %-20s %s|%6s %-5s %-8s" % (
+            hex_list, address, lable, code1, code2
+        )
+        if doc:
+            line = "%40s ; %s" % (line, doc)
+        print line.rstrip()
+    print "        ])"
+
+
+def print_unittest2(lines):
+    print "        self.cpu_test_run(start=0x0100, end=None, mem=["
+    for line in lines:
+        hex_list = line["hex_list"]
+        address = line["address"]
+        lable = line["lable"]
+        code1 = line["code1"]
+        code2 = line["code2"]
+        doc = line["doc"]
+
+        hex_list = ", ".join(["0x%02x" % i for i in hex_list])
+        if hex_list:
+            hex_list += ", #"
+        else:
+            hex_list += "#"
+
+        line = "            %-20s %6s %-5s %-8s" % (
+            hex_list, lable, code1, code2
+        )
+        if doc:
+            line = "%40s ; %s" % (line, doc)
+        print line.rstrip()
+    print "        ])"
+
+
+def print_bas(lines, line_no):
+    for line in lines:
+        hex_list = line["hex_list"]
+        address = line["address"]
+        lable = line["lable"]
+        code1 = line["code1"]
+        code2 = line["code2"]
+        doc = line["doc"]
+
+        line = "%s ' %s %s" % (
+            line_no, code1, code2
+        )
+        if doc:
+            line = "%-20s ; %s" % (line, doc)
+        print line.upper()
+        line_no += 10
+
+        line = "%s DATA %s" % (
+            line_no,
+            ",".join(["%x" % i for i in hex_list])
+        )
+        print line.upper()
+        line_no += 10
+
+
+print "-"*79
+
+print_unittest1(lines) # with address
+
+print "-"*79
+
+print_unittest2(lines) # without address
+
+print "-"*79
+
+# for a basic file:
+print_bas(lines,
+    line_no=1050
+)
