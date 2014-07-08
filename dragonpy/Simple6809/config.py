@@ -74,8 +74,8 @@ class Simple6809Cfg(BaseConfig):
 0088 0062                    RESSGN    RMB  1              SIGN OF RESULT OF FLOATING POINT OPERATION 
         """
         self.memory_callbacks = {
-            (0x004f, 0x0054): (None, self.float_accu_write0),
-            (0x005c, 0x0061): (None, self.float_accu_write1),
+#            (0x004f, 0x0054): (None, self.float_accu_write0),
+#            (0x005c, 0x0061): (None, self.float_accu_write1),
         }
     
     def float_accu_write0(self, cpu, addr, value):
