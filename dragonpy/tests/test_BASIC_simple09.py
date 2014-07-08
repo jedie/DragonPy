@@ -27,6 +27,7 @@ from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase, \
 from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809TestPeriphery
 from dragonpy.cpu6809 import CPU
+from dragonpy.utils.BASIC09_floating_point import BASIC09FloatingPoint
 
 
 
@@ -233,8 +234,25 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
         self.assertEqual(
             self.cpu.memory.ram._mem[0x004f:0x0055],
             self.cpu.memory.ram._mem[0x005c:0x0062],
-
         )
+#
+#    def test_evaluate_number01(self):
+##        b = ord("%s" % 6) # number 6 ist in hex: 0x36
+##        self.cpu.accu_b.set(b)
+#
+#        # $e777 = CONVERT THE VALUE IN ACCB INTO A FP NUMBER IN FPA0
+#        # $e778 = CONVERT THE VALUE IN ACCD INTO A FLOATING POINT NUMBER IN FPA0
+#
+#        self.cpu_test_run(start=0x0000, end=None, mem=[
+#            0xC6, 0x36, #                   LDB   #$36 # ASCII code of the number 6
+#            0xBD, 0xE7, 0x77, #             JSR   $e777 - CONVERT THE VALUE IN ACCB INTO A FP NUMBER IN FPA0
+#        ])
+#        self.cpu.memory.ram.print_dump(0x004f, 0x0054)
+#
+#        self.cpu_test_run(start=0x0000, end=None, mem=[
+#            0xBD, 0xE9, 0x92, #             JSR   $e992 - CONVERT FPA0 TO INTEGER IN ACCD
+#        ])
+#        print "D:", self.cpu.accu_d.get()
 
     def test_ACCB_to_FPA0_to_ACCD(self):
         """
@@ -258,46 +276,78 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
 #            print "dez.: %i -> %i | hex: %04x -> %04x" % (d, test_value, d, test_value)
             self.assertEqual(d, test_value)
 
-"""
-WIP:
-    def test_evaluate_number01(self):
-#        b = ord("%s" % 6) # number 6 ist in hex: 0x36
-#        self.cpu.accu_b.set(b)
+    def test_ACCB_to_FPA0(self):
+        print "FIXME:"
+        areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
+#        areas = range(0x100) # Takes long ;)
+        failed = []
+        ok = []
+        for test_value in areas:
+            print test_value
+            if test_value == "...":
+                print "\n...\n"
+                continue
 
-        # $e777 = CONVERT THE VALUE IN ACCB INTO A FP NUMBER IN FPA0
-        # $e778 = CONVERT THE VALUE IN ACCD INTO A FLOATING POINT NUMBER IN FPA0
+            self.cpu.accu_b.set(test_value)
 
-        self.cpu_test_run(start=0x0000, end=None, mem=[
-            0xC6, 0x36, #                   LDB   #$36 # ASCII code of the number 6
-            0xBD, 0xE7, 0x77, #             JSR   $e777 - CONVERT THE VALUE IN ACCB INTO A FP NUMBER IN FPA0
-        ])
-        self.cpu.memory.ram.print_dump(0x004f, 0x0054)
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0xC6, test_value, #  LDB  #$..
+                0xBD, 0xE7, 0x77, #  JSR  $e777 - CONVERT THE VALUE IN ACCB INTO A FP NUMBER IN FPA0
+            ])
+#            self.cpu.memory.ram.print_dump(0x004f, 0x0054)
 
-        self.cpu_test_run(start=0x0000, end=None, mem=[
-            0xBD, 0xE9, 0x92, #             JSR   $e992 - CONVERT FPA0 TO INTEGER IN ACCD
-        ])
-        print "D:", self.cpu.accu_d.get()
+            ram = self.cpu.memory.ram._mem[0x004f:0x0055]
+
+            fp = BASIC09FloatingPoint(test_value)
+#            fp.print_values()
+            reference = fp.get_bytes()
+
+#            self.assertEqual(ram, reference)
+
+            if not ram == reference:
+                failed.append(test_value)
+#                print "*** ERROR:"
+#                print "in RAM...:", ", ".join(["$%02x" % i for i in ram])
+#                print "Reference:", ", ".join(["$%02x" % i for i in reference])
+            else:
+                ok.append(test_value)
+#                print "*** OK"
+
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0xBD, 0xE9, 0x92, #             JSR   $e992 - CONVERT FPA0 TO INTEGER IN ACCD
+            ])
+            d = self.cpu.accu_d.get()
+
+#            print
+#            print "-"*79
+#            print
+
+        print "OK:" , ok # [1, 2, 126, 127, 128, 130, 254]
+        print "Failed:", failed # [0, 129, 253, 255]
+
+        # Complete run 0-255:
+        # OK: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70, 71, 72, 73, 74, 75, 76, 77, 78, 79, 80, 81, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91, 92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 106, 107, 108, 109, 110, 111, 112, 113, 114, 115, 116, 117, 118, 119, 120, 121, 122, 123, 124, 125, 126, 127, 128, 130, 132, 134, 136, 138, 140, 142, 144, 146, 148, 150, 152, 154, 156, 158, 160, 162, 164, 166, 168, 170, 172, 174, 176, 178, 180, 182, 184, 186, 188, 190, 192, 194, 196, 198, 200, 202, 204, 206, 208, 210, 212, 214, 216, 218, 220, 222, 224, 226, 228, 230, 232, 234, 236, 238, 240, 242, 244, 246, 248, 250, 252, 254]
+        # Failed: [0, 129, 131, 133, 135, 137, 139, 141, 143, 145, 147, 149, 151, 153, 155, 157, 159, 161, 163, 165, 167, 169, 171, 173, 175, 177, 179, 181, 183, 185, 187, 189, 191, 193, 195, 197, 199, 201, 203, 205, 207, 209, 211, 213, 215, 217, 219, 221, 223, 225, 227, 229, 231, 233, 235, 237, 239, 241, 243, 245, 247, 249, 251, 253, 255]
 
 
-    def test_floating_point_routines01(self):
-        # $ee5d = "FPA0 load: MOVE (X) TO FPA0"
-
-        self.periphery.add_to_input_queue('F=6\r\n')
-        try:
-            op_call_count, cycles, output = self._run_until_OK(max_ops=5000)
-            print op_call_count, cycles, output
-        except Exception, err:
-            print "Abort: %s" % err
-
-        self.cpu.memory.ram.print_dump(0x004f, 0x0054)
-        return
-
-        self.cpu_test_run(start=0x0100, end=None, mem=[
-            #                        FLOAD: EQU   $ee5d
-#            0x8E, 0x61, 0x00, #             LDX   #$6100
-            0xBD, 0xee, 0x5d, #       JSR   FLOAD
-        ])
-"""
+#    def test_floating_point_routines01(self):
+#        # $ee5d = "FPA0 load: MOVE (X) TO FPA0"
+#
+#        self.periphery.add_to_input_queue('F=6\r\n')
+#        try:
+#            op_call_count, cycles, output = self._run_until_OK(max_ops=5000)
+#            print op_call_count, cycles, output
+#        except Exception, err:
+#            print "Abort: %s" % err
+#
+#        self.cpu.memory.ram.print_dump(0x004f, 0x0054)
+#        return
+#
+#        self.cpu_test_run(start=0x0100, end=None, mem=[
+#            #                        FLOAD: EQU   $ee5d
+##            0x8E, 0x61, 0x00, #             LDX   #$6100
+#            0xBD, 0xee, 0x5d, #       JSR   FLOAD
+#        ])
 
 
 if __name__ == '__main__':
@@ -314,8 +364,9 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-            "Test6809_BASIC_simple6809_Base.test_transfer_fpa0_to_fpa1",
-#            "Test6809_BASIC_simple6809_Base.test_evaluate_number01",
+#            "Test6809_BASIC_simple6809_Base.test_transfer_fpa0_to_fpa1",
+#            "Test6809_BASIC_simple6809_Base.test_ACCB_to_FPA0_to_ACCD",
+#            "Test6809_BASIC_simple6809_Base.test_ACCB_to_FPA0",
 #            "Test6809_BASIC_simple6809_Base.test_floating_point_routines01",
         ),
         testRunner=TextTestRunner2,

@@ -1,0 +1,99 @@
+#!/usr/bin/env python
+
+"""
+    DragonPy - Dragon 32 emulator in Python
+    =======================================
+
+    :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
+    :license: GNU GPL v3 or above, see LICENSE for more details.
+"""
+
+import math
+import decimal
+
+from dragonpy.cpu_utils.signed import unsigned8
+
+
+class BASIC09FloatingPoint(object):
+    """
+    Calucalte the representation of a float value in the BASIC09
+    FPA memory accumulator.
+
+    exponent.........: 1Byte =   8 Bits
+    mantissa/fraction: 4Bytes = 32 Bits
+    sign of mantissa.: 1Byte =   8 Bits (0x00 positive, 0xff negative)
+
+    exponent most significant bit is the sign: 1=positive 0=negative
+    """
+    def __init__(self, value):
+        self.value = decimal.Decimal(value)
+        self.mantissa, self.exponent = math.frexp(value)
+        self.exponent_byte = unsigned8(self.exponent - 128)
+        if self.mantissa >= 0:
+            self.mantissa_sign = 0x00
+        else:
+            self.mantissa_sign = 0xff
+        self.mantissa_bytes = self.mantissa2bytes(self.mantissa)
+
+    def mantissa2bytes(self, value, byte_count=4):
+        value = decimal.Decimal(abs(value))
+        result = []
+        pos = 0
+        for __ in xrange(byte_count):
+            current_byte = 0
+            for bit_no in reversed(xrange(1, 8)):
+                pos += 1
+                bit_value = decimal.Decimal(1.0) / decimal.Decimal(2) ** decimal.Decimal(pos)
+                if value >= bit_value:
+                    value -= bit_value
+                    current_byte += 2 ** bit_no
+            result.append(current_byte)
+        return result
+
+    def get_bytes(self):
+        return [self.exponent_byte] + self.mantissa_bytes + [self.mantissa_sign]
+
+    def print_values(self):
+        print "Float value was: %s" % self.value
+        print "\texponent......: dez.: %s hex: $%02x" % (self.exponent, self.exponent)
+        print "\texponent byte.: dez.: %s hex: $%02x" % (
+            self.exponent_byte, self.exponent_byte
+        )
+        print "\tmantissa value: dez.: %s" % (self.mantissa)
+        print "\tmantissa bytes: dez.: %s hex: %s" % (
+            repr(self.mantissa_bytes),
+            ", ".join(["$%02x" % i for i in self.mantissa_bytes])
+        )
+        print "\tmatissa-sign..: hex: $%02x" % self.mantissa_sign
+        byte_list = self.get_bytes()
+        print "\tbinary........: hex: %s" % (
+            ", ".join(["$%02x" % i for i in byte_list])
+        )
+        print "\texponent |            mantissa             | mantissa-sign"
+        print "\t" + " ".join(
+            ['{0:08b}'.format(i) for i in byte_list]
+        )
+        print
+
+    def __repr__(self):
+        return "<BinaryFloatingPoint %f: %s>" % (
+            self.value, ", ".join(["$%02x" % i for i in self.get_bytes()])
+        )
+
+
+if __name__ == "__main__":
+    # Examples:
+#    BASIC09FloatingPoint(54).print_values()
+#    BASIC09FloatingPoint(-54).print_values()
+#    BASIC09FloatingPoint(5.5).print_values()
+#    BASIC09FloatingPoint(-5.5).print_values()
+#    BASIC09FloatingPoint(0).print_values()
+#    BASIC09FloatingPoint(10.14 ** 38).print_values()
+#    BASIC09FloatingPoint(10.14 ** -38).print_values()
+
+    for i in xrange(0x100):
+        fp = BASIC09FloatingPoint(i)
+        print "%3s -> %s" % (
+            i,
+            " ".join(["$%02x" % i for i in fp.get_bytes()])
+        )
