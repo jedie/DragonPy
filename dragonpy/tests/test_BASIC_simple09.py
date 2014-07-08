@@ -236,6 +236,28 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
 
         )
 
+    def test_ACCB_to_FPA0_to_ACCD(self):
+        """
+        Convert a number vial CPU accu B with the BASIC routine into the
+        BASIC floting point number. Then, convert the Float into CPU accu D
+        and compare.
+        """
+        areas = range(0, 2) + ["..."] + range(0x7f, 0x82) + ["..."] + range(0xfd, 0x100)
+        for test_value in areas:
+            if test_value == "...":
+#                print "\n...\n"
+                continue
+
+            self.cpu.accu_b.set(test_value)
+            self.cpu_test_run(start=0x0100, end=None, mem=[
+                0xC6, test_value, # 0000  LDB  #$..
+                0xBD, 0xE7, 0x77, # 0002  JSR  $e777 - CONVERT THE VALUE IN ACCB INTO A FP NUMBER IN FPA0
+                0xBD, 0xE9, 0x92, # 0005  JSR  $e992 - CONVERT FPA0 TO INTEGER IN ACCD
+            ])
+            d = self.cpu.accu_d.get()
+#            print "dez.: %i -> %i | hex: %04x -> %04x" % (d, test_value, d, test_value)
+            self.assertEqual(d, test_value)
+
 """
 WIP:
     def test_evaluate_number01(self):
