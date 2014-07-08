@@ -1389,24 +1389,6 @@ class CPU(object):
         self.cc.update_NZV_8(a=m, b=1, r=r)
         return ea, r
 
-    @opcode(# Jump
-        0xe, 0x6e, 0x7e, # JMP (direct, indexed, extended)
-    )
-    def instruction_JMP(self, opcode, ea):
-        """
-        Program control is transferred to the effective address.
-
-        source code forms: JMP EA
-
-        CC bits "HNZVC": -----
-        """
-#        log.info("%x|\tJMP to $%x \t| %s" % (
-#            self.last_op_address,
-#            ea, self.cfg.mem_info.get_shortest(ea)
-#        ))
-        self.program_counter = ea
-
-
     @opcode(# Load effective address into an indexable register
         0x32, # LEAS (indexed)
         0x33, # LEAU (indexed)
@@ -1631,26 +1613,6 @@ class CPU(object):
         if m & 0x20: pull(REG_Y, register) # 16 bit index register
         if m & 0x40: pull(REG_U, register) # 16 bit user-stack pointer
         if m & 0x80: pull(REG_PC, register) # 16 bit program counter register
-
-    @opcode(# Return from subroutine
-        0x39, # RTS (inherent)
-    )
-    def instruction_RTS(self, opcode):
-        """
-        Program control is returned from the subroutine to the calling program.
-        The return address is pulled from the stack.
-
-        source code forms: RTS
-
-        CC bits "HNZVC": -----
-        """
-        ea = self.pull_word(self._system_stack_pointer)
-        log.info("%x|\tRTS to $%x \t| %s" % (
-            self.last_op_address,
-            ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
-        self.program_counter = ea
 
     @opcode(# Subtract memory from accumulator with borrow
         0x82, 0x92, 0xa2, 0xb2, # SBCA (immediate, direct, indexed, extended)
@@ -2152,7 +2114,75 @@ class CPU(object):
         self.cc.clear_NZV()
         self.cc.update_NZ_8(m)
 
+    # ---- Programm Flow Instructions ----
+
+
+    @opcode(# Jump
+        0xe, 0x6e, 0x7e, # JMP (direct, indexed, extended)
+    )
+    def instruction_JMP(self, opcode, ea):
+        """
+        Program control is transferred to the effective address.
+
+        source code forms: JMP EA
+
+        CC bits "HNZVC": -----
+        """
+#        log.info("%x|\tJMP to $%x \t| %s" % (
+#            self.last_op_address,
+#            ea, self.cfg.mem_info.get_shortest(ea)
+#        ))
+        self.program_counter = ea
+
+    @opcode(# Return from subroutine
+        0x39, # RTS (inherent)
+    )
+    def instruction_RTS(self, opcode):
+        """
+        Program control is returned from the subroutine to the calling program.
+        The return address is pulled from the stack.
+
+        source code forms: RTS
+
+        CC bits "HNZVC": -----
+        """
+        ea = self.pull_word(self._system_stack_pointer)
+        log.info("%x|\tRTS to $%x \t| %s" % (
+            self.last_op_address,
+            ea,
+            self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.program_counter = ea
+
+    @opcode(
+        # Branch to subroutine:
+        0x8d, # BSR (relative)
+        0x17, # LBSR (relative)
+        # Jump to subroutine:
+        0x9d, 0xad, 0xbd, # JSR (direct, indexed, extended)
+    )
+    def instruction_BSR_JSR(self, opcode, ea):
+        """
+        Program control is transferred to the effective address after storing
+        the return address on the hardware stack.
+
+        A return from subroutine (RTS) instruction is used to reverse this
+        process and must be the last instruction executed in a subroutine.
+
+        source code forms: BSR dd; LBSR DDDD; JSR EA
+
+        CC bits "HNZVC": -----
+        """
+        log.info("%x|\tJSR/BSR to $%x \t| %s" % (
+            self.last_op_address,
+            ea, self.cfg.mem_info.get_shortest(ea)
+        ))
+        self.push_word(self._system_stack_pointer, self.program_counter)
+        self.program_counter = ea
+
+
     # ---- Branch Instructions ----
+
 
     @opcode(# Branch if equal
         0x27, # BEQ (relative)
@@ -2527,32 +2557,6 @@ class CPU(object):
 #            log.debug("$%x BVS: don't branch to $%x, because V==0 \t| %s" % (
 #                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
 #            ))
-
-    @opcode(
-        # Branch to subroutine:
-        0x8d, # BSR (relative)
-        0x17, # LBSR (relative)
-        # Jump to subroutine:
-        0x9d, 0xad, 0xbd, # JSR (direct, indexed, extended)
-    )
-    def instruction_BSR_JSR(self, opcode, ea):
-        """
-        Program control is transferred to the effective address after storing
-        the return address on the hardware stack.
-
-        A return from subroutine (RTS) instruction is used to reverse this
-        process and must be the last instruction executed in a subroutine.
-
-        source code forms: BSR dd; LBSR DDDD; JSR EA
-
-        CC bits "HNZVC": -----
-        """
-        log.info("%x|\tJSR/BSR to $%x \t| %s" % (
-            self.last_op_address,
-            ea, self.cfg.mem_info.get_shortest(ea)
-        ))
-        self.push_word(self._system_stack_pointer, self.program_counter)
-        self.program_counter = ea
 
     @opcode(# Branch if lower (unsigned)
         0x25, # BLO/BCS (relative)
