@@ -331,7 +331,7 @@ ee0d| called the first time: $0a instruction_DEC_memory (CPU cycles: 524988)
 def test_run():
     import subprocess
     cmd_args = [sys.executable,
-        "DragonPy_CLI.py",
+        os.path.join("..", "DragonPy_CLI.py"),
 #        "--verbosity=5",
 #         "--verbosity=10", # DEBUG
         "--verbosity=20", # INFO
