@@ -155,3 +155,39 @@ Create file 'filtered_trace.txt'...
 
 43466 lines was filtered.
 }}}
+
+
+
+
+== add_info_in_trace.py
+
+Add address info on Xroar trace lines.
+Used informationfiles from: https://github.com/6809/rom-info
+
+e.g.:
+{{{
+xroar -trace | python add_info_in_trace.py --infofile Dragon32.txt
+# or better:
+$ xroar -trace | python filter_xroar_trace.py --loop-filter startup_trace.txt | python add_info_in_trace.py --infofile Dragon32.txt
+}}}
+
+example output:
+{{{
+... [Skip 14 lines] ...
+897a| 9e64        LDX     <$64                cc=a1 a=ff b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $897a: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+897c| 9fa6        STX     <$a6                cc=a1 a=ff b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $897c: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+897e| 39          RTS                         cc=a1 a=ff b=fd dp=00 x=02e2 y=804b u=7fff s=7f2e | $897e: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+8897| 0f3f        CLR     <$3f                cc=a4 a=ff b=fd dp=00 x=02e2 y=804b u=7fff s=7f2e | $8897: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+8899| 9da5        JSR     <$a5                cc=a4 a=ff b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $8899: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+00a5| b602e2      LDA     $02e2               cc=a4 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $a5: $a5-$a7 -  LDA >xxxx
+00a8| 7ebb26      JMP     $bb26               cc=a4 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $a8: $a8-$aa -  JMP $BB26
+bb26| 813a        CMPA    #$3a                cc=a9 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $bb26: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+bb28| 240a        BCC     $bb34               cc=a9 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $bb28: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+bb2a| 8120        CMPA    #$20                cc=a9 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $bb2a: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+bb2c| 2602        BNE     $bb30               cc=a9 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $bb2c: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+bb30| 8030        SUBA    #$30                cc=a9 a=d0 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $bb30: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+bb32| 80d0        SUBA    #$d0                cc=a4 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $bb32: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+bb34| 39          RTS                         cc=a4 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2e | $bb34: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+889b| 80ca        SUBA    #$ca                cc=a1 a=36 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2e | $889b: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+889d| 2513        BCS     $88b2               cc=a1 a=36 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2e | $889d: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+}}}
