@@ -20,61 +20,76 @@ class XroarTraceFilter(object):
     def __init__(self, infile, outfile):
         self.infile = infile
         self.outfile = outfile
-        self.addr_stat = self.stat_trace()
 
-    def stat_trace(self):
-        print
-        print "Read %s..." % self.infile.name
-        print
-        stat = {}
-        next_update = time.time() + 1
+    def load_tracefile(self, f):
+        sys.stderr.write(
+            "\nRead %s...\n\n" % f.name
+        )
+        addr_stat = {}
+        next_update = time.time() + 0.5
         line_no = 0 # e.g. empty file
-        for line_no, line in enumerate(self.infile):
+        for line_no, line in enumerate(f):
             if time.time() > next_update:
-                print "Analyzed %i op calls..." % line_no
-                next_update = time.time() + 1
+                sys.stderr.write(
+                    "\rAnalyzed %i op calls..." % line_no
+                )
+                sys.stderr.flush()
+                next_update = time.time() + 0.5
 
-            addr = line.split("|", 1)[0]
-            stat.setdefault(addr, 0)
-            stat[addr] += 1
+            addr = line[:4]
+            addr_stat.setdefault(addr, 0)
+            addr_stat[addr] += 1
 
-        print "Analyzed %i op calls, complete." % line_no
-        print
-        print "The tracefile contains %i unique addresses." % len(stat)
-        print
-        return stat
+        f.seek(0) # if also used in self.filter()
 
-    def display_addr_stat(self, display_max=None):
+        sys.stderr.write(
+            "\rAnalyzed %i op calls, complete.\n" % line_no
+        )
+        sys.stderr.write(
+            "\nThe tracefile contains %i unique addresses.\n" % len(addr_stat)
+        )
+        return addr_stat
+
+    def display_addr_stat(self, addr_stat, display_max=None):
         if display_max is None:
-            print "List of all called addresses:"
+            sys.stdout.write(
+                "\nList of all called addresses:\n"
+            )
         else:
-            print "List of the %i most called addresses:" % display_max
+            sys.stdout.write(
+                "List of the %i most called addresses:\n" % display_max
+            )
 
         for no, data in enumerate(sorted(self.addr_stat.items(), key=lambda x: x[1], reverse=True)):
             if display_max is not None and no >= display_max:
                 break
-            print "Address: $%s called %s times." % data
+            sys.stdout.write(
+                "\tAddress %s called %s times.\n" % data
+            )
 
-    def filter(self, max_count=10):
-        print
-        print "Filter with %i:" % max_count
+    def get_max_count_filter(self, addr_stat, max_count=10):
+        sys.stderr.write(
+            "Filter addresses with more than %i calls:\n" % max_count
+        )
+        addr_filter = {}
+        for addr, count in self.addr_stat.items():
+            if count >= max_count:
+                addr_filter[addr] = count
+        return addr_filter
 
-        to_stdout = self.outfile.name == "<stdout>" # FIXME
-        if not to_stdout:
-            print "Create file %r..." % self.outfile.name
-
-        assert self.infile.name != self.outfile.name # FIXME
-
+    def filter(self, addr_filter):
+        sys.stderr.write(
+            "Filter %i addresses.\n" % len(addr_filter)
+        )
         total_skiped_lines = 0
         skip_count = 0
-        self.infile.seek(0)
         for line in self.infile:
-            addr = line.split("|", 1)[0]
-            addr_count = self.addr_stat[addr]
-            if addr_count > max_count:
+            addr = line[:4]
+            if addr in addr_filter:
                 total_skiped_lines += 1
                 skip_count += 1
                 continue
+
             if skip_count != 0:
                 self.outfile.write(
                     "... [Skip %i lines] ...\n" % skip_count
@@ -82,30 +97,38 @@ class XroarTraceFilter(object):
                 skip_count = 0
             self.outfile.write(line)
 
-        if not to_stdout:
-            self.outfile.close()
-
-        print
-        print "%i lines was filtered." % total_skiped_lines
+        self.outfile.close()
+        sys.stderr.write(
+            "%i lines was filtered.\n" % total_skiped_lines
+        )
 
 
 def main(args):
     xt = XroarTraceFilter(args.infile, args.outfile)
+    if args.loop_filter:
+        addr_stat = xt.load_tracefile(args.loop_filter)
+        xt.filter(addr_filter=addr_stat)
+
     if "display" in args:
-        xt.display_addr_stat(
+        addr_stat = xt.load_tracefile(args.infile)
+        xt.display_addr_stat(addr_stat,
             display_max=args.display
         )
+
     if args.filter:
-        xt.filter(
+        addr_stat = xt.load_tracefile(args.infile)
+        addr_filter = xt.get_max_count_filter(addr_stat,
             max_count=args.filter
         )
+        xt.filter(addr_filter)
 
 
 def get_cli_args():
     parser = argparse.ArgumentParser(description="Filter Xroar traces")
-    parser.add_argument("infile",
+    parser.add_argument("infile", nargs="?",
         type=argparse.FileType("r"),
-        help="Xroar trace file."
+        default=sys.stdin,
+        help="Xroar trace file or stdin"
     )
     parser.add_argument("outfile", nargs="?",
         type=argparse.FileType("w"),
@@ -121,6 +144,11 @@ def get_cli_args():
         type=int,
         nargs="?",
         help="Filter the trace: skip addresses that called more than given count.",
+    )
+    parser.add_argument("--loop-filter", metavar="FILENAME",
+        type=argparse.FileType("r"),
+        nargs="?",
+        help="Live Filter with given address file.",
     )
     args = parser.parse_args()
     return args
