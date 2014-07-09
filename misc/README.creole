@@ -1,0 +1,142 @@
+
+== filter_xroar_trace.py
+
+Filter Xroar trace files.
+
+The idea is simple: Skip lines with addresses that are calles very often, e.g.:
+* The "how many RAM is installed" ROM routine
+* The BASIC Interpreter idle loop
+
+=== usage
+
+{{{
+$ python filter_xroar_trace.py --help
+usage: filter_xroar_trace.py [-h] [--display [MAX]] [--filter [MAX]]
+                             infile [outfile]
+
+Filter Xroar traces
+
+positional arguments:
+  infile           Xroar trace file.
+  outfile          If given: write output in a new file else: Display it.
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --display [MAX]  Display statistics how often a address is called.
+  --filter [MAX]   Filter the trace: skip addresses that called more than
+                   given count.
+}}}
+
+=== examples
+
+
+==== Display statistics
+Just display the most often called addresses:
+{{{
+$ python filter_xroar_trace.py --display=10 ~/xroar_trace.txt 
+
+Read /home/jens/xroar_trace.txt...
+
+Analyzed 43512 op calls, complete.
+
+The tracefile contains 64 unique addresses.
+
+List of the 10 most called addresses:
+Address: $b3d1 called 4851 times.
+Address: $b3d5 called 4851 times.
+Address: $b3d3 called 4851 times.
+Address: $b3ca called 4851 times.
+Address: $b3cc called 4851 times.
+Address: $b3cf called 4851 times.
+Address: $b3cd called 4851 times.
+Address: $b3d7 called 4850 times.
+Address: $b3c1 called 1025 times.
+Address: $b3bf called 1025 times.
+}}}
+
+
+==== Filter
+Filter the trace and list only addresses that called not more than one time:
+{{{
+$ python filter_xroar_trace.py --filter=1 ~/xroar_trace.txt 
+
+Read /home/jens/xroar_trace.txt...
+
+Analyzed 43512 op calls, complete.
+
+The tracefile contains 64 unique addresses.
+
+
+Filter with 1:
+fffe| b3b4        [RESET]
+b3b4| 318ce4      LEAY    -$1c,PCR            cc=50 a=00 b=00 dp=00 x=0000 y=b39b u=0000 s=0000
+b3b7| 7e8000      JMP     $8000               cc=50 a=00 b=00 dp=00 x=0000 y=b39b u=0000 s=0000
+8000| 7ebb40      JMP     $bb40               cc=50 a=00 b=00 dp=00 x=0000 y=b39b u=0000 s=0000
+bb40| cc0034      LDD     #$0034              cc=50 a=00 b=34 dp=00 x=0000 y=b39b u=0000 s=0000
+bb43| 8eff00      LDX     #$ff00              cc=58 a=00 b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb46| a701        STA     1,X                 cc=54 a=00 b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb48| a703        STA     3,X                 cc=54 a=00 b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb4a| a784        STA     ,X                  cc=54 a=00 b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb4c| 43          COMA                        cc=59 a=ff b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb4d| a702        STA     2,X                 cc=59 a=ff b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb4f| e701        STB     1,X                 cc=51 a=ff b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb51| e703        STB     3,X                 cc=51 a=ff b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb53| 8eff20      LDX     #$ff20              cc=59 a=ff b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb56| 6f01        CLR     1,X                 cc=54 a=ff b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb58| 6f03        CLR     3,X                 cc=54 a=ff b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb5a| 4a          DECA                        cc=58 a=fe b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb5b| a784        STA     ,X                  cc=58 a=fe b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb5d| 86f8        LDA     #$f8                cc=58 a=f8 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb5f| a702        STA     2,X                 cc=58 a=f8 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb61| e701        STB     1,X                 cc=50 a=f8 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb63| e703        STB     3,X                 cc=50 a=f8 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb65| 6f84        CLR     ,X                  cc=54 a=f8 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb67| 6f02        CLR     2,X                 cc=54 a=f8 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb69| a602        LDA     2,X                 cc=54 a=00 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb6b| 8effc0      LDX     #$ffc0              cc=58 a=00 b=34 dp=00 x=ffc0 y=b39b u=0000 s=0000
+bb6e| c610        LDB     #$10                cc=50 a=00 b=10 dp=00 x=ffc0 y=b39b u=0000 s=0000
+... [Skip 48 lines] ...
+bb75| f7ffc9      STB     $ffc9               cc=54 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=0000
+bb78| 8504        BITA    #$04                cc=54 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=0000
+bb7a| 2705        BEQ     $bb81               cc=54 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=0000
+bb81| f7ffdd      STB     $ffdd               cc=54 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=0000
+bb84| 1f9b        TFR     B,DP                cc=54 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=0000
+bb86| 1f25        TFR     Y,PC                cc=54 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=0000
+b39b| 10ce03d7    LDS     #$03d7              cc=50 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=03d7
+b39f| 8637        LDA     #$37                cc=50 a=37 b=00 dp=00 x=ffe0 y=b39b u=0000 s=03d7
+b3a1| b7ff23      STA     $ff23               cc=50 a=37 b=00 dp=00 x=ffe0 y=b39b u=0000 s=03d7
+b3a4| 9671        LDA     <$71                cc=58 a=ff b=00 dp=00 x=ffe0 y=b39b u=0000 s=03d7
+b3a6| 8155        CMPA    #$55                cc=58 a=ff b=00 dp=00 x=ffe0 y=b39b u=0000 s=03d7
+b3a8| 2610        BNE     $b3ba               cc=58 a=ff b=00 dp=00 x=ffe0 y=b39b u=0000 s=03d7
+b3ba| 8e0401      LDX     #$0401              cc=50 a=ff b=00 dp=00 x=0401 y=b39b u=0000 s=03d7
+... [Skip 3075 lines] ...
+b3c3| bdba77      JSR     $ba77               cc=54 a=ff b=00 dp=00 x=0000 y=b39b u=0000 s=03d5
+ba77| c660        LDB     #$60                cc=50 a=ff b=60 dp=00 x=0000 y=b39b u=0000 s=03d5
+ba79| 8e0400      LDX     #$0400              cc=50 a=ff b=60 dp=00 x=0400 y=b39b u=0000 s=03d5
+ba7c| 9f88        STX     <$88                cc=50 a=ff b=60 dp=00 x=0400 y=b39b u=0000 s=03d5
+... [Skip 1536 lines] ...
+ba85| 39          RTS                         cc=50 a=ff b=60 dp=00 x=0600 y=b39b u=0000 s=03d7
+b3c6| 6f80        CLR     ,X+                 cc=54 a=ff b=60 dp=00 x=0601 y=b39b u=0000 s=03d7
+b3c8| 9f19        STX     <$19                cc=50 a=ff b=60 dp=00 x=0601 y=b39b u=0000 s=03d7
+
+43466 lines was filtered.
+}}}
+
+
+==== Filter into new file
+
+{{{
+$ python filter_xroar_trace.py --filter=10 ~/xroar_trace.txt filtered_trace.txt
+
+Read /home/jens/xroar_trace.txt...
+
+Analyzed 43512 op calls, complete.
+
+The tracefile contains 64 unique addresses.
+
+
+Filter with 10:
+Create file 'filtered_trace.txt'...
+
+43466 lines was filtered.
+}}}

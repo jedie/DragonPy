@@ -2,12 +2,14 @@
 
 Some Python/BASIC tools/scripts around Dragon32/64 / CoCo homecomputer.
 
-All script are copyleft 2013 by Jens Diemer and license unter GNU GPL v3 or above, see LICENSE for more details.
+All script are copyleft 2013-2014 by Jens Diemer and license unter GNU GPL v3 or above, see LICENSE for more details.
 
 === Python scripts:
 
 * PyDC - Convert dragon 32 Cassetts WAV files into plain text:
 ** https://github.com/jedie/PyDragon32/tree/master/PyDC
+* Filter Xroar traces:
+** https://github.com/jedie/PyDragon32/tree/master/misc
 
 === BASIC programms:
 
