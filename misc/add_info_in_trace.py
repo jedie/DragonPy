@@ -81,13 +81,13 @@ class MemoryInfo(object):
                 shortest = start, end, txt
 
         if shortest is None:
-            return "$%x: UNKNOWN" % addr
-
-        start, end, txt = shortest
-        if start == end:
-            info = "$%x: %s" % (addr, txt)
+            info = "$%x: UNKNOWN" % addr
         else:
-            info = "$%x: $%x-$%x - %s" % (addr, start, end, txt)
+            start, end, txt = shortest
+            if start == end:
+                info = "$%x: %s" % (addr, txt)
+            else:
+                info = "$%x: $%x-$%x - %s" % (addr, start, end, txt)
         self._cache[addr] = info
         return info
 
@@ -120,7 +120,7 @@ class XroarTraceInfo(object):
 
             addr_info = rom_info.get_shortest(addr)
             self.outfile.write(
-                "%s | %s" % (line.strip(), addr_info)
+                "%s | %s\n" % (line.strip(), addr_info)
             )
 
 
