@@ -18,6 +18,7 @@ import argparse
 class MemoryInfo(object):
     def __init__(self, rom_info_file):
         self.mem_info = self._get_rom_info(rom_info_file)
+        self._cache = {}
 
     def eval_addr(self, addr):
         addr = addr.strip("$")
@@ -49,9 +50,17 @@ class MemoryInfo(object):
             rom_info.append(
                 (start_addr, end_addr, comment)
             )
+        sys.stderr.write(
+            "ROM Info file: %r readed.\n" % rom_info_file.name
+        )
         return rom_info
 
     def get_shortest(self, addr):
+        try:
+            return self._cache[addr]
+        except KeyError:
+            pass
+
         shortest = None
         size = sys.maxint
         for start, end, txt in self.mem_info:
@@ -68,11 +77,11 @@ class MemoryInfo(object):
 
         start, end, txt = shortest
         if start == end:
-            return "$%x: %s" % (addr, txt)
+            info = "$%x: %s" % (addr, txt)
         else:
-            return "$%x: $%x-$%x - %s" % (addr, start, end, txt)
-
-
+            info = "$%x: $%x-$%x - %s" % (addr, start, end, txt)
+        self._cache[addr] = info
+        return info
 
 
 class XroarTraceInfo(object):
