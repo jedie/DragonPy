@@ -36,8 +36,9 @@ $ xroar -trace  | python filter_xroar_trace.py --unique | tee startup_trace.txt
 }}}
 Let xroar start the machine e.g.: until the prompt is blicking.
 Then quit xroar.
-
-The **--unique** filtering skips all called addresses. So you get a small tracefile.
+ 
+The **--unique** will only collect a address one time. So "startup_trace.txt" is very small.
+In other words: All trace lines are skip if the addresses was called in the past.
 
 
 Start again with the created **startup_trace.txt** file:
@@ -47,6 +48,7 @@ $ xroar -trace | python filter_xroar_trace.py --loop-filter startup_trace.txt
 
 Now you will see only trace output for addresses that aren't in **startup_trace.txt** ;)
 
+
 ==== Start / Stop filtering
 If you know the entry point in ROM and whant only see a area as a trace used this.
 
@@ -54,6 +56,8 @@ e.g. See only traces after address **$8c37** was called and then until address *
 {{{
 $ xroar -trace | python filter_xroar_trace.py --start-stop=8c37-91c1 | tee routine_trace.txt 
 }}}
+Note: You will not only see trace lines if address is between 8c37 and 91c1!
+You can also do this: {{{--start-stop=9876-1234}}} So, it starts if $9876 is called and stops if $1234 is called.
 
 ==== Display statistics
 Just display the most often called addresses:
