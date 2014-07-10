@@ -83,7 +83,19 @@ class XroarTraceFilter(object):
         )
         total_skiped_lines = 0
         skip_count = 0
-        for line in self.infile:
+        last_line_no = 0
+        next_update = time.time() + 1
+        for line_no, line in enumerate(self.infile):
+            if time.time() > next_update:
+                sys.stderr.write(
+                    "\rFilter %i lines (%i/sec.)..." % (
+                        line_no, (line_no - last_line_no)
+                    )
+                )
+                sys.stderr.flush()
+                last_line_no = line_no
+                next_update = time.time() + 1
+
             addr = line[:4]
             if addr in addr_filter:
                 total_skiped_lines += 1

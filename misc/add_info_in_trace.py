@@ -29,7 +29,15 @@ class MemoryInfo(object):
             "Read ROM Info file: %r\n" % rom_info_file.name
         )
         rom_info = []
-        for line in rom_info_file:
+        next_update = time.time() + 0.5
+        for line_no, line in enumerate(rom_info_file):
+            if time.time() > next_update:
+                sys.stderr.write(
+                    "\rRead %i lines..." % line_no
+                )
+                sys.stderr.flush()
+                next_update = time.time() + 0.5
+
             try:
                 addr_raw, comment = line.split(";", 1)
             except ValueError:
@@ -90,7 +98,19 @@ class XroarTraceInfo(object):
         self.outfile = outfile
 
     def add_info(self, rom_info):
-        for line in self.infile:
+        last_line_no = 0
+        next_update = time.time() + 1
+        for line_no, line in enumerate(self.infile):
+            if time.time() > next_update:
+                sys.stderr.write(
+                    "\rRead %i lines (%i/sec.)..." % (
+                        line_no, (line_no - last_line_no)
+                    )
+                )
+                sys.stderr.flush()
+                last_line_no = line_no
+                next_update = time.time() + 1
+
             addr = line[:4]
             try:
                 addr = int(addr, 16)
@@ -100,8 +120,8 @@ class XroarTraceInfo(object):
 
             addr_info = rom_info.get_shortest(addr)
             self.outfile.write(
-                    "%s | %s" % (line.strip(), addr_info)
-                )
+                "%s | %s" % (line.strip(), addr_info)
+            )
 
 
 
