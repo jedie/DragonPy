@@ -32,10 +32,13 @@ optional arguments:
 ==== Live filter
 Create a startup trace:
 {{{
-$ xroar -trace > startup_trace.txt 
+$ xroar -trace  | python filter_xroar_trace.py --unique | tee startup_trace.txt 
 }}}
 Let xroar start the machine e.g.: until the prompt is blicking.
 Then quit xroar.
+
+The **--unique** filtering skips all called addresses. So you get a small tracefile.
+
 
 Start again with the created **startup_trace.txt** file:
 {{{

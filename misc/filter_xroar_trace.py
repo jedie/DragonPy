@@ -25,7 +25,7 @@ class XroarTraceFilter(object):
         sys.stderr.write(
             "\nRead %s...\n\n" % f.name
         )
-        addr_stat = {}
+        addr_stat = {} # TODO: Use collections.Counter
         next_update = time.time() + 0.5
         line_no = 0 # e.g. empty file
         for line_no, line in enumerate(f):
@@ -49,6 +49,57 @@ class XroarTraceFilter(object):
             "\nThe tracefile contains %i unique addresses.\n" % len(addr_stat)
         )
         return addr_stat
+
+    def unique(self):
+        sys.stderr.write(
+            "\nunique %s in %s...\n\n" % (self.infile.name, self.outfile.name)
+        )
+        unique_addr = set()
+        total_skiped_lines = 0
+        skip_count = 0
+        last_line_no = 0
+        next_update = time.time() + 1
+        stat_out = False
+        for line_no, line in enumerate(self.infile):
+            if time.time() > next_update:
+                self.outfile.flush()
+                if stat_out:
+                    sys.stderr.write("\r")
+                else:
+                    sys.stderr.write("\n")
+                sys.stderr.write(
+                    "In %i lines (%i/sec.) are %i unique address calls..." % (
+                        line_no, (line_no - last_line_no), len(unique_addr)
+                    )
+                )
+                stat_out = True
+                sys.stderr.flush()
+                last_line_no = line_no
+                next_update = time.time() + 1
+
+            addr = line[:4]
+            if addr in unique_addr:
+                total_skiped_lines += 1
+                skip_count += 1
+                continue
+
+            unique_addr.add(addr)
+
+            if skip_count != 0:
+                if stat_out:
+                    # Skip info should not in the same line after stat info
+                    sys.stderr.write("\n")
+                self.outfile.write(
+                    "... [Skip %i lines] ...\n" % skip_count
+                )
+                skip_count = 0
+            self.outfile.write(line)
+            stat_out = False
+
+        self.outfile.close()
+        sys.stderr.write(
+            "%i lines was filtered.\n" % total_skiped_lines
+        )
 
     def display_addr_stat(self, addr_stat, display_max=None):
         if display_max is None:
@@ -115,8 +166,14 @@ class XroarTraceFilter(object):
         )
 
 
+
 def main(args):
     xt = XroarTraceFilter(args.infile, args.outfile)
+
+    if args.unique:
+        xt.unique()
+        return
+
     if args.loop_filter:
         addr_stat = xt.load_tracefile(args.loop_filter)
         xt.filter(addr_filter=addr_stat)
@@ -156,6 +213,10 @@ def get_cli_args():
         type=int,
         nargs="?",
         help="Filter the trace: skip addresses that called more than given count.",
+    )
+    parser.add_argument("--unique",
+        action="store_true",
+        help="Read infile and store in outfile only unique addresses.",
     )
     parser.add_argument("--loop-filter", metavar="FILENAME",
         type=argparse.FileType("r"),
