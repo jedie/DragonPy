@@ -165,6 +165,86 @@ class XroarTraceFilter(object):
             "%i lines was filtered.\n" % total_skiped_lines
         )
 
+    def start_stop(self, start_addr, stop_addr):
+        sys.stderr.write(
+            "\nFilter starts with $%x and ends with $%x from %s in %s...\n\n" % (
+                start_addr, stop_addr,
+                self.infile.name, self.outfile.name
+            )
+        )
+
+        all_addresses = set()
+        passed_addresses = set()
+
+        start_seperator = "\n ---- [ START $%x ] ---- \n" % start_addr
+        end_seperator = "\n ---- [ END $%x ] ---- \n" % stop_addr
+
+        last_line_no = 0
+        next_update = time.time() + 1
+        stat_out = False
+        in_area = False
+        for line_no, line in enumerate(self.infile):
+            addr = int(line[:4], 16)
+            passed_addresses.add(addr)
+
+            if in_area:
+                self.outfile.write(line)
+                stat_out = False
+
+                if addr == stop_addr:
+                    sys.stderr.flush()
+                    self.outfile.flush()
+
+                    sys.stderr.write(end_seperator)
+                    self.outfile.write(end_seperator)
+
+                    sys.stderr.flush()
+                    self.outfile.flush()
+                    in_area = False
+                continue
+            else:
+                if addr == start_addr:
+                    sys.stderr.flush()
+                    self.outfile.flush()
+
+                    sys.stderr.write(start_seperator)
+                    self.outfile.write(start_seperator)
+                    in_area = True
+
+                    self.outfile.write(line)
+
+                    sys.stderr.flush()
+                    self.outfile.flush()
+                    stat_out = False
+                    continue
+
+                if time.time() > next_update:
+                    self.outfile.flush()
+                    if stat_out:
+                        sys.stderr.write("\r")
+                    else:
+                        sys.stderr.write("\n")
+                    sys.stderr.write(
+                        "process %i lines (%i/sec.), wait for $%x..." % (
+                            line_no, (line_no - last_line_no), start_addr,
+                        )
+                    )
+                    passed_addresses -= all_addresses
+                    if passed_addresses:
+                        all_addresses.update(passed_addresses)
+                        passed_addresses = ",".join(["$%x" % i for i in passed_addresses])
+                        sys.stderr.write(
+                            "\nPassed unique addresses: %s\n" % passed_addresses
+                        )
+                        passed_addresses = set()
+                    else:
+                        stat_out = True
+
+                    sys.stderr.flush()
+                    last_line_no = line_no
+                    next_update = time.time() + 1
+
+        self.outfile.close()
 
 
 def main(args):
@@ -172,6 +252,10 @@ def main(args):
 
     if args.unique:
         xt.unique()
+        return
+
+    if args.start_stop:
+        xt.start_stop(*args.start_stop)
         return
 
     if args.loop_filter:
@@ -190,6 +274,14 @@ def main(args):
             max_count=args.filter
         )
         xt.filter(addr_filter)
+
+
+def start_stop_value(arg):
+    start_raw, stop_raw = arg.split("-")
+    start = int(start_raw.strip("$ "), 16)
+    stop = int(stop_raw.strip("$ "), 16)
+    sys.stderr.write("Use: $%x-$%x" % (start, stop))
+    return (start, stop)
 
 
 def get_cli_args():
@@ -223,11 +315,20 @@ def get_cli_args():
         nargs="?",
         help="Live Filter with given address file.",
     )
+
+    parser.add_argument("--start-stop", metavar="START-STOP",
+        type=start_stop_value,
+        nargs="?",
+        help="Enable trace only from $START to $STOP e.g.: --area=$4000-$5000",
+    )
+
     args = parser.parse_args()
     return args
 
 
 if __name__ == '__main__':
+#    sys.argv += ["--area=broken"]
+#    sys.argv += ["--area=1234-5678"]
     args = get_cli_args()
     main(args)
 

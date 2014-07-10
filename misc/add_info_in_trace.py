@@ -56,7 +56,7 @@ class MemoryInfo(object):
                 end_addr = start_addr
 
             rom_info.append(
-                (start_addr, end_addr, comment)
+                (start_addr, end_addr, comment.strip())
             )
         sys.stderr.write(
             "ROM Info file: %r readed.\n" % rom_info_file.name
