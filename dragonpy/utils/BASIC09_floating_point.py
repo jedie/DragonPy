@@ -41,7 +41,7 @@ class BASIC09FloatingPoint(object):
         pos = 0
         for __ in xrange(byte_count):
             current_byte = 0
-            for bit_no in reversed(xrange(1, 8)):
+            for bit_no in reversed(xrange(8)):
                 pos += 1
                 bit_value = decimal.Decimal(1.0) / decimal.Decimal(2) ** decimal.Decimal(pos)
                 if value >= bit_value:
