@@ -5,7 +5,7 @@
     6809 unittests
     ~~~~~~~~~~~~~~
 
-    Test CPU with BASIC Interpreter from simple6809
+    Test CPU with BASIC Interpreter from simple6809 ROM.
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
@@ -15,117 +15,18 @@
 import logging
 import sys
 import unittest
-import time
-import Queue
-import os
-import tempfile
 
-import cPickle as pickle
+from dragonpy.tests.test_base import TextTestRunner2, Test6809_BASIC_simple6809_Base
 
-from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase, \
-    UnittestCmdArgs
-from dragonpy.Simple6809.config import Simple6809Cfg
-from dragonpy.Simple6809.periphery_simple6809 import Simple6809TestPeriphery
-from dragonpy.cpu6809 import CPU
+
 from dragonpy.utils.BASIC09_floating_point import BASIC09FloatingPoint
 
 
 
 log = logging.getLogger("DragonPy")
 
-TEMP_FILE = os.path.join(tempfile.gettempdir(), "BASIC_simple09_unittests.dat")
-print "CPU state pickle file: %r" % TEMP_FILE
-#os.remove(TEMP_FILE);print "Delete CPU date file!"
 
-
-
-def print_cpu_state_data(state):
-    for k, v in sorted(state.items()):
-        if k == "RAM":
-            v = ",".join(["$%x" % i for i in v])
-        print "%r: %s" % (k, v)
-
-class Test6809_BASIC_simple6809_Base(BaseTestCase):
-    @classmethod
-    def setUpClass(cls):
-        """
-        prerun ROM to complete initiate and ready for user input.
-        save the CPU state to speedup unittest
-        """
-        super(Test6809_BASIC_simple6809_Base, cls).setUpClass()
-
-        cmd_args = UnittestCmdArgs
-        cfg = Simple6809Cfg(cmd_args)
-
-        cls.periphery = Simple6809TestPeriphery(cfg)
-        cfg.periphery = cls.periphery
-
-        cpu = CPU(cfg)
-        cpu.reset()
-        cls.cpu = cpu
-
-        try:
-            temp_file = open(TEMP_FILE, "rb")
-        except IOError:
-            print "init machine..."
-            init_start = time.time()
-            cpu.test_run(
-                start=cpu.program_counter,
-                end=cfg.STARTUP_END_ADDR,
-            )
-            duration = time.time() - init_start
-            print "done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
-                duration, float(cpu.cycles / duration), cpu.cycles
-            )
-
-            # Check if machine is ready
-            assert cls.periphery.out_lines == [
-                '6809 EXTENDED BASIC\r\n',
-                '(C) 1982 BY MICROSOFT\r\n',
-                '\r\n',
-                'OK\r\n'
-            ]
-            # Save CPU state
-            init_state = cpu.get_state()
-            with open(TEMP_FILE, "wb") as f:
-                pickle.dump(init_state, f)
-                print "Save CPU init state to: %r" % TEMP_FILE
-            cls._init_state = init_state
-        else:
-            print "Load CPU init state from: %r" % TEMP_FILE
-            cls._init_state = pickle.load(temp_file)
-
-#        print_cpu_state_data(cls._init_state)
-
-    def setUp(self):
-        """ restore CPU/Periphery state to a fresh startup. """
-        self.periphery.user_input_queue = Queue.Queue()
-        self.periphery.output_queue = Queue.Queue()
-        self.periphery.out_lines = []
-        self.cpu.set_state(self._init_state)
-#         print_cpu_state_data(self.cpu.get_state())
-
-    def _run_until_OK(self, OK_count=1, max_ops=5000):
-        old_cycles = self.cpu.cycles
-        output = []
-        existing_OK_count = 0
-        for op_call_count in xrange(max_ops):
-            self.cpu.get_and_call_next_op()
-            out_lines = self.periphery.out_lines
-            if out_lines:
-                output += out_lines
-                if out_lines[-1] == "OK\r\n":
-                    existing_OK_count += 1
-                if existing_OK_count >= OK_count:
-                    cycles = self.cpu.cycles - old_cycles
-                    return op_call_count, cycles, output
-                self.periphery.out_lines = []
-
-        msg = "ERROR: Abort after %i op calls (%i cycles)" % (
-            op_call_count, (self.cpu.cycles - old_cycles)
-        )
-        raise self.failureException(msg)
-
+class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
     def test_print01(self):
         self.assertEqual(self.cpu.get_info,
             "cc=54 a=0d b=00 dp=00 x=deae y=0000 u=deab s=0334"
@@ -201,13 +102,13 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
             ['X="Y"\r\n', '?TM ERROR\r\n', 'OK\r\n']
         )
 
-#     def test_PRINT04(self):  # will faile, yet...
-#         self.periphery.add_to_input_queue('?2\r\n')
-#         op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
-# #         print op_call_count, cycles, output
-#         self.assertEqual(output,
-#             ['?2\r\n', ' 2 \r\n', 'OK\r\n']
-#         )
+#    def test_PRINT04(self):  # will faile, yet...
+#        self.periphery.add_to_input_queue('?5/3\r\n')
+#        op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
+##         print op_call_count, cycles, output
+#        self.assertEqual(output,
+#            ['?2\r\n', ' 2 \r\n', 'OK\r\n']
+#        )
 
 #     def test_MUL(self): # will faile, yet...
 #         self.periphery.add_to_input_queue('?2*3\r\n')
@@ -328,13 +229,15 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
         areas += ["..."] + range(0x7f, 0x82) # sign change in 8 Bit range
         areas += ["..."] + range(0xfe, 0x100) # end of 8 Bit range
 
+#        areas = [55]
+
         failed = []
         ok = []
         for test_value in areas:
             if test_value == "...":
 #                print "\n...\n"
                 continue
-            print "$%02x (dez.: %i):" % (test_value, test_value)
+#            print "$%02x (dez.: %i):" % (test_value, test_value)
 
             self.cpu_test_run(start=0x0000, end=None, mem=[
                 0xC6, test_value, #  LDB  #$..
@@ -406,11 +309,12 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-            "Test6809_BASIC_simple6809_Base.test_ACCD_to_FPA0",
-#            "Test6809_BASIC_simple6809_Base.test_transfer_fpa0_to_fpa1",
-#            "Test6809_BASIC_simple6809_Base.test_ACCB_to_FPA0_to_ACCD",
-#            "Test6809_BASIC_simple6809_Base.test_ACCB_to_FPA0",
-#            "Test6809_BASIC_simple6809_Base.test_floating_point_routines01",
+#            "Test_simple6809_BASIC.test_PRINT04",
+#            "Test_simple6809_BASIC.test_ACCD_to_FPA0",
+#            "Test_simple6809_BASIC.test_transfer_fpa0_to_fpa1",
+#            "Test_simple6809_BASIC.test_ACCB_to_FPA0_to_ACCD",
+            "Test_simple6809_BASIC.test_ACCB_to_FPA0",
+#            "Test_simple6809_BASIC.test_floating_point_routines01",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
