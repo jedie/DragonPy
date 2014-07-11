@@ -28,7 +28,13 @@ class BASIC09FloatingPoint(object):
     def __init__(self, value):
         self.value = decimal.Decimal(value)
         self.mantissa, self.exponent = math.frexp(value)
-        self.exponent_byte = unsigned8(self.exponent - 128)
+
+        if self.value == 0:
+            # As in BASIC09 Implementation (other wise exponent is $80)
+            self.exponent_byte = 0x00
+        else:
+            self.exponent_byte = unsigned8(self.exponent - 128)
+
         if self.mantissa >= 0:
             self.mantissa_sign = 0x00
         else:
