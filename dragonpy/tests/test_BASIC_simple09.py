@@ -137,7 +137,7 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
             self.cpu.memory.ram._mem[0x005c:0x0062],
         )
 
-    def test_ACCD_to_FPA0(self): # FIXME!
+    def test_ACCD_to_FPA0(self):
 #        areas = range(0x10000) # Takes very long ;)
 
         # 16 Bit test values
@@ -147,16 +147,13 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
         areas += ["..."] + range(0x7ffe, 0x8003) # sign change in 16 Bit range
         areas += ["..."] + range(0xfffd, 0x10000) # end of 16 Bit range
 
-#        areas = [0x0100]
-
-        print areas
         failed = []
         ok = []
         for test_value in areas:
             if test_value == "...":
-                print "\n...\n"
+#                print "\n...\n"
                 continue
-            print "\n$%04x (dez.: %i):" % (test_value, test_value),
+#            print "\n$%04x (dez.: %i):" % (test_value, test_value),
 
             self.cpu.accu_d.set(test_value)
             self.cpu_test_run(start=0x0000, end=None, mem=[
@@ -170,17 +167,17 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
 #            fp.print_values()
             reference = fp.get_bytes()
 
-#            self.assertEqual(ram, reference)
+            self.assertEqual(ram, reference)
 
             if not ram == reference:
                 failed.append(test_value)
-                print "*** ERROR:"
-                print "in RAM...:", ", ".join(["$%02x" % i for i in ram])
-                print "Reference:", ", ".join(["$%02x" % i for i in reference])
-                fp.print_values()
+#                print "*** ERROR:"
+#                print "in RAM...:", ", ".join(["$%02x" % i for i in ram])
+#                print "Reference:", ", ".join(["$%02x" % i for i in reference])
+#                fp.print_values()
             else:
                 ok.append(test_value)
-                print "*** OK"
+#                print "*** OK"
 
             # Will only work from $0-$ff, after this -> ?FC ERROR IN 0
 #            self.cpu_test_run(start=0x0000, end=None, mem=[
@@ -194,9 +191,9 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
 #            print "-"*79
 #            print
 
-        print
-        print "OK:" , ok # [0, 1, 2, 127, 128, 129, 254, 255, 256, 32766, 32767]
-        print "Failed:", failed # [32768, 32769, 32770, 65533, 65534, 65535]
+#        print
+#        print "OK:" , ok # [0, 1, 2, 127, 128, 129, 254, 255, 256, 32766, 32767]
+#        print "Failed:", failed # [32768, 32769, 32770, 65533, 65534, 65535]
 
 
     def test_ACCB_to_FPA0_to_ACCD(self):
@@ -205,7 +202,11 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
         BASIC floting point number. Then, convert the Float into CPU accu D
         and compare.
         """
-        areas = range(0, 2) + ["..."] + range(0x7f, 0x82) + ["..."] + range(0xfd, 0x100)
+        # 8 Bit test values
+        areas = range(0, 3)
+        areas += ["..."] + range(0x7f, 0x82) # sign change in 8 Bit range
+        areas += ["..."] + range(0xfe, 0x100) # end of 8 Bit range
+
         for test_value in areas:
             if test_value == "...":
 #                print "\n...\n"
@@ -310,7 +311,7 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #            "Test_simple6809_BASIC.test_PRINT04",
-#            "Test_simple6809_BASIC.test_ACCD_to_FPA0",
+            "Test_simple6809_BASIC.test_ACCD_to_FPA0",
 #            "Test_simple6809_BASIC.test_transfer_fpa0_to_fpa1",
 #            "Test_simple6809_BASIC.test_ACCB_to_FPA0_to_ACCD",
             "Test_simple6809_BASIC.test_ACCB_to_FPA0",
