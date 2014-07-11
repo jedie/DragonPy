@@ -20,6 +20,7 @@ from dragonpy.tests.test_base import TextTestRunner2, Test6809_BASIC_simple6809_
 
 
 from dragonpy.utils.BASIC09_floating_point import BASIC09FloatingPoint
+from dragonpy.utils.logging_utils import setup_logging
 
 
 
@@ -118,6 +119,25 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
 #             ['?2*3\r\n', ' 6\r\n', 'OK\r\n']
 #         )
 
+
+class Test_simple6809_BASIC_Float(Test6809_BASIC_simple6809_Base):
+    def assertFPA(self, value, start, end):
+        reference = BASIC09FloatingPoint(value)
+        reference_bytes = reference.get_bytes()
+        ram = self.cpu.memory.ram._mem[start:end + 1]
+        if not ram == reference_bytes:
+            self.cpu.memory.ram.print_dump(start, end)
+            reference.print_values()
+            self.assertEqual(ram, reference_bytes)
+
+    def assertFPA0(self, value):
+        """ test if the given value is in Floating Point Memory Accumulator 0 """
+        self.assertFPA(value, 0x004f, 0x0054)
+
+    def assertFPA1(self, value):
+        """ test if the given value is in Floating Point Memory Accumulator 1 """
+        self.assertFPA(value, 0x005c, 0x0061)
+
     def test_transfer_fpa0_to_fpa1(self):
         self.cpu.memory.ram.load(0x004f, data=[
             0x12, # FPA 0 - exponent
@@ -128,9 +148,9 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
             0xbc, # FPA 0 - sign
         ])
         self.cpu_test_run(start=0x0000, end=None, mem=[
-            0xBD, 0xee, 0xa8, # JSR   $eea8
+            0xBD, 0xee, 0xa8, # JSR   $eea8  ; Move FPA0 to FPA1
         ])
-#        self.cpu.memory.ram.print_dump(0x004f, 0x0054) # FPA0
+#        self.cpu.memory.ram.print_dump(0x004f, 0x0054)  # FPA0 # FPA0
 #        self.cpu.memory.ram.print_dump(0x005c, 0x0061) # FPA1
         self.assertEqual(
             self.cpu.memory.ram._mem[0x004f:0x0055],
@@ -159,7 +179,7 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
             self.cpu_test_run(start=0x0000, end=None, mem=[
                 0xBD, 0xE7, 0x78, # JSR $e778 = CONVERT THE VALUE IN ACCD INTO A FLOATING POINT NUMBER IN FPA0
             ])
-#            self.cpu.memory.ram.print_dump(0x004f, 0x0054)
+#            self.cpu.memory.ram.print_dump(0x004f, 0x0054)  # FPA0
 
             ram = self.cpu.memory.ram._mem[0x004f:0x0055]
 
@@ -179,14 +199,6 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
                 ok.append(test_value)
 #                print "*** OK"
 
-            # Will only work from $0-$ff, after this -> ?FC ERROR IN 0
-#            self.cpu_test_run(start=0x0000, end=None, mem=[
-#                0xBD, 0xE9, 0x92, #             JSR   $e992 - CONVERT FPA0 TO INTEGER IN ACCD
-#            ])
-#            d = self.cpu.accu_d.get()
-#            print "dez.: %i -> %i | hex: %04x -> %04x" % (d, test_value, d, test_value)
-#            self.assertEqual(d, test_value)
-
 #            print
 #            print "-"*79
 #            print
@@ -195,6 +207,30 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
 #        print "OK:" , ok # [0, 1, 2, 127, 128, 129, 254, 255, 256, 32766, 32767]
 #        print "Failed:", failed # [32768, 32769, 32770, 65533, 65534, 65535]
 
+
+    def test_FPA0_to_D(self):
+        # 16 Bit test values
+        areas = range(0, 2)
+        areas += ["..."] + range(0x7f, 0x82) # sign change in 8 Bit range
+        areas += ["..."] + range(0xfe, 0x101) # end of 8 Bit range
+        areas += ["..."] + range(0x7fff, 0x8002) # sign change in 16 Bit range
+        areas += ["..."] + range(0xfffd, 0x10000) # end of 16 Bit range
+
+        for test_value in areas:
+            if test_value == "...":
+#                print "\n...\n"
+                continue
+
+            # Set FPA0 via python float implementation
+            fp = BASIC09FloatingPoint(test_value)
+            self.cpu.memory.ram.load(0x004f, fp.get_bytes())
+
+            self.cpu_test_run(start=0x0000, end=None, mem=[
+                0xBD, 0xe6, 0x82, #             JSR   $e682 - CONVERT FPA0 TO A TWO BYTE INTEGER to D
+            ])
+            d = self.cpu.accu_d.get()
+#            print "dez.: %i -> %i | hex: %04x -> %04x" % (d, test_value, d, test_value)
+            self.assertEqual(d, test_value)
 
     def test_ACCB_to_FPA0_to_ACCD(self):
         """
@@ -244,7 +280,7 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
                 0xC6, test_value, #  LDB  #$..
                 0xBD, 0xE7, 0x77, #  JSR  $e777 - CONVERT THE VALUE IN ACCB INTO A FP NUMBER IN FPA0
             ])
-#            self.cpu.memory.ram.print_dump(0x004f, 0x0054)
+#            self.cpu.memory.ram.print_dump(0x004f, 0x0054)  # FPA0
 
             ram = self.cpu.memory.ram._mem[0x004f:0x0055]
 
@@ -276,46 +312,100 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
 #        print "Failed:", failed
 
 
-#    def test_floating_point_routines01(self):
-#        # $ee5d = "FPA0 load: MOVE (X) TO FPA0"
-#
-#        self.periphery.add_to_input_queue('F=6\r\n')
-#        try:
-#            op_call_count, cycles, output = self._run_until_OK(max_ops=5000)
-#            print op_call_count, cycles, output
-#        except Exception, err:
-#            print "Abort: %s" % err
-#
-#        self.cpu.memory.ram.print_dump(0x004f, 0x0054)
-#        return
-#
-#        self.cpu_test_run(start=0x0100, end=None, mem=[
-#            #                        FLOAD: EQU   $ee5d
-##            0x8E, 0x61, 0x00, #             LDX   #$6100
-#            0xBD, 0xee, 0x5d, #       JSR   FLOAD
+'''
+WIP:
+    def test_divide_FPA0_by_10(self): # FIXME!
+        """
+        dividend / divisor = quotient
+        """
+        dividend = 0x5
+
+        self.cpu.accu_d.set(dividend)
+        self.cpu_test_run(start=0x0300, end=None, mem=[
+            0xBD, 0xE7, 0x78, # JSR   $e778  ; Convert D to a float in FPA0
+        ])
+        self.assertFPA0(dividend) # Test if value is in FPA0
+
+        setup_logging(log, level=20)
+        self.cpu_test_run(start=0x0300, end=None, mem=[
+            0xBD, 0xed, 0xcb, # JSR   $edcb  ; DIVIDE FPA0 BY 10
+        ])
+
+        self.cpu.memory.ram.print_dump(0x004f, 0x0054) # FPA0
+        self.cpu.memory.ram.print_dump(0x005c, 0x0062) # FPA1
+
+        BASIC09FloatingPoint(5).print_values()
+        BASIC09FloatingPoint(10).print_values()
+        BASIC09FloatingPoint(5.0 / 10).print_values()
+
+
+
+    def test_division(self): # FIXME!
+        """
+        dividend / divisor = quotient
+        """
+        dividend = 0x5
+        divisor = 0x3
+
+        self.cpu.accu_d.set(dividend) # stored in FPA0 and moved to FPA1
+        self.cpu_test_run(start=0x0300, end=None, mem=[
+            0xBD, 0xE7, 0x78, # 0300  JSR   $e778  ; Convert D to a float in FPA0
+        ])
+        self.assertFPA0(dividend) # Test if value is in FPA0
+
+
+#        self.cpu_test_run(start=0x0300, end=None, mem=[
+#            0xBD, 0xEE, 0xA8, # 0303  JSR   $eea8  ; Move FPA0 to FPA1
 #        ])
+#        self.assertFPA1(dividend) # Test if value is in FPA1
+
+        setup_logging(log, level=20)
+#        self.cpu.index_x.set(divisor)
+        self.cpu.accu_d.set(divisor)
+        self.cpu_test_run(start=0x0300, end=None, mem=[
+            0xBD, 0xed, 0xd8, # 0306  JSR   $edd8  ; divide X by FPA0
+        ])
+
+#        self.cpu.accu_d.set(divisor) # stored in FPA0
+#        self.cpu_test_run(start=0x0300, end=None, mem=[
+#            0xBD, 0xE7, 0x78, # 0300  JSR   $e778  ; Convert D to a float in FPA0
+#        ])
+#        self.assertFPA0(divisor) # Test if value is in FPA0
+#
+#        setup_logging(log, level=20)
+##        self.cpu_test_run2(start=0x0306, count=100, mem=[
+#        self.cpu_test_run(start=0x0300, end=None, mem=[
+#            0xBD, 0xed, 0xdc, # 0306  JSR   $edda  ; divide FPA1 by FPA0
+#        ])
+
+        self.cpu.memory.ram.print_dump(0x004f, 0x0054) # FPA0
+        self.cpu.memory.ram.print_dump(0x005c, 0x0062) # FPA1
+
+        BASIC09FloatingPoint(5).print_values()
+        BASIC09FloatingPoint(3).print_values()
+        BASIC09FloatingPoint(5.0 / 3.0).print_values()
+'''
 
 
 if __name__ == '__main__':
-    log.setLevel(
-#        1
-#        10 # DEBUG
-#        20 # INFO
-#        30 # WARNING
-#        40 # ERROR
-        50 # CRITICAL/FATAL
+    setup_logging(log,
+#        level=1 # hardcore debug ;)
+#        level=10 # DEBUG
+#        level=20 # INFO
+#        level=30 # WARNING
+        level=40 # ERROR
+#        level=50 # CRITICAL/FATAL
     )
-    log.addHandler(logging.StreamHandler())
 
     unittest.main(
         argv=(
             sys.argv[0],
 #            "Test_simple6809_BASIC.test_PRINT04",
-            "Test_simple6809_BASIC.test_ACCD_to_FPA0",
-#            "Test_simple6809_BASIC.test_transfer_fpa0_to_fpa1",
-#            "Test_simple6809_BASIC.test_ACCB_to_FPA0_to_ACCD",
-            "Test_simple6809_BASIC.test_ACCB_to_FPA0",
-#            "Test_simple6809_BASIC.test_floating_point_routines01",
+
+            "Test_simple6809_BASIC_Float",
+#            "Test_simple6809_BASIC_Float.test_divide_FPA0_by_10",
+#            "Test_simple6809_BASIC_Float.test_FPA0_to_D",
+#            "Test_simple6809_BASIC_Float.test_division",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
