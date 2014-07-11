@@ -97,9 +97,23 @@ if __name__ == "__main__":
 #    BASIC09FloatingPoint(10.14 ** 38).print_values()
 #    BASIC09FloatingPoint(10.14 ** -38).print_values()
 
-    for i in xrange(0x100):
-        fp = BASIC09FloatingPoint(i)
-        print "%3s -> %s" % (
-            i,
+#    areas = xrange(0x100)
+
+#    areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
+
+    # 16 Bit test values
+    areas = range(0, 3)
+    areas += ["..."] + range(0x7f, 0x82) # sign change in 8 Bit range
+    areas += ["..."] + range(0xfe, 0x101) # end of 8 Bit range
+    areas += ["..."] + range(0x7ffe, 0x8003) # sign change in 16 Bit range
+    areas += ["..."] + range(0xfffd, 0x10000) # end of 16 Bit range
+
+    for test_value in areas:
+        if test_value == "...":
+            print "\n...\n"
+            continue
+        fp = BASIC09FloatingPoint(test_value)
+        print "$%x (dez.: %s) -> %s" % (
+            test_value, test_value,
             " ".join(["$%02x" % i for i in fp.get_bytes()])
         )

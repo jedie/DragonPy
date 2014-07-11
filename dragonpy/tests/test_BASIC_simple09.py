@@ -278,14 +278,19 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
 
     def test_ACCB_to_FPA0(self):
 #        areas = range(0x100) # Takes long ;)
-        areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
+
+        # 8 Bit test values
+        areas = range(0, 3)
+        areas += ["..."] + range(0x7f, 0x82) # sign change in 8 Bit range
+        areas += ["..."] + range(0xfe, 0x100) # end of 8 Bit range
+
         failed = []
         ok = []
         for test_value in areas:
             if test_value == "...":
-                print "\n...\n"
+#                print "\n...\n"
                 continue
-            print test_value,
+            print "$%02x (dez.: %i):" % (test_value, test_value)
 
             self.cpu_test_run(start=0x0000, end=None, mem=[
                 0xC6, test_value, #  LDB  #$..
@@ -299,16 +304,16 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
 #            fp.print_values()
             reference = fp.get_bytes()
 
-#            self.assertEqual(ram, reference)
+            self.assertEqual(ram, reference)
 
             if not ram == reference:
                 failed.append(test_value)
-                print "*** ERROR:"
-                print "in RAM...:", ", ".join(["$%02x" % i for i in ram])
-                print "Reference:", ", ".join(["$%02x" % i for i in reference])
+#                print "*** ERROR:"
+#                print "in RAM...:", ", ".join(["$%02x" % i for i in ram])
+#                print "Reference:", ", ".join(["$%02x" % i for i in reference])
             else:
                 ok.append(test_value)
-                print "*** OK"
+#                print "*** OK"
 
             self.cpu_test_run(start=0x0000, end=None, mem=[
                 0xBD, 0xE9, 0x92, #             JSR   $e992 - CONVERT FPA0 TO INTEGER IN ACCD
@@ -319,9 +324,8 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
 #            print
 #            print "-"*79
 #            print
-
-        print "OK:" , ok # [1, 2, 126, 127, 128, 129, 130, 253, 254, 255]
-        print "Failed:", failed # [0]
+#        print "OK:" , ok
+#        print "Failed:", failed
 
 
 #    def test_floating_point_routines01(self):
