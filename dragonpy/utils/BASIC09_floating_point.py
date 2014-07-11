@@ -11,7 +11,7 @@
 import math
 import decimal
 
-from dragonpy.cpu_utils.signed import unsigned8
+from dragonpy.cpu_utils.signed import unsigned8, signed16
 
 
 class BASIC09FloatingPoint(object):
@@ -26,6 +26,7 @@ class BASIC09FloatingPoint(object):
     exponent most significant bit is the sign: 1=positive 0=negative
     """
     def __init__(self, value):
+        value = signed16(value)
         self.value = decimal.Decimal(value)
         self.mantissa, self.exponent = math.frexp(value)
 
