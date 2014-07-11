@@ -501,13 +501,14 @@ class CPU(object):
 
             mnemonic = instruction.data["mnemonic"]
 
-            msg = "%(op_address)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | %(cc)s" % {
+            msg = "%(op_address)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | %(cc)s | %(mem)s" % {
                 "op_address": op_address,
                 "opcode": "%02x" % opcode,
                 "mnemonic": mnemonic,
                 "kwargs": " ".join(kwargs_info),
                 "cpu": self.get_info,
                 "cc": self.cc.get_info,
+                "mem": self.cfg.mem_info.get_shortest(op_address)
             }
 #             if mnemonic in DEBUG_INSTR:
 #                 if "ea" in self.op_kwargs:
@@ -2147,11 +2148,11 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         ea = self.pull_word(self._system_stack_pointer)
-        log.info("%x|\tRTS to $%x \t| %s" % (
-            self.last_op_address,
-            ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.info("%x|\tRTS to $%x \t| %s" % (
+#            self.last_op_address,
+#            ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         self.program_counter = ea
 
     @opcode(
@@ -2173,10 +2174,10 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        log.info("%x|\tJSR/BSR to $%x \t| %s" % (
-            self.last_op_address,
-            ea, self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.info("%x|\tJSR/BSR to $%x \t| %s" % (
+#            self.last_op_address,
+#            ea, self.cfg.mem_info.get_shortest(ea)
+#        ))
         self.push_word(self._system_stack_pointer, self.program_counter)
         self.program_counter = ea
 
@@ -2346,9 +2347,9 @@ class CPU(object):
         """
 #         if (self.cc.C|self.cc.Z) == 0:
         if self.cc.C == 1 or self.cc.Z == 1:
-            log.info("$%x BLS branch to $%x, because C|Z==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.info("$%x BLS branch to $%x, because C|Z==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
 #         else:
 #            log.debug("$%x BLS: don't branch to $%x, because C|Z!=1 \t| %s" % (
@@ -2372,9 +2373,9 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if (self.cc.N ^ self.cc.V) == 1: # N xor V
-            log.info("$%x BLT branch to $%x, because N XOR V == 1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.info("$%x BLT branch to $%x, because N XOR V == 1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
 #         else:
 #            log.debug("$%x BLT: don't branch to $%x, because N XOR V != 1 \t| %s" % (
@@ -2399,9 +2400,9 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if self.cc.N == 1:
-            log.info("$%x BMI branch to $%x, because N==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.info("$%x BMI branch to $%x, because N==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
 #         else:
 #            log.debug("$%x BMI: don't branch to $%x, because N==0 \t| %s" % (
@@ -2424,14 +2425,14 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if self.cc.Z == 0:
-            log.info("$%x BNE branch to $%x, because Z==0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.info("$%x BNE branch to $%x, because Z==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BNE: don't branch to $%x, because Z==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#        else:
+#            log.debug("$%x BNE: don't branch to $%x, because Z==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
     @opcode(# Branch if plus
         0x2a, # BPL (relative)
@@ -2452,9 +2453,9 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if self.cc.N == 0:
-            log.info("$%x BPL branch to $%x, because N==0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.info("$%x BPL branch to $%x, because N==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
 #         else:
 #            log.debug("$%x BPL: don't branch to $%x, because N==1 \t| %s" % (
@@ -2488,9 +2489,9 @@ class CPU(object):
 #                 self.program_counter = new_ea
 #                 return
 
-        log.info("$%x BRA branch to $%x \t| %s" % (
-            self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.info("$%x BRA branch to $%x \t| %s" % (
+#            self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#        ))
         self.program_counter = ea
 
     @opcode(# Branch never
@@ -2524,9 +2525,9 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if self.cc.V == 0:
-            log.info("$%x BVC branch to $%x, because V==0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.info("$%x BVC branch to $%x, because V==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
 #         else:
 #            log.debug("$%x BVC: don't branch to $%x, because V==1 \t| %s" % (
@@ -2549,9 +2550,9 @@ class CPU(object):
         CC bits "HNZVC": -----
         """
         if self.cc.V == 1:
-            log.info("$%x BVS branch to $%x, because V==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.info("$%x BVS branch to $%x, because V==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
 #         else:
 #            log.debug("$%x BVS: don't branch to $%x, because V==0 \t| %s" % (
@@ -2568,9 +2569,9 @@ class CPU(object):
         case 0x5: cond = REG_CC & CC_C; break; // BCS, BLO, LBCS, LBLO
         """
         if self.cc.C == 1:
-            log.info("$%x BLO/BCS/LBLO/LBCS branch to $%x, because C==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.info("$%x BLO/BCS/LBLO/LBCS branch to $%x, because C==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
 #         else:
 #            log.debug("$%x BLO/BCS/LBLO/LBCS: don't branch to $%x, because C==0 \t| %s" % (
@@ -2587,14 +2588,14 @@ class CPU(object):
         case 0x4: cond = !(REG_CC & CC_C); break; // BCC, BHS, LBCC, LBHS
         """
         if self.cc.C == 0:
-            log.info("$%x BHS/BCC/LBHS/LBCC branch to $%x, because C==0 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#            log.info("$%x BHS/BCC/LBHS/LBCC branch to $%x, because C==0 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
             self.program_counter = ea
-        else:
-            log.debug("$%x BHS/BCC/LBHS/LBCC: don't branch to $%x, because C==1 \t| %s" % (
-                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
-            ))
+#        else:
+#            log.debug("$%x BHS/BCC/LBHS/LBCC: don't branch to $%x, because C==1 \t| %s" % (
+#                self.program_counter, ea, self.cfg.mem_info.get_shortest(ea)
+#            ))
 
 
     # ---- Logical shift: LSL, LSR ----
@@ -2624,11 +2625,11 @@ class CPU(object):
         Logical shift left memory location / Arithmetic shift of memory left
         """
         r = self.LSL(m)
-        log.debug("$%x LSL memory value $%x << 1 = $%x and write it to $%x \t| %s" % (
-            self.program_counter,
-            m, r, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x LSL memory value $%x << 1 = $%x and write it to $%x \t| %s" % (
+#            self.program_counter,
+#            m, r, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         return ea, r & 0xff
 
     @opcode(0x48, 0x58) # LSLA/ASLA / LSLB/ASLB (inherent)
@@ -2638,10 +2639,10 @@ class CPU(object):
         """
         a = register.get()
         r = self.LSL(a)
-        log.debug("$%x LSL %s value $%x << 1 = $%x" % (
-            self.program_counter,
-            register.name, a, r
-        ))
+#        log.debug("$%x LSL %s value $%x << 1 = $%x" % (
+#            self.program_counter,
+#            register.name, a, r
+#        ))
         register.set(r)
 
     def LSR(self, a):
@@ -2663,11 +2664,11 @@ class CPU(object):
     def instruction_LSR_memory(self, opcode, ea, m):
         """ Logical shift right memory location """
         r = self.LSR(m)
-        log.debug("$%x LSR memory value $%x >> 1 = $%x and write it to $%x \t| %s" % (
-            self.program_counter,
-            m, r, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x LSR memory value $%x >> 1 = $%x and write it to $%x \t| %s" % (
+#            self.program_counter,
+#            m, r, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         return ea, r & 0xff
 
     @opcode(0x44, 0x54) # LSRA / LSRB (inherent)
@@ -2675,10 +2676,10 @@ class CPU(object):
         """ Logical shift right accumulator """
         a = register.get()
         r = self.LSR(a)
-        log.debug("$%x LSR %s value $%x >> 1 = $%x" % (
-            self.program_counter,
-            register.name, a, r
-        ))
+#        log.debug("$%x LSR %s value $%x >> 1 = $%x" % (
+#            self.program_counter,
+#            register.name, a, r
+#        ))
         register.set(r)
 
     def ASR(self, a):
@@ -2742,11 +2743,11 @@ class CPU(object):
     def instruction_ROL_memory(self, opcode, ea, m):
         """ Rotate memory left """
         r = self.ROL(m)
-        log.debug("$%x ROL memory value $%x << 1 | Carry = $%x and write it to $%x \t| %s" % (
-            self.program_counter,
-            m, r, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x ROL memory value $%x << 1 | Carry = $%x and write it to $%x \t| %s" % (
+#            self.program_counter,
+#            m, r, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         return ea, r & 0xff
 
     @opcode(0x49, 0x59) # ROLA / ROLB (inherent)
@@ -2754,10 +2755,10 @@ class CPU(object):
         """ Rotate accumulator left """
         a = register.get()
         r = self.ROL(a)
-        log.debug("$%x ROL %s value $%x << 1 | Carry = $%x" % (
-            self.program_counter,
-            register.name, a, r
-        ))
+#        log.debug("$%x ROL %s value $%x << 1 | Carry = $%x" % (
+#            self.program_counter,
+#            register.name, a, r
+#        ))
         register.set(r)
 
     def ROR(self, a):
@@ -2782,11 +2783,11 @@ class CPU(object):
     def instruction_ROR_memory(self, opcode, ea, m):
         """ Rotate memory right """
         r = self.ROR(m)
-        log.debug("$%x ROR memory value $%x >> 1 | Carry = $%x and write it to $%x \t| %s" % (
-            self.program_counter,
-            m, r, ea,
-            self.cfg.mem_info.get_shortest(ea)
-        ))
+#        log.debug("$%x ROR memory value $%x >> 1 | Carry = $%x and write it to $%x \t| %s" % (
+#            self.program_counter,
+#            m, r, ea,
+#            self.cfg.mem_info.get_shortest(ea)
+#        ))
         return ea, r & 0xff
 
     @opcode(0x46, 0x56) # RORA/RORB (inherent)
@@ -2794,10 +2795,10 @@ class CPU(object):
         """ Rotate accumulator right """
         a = register.get()
         r = self.ROR(a)
-        log.debug("$%x ROR %s value $%x >> 1 | Carry = $%x" % (
-            self.program_counter,
-            register.name, a, r
-        ))
+#        log.debug("$%x ROR %s value $%x >> 1 | Carry = $%x" % (
+#            self.program_counter,
+#            register.name, a, r
+#        ))
         register.set(r)
 
 
