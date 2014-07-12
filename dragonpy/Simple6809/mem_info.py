@@ -1134,7 +1134,7 @@ class Simple6809MemInfo(BaseMemoryInfo):
         (0xe3c8, 0xe3c8, "BSR SIMULATES A CALL TO 'NEXT' FROM COMMAND LOOP"),
         (0xe3ca, 0xe3ca, 'EVALUATE EXPRESSION AND DO A TYPE CHECK FOR NUMERIC'),
         (0xe3cc, 0xe3cc, 'CLEAR CARRY FLAG'),
-        (0xe3ce, 0xe3ce, 'OP CODE OF TST $1A01 - SKIP TWO BYTES (DO'),
+        (0xe3ce, 0xe3ce, 'OP CODE OF TST $1A01 - SKIP TWO BYTES (DO NOT CHANGE CARRY FLAG)'),
         (0xe3cf, 0xe3cf, 'SET CARRY'),
         (0xe3d1, 0xe3d1, 'TEST TYPE FLAG; DO NOT CHANGE CARRY'),
         (0xe3d3, 0xe3d3, 'BRANCH IF STRING'),
