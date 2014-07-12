@@ -39,8 +39,8 @@ class ROM(object):
         self.end = start + size
         self._mem = memory # [0x00] * size
         assert len(self._mem) == size
-        log.info("init %s Bytes %s (%s - %s)" % (
-            size, self.__class__.__name__, hex(start), hex(self.end)
+        log.info("init %s Bytes %s ($%04x - $%04x)" % (
+            size, self.__class__.__name__, start, self.end
         ))
 
     def load(self, address, data):
@@ -68,8 +68,17 @@ class ROM(object):
         ))
 
     def read_byte(self, address):
-        assert self.start <= address <= self.end, "Read %s from %s is not in range %s-%s" % (hex(address), self.__class__.__name__, hex(self.start), hex(self.end))
-        byte = self._mem[address - self.start]
+        try:
+            byte = self._mem[address - self.start]
+        except IndexError:
+            raise IndexError(
+                "Read $%04x from %s is not in range $%04x-$%04x (%s size: %i Bytes)" % (
+                    address - self.start,
+                    self.__class__.__name__,
+                    self.start, self.end,
+                    self.__class__.__name__, len(self._mem),
+                )
+            )
 #         log.debug("\tread byte %s: %s" % (hex(address), hex(byte)))
 #         self.cfg.mem_info(address, "read byte")
         return byte
