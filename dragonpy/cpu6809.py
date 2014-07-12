@@ -1855,9 +1855,9 @@ class CPU(object):
         ))
         self.cc.clear_NZV()
         self.cc.update_NZ_16(value)
-        return ea, value
+        return ea, value # write word to Memory
 
-    @opcode(# Store accumulator to memroy
+    @opcode(# Store accumulator to memory
         0x97, 0xa7, 0xb7, # STA (direct, indexed, extended)
         0xd7, 0xe7, 0xf7, # STB (direct, indexed, extended)
     )
@@ -1877,7 +1877,7 @@ class CPU(object):
         ))
         self.cc.clear_NZV()
         self.cc.update_NZ_8(value)
-        return ea, value
+        return ea, value # write byte to Memory
 
 
     # ---- Logical Operations ----
