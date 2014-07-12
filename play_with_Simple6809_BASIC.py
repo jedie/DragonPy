@@ -17,12 +17,30 @@ import logging
 import os
 
 from dragonpy.tests.test_base import Test6809_BASIC_simple6809_Base
+from dragonpy.utils.logging_utils import setup_logging
 
+
+log = logging.getLogger("DragonPy")
+
+
+def log2file(filename_suffix):
+    setup_logging(log,
+#         level=1, # hardcore debug ;)
+#         level=10, # DEBUG
+        level=20, # INFO
+#         level=30, # WARNING
+#         level=40, # ERROR
+#         level=50, # CRITICAL/FATAL
+        handler=logging.FileHandler(
+            filename="Simple6809Play_%s.log" % filename_suffix,
+            mode='w'
+        )
+    )
 
 
 class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
     def __init__(self):
-#        os.remove(self.TEMP_FILE);print "Delete CPU date file!"
+#         os.remove(self.TEMP_FILE);print "Delete CPU date file!"
         self.setUpClass()
 
     def hello_world(self):
@@ -35,29 +53,41 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
     def play(self):
         self.setUp() # restore CPU/Periphery state to a fresh startup.
 
-        self.periphery.add_to_input_queue('?5/3\r\n')
+        log2file(filename_suffix="negative_number")
+        self.periphery.add_to_input_queue('?-1.5\r\n')
         op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
         print op_call_count, cycles, output
+
+        log2file(filename_suffix="division")
+        self.periphery.add_to_input_queue('?2/1\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
+        print op_call_count, cycles, output
+
+#         self.periphery.add_to_input_queue('?5/3\r\n')
+#         op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
+#         print op_call_count, cycles, output
+#
+#         self.periphery.add_to_input_queue('?1.25*3\r\n')
+#         op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
+#         print op_call_count, cycles, output
 
 
 
 if __name__ == '__main__':
-    log = logging.getLogger("DragonPy")
-    log.setLevel(
-#        1
-#        10 # DEBUG
-#        20 # INFO
-#        30 # WARNING
-#        40 # ERROR
-        50 # CRITICAL/FATAL
+    setup_logging(log,
+#         level=1 # hardcore debug ;)
+#        level=10 # DEBUG
+#        level=20 # INFO
+#        level=30 # WARNING
+        level=40 # ERROR
+#        level=50 # CRITICAL/FATAL
     )
-    log.addHandler(logging.StreamHandler())
 
 
     c = Test_simple6809_BASIC()
 
-    print "-"*79
-    c.hello_world()
+#     print "-"*79
+#     c.hello_world()
     print "-"*79
     c.play()
     print "-"*79

@@ -14,7 +14,7 @@ import logging
 import sys
 
 
-def setup_logging(log, level):
+def setup_logging(log, level, handler=None):
     """
     levels:
          1 - hardcode DEBUG ;)
@@ -27,5 +27,14 @@ def setup_logging(log, level):
     sys.stderr.write("Set logging to %i\n" % level)
     log.setLevel(level)
 
-    #log.addHandler(logging.StreamHandler())
-    log.handlers = (logging.StreamHandler(),)
+    if handler is None:
+        # log.addHandler(logging.StreamHandler())
+        log.handlers = (logging.StreamHandler(),)
+    else:
+        if hasattr(handler, "baseFilename"):
+            sys.stderr.write("Log to file: %s (%s)\n" % (
+                handler.baseFilename, repr(handler))
+            )
+        else:
+            sys.stderr.write("Log to handler: %s\n" % repr(handler))
+        log.handlers = (handler,)
