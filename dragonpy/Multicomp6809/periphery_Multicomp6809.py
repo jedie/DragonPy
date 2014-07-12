@@ -16,6 +16,7 @@
 
 import logging
 import sys
+import os
 
 try:
     import Tkinter
@@ -94,16 +95,22 @@ class Multicomp6809PeripheryBase(PeripheryBase):
 class Multicomp6809PeripheryTk(TkPeripheryBase, Multicomp6809PeripheryBase):
     TITLE = "DragonPy - Multicomp 6809"
     GEOMETRY = "+500+300"
-    INITAL_INPUT = (
-        '? 3\r\n'
-        '? "HELLO?"\r\n'
-        'PRINT "HELLO WORLD!"\r\n'
-        'PRINT 1\r\n'
-#         'PRINT "HELLO"\r\n'
-#         'PRINT 123\r\n'
-#         '10 PRINT 123\r\nLIST\r\nRUN\r\n'
-#         'FOR I=1 to 3:PRINT I:NEXT I\r\n'
-    )
+    INITAL_INPUT = "\r\n".join([
+#         'PRINT "HELLO WORLD!"',
+#         '? 123',
+
+        '10 FOR I=1 TO 3',
+        '20 PRINT STR$(I)+" DRAGONPY"',
+        '30 NEXT I',
+        'RUN',
+        '',
+        'LIST',
+
+        '?-1.2', # Should be: -1.2       but is: -1.75
+        '?5/3',  # should be: 1.66666667 but is: 1.25
+        '?6/5',  # should be: 1.2        but is: 1.75
+
+    ]) + "\r\n"
 
     def event_return(self, event):
         self.user_input_queue.put("\r")
@@ -128,13 +135,13 @@ Multicomp6809Periphery = Multicomp6809PeripheryTk
 def test_run():
     import subprocess
     cmd_args = [sys.executable,
-        "DragonPy_CLI.py",
+        os.path.join("..", "DragonPy_CLI.py"),
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-        "--verbosity=30", # WARNING
+#         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
+        "--verbosity=50", # CRITICAL/FATAL
 
 #         "--area_debug_cycles=1635000", # First OK after copyright info
 #                       "--max=1660000",

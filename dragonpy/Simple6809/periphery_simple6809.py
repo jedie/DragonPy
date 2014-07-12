@@ -217,54 +217,21 @@ class Simple6809PeripheryUnittest(Simple6809PeripheryBase):
 class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
     TITLE = "DragonPy - Simple 6809"
     GEOMETRY = "+500+300"
-    INITAL_INPUT2 = (
-         '? "HELLO?"\r\n' # OK
-#         'PRINT "HELLO WORLD!"\r\n' # OK
-#         '? 0\r\n' # OK
-#         '? "FOO"+"BAR"\r\n' # OK
-#         '10 PRINT "HELLO"\r\n20 PRINT "WORLD!"\r\nRUN\r\n' # OK
-        'A=0\r\n? A\r\n'
-#
-#         'PRINT MEM\r\n' # failed
-        '10 PRINT "A"\r\nLIST\r\nRUN\r\n'
-        'PRINT 2\r\n'
-#         'PRINT 123\r\n'
-#         'FOR I=1 to 3:PRINT I:NEXT I\r\n'
-    )
     INITAL_INPUT = "\r\n".join([
-        # 'FOR I=1 TO 3:PRINT "X":NEXT I',
+#         'PRINT "HELLO WORLD!"',
+#         '? 123',
 
-#         '10 FOR I=1 TO 3',
-#         '20 PRINT "X"',
-#         '30 NEXT I',
-#         'RUN',
-
-#         '10 ? "X"',
-#         'RUN', # OK
-
-#         'A="B"', # TM ERROR
-
-        # OK:
-        '10 A=0',
-        '20 B=0',
-        '30 PRINT A',
-        '40 ? B',
-        '50 PRINT "H E L L O "+"WORLD!"',
-        '60 PRINT "X"+STR$(A)',
+        '10 FOR I=1 TO 3',
+        '20 PRINT STR$(I)+" DRAGONPY"',
+        '30 NEXT I',
         'RUN',
-
         '',
-        'A=4',
-        'B=55',
-        'X=9318',
-        '?B',
-        '?X',
-#         'I=3',
-#         '? I',
+        'LIST',
 
-#         '? -4\r\n', # result in a loop
-#         '? 3', # result in a loop
-#         'PRINT 1', # result in a loop
+        '?-1.2', # Should be: -1.2       but is: -1.75
+        '?5/3',  # should be: 1.66666667 but is: 1.25
+        '?6/5',  # should be: 1.2        but is: 1.75
+
     ]) + "\r\n"
 
     def event_return(self, event):
@@ -272,8 +239,7 @@ class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
 #         self.user_input_queue.put("\n")
 
 #     _STOP_AFTER_OK_COUNT = None
-    _STOP_AFTER_OK_COUNT = 1
-#    _STOP_AFTER_OK_COUNT = 4
+    _STOP_AFTER_OK_COUNT = 2
     def update(self, cpu_cycles):
         is_empty = self.output_queue.empty()
         super(Simple6809PeripheryTk, self).update(cpu_cycles)
@@ -290,43 +256,6 @@ Simple6809Periphery = Simple6809PeripheryTk
 
 Simple6809TestPeriphery = Simple6809PeripheryUnittest
 
-"""
-? -4
-
-ec8e| called the first time: $08 instruction_LSL_memory (CPU cycles: 635174)
-ec90| called the first time: $09 instruction_ROL_memory (CPU cycles: 635184)
-reading outside memory area (PC:$e3d1): $1a01
-eec1| called the first time: $50 instruction_NEG_register (CPU cycles: 636466)
-f050| called the first time: $2e instruction_BGT (CPU cycles: 636478)
-eddc| called the first time: $00 instruction_NEG_memory (CPU cycles: 636705)
-ed98| called the first time: $28 instruction_BVC (CPU cycles: 636746)
-ee2f| called the first time: $92 instruction_SBC (CPU cycles: 636980)
-ee0d| called the first time: $0a instruction_DEC_memory (CPU cycles: 637850)
-
-
-
-PRINT 1
-
-ec8e| called the first time: $08 instruction_LSL_memory (CPU cycles: 440822)
-ec90| called the first time: $09 instruction_ROL_memory (CPU cycles: 440832)
-eec1| called the first time: $50 instruction_NEG_register (CPU cycles: 441951)
-f050| called the first time: $2e instruction_BGT (CPU cycles: 441963)
-eddc| called the first time: $00 instruction_NEG_memory (CPU cycles: 442190)
-ed98| called the first time: $28 instruction_BVC (CPU cycles: 442231)
-ee2f| called the first time: $92 instruction_SBC (CPU cycles: 442465)
-ee0d| called the first time: $0a instruction_DEC_memory (CPU cycles: 443335)
-
-
-I=5
-?I
-
-f050| called the first time: $2e instruction_BGT (CPU cycles: 523845)
-eddc| called the first time: $00 instruction_NEG_memory (CPU cycles: 524072)
-ed98| called the first time: $28 instruction_BVC (CPU cycles: 524113)
-ee2f| called the first time: $92 instruction_SBC (CPU cycles: 524331)
-ee0d| called the first time: $0a instruction_DEC_memory (CPU cycles: 524988)
-"""
-
 
 def test_run():
     import subprocess
@@ -334,17 +263,17 @@ def test_run():
         os.path.join("..", "DragonPy_CLI.py"),
 #        "--verbosity=5",
 #         "--verbosity=10", # DEBUG
-        "--verbosity=20", # INFO
+#         "--verbosity=20", # INFO
 #        "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
+        "--verbosity=50", # CRITICAL/FATAL
 
 #         "--area_debug_cycles=23383", # First OK after copyright info
 
         "--cfg=Simple6809",
 #         "--max=500000",
 #         "--max=20000",
-        "--max=1",
+#         "--max=1",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()
