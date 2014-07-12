@@ -1151,6 +1151,7 @@ class CPU(object):
         """
         a = register.get()
         r = a + m + self.cc.C
+        register.set(r)
 #        log.debug("$%x %02x ADC %s: %i + %i + %i = %i (=$%x)" % (
 #            self.program_counter, opcode, register.name,
 #            a, m, self.cc.C, r, r
