@@ -151,6 +151,12 @@ class ConditionCodeRegister(object):
 
     @property
     def get_info(self):
+        """
+        >>> cc=ConditionCodeRegister()
+        >>> cc.set(0xa1)
+        >>> cc.get_info
+        'E.H....C'
+        """
         return cc_value2txt(self.get())
 
     def __str__(self):
