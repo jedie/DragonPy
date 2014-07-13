@@ -214,7 +214,7 @@ class CPU(object):
 
     def __init__(self, cfg):
         self.cfg = cfg
-        sys.stderr.write("Startup 6809 with %s and config: %s\n" % (sys.executable, cfg))
+#         sys.stderr.write("Startup 6809 with %s and config: %s\n" % (sys.executable, cfg))
 
         self.memory = Memory(self, cfg)
 
