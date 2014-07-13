@@ -17,6 +17,7 @@ import sys
 import unittest
 
 from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase
+from dragonpy.utils.logging_utils import setup_logging
 
 
 log = logging.getLogger("DragonPy")
@@ -62,12 +63,25 @@ class Test6809_TFR(BaseTestCase):
         transfer 8 bit register in a 16 bit register
         TODO: verify this behaviour on real hardware!
         """
-        self.cpu.cc.set(0xcd)
+        self.cpu.cc.set(0x34)
         self.cpu_test_run(start=0x4000, end=None, mem=[
             0x1F, 0xA1, # TFR CC,X
         ])
-        self.assertEqualHexByte(self.cpu.cc.get(), 0xcd)
-        self.assertEqualHexWord(self.cpu.index_x.get(), 0xcd00)
+        self.assertEqualHexByte(self.cpu.cc.get(), 0x34)
+        self.assertEqualHexWord(self.cpu.index_x.get(), 0xff34)
+
+    def test_TFR_CC_A(self):
+        """
+        transfer 8 bit register in a 16 bit register
+        TODO: verify this behaviour on real hardware!
+        """
+        self.cpu.accu_a.set(0xab)
+        self.cpu.cc.set(0x89)
+        self.cpu_test_run(start=0x4000, end=None, mem=[
+            0x1F, 0xA8, # TFR CC,A
+        ])
+        self.assertEqualHexByte(self.cpu.cc.get(), 0x89)
+        self.assertEqualHexByte(self.cpu.accu_a.get(), 0x89)
 
     def test_TFR_Y_B(self):
         """
@@ -137,7 +151,7 @@ class Test6809_EXG(BaseTestCase):
         self.cpu_test_run(start=0x2000, end=None, mem=[
             0x1E, 0x8A, # EXG A,CC
         ])
-        self.assertEqualHexByte(self.cpu.accu_a.get(), 0x00)
+        self.assertEqualHexByte(self.cpu.accu_a.get(), 0xe2)
         self.assertEqualHexByte(self.cpu.cc.get(), 0x1f)
 
     def test_EXG_X_CC(self):
@@ -145,11 +159,11 @@ class Test6809_EXG(BaseTestCase):
         TODO: verify this behaviour on real hardware!
         """
         self.cpu.index_x.set(0x1234)
-        self.cpu.cc.set(0xfe)
+        self.cpu.cc.set(0x56)
         self.cpu_test_run(start=0x2000, end=None, mem=[
             0x1E, 0x1A, # EXG X,CC
         ])
-        self.assertEqualHexWord(self.cpu.index_x.get(), 0xfe00)
+        self.assertEqualHexWord(self.cpu.index_x.get(), 0xff56)
         self.assertEqualHexByte(self.cpu.cc.get(), 0x34)
 
     def test_EXG_undefined_to_X(self):
@@ -165,23 +179,20 @@ class Test6809_EXG(BaseTestCase):
 
 
 if __name__ == '__main__':
-    log.setLevel(
-        1
-#        10 # DEBUG
-#         20 # INFO
-#         30 # WARNING
-#         40 # ERROR
-#        50 # CRITICAL/FATAL
+    setup_logging(log,
+        level=1 # hardcore debug ;)
+#        level=10 # DEBUG
+#        level=20 # INFO
+#        level=30 # WARNING
+#         level=40 # ERROR
+#        level=50 # CRITICAL/FATAL
     )
-    log.addHandler(logging.StreamHandler())
-
-    # XXX: Disable hacked XRoar trace
-    import cpu6809; cpu6809.trace_file = None
 
     unittest.main(
         argv=(
             sys.argv[0],
 #            "Test6809_TFR",
+#             "Test6809_TFR.test_TFR_CC_A",
 #            "Test6809_EXG",
         ),
         testRunner=TextTestRunner2,
