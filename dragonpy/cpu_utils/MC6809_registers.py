@@ -12,6 +12,7 @@
 """
 
 import logging
+from dragonpy.utils.humanize import cc_value2txt
 
 
 log = logging.getLogger("DragonPy")
@@ -98,20 +99,6 @@ def _register_bit(key):
     def get_flag(self):
         return self._register[key]
     return property(get_flag, set_flag)
-
-
-def cc_value2txt(status):
-    """
-    >>> cc_value2txt(0x50)
-    '.F.I....'
-    >>> cc_value2txt(0x54)
-    '.F.I.Z..'
-    >>> cc_value2txt(0x59)
-    '.F.IN..C'
-    """
-    return "".join(
-        ["." if status & x == 0 else char for char, x in zip("EFHINZVC", (128, 64, 32, 16, 8, 4, 2, 1))]
-    )
 
 
 class ConditionCodeRegister(object):

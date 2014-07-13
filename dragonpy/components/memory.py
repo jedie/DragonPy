@@ -25,11 +25,9 @@ import sys
 import socket
 import struct
 
+
 log = logging.getLogger("DragonPy.memory")
-# handler = logging.StreamHandler()
-# handler.level = 5
-# log.handlers = (handler,)
-# log.error("Memory debug on.")
+
 
 class ROM(object):
 
@@ -350,6 +348,7 @@ class Memory(object):
         print "Memory dump from $%04x to $%04x:" % (start, end)
         dump_lines = self.get_dump(start, end)
         print "\n".join(["\t%s" % line for line in dump_lines])
+
 
 def test_run():
     import subprocess

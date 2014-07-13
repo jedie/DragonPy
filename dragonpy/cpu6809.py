@@ -41,6 +41,7 @@ from dragonpy.cpu_utils.MC6809_registers import (
 from dragonpy.utils.simple_debugger import print_exc_plus
 from dragonpy.core.cpu_control_server import get_http_control_server
 from dragonpy.cpu_utils.signed import signed8, signed16, signed5, unsigned8
+from dragonpy.utils.humanize import byte2bit_string
 
 
 log = logging.getLogger("DragonPy.cpu6809")
@@ -61,31 +62,6 @@ def get_opdata():
     return opdata
 
 MC6809OP_DATA_DICT = get_opdata()
-
-
-def activate_full_debug_logging():
-    global log
-    handler = logging.StreamHandler()
-    handler.level = 5
-    log.handlers = (handler,)
-    log.critical("Activate full debug logging in %s!", __file__)
-
-
-
-
-
-def byte2bit_string(data):
-    return '{0:08b}'.format(data)
-
-
-def hex_repr(d):
-    txt = []
-    for k, v in sorted(d.items()):
-        if isinstance(v, int):
-            txt.append("%s=$%x" % (k, v))
-        else:
-            txt.append("%s=%s" % (k, v))
-    return " ".join(txt)
 
 
 def opcode(*opcodes):
@@ -209,6 +185,7 @@ class IllegalInstruction(object):
 
 
 undefined_reg = UndefinedRegister()
+
 
 class CPU(object):
 
@@ -413,10 +390,10 @@ class CPU(object):
         op_address, opcode = self.read_pc_byte()
         self.call_instruction_func(op_address, opcode)
 
-    same_op_count = 0
-    last_op_code = None
-    last_trace_line = None
-    trace_line_no = 0
+    # same_op_count = 0
+    # last_op_code = None
+    # last_trace_line = None
+    # trace_line_no = 0
     def call_instruction_func(self, op_address, opcode):
         self.last_op_address = op_address
         try:
