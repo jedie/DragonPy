@@ -371,11 +371,14 @@ class CPU(object):
             log.info("\tset CC register to 0x00")
             self.cc.set(0x00)
         else:
-            log.info("\tset cc.F=1: FIRQ interrupt masked")
-            self.cc.F = 1
+#             log.info("\tset cc.F=1: FIRQ interrupt masked")
+#             self.cc.F = 1
+#
+#             log.info("\tset cc.I=1: IRQ interrupt masked")
+#             self.cc.I = 1
 
-            log.info("\tset cc.I=1: IRQ interrupt masked")
-            self.cc.I = 1
+            log.info("\tset E - 0x80 - bit 7 - Entire register state stacked")
+            self.cc.E = 1
 
 #         log.debug("\tset PC to $%x" % self.cfg.RESET_VECTOR)
 #         self.program_counter = self.cfg.RESET_VECTOR
