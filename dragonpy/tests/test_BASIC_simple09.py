@@ -166,6 +166,46 @@ class Test_simple6809_BASIC_Float1(Test6809_BASIC_simple6809_Base):
             ['?8*-3\r\n', '-24 \r\n', 'OK\r\n']
         )
 
+class Test_simple6809_BASIC_NumericFunctions(Test6809_BASIC_simple6809_Base):
+    def test_ABS(self):
+        self.periphery.add_to_input_queue('?ABS(-2)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=7900)
+        print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?ABS(-2)\r\n', ' 2 \r\n', 'OK\r\n']
+        )
+
+    def test_ATN(self):
+        self.periphery.add_to_input_queue('?ATN(2)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=17200)
+        print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?ATN(2)\r\n', ' 1.10714872 \r\n', 'OK\r\n']
+        )
+
+    def test_COS(self):
+        self.periphery.add_to_input_queue('?COS(3)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=15000)
+        print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?COS(3)\r\n', '-.989992497 \r\n', 'OK\r\n']
+        )
+
+    def test_EXP(self):
+        self.periphery.add_to_input_queue('?EXP(10)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=14000)
+        print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?EXP(10)\r\n', ' 22026.4658 \r\n', 'OK\r\n']
+        )
+
+    def test_FIX(self):
+        self.periphery.add_to_input_queue('?FIX(-7.4)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=11000)
+        print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?FIX(-7.4)\r\n', '-7 \r\n', 'OK\r\n']
+        )
 class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
     def assertFPA(self, value, start, end):
         reference = BASIC09FloatingPoint(value)
