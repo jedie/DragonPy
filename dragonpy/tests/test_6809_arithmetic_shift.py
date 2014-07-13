@@ -17,6 +17,7 @@ import sys
 import unittest
 
 from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase
+from dragonpy.utils.logging_utils import setup_logging
 
 
 log = logging.getLogger("DragonPy")
@@ -364,15 +365,14 @@ class Test6809_Rotate(BaseTestCase):
 
 
 if __name__ == '__main__':
-    log.setLevel(
-#         1
-#        10 # DEBUG
-#         20 # INFO
-#         30 # WARNING
-#         40 # ERROR
-        50 # CRITICAL/FATAL
+    setup_logging(log,
+#         level=1 # hardcore debug ;)
+#        level=10 # DEBUG
+#        level=20 # INFO
+#        level=30 # WARNING
+#         level=40 # ERROR
+        level=50 # CRITICAL/FATAL
     )
-    log.addHandler(logging.StreamHandler())
 
     unittest.main(
         argv=(
