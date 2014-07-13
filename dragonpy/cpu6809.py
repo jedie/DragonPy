@@ -1738,15 +1738,24 @@ class CPU(object):
     def _get_register_and_value(self, addr):
         reg = self._get_register_obj(addr)
         reg_value = reg.get()
-
-        # From XRoar:
-        if addr in (0x8, 0x9): # A or B
-            reg_value = reg_value | 0xff00
-        elif addr in (0xa, 0xb): # CC or DP
-            # verify this behaviour
-            reg_value = reg_value << 8
-
         return reg, reg_value
+
+    def _convert_differend_width(self, src_reg, src_value, dst_reg):
+        """
+        e.g.:
+         8bit   $cd TFR into 16bit, results in: $cd00
+        16bit $1234 TFR into  8bit, results in:   $34
+
+        TODO: verify this behaviour on real hardware
+        see: http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4886
+        """
+        if src_reg.WIDTH == 8 and dst_reg.WIDTH == 16:
+            # e.g.: $cd -> $ffcd
+            src_value += 0xff00
+        elif src_reg.WIDTH == 16 and dst_reg.WIDTH == 8:
+            # e.g.: $1234 -> $34
+            src_value = src_value | 0xff00
+        return src_value
 
     @opcode(0x1f) # TFR (immediate)
     def instruction_TFR(self, opcode, m):
@@ -1755,13 +1764,13 @@ class CPU(object):
         CC bits "HNZVC": ccccc
         """
         high, low = divmod(m, 16)
-        src_reg, value = self._get_register_and_value(high)
+        src_reg, src_value = self._get_register_and_value(high)
         dst_reg = self._get_register_obj(low)
-        dst_reg.set(value)
-
-        log.debug("\tTFR: Set %s to $%x from %s",
-            dst_reg, value, src_reg.name
-        )
+        src_value = self._convert_differend_width(src_reg, src_value, dst_reg)
+        dst_reg.set(src_value)
+#         log.debug("\tTFR: Set %s to $%x from %s",
+#             dst_reg, src_value, src_reg.name
+#         )
 
     @opcode(# Exchange R1 with R2
         0x1e, # EXG (immediate)
@@ -1774,12 +1783,16 @@ class CPU(object):
         high, low = divmod(m, 0x10)
         reg1, reg1_value = self._get_register_and_value(high)
         reg2, reg2_value = self._get_register_and_value(low)
-        reg1.set(reg2_value)
-        reg2.set(reg1_value)
 
-        log.debug("\tEXG: %s($%x) <-> %s($%x)",
-            reg1.name, reg1_value, reg2.name, reg2_value
-        )
+        new_reg1_value = self._convert_differend_width(reg2, reg2_value, reg1)
+        new_reg2_value = self._convert_differend_width(reg1, reg1_value, reg2)
+
+        reg1.set(new_reg1_value)
+        reg2.set(new_reg2_value)
+
+#         log.debug("\tEXG: %s($%x) <-> %s($%x)",
+#             reg1.name, reg1_value, reg2.name, reg2_value
+#         )
 
     # ---- Store / Load ----
 
