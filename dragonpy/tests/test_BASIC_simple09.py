@@ -112,24 +112,73 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
             ['X="Y"\r\n', '?TM ERROR\r\n', 'OK\r\n']
         )
 
-#    def test_PRINT04(self):  # will faile, yet...
-#        self.periphery.add_to_input_queue('?5/3\r\n')
-#        op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
-##         print op_call_count, cycles, output
-#        self.assertEqual(output,
-#            ['?2\r\n', ' 2 \r\n', 'OK\r\n']
-#        )
 
-#     def test_MUL(self): # will faile, yet...
-#         self.periphery.add_to_input_queue('?2*3\r\n')
-#         op_call_count, cycles, output = self._run_until_OK()
-# #         print op_call_count, cycles, output
-#         self.assertEqual(output,
-#             ['?2*3\r\n', ' 6\r\n', 'OK\r\n']
-#         )
+class Test_simple6809_BASIC_Float1(Test6809_BASIC_simple6809_Base):
+    def test_print_float(self):
+        self.periphery.add_to_input_queue('?2.5\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=5500)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?2.5\r\n', ' 2.5 \r\n', 'OK\r\n']
+        )
 
+    def test_print_negative_float(self):
+        self.periphery.add_to_input_queue('?-3.4\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=6300)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?-3.4\r\n', '-3.4 \r\n', 'OK\r\n']
+        )
 
-class Test_simple6809_BASIC_Float(Test6809_BASIC_simple6809_Base):
+    def test_print_rounded_float(self):
+        self.periphery.add_to_input_queue('?1.123456789\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=15000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?1.123456789\r\n', ' 1.12345679 \r\n', 'OK\r\n']
+        )
+
+    def test_division1(self):
+        self.periphery.add_to_input_queue('?6/2\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=4500)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?6/2\r\n', ' 3 \r\n', 'OK\r\n']
+        )
+
+    def test_division2(self):
+        self.periphery.add_to_input_queue('?3/2\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=4500)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?3/2\r\n', ' 1.5 \r\n', 'OK\r\n']
+        )
+
+    def test_division3(self):
+        self.periphery.add_to_input_queue('?5/3\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=5100)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?5/3\r\n', ' 1.66666667 \r\n', 'OK\r\n']
+        )
+
+    def test_multiply1(self):
+        self.periphery.add_to_input_queue('?3*2\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=4500)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?3*2\r\n', ' 6 \r\n', 'OK\r\n']
+        )
+
+    def test_multiply2(self):
+        self.periphery.add_to_input_queue('?8*-3\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=5100)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?8*-3\r\n', '-24 \r\n', 'OK\r\n']
+        )
+
+class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
     def assertFPA(self, value, start, end):
         reference = BASIC09FloatingPoint(value)
         reference_bytes = reference.get_bytes()
@@ -402,19 +451,20 @@ if __name__ == '__main__':
 #        level=10 # DEBUG
 #        level=20 # INFO
 #        level=30 # WARNING
-        level=40 # ERROR
-#        level=50 # CRITICAL/FATAL
+#         level=40 # ERROR
+        level=50 # CRITICAL/FATAL
     )
 
     unittest.main(
         argv=(
             sys.argv[0],
-#            "Test_simple6809_BASIC.test_PRINT04",
+#             "Test_simple6809_BASIC.test_print04",
 
-            "Test_simple6809_BASIC_Float",
-#            "Test_simple6809_BASIC_Float.test_divide_FPA0_by_10",
-#            "Test_simple6809_BASIC_Float.test_FPA0_to_D",
-#            "Test_simple6809_BASIC_Float.test_division",
+            "Test_simple6809_BASIC_Float1",
+#             "Test_simple6809_BASIC_Float2",
+#            "Test_simple6809_BASIC_Float2.test_divide_FPA0_by_10",
+#            "Test_simple6809_BASIC_Float2.test_FPA0_to_D",
+#            "Test_simple6809_BASIC_Float2.test_division",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
