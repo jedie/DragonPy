@@ -29,12 +29,6 @@ log = logging.getLogger("DragonPy")
 
 class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
     def test_print01(self):
-        self.assertEqual(self.cpu.get_info,
-            "cc=84 a=0d b=00 dp=00 x=deae y=0000 u=deab s=0334"
-        )
-        self.assertEqual(self.cpu.cc.get_info, ".F.I.Z..")
-        self.assertEqual(self.cpu.program_counter, 57131)
-
         self.periphery.add_to_input_queue('? "FOO"\r\n')
         op_call_count, cycles, output = self._run_until_OK()
 #         print op_call_count, cycles, output
@@ -45,12 +39,6 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
         self.assertEqual(cycles, 7354) # TODO: cycles are probably not set corrent in CPU, yet!
 
     def test_print02(self):
-        self.assertEqual(self.cpu.get_info,
-            "cc=84 a=0d b=00 dp=00 x=deae y=0000 u=deab s=0334"
-        )
-        self.assertEqual(self.cpu.cc.get_info, ".F.I.Z..")
-        self.assertEqual(self.cpu.program_counter, 57131)
-
         self.periphery.add_to_input_queue('PRINT "BAR"\r\n')
         op_call_count, cycles, output = self._run_until_OK()
 #         print op_call_count, cycles, output
