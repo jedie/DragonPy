@@ -88,9 +88,6 @@ class BaseConfig(object):
         # print CPU cycle/sec while running
         self.display_cycle = cmd_args.display_cycle
 
-        # Compare with XRoar/v09 trace file? (see README)
-        self.compare_trace = cmd_args.compare_trace
-
         # socket address for internal bus I/O:
         if cmd_args.bus_socket_host and cmd_args.bus_socket_port:
             self.use_bus = True

@@ -90,18 +90,19 @@ install [[https://pypi.python.org/pypi/coverage|coverage]] for python 2:
 == CLI
 
 {{{
+.../path/to/DragonPy$ ./DragonPy_CLI.py --help
+logger name: DragonPy
+
 DragonPy - Dragon 32 emulator in Python None
 -------------------------------------------------------------------------------
 
 usage: DragonPy_CLI.py [-h] [--verbosity {5,7,0,10,20,30,40,50}]
                        [--logfile {5,7,0,10,20,30,40,50}]
                        [--log_formatter LOG_FORMATTER]
-                       [--cfg {Dragon32,sbc09,Simple6809}] [--display_cycle]
-                       [--bus_socket_host BUS_SOCKET_HOST]
+                       [--cfg {Multicomp6809,Dragon32,sbc09,Simple6809}]
+                       [--display_cycle] [--bus_socket_host BUS_SOCKET_HOST]
                        [--bus_socket_port BUS_SOCKET_PORT] [--ram RAM]
                        [--rom ROM] [--max MAX]
-                       [--area_debug_active AREA_DEBUG_ACTIVE]
-                       [--area_debug_cycles AREA_DEBUG_CYCLES]
 
 DragonPy - Dragon 32 emulator in Python
 
@@ -116,25 +117,18 @@ optional arguments:
   --log_formatter LOG_FORMATTER
                         see: http://docs.python.org/2/library/logging.html
                         #logrecord-attributes
-  --cfg {Dragon32,sbc09,Simple6809}
-                        Used configuration
+  --cfg {Multicomp6809,Dragon32,sbc09,Simple6809}
+                        Used machine configuration
   --display_cycle       print CPU cycle/sec while running.
-  --compare_trace {0,1,2,3}
-                        Compare with XRoar/v09 trace file? (see README)
   --bus_socket_host BUS_SOCKET_HOST
                         Host internal socket bus I/O (do not set manually!)
   --bus_socket_port BUS_SOCKET_PORT
                         Port for internal socket bus I/O (do not set
                         manually!)
   --ram RAM             RAM file to load (default none)
-  --rom ROM             ROM file to use (default d32.rom)
+  --rom ROM             ROM file to use (default set by machine configuration)
   --max MAX             If given: Stop CPU after given cycles else: run
                         forever
-  --area_debug_active AREA_DEBUG_ACTIVE
-                        Debug in PC area: <level>:<start>-<end> - e.g.:
-                        --area_debug_active=10:db79-ffff
-  --area_debug_cycles AREA_DEBUG_CYCLES
-                        activate debug after CPU cycles
 }}}
 
 ==== compare trace

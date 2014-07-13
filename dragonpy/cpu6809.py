@@ -2694,9 +2694,6 @@ def test_run():
 
          "--cfg=Multicomp6809",
 
-#
-#         "--compare_trace=2", # PC differ
-#
 #         "--max=15000",
 #         "--max=46041",
     ]

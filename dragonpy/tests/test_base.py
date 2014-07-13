@@ -38,9 +38,6 @@ class UnittestCmdArgs(object):
     # print CPU cycle/sec while running
     display_cycle = False
 
-    # Compare with XRoar/v09 trace file? (see README)
-    compare_trace = False
-
 
 class BaseTestCase(unittest.TestCase):
     def setUp(self):

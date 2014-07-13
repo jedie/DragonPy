@@ -210,7 +210,6 @@ def test_run():
         "--cfg=Dragon32",
 #
         "--display_cycle", # print CPU cycle/sec while running.
-#         "--compare_trace=2", # PC differ
 #
 #         "--max=15000",
 #         "--max=46041",

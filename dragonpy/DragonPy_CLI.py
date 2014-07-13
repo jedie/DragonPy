@@ -53,7 +53,7 @@ class DragonPyCLI(Base_CLI):
         self.parser.add_argument("--cfg",
             choices=self.configs.keys(),
             default=configs.DEFAULT,
-            help="Used configuration"
+            help="Used machine configuration"
         )
         self.parser.add_argument('--display_cycle', action='store_true',
             help="print CPU cycle/sec while running."
@@ -63,11 +63,6 @@ class DragonPyCLI(Base_CLI):
 #         self.parser.add_argument('--trace',
 #             help="Filename for create a trace file."
 #         )
-
-        self.parser.add_argument('--compare_trace',
-            type=int, choices=(0, 1, 2, 3, 4, 5), default=0,
-            help="Compare with XRoar/v09 trace file? (see README)"
-        )
 
         self.parser.add_argument("--bus_socket_host",
             help="Host internal socket bus I/O (do not set manually!)"
@@ -79,7 +74,7 @@ class DragonPyCLI(Base_CLI):
             help="RAM file to load (default none)"
         )
         self.parser.add_argument("--rom",
-            help="ROM file to use (default %s)" % default_cfg.DEFAULT_ROM
+            help="ROM file to use (default set by machine configuration)"
         )
         self.parser.add_argument("--max", type=int,
             help="If given: Stop CPU after given cycles else: run forever"
