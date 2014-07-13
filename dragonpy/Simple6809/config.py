@@ -25,7 +25,7 @@ class Simple6809Cfg(BaseConfig):
     RAM_END = 0x03FF # 1KB
     # RAM_END = 0x07FF # 2KB
     # RAM_END = 0x0FFF # 4KB
-    # RAM_END = 0x1FFF # 8KB
+#     RAM_END = 0x1FFF # 8KB
     # RAM_END = 0x3FFF # 16KB
     # RAM_END = 0x7FFF # 32KB
 

@@ -224,7 +224,7 @@ class Test_simple6809_BASIC_NumericFunctions(Test6809_BASIC_simple6809_Base):
         )
 
     def test_PEEK(self):
-        addr = 0x03FF
+        addr = 0x03FE
         value = 0x5b
         self.cpu.memory.write_byte(addr, value)
         self.periphery.add_to_input_queue('?PEEK(%s)\r\n' % addr)
@@ -237,7 +237,7 @@ class Test_simple6809_BASIC_NumericFunctions(Test6809_BASIC_simple6809_Base):
         ])
 
     def test_POKE(self):
-        addr = 0x03FF
+        addr = 0x03FE
         value = 12
         self.cpu.memory.write_byte(addr, 0xff)
         self.periphery.add_to_input_queue('POKE%i,%i\r\n' % (addr, value))
