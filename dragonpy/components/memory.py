@@ -37,10 +37,13 @@ class ROM(object):
         self.cfg = cfg
         self.start = start
         self.end = start + size
-        self._mem = memory # [0x00] * size
-        assert len(self._mem) == size
-        log.info("init %s Bytes %s ($%04x - $%04x)" % (
-            size, self.__class__.__name__, start, self.end
+
+        self._mem = [None] * start
+        self._mem += memory
+#         self._mem = memory # [0x00] * size
+        # assert len(self._mem) == size, "%i != %i" len(self._mem) == size
+        log.critical("init %s Bytes (real: %s) %s ($%04x - $%04x)" % (
+            size, len(self._mem), self.__class__.__name__, start, self.end
         ))
 
     def load(self, address, data):
@@ -55,7 +58,7 @@ class ROM(object):
     def load_file(self, address, filename):
         with open(filename, "rb") as f:
             for offset, datum in enumerate(f.read()):
-                index = address - self.start + offset
+                index = address + offset
                 try:
                     self._mem[index] = ord(datum)
                 except IndexError:
@@ -69,7 +72,7 @@ class ROM(object):
 
     def read_byte(self, address):
         try:
-            byte = self._mem[address - self.start]
+            byte = self._mem[address]
         except IndexError:
             raise IndexError(
                 "Read $%04x from %s is not in range $%04x-$%04x (%s size: %i Bytes)" % (
@@ -83,21 +86,6 @@ class ROM(object):
 #         self.cfg.mem_info(address, "read byte")
         return byte
 
-    def get_dump(self, start, end):
-        dump_lines = []
-        for addr in xrange(start, end + 1):
-            value = self.read_byte(addr)
-            msg = "$%04x: $%02x (dez: %i)" % (addr, value, value)
-            msg = "%-25s| %s" % (
-                msg, self.cfg.mem_info.get_shortest(addr)
-            )
-            dump_lines.append(msg)
-        return dump_lines
-
-    def print_dump(self, start, end):
-        print "Memory dump from $%04x to $%04x:" % (start, end)
-        dump_lines = self.get_dump(start, end)
-        print "\n".join(["\t%s" % line for line in dump_lines])
 
 class RAM(ROM):
     def write_byte(self, address, value):
@@ -146,7 +134,6 @@ class Memory(object):
                     self._write_callbacks[addr] = write_func
         log.debug("memory read callbacks: %s", self._read_callbacks)
         log.debug("memory write callbacks: %s", self._write_callbacks)
-
 
     def load(self, address, data):
         if address < self.cfg.RAM_END:
@@ -345,6 +332,24 @@ class Memory(object):
 #        log.debug(" **** bus write word $%x to $%x" % (value, address))
         return self._bus_write(self.cfg.BUS_STRUCTURE_WORD, address, value)
 
+    def iter_bytes(self, start, end):
+        for addr in xrange(start, end):
+            yield addr, self.read_byte(addr)
+
+    def get_dump(self, start, end):
+        dump_lines = []
+        for addr, value in self.iter_bytes(start, end + 1):
+            msg = "$%04x: $%02x (dez: %i)" % (addr, value, value)
+            msg = "%-25s| %s" % (
+                msg, self.cfg.mem_info.get_shortest(addr)
+            )
+            dump_lines.append(msg)
+        return dump_lines
+
+    def print_dump(self, start, end):
+        print "Memory dump from $%04x to $%04x:" % (start, end)
+        dump_lines = self.get_dump(start, end)
+        print "\n".join(["\t%s" % line for line in dump_lines])
 
 def test_run():
     import subprocess

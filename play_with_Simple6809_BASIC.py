@@ -13,10 +13,13 @@
 """
 
 
+from contextlib import contextmanager
 import logging
 import os
+import sys
 
-from dragonpy.tests.test_base import Test6809_BASIC_simple6809_Base
+from dragonpy.tests.test_base import Test6809_BASIC_simple6809_Base, \
+    UnittestCmdArgs
 from dragonpy.utils.logging_utils import setup_logging
 
 
@@ -38,10 +41,23 @@ def log2file(filename_suffix):
     )
 
 
+@contextmanager
+def stdout_into_file(filename):
+    old_stdout = sys.stdout
+    try:
+        with open(filename, "w") as f:
+            sys.stdout = f
+            yield None
+    finally:
+        sys.stdout = old_stdout
+
+
 class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
     def __init__(self):
 #         os.remove(self.TEMP_FILE);print "Delete CPU date file!"
-        self.setUpClass()
+        cmd_args = UnittestCmdArgs
+        cmd_args.trace = True
+        self.setUpClass(cmd_args)
 
     def hello_world(self):
         self.setUp() # restore CPU/Periphery state to a fresh startup.
@@ -53,23 +69,13 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
     def play(self):
         self.setUp() # restore CPU/Periphery state to a fresh startup.
 
-        log2file(filename_suffix="negative_number")
-        self.periphery.add_to_input_queue('?-1.5\r\n')
-        op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
-        print op_call_count, cycles, output
+#         self.periphery.add_to_input_queue('?1.5\r\n')
+        self.periphery.add_to_input_queue('?5\r\n')
 
-        log2file(filename_suffix="division")
-        self.periphery.add_to_input_queue('?2/1\r\n')
-        op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
+#         log2file(filename_suffix="negative_number")
+        with stdout_into_file("Simple6809Play_PRINT1.5.log"):
+            op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
         print op_call_count, cycles, output
-
-#         self.periphery.add_to_input_queue('?5/3\r\n')
-#         op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
-#         print op_call_count, cycles, output
-#
-#         self.periphery.add_to_input_queue('?1.25*3\r\n')
-#         op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
-#         print op_call_count, cycles, output
 
 
 

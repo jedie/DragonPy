@@ -105,6 +105,11 @@ class BaseConfig(object):
         else:
             self.rom = self.DEFAULT_ROM
 
+        if cmd_args.trace:
+            self.trace = True
+        else:
+            self.trace = False
+
         self.verbosity = cmd_args.verbosity
 
         if cmd_args.max:

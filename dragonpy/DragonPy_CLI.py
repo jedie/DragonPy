@@ -12,6 +12,7 @@
 
 import atexit
 import sys
+import argparse
 
 from Dragon32.config import Dragon32Cfg
 from dragonpy.Multicomp6809.config import Multicomp6809Cfg
@@ -59,10 +60,9 @@ class DragonPyCLI(Base_CLI):
             help="print CPU cycle/sec while running."
         )
 
-        # TODO:
-#         self.parser.add_argument('--trace',
-#             help="Filename for create a trace file."
-#         )
+        self.parser.add_argument('--trace', action='store_true',
+            help="Create trace lines."
+        )
 
         self.parser.add_argument("--bus_socket_host",
             help="Host internal socket bus I/O (do not set manually!)"

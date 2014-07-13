@@ -359,7 +359,10 @@ class CPU(object):
                 raise RuntimeError(msg)
                 continue
 
-            if HTML_TRACE:
+            if self.cfg.trace:
+                from dragonpy.cpu6809_trace import InstructionTrace # XXX
+                InstructionClass = InstructionTrace
+            elif HTML_TRACE: # XXX
                 # FIXME: Add as CLI argument or complete remove?
                 from dragonpy.cpu6809_html_debug import InstructionHTMLdebug
                 InstructionClass = InstructionHTMLdebug
@@ -424,30 +427,6 @@ class CPU(object):
             sys.exit(msg)
 
         instruction.call_instr_func()
-
-        if log.level <= logging.INFO:
-            kwargs_info = []
-            if "register" in instruction.op_kwargs:
-                kwargs_info.append(str(instruction.op_kwargs["register"]))
-            if "ea" in instruction.op_kwargs:
-                kwargs_info.append("ea:%04x" % instruction.op_kwargs["ea"])
-            if "m" in instruction.op_kwargs:
-                kwargs_info.append("m:%x" % instruction.op_kwargs["m"])
-
-
-            mnemonic = instruction.data["mnemonic"]
-
-            msg = "%(op_address)04x| %(opcode)-4s %(mnemonic)-6s %(kwargs)-27s %(cpu)s | %(cc)s | %(mem)s" % {
-                "op_address": op_address,
-                "opcode": "%02x" % opcode,
-                "mnemonic": mnemonic,
-                "kwargs": " ".join(kwargs_info),
-                "cpu": self.get_info,
-                "cc": self.cc.get_info,
-                "mem": self.cfg.mem_info.get_shortest(op_address)
-            }
-            log.info(msg)
-            log.debug("-"*79)
 
     @opcode(
         0x10, # PAGE 2 instructions

@@ -34,6 +34,7 @@ class UnittestCmdArgs(object):
     rom = None
     verbosity = None
     max = None
+    trace = False
 
     # print CPU cycle/sec while running
     display_cycle = False
@@ -160,14 +161,15 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
     # os.remove(TEMP_FILE);print "Delete CPU date file!"
 
     @classmethod
-    def setUpClass(cls):
+    def setUpClass(cls, cmd_args=None):
         """
         prerun ROM to complete initiate and ready for user input.
         save the CPU state to speedup unittest
         """
         super(Test6809_BASIC_simple6809_Base, cls).setUpClass()
 
-        cmd_args = UnittestCmdArgs
+        if cmd_args is None:
+            cmd_args = UnittestCmdArgs
         cfg = Simple6809Cfg(cmd_args)
 
         cls.periphery = Simple6809TestPeriphery(cfg)
