@@ -206,6 +206,15 @@ class Test_simple6809_BASIC_NumericFunctions(Test6809_BASIC_simple6809_Base):
         self.assertEqual(output,
             ['?FIX(-7.4)\r\n', '-7 \r\n', 'OK\r\n']
         )
+
+    def test_INT(self):
+        self.periphery.add_to_input_queue('?INT(-7.4)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=11000)
+        print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?INT(-7.4)\r\n', '-8 \r\n', 'OK\r\n']
+        )
+
 class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
     def assertFPA(self, value, start, end):
         reference = BASIC09FloatingPoint(value)

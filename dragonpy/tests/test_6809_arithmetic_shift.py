@@ -144,8 +144,13 @@ loop:
 #                 self.cpu.cc.get_info
 #             )
 
+            # Bit seven is held constant.
+            if src_bit_str[0] == "1":
+                excpeted_bits = "1%s" % src_bit_str[:-1]
+            else:
+                excpeted_bits = "0%s" % src_bit_str[:-1]
+
             # test ASRB/LSRB result
-            excpeted_bits = "0%s" % src_bit_str[:-1]
             self.assertEqual(dst_bit_str, excpeted_bits)
 
             # test negative
