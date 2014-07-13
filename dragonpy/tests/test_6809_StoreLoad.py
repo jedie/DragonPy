@@ -40,7 +40,7 @@ class Test6809_Store(BaseStackTestCase):
         self.assertEqualHex(self.cpu.memory.read_word(0x5001), 0x4321)
 
     def test_STS_indexed(self):
-        self.cpu._system_stack_pointer.set(0x1234)
+        self.cpu.system_stack_pointer.set(0x1234)
         self.cpu.index_x.set(0x0218)
         self.cpu_test_run(start=0x1b5c, end=None, mem=[0x10, 0xef, 0x83]) # STS ,R-- (indexed)
         self.assertEqualHex(self.cpu.memory.read_word(0x0216), 0x1234) # 0x0218 -2 = 0x0216

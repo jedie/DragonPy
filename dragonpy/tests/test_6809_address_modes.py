@@ -17,6 +17,7 @@ import sys
 import unittest
 
 from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase
+from dragonpy.utils.logging_utils import setup_logging
 
 
 log = logging.getLogger("DragonPy")
@@ -25,7 +26,7 @@ log = logging.getLogger("DragonPy")
 class Test6809_AddressModes_LowLevel(BaseTestCase):
     def test_base_page_direct01(self):
         self.cpu.memory.load(0x1000, [0x12, 0x34, 0x0f])
-        self.cpu.program_counter = 0x1000
+        self.cpu.program_counter.set(0x1000)
         self.cpu.direct_page.set(0xab)
 
         ea = self.cpu.get_ea_direct()
@@ -225,18 +226,14 @@ class Test6809_AddressModes_Indexed(BaseTestCase):
 
 
 if __name__ == '__main__':
-    log.setLevel(
-        1
-#        10 # DEBUG
-#         20 # INFO
-#         30 # WARNING
-#         40 # ERROR
-#        50 # CRITICAL/FATAL
+    setup_logging(log,
+#         level=1 # hardcore debug ;)
+#        level=10 # DEBUG
+#        level=20 # INFO
+#        level=30 # WARNING
+#         level=40 # ERROR
+        level=50 # CRITICAL/FATAL
     )
-    log.addHandler(logging.StreamHandler())
-
-    # XXX: Disable hacked XRoar trace
-    import cpu6809; cpu6809.trace_file = None
 
     unittest.main(
         argv=(

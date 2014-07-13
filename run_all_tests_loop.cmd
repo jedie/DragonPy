@@ -2,7 +2,8 @@
 
 title "%~0"
 
-set python=C:\Python27\python.exe
+REM ~ set python=C:\Python27\python.exe
+set python=D:\pypy-2.3.1-win32\pypy.exe
 if NOT exist %python% (
     echo Error: '%python%' doesn't exists?!?
     pause
@@ -11,8 +12,8 @@ if NOT exist %python% (
 :loop
     echo on
     cls
-    %python% setup.py test
-    REM ~ %python% -m unittest discover
+    REM ~ %python% setup.py test
+    %python% -m unittest discover
     @echo off
     pause
 goto:loop

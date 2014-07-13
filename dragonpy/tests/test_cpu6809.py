@@ -10,13 +10,13 @@
 import logging
 import sys
 import unittest
-import itertools
 
 from dragonpy.cpu6809 import CPU
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.mem_info import DragonMemInfo
 from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase, UnittestCmdArgs, \
     BaseStackTestCase
+from dragonpy.utils.logging_utils import setup_logging
 
 
 log = logging.getLogger("DragonPy")
@@ -37,7 +37,7 @@ class BaseDragon32TestCase(BaseTestCase):
         except IOError, err:
             log.error("Missing ROM? %s", err)
         else:
-            self.cpu._system_stack_pointer.set(self.INITIAL_SYSTEM_STACK_ADDR)
+            self.cpu.system_stack_pointer.set(self.INITIAL_SYSTEM_STACK_ADDR)
             self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
 
 
@@ -461,7 +461,7 @@ class Test6809_TestInstructions(BaseTestCase):
 
 
 
-#TODO:
+# TODO:
 #        self.cpu_test_run(start=0x4000, end=None, mem=[0x4F]) # CLRA
 #        self.assertEqualHex(self.cpu.accu_d.get(), 0x34)
 #
@@ -472,7 +472,7 @@ class Test6809_TestInstructions(BaseTestCase):
 class Test6809_Stack(BaseStackTestCase):
     def test_PushPullSytemStack_01(self):
         self.assertEqualHex(
-            self.cpu.system_stack_pointer,
+            self.cpu.system_stack_pointer.get(),
             self.INITIAL_SYSTEM_STACK_ADDR
         )
 
@@ -482,7 +482,7 @@ class Test6809_Stack(BaseStackTestCase):
         ])
 
         self.assertEqualHex(
-            self.cpu.system_stack_pointer,
+            self.cpu.system_stack_pointer.get(),
             self.INITIAL_SYSTEM_STACK_ADDR - 1 # Byte added
         )
 
@@ -497,7 +497,7 @@ class Test6809_Stack(BaseStackTestCase):
         ])
 
         self.assertEqualHex(
-            self.cpu.system_stack_pointer,
+            self.cpu.system_stack_pointer.get(),
             self.INITIAL_SYSTEM_STACK_ADDR # Byte removed
         )
 
@@ -506,7 +506,7 @@ class Test6809_Stack(BaseStackTestCase):
 
     def test_PushPullSystemStack_02(self):
         self.assertEqualHex(
-            self.cpu.system_stack_pointer,
+            self.cpu.system_stack_pointer.get(),
             self.INITIAL_SYSTEM_STACK_ADDR
         )
 
@@ -532,13 +532,13 @@ class Test6809_Stack(BaseStackTestCase):
         self.assertEqualHex(self.cpu.accu_b.get(), 0x02)
 
         self.assertEqualHex(
-            self.cpu.system_stack_pointer,
+            self.cpu.system_stack_pointer.get(),
             self.INITIAL_SYSTEM_STACK_ADDR
         )
 
     def test_PushPullSystemStack_03(self):
         self.assertEqualHex(
-            self.cpu.system_stack_pointer,
+            self.cpu.system_stack_pointer.get(),
             self.INITIAL_SYSTEM_STACK_ADDR
         )
 
@@ -689,7 +689,7 @@ class TestSimple6809ROM(BaseTestCase):
             0x81, 0x0d, # CMPA #000d(CR)       ; IS IT CARRIAGE RETURN?
             0x27, 0x0b, # BEQ  NEWLINE         ; YES
         ])
-        self.assertEqualHex(self.cpu.program_counter, pc)
+        self.assertEqualHex(self.cpu.program_counter.get(), pc)
 
     def test_is_not_carriage_return(self):
         self._is_carriage_return(a=0x00, pc=0x4006)
@@ -699,18 +699,14 @@ class TestSimple6809ROM(BaseTestCase):
 
 
 if __name__ == '__main__':
-    log.setLevel(
-#         1
-#        10 # DEBUG
-#         20 # INFO
-#         30 # WARNING
-#         40 # ERROR
-        50 # CRITICAL/FATAL
+    setup_logging(log,
+#         level=1 # hardcore debug ;)
+#        level=10 # DEBUG
+#        level=20 # INFO
+#        level=30 # WARNING
+#         level=40 # ERROR
+        level=50 # CRITICAL/FATAL
     )
-    log.addHandler(logging.StreamHandler())
-
-    # XXX: Disable hacked XRoar trace
-    import cpu6809; cpu6809.trace_file = None
 
     unittest.main(
         argv=(
