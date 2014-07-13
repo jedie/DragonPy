@@ -303,7 +303,7 @@ loop:
                 self.assertEqual(self.cpu.cc.Z, 0)
 
             # test overflow
-            if r in (0x80, 0x00):
+            if r == 0x80:
                 self.assertEqual(self.cpu.cc.V, 1)
             else:
                 self.assertEqual(self.cpu.cc.V, 0)
@@ -319,7 +319,9 @@ loop:
             ])
             r = self.cpu.accu_b.get()
             excpected_value = excpected_values[i]
-#             print i, r, excpected_value, self.cpu.cc.get_info
+#             print "%5s $%02x > INC > $%02x | CC:%s" % (
+#                 i, i, r, self.cpu.cc.get_info
+#             )
 
             # test INC value from RAM
             self.assertEqual(r, excpected_value)
@@ -338,7 +340,7 @@ loop:
                 self.assertEqual(self.cpu.cc.Z, 0)
 
             # test overflow
-            if r in (0x80, 0x00):
+            if r == 0x80:
                 self.assertEqual(self.cpu.cc.V, 1)
             else:
                 self.assertEqual(self.cpu.cc.V, 0)
@@ -638,14 +640,11 @@ if __name__ == '__main__':
     )
     log.addHandler(logging.StreamHandler())
 
-    # XXX: Disable hacked XRoar trace
-    import cpu6809; cpu6809.trace_file = None
-
     unittest.main(
         argv=(
             sys.argv[0],
 #            "Test6809_Arithmetic",
-#            "Test6809_Arithmetic.test_ABX",
+            "Test6809_Arithmetic.test_INCB",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,

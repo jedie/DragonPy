@@ -1343,6 +1343,14 @@ class CPU(object):
 #        ))
         register.set(r)
 
+    def INC(self, a):
+        r = a + 1
+        self.cc.clear_NZV()
+        self.cc.update_NZ_8(r)
+        if r == 0x80:
+            self.cc.V = 1
+        return r
+
     @opcode(# Increment accumulator
         0x4c, # INCA (inherent)
         0x5c, # INCB (inherent)
@@ -1360,10 +1368,8 @@ class CPU(object):
         CC bits "HNZVC": -aaa-
         """
         a = register.get()
-        r = register.set(a + 1)
-        self.cc.clear_NZV()
-        self.cc.update_NZV_8(a=a, b=1, r=r)
-
+        r = self.INC(a)
+        r = register.set(r)
 
     @opcode(# Increment memory location
         0xc, 0x6c, 0x7c, # INC (direct, indexed, extended)
@@ -1380,16 +1386,8 @@ class CPU(object):
 
         CC bits "HNZVC": -aaa-
         """
-        r = m + 1 & 0xff # &0xff here, so that update_NZV_8() will set V on $80, too!
-
-#        log.debug("$%x INC memory value $%x +1 = $%x and write it to $%x \t| %s" % (
-#            self.program_counter,
-#            m, r, ea,
-#            self.cfg.mem_info.get_shortest(ea)
-#        ))
-        self.cc.clear_NZV()
-        self.cc.update_NZV_8(a=m, b=1, r=r)
-        return ea, r
+        r = self.INC(m)
+        return ea, r & 0xff
 
     @opcode(# Load effective address into an indexable register
         0x32, # LEAS (indexed)
