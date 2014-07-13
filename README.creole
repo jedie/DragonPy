@@ -231,6 +231,15 @@ It looks like this:
 # implement Dragon 32 periphery
 # use Python multiprocessing module
 
+
+unimplemented OPs:
+
+ * RESET
+ * RTI
+ * SWI / SWI2 / SWI3
+ * SYNC
+
+
 missing unittests after coverage run:
  
  * ea relative byte
@@ -238,11 +247,7 @@ missing unittests after coverage run:
  * DAA
  * MUL
  * SEX
- * BRN
- * BVC
  * BVS
- * LSR memory
- * ROR memory
 
 
 == Links
