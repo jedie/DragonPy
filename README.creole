@@ -2,15 +2,13 @@
 
 A Open source (GPL v3 or later) emulator for the 30years old homecomputer {{{Dragon 32}}}...
 
-It's in a eary development state and not usable, yet.
+It's in a early development state and not usable, yet.
 A usable Dragon / CoCo emulator is [[http://www.6809.org.uk/dragon/xroar.shtml|XRoar]].
 
 DragonPy will not be a second XRoar written in Python.
 This project is primarily to lean and understand.
 
-The first target is to be able to run sbc09 and the Simple6809 design.
-sbc09 stands for Lennart Benschop 6809 Single Board Computer, read: [[https://github.com/jedie/DragonPy/tree/master/dragonpy/sbc09|/dragonpy/sbc09/README]]
-More info about Simple6809, read: [[https://github.com/jedie/DragonPy/blob/master/dragonpy/Simple6809/README.creole|/dragonpy/Simple6809/README.creole]]
+Currently you can run "single board computer" ROMs like: sbc09, Simple6809 and Multicomp6809.
 
 Future goals are:
 * run Dragon 32 ROMs (maybe in far future: Dragon 64)
@@ -49,10 +47,22 @@ Just request http://localhost:6809 from your browser.
 [[https://travis-ci.org/jedie/DragonPy|Travis CI Status]]: {{https://secure.travis-ci.org/jedie/DragonPy.svg?branch=master|DragonPy build status on travis-ci.org}}
 * https://travis-ci.org/jedie/DragonPy
 
-[[https://coveralls.io/r/jedie/DragonPy|Coveralls Status]]: {{https://img.shields.io/coveralls/jedie/DragonPy.svg|DragonPy status on coveralls.io}}
-* https://coveralls.io/r/jedie/DragonPy
+{# [[https://coveralls.io/r/jedie/DragonPy|Coveralls Status]]: {{https://img.shields.io/coveralls/jedie/DragonPy.svg|DragonPy status on coveralls.io}} #}
+{# * https://coveralls.io/r/jedie/DragonPy #}
 
 === run unittests ===
+
+You should use PyPy to run all tests. It's around 10 time faster.
+
+{{{
+.../path/to/DragonPy$ pypy -m unittest discover
+}}}
+or:
+{{{
+.../path/to/DragonPy$ pypy setup.py test
+}}}
+
+Use normal Python:
 
 {{{
 .../path/to/DragonPy$ python2 -m unittest discover
@@ -61,6 +71,7 @@ or:
 {{{
 .../path/to/DragonPy$ python2 setup.py test
 }}}
+
 
 === create coverage report ===
 
@@ -145,10 +156,8 @@ The v09 trace file here: **~/v09_trace.txt**
 
 == current status
 
-sbc09 works quite well almost:
+sbc09, Simple6809 and Multicomp6809 seems to work:
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/DragonPy_sbc09_01.png}}
-
-Simple6809 and Multicomp6809 ROMs works a little bit.
 
 First GUI used a simple Tkinter windows.
 Looks like this (outdated):
@@ -182,7 +191,7 @@ OK
 
 === performance
 
-The current implementation is not optimised.
+The current implementation is not optimized.
 
 With CPython there is round about 235.000 CPU cycles/sec.
 
@@ -219,7 +228,6 @@ It looks like this:
 
 == TODO:
 
-# Bugfix CPU to run Simple6809 BASIC interpreter
 # implement Dragon 32 periphery
 # use Python multiprocessing module
 
@@ -238,6 +246,16 @@ missing unittests after coverage run:
 
 
 == Links
+
+ * Grant Searle's Multicomp FPGA project:
+ ** Homepage: http://searle.hostei.com/grant/Multicomp/
+ ** own [[https://github.com/jedie/DragonPy/tree/master/dragonpy/Multicomp6809#readme|dragonpy/Multicomp6809/README]]
+ * Lennart Benschop 6809 Single Board Computer:
+ ** Homepage: http://lennartb.home.xs4all.nl/m6809.html
+ ** own [[https://github.com/jedie/DragonPy/tree/master/dragonpy/sbc09#readme|dragonpy/sbc09/README]]
+ * Grant Searle's Simple 6809 design:
+ ** Homepage: http://searle.hostei.com/grant/6809/Simple6809.html
+ ** own [[https://github.com/jedie/DragonPy/tree/master/dragonpy/Simple6809#readme|dragonpy/Simple6809/README]]
 
 Some links:
 
@@ -259,18 +277,6 @@ Dragon 32 resources:
 
  * Forum: http://archive.worldofdragon.org/phpBB3/index.php
  * Wiki: http://archive.worldofdragon.org/index.php?title=Main_Page
-
-other resources:
-
- * Grant Searle's Multicomp FPGA project:
- ** Homepage: http://searle.hostei.com/grant/Multicomp/
- ** own [[https://github.com/jedie/DragonPy/tree/master/dragonpy/Simple6809#readme|dragonpy/Simple6809/README]]
- * Lennart Benschop 6809 Single Board Computer:
- ** Homepage: http://lennartb.home.xs4all.nl/m6809.html
- ** own [[https://github.com/jedie/DragonPy/tree/master/dragonpy/sbc09#readme|dragonpy/sbc09/README]]
- * Grant Searle's Simple 6809 design:
- ** Homepage: http://searle.hostei.com/grant/6809/Simple6809.html
- ** own [[https://github.com/jedie/DragonPy/tree/master/dragonpy/Multicomp6809#readme|dragonpy/Multicomp6809/README]]
 
 
 == Credits
