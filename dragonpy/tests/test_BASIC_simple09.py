@@ -87,7 +87,7 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
         op_call_count, cycles, output = self._run_until_OK(
             OK_count=2, max_ops=8500
         )
-        print op_call_count, cycles, output
+#         print op_call_count, cycles, output
         self.assertEqual(output,
             ['A$="B"\r\n', 'OK\r\n', '?A$\r\n', 'B\r\n', 'OK\r\n']
         )
@@ -170,7 +170,7 @@ class Test_simple6809_BASIC_NumericFunctions(Test6809_BASIC_simple6809_Base):
     def test_ABS(self):
         self.periphery.add_to_input_queue('?ABS(-2)\r\n')
         op_call_count, cycles, output = self._run_until_OK(max_ops=7900)
-        print op_call_count, cycles, output
+#         print op_call_count, cycles, output
         self.assertEqual(output,
             ['?ABS(-2)\r\n', ' 2 \r\n', 'OK\r\n']
         )
@@ -178,7 +178,7 @@ class Test_simple6809_BASIC_NumericFunctions(Test6809_BASIC_simple6809_Base):
     def test_ATN(self):
         self.periphery.add_to_input_queue('?ATN(2)\r\n')
         op_call_count, cycles, output = self._run_until_OK(max_ops=17200)
-        print op_call_count, cycles, output
+#         print op_call_count, cycles, output
         self.assertEqual(output,
             ['?ATN(2)\r\n', ' 1.10714872 \r\n', 'OK\r\n']
         )
@@ -186,7 +186,7 @@ class Test_simple6809_BASIC_NumericFunctions(Test6809_BASIC_simple6809_Base):
     def test_COS(self):
         self.periphery.add_to_input_queue('?COS(3)\r\n')
         op_call_count, cycles, output = self._run_until_OK(max_ops=15000)
-        print op_call_count, cycles, output
+#         print op_call_count, cycles, output
         self.assertEqual(output,
             ['?COS(3)\r\n', '-.989992497 \r\n', 'OK\r\n']
         )
@@ -194,7 +194,7 @@ class Test_simple6809_BASIC_NumericFunctions(Test6809_BASIC_simple6809_Base):
     def test_EXP(self):
         self.periphery.add_to_input_queue('?EXP(10)\r\n')
         op_call_count, cycles, output = self._run_until_OK(max_ops=14000)
-        print op_call_count, cycles, output
+#         print op_call_count, cycles, output
         self.assertEqual(output,
             ['?EXP(10)\r\n', ' 22026.4658 \r\n', 'OK\r\n']
         )
@@ -202,7 +202,7 @@ class Test_simple6809_BASIC_NumericFunctions(Test6809_BASIC_simple6809_Base):
     def test_FIX(self):
         self.periphery.add_to_input_queue('?FIX(-7.4)\r\n')
         op_call_count, cycles, output = self._run_until_OK(max_ops=11000)
-        print op_call_count, cycles, output
+#         print op_call_count, cycles, output
         self.assertEqual(output,
             ['?FIX(-7.4)\r\n', '-7 \r\n', 'OK\r\n']
         )
@@ -210,10 +210,176 @@ class Test_simple6809_BASIC_NumericFunctions(Test6809_BASIC_simple6809_Base):
     def test_INT(self):
         self.periphery.add_to_input_queue('?INT(-7.4)\r\n')
         op_call_count, cycles, output = self._run_until_OK(max_ops=11000)
-        print op_call_count, cycles, output
+#         print op_call_count, cycles, output
         self.assertEqual(output,
             ['?INT(-7.4)\r\n', '-8 \r\n', 'OK\r\n']
         )
+
+    def test_LOG(self):
+        self.periphery.add_to_input_queue('?LOG(2)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=13000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?LOG(2)\r\n', ' .693147181 \r\n', 'OK\r\n']
+        )
+
+    def test_PEEK(self):
+        addr = 0x03FF
+        value = 0x5b
+        self.cpu.memory.write_byte(addr, value)
+        self.periphery.add_to_input_queue('?PEEK(%s)\r\n' % addr)
+        op_call_count, cycles, output = self._run_until_OK(max_ops=9000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output, [
+            '?PEEK(%i)\r\n' % addr,
+            ' %i \r\n' % value,
+            'OK\r\n'
+        ])
+
+    def test_POKE(self):
+        addr = 0x03FF
+        value = 12
+        self.cpu.memory.write_byte(addr, 0xff)
+        self.periphery.add_to_input_queue('POKE%i,%i\r\n' % (addr, value))
+        op_call_count, cycles, output = self._run_until_OK(max_ops=4600)
+#         print op_call_count, cycles, output
+        self.assertEqual(output, [
+            'POKE%i,%i\r\n' % (addr, value),
+            'OK\r\n'
+        ])
+        self.assertEqualHexByte(self.cpu.memory.read_byte(addr), value)
+
+    def test_RND(self): # FIXME: How to test is better?
+        self.periphery.add_to_input_queue('?RND(1)\r\n') # will always return 1
+        op_call_count, cycles, output = self._run_until_OK(max_ops=9000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?RND(1)\r\n', ' 1 \r\n', 'OK\r\n']
+        )
+
+    def test_SGN(self):
+        self.periphery.add_to_input_queue('?SGN(10):?SGN(0):?SGN(-3)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=21000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output, [
+            '?SGN(10):?SGN(0):?SGN(-3)\r\n',
+            ' 1 \r\n', ' 0 \r\n', '-1 \r\n',
+            'OK\r\n'
+        ])
+
+    def test_SIN(self):
+        self.periphery.add_to_input_queue('?SIN(12)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=15000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?SIN(12)\r\n', '-.536572917 \r\n', 'OK\r\n']
+        )
+
+    def test_SQR(self):
+        self.periphery.add_to_input_queue('?SQR(2)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=20000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?SQR(2)\r\n', ' 1.41421356 \r\n', 'OK\r\n']
+        )
+
+    def test_TAN(self):
+        self.periphery.add_to_input_queue('?TAN(5)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=20400)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?TAN(5)\r\n', '-3.38051501 \r\n', 'OK\r\n']
+        )
+
+    def test_CHR(self):
+        self.periphery.add_to_input_queue('?CHR$(64)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=6000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?CHR$(64)\r\n', '@\r\n', 'OK\r\n']
+        )
+
+    def test_HEX(self):
+        self.periphery.add_to_input_queue('?HEX$(30)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=6100)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?HEX$(30)\r\n', '1E\r\n', 'OK\r\n']
+        )
+
+    def test_STR(self):
+        self.periphery.add_to_input_queue('?STR$(12.34)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=12000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?STR$(12.34)\r\n', ' 12.34\r\n', 'OK\r\n']
+        )
+
+    def test_LEFT(self):
+        self.periphery.add_to_input_queue('?LEFT$("ABCD",2)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=8000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?LEFT$("ABCD",2)\r\n', 'AB\r\n', 'OK\r\n']
+        )
+
+    def test_MID(self):
+        self.periphery.add_to_input_queue('?MID$("ABCDE",2,3)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=10000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?MID$("ABCDE",2,3)\r\n', 'BCD\r\n', 'OK\r\n']
+        )
+
+    def test_RIGHT(self):
+        self.periphery.add_to_input_queue('?RIGHT$("ABCD",2)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=8000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?RIGHT$("ABCD",2)\r\n', 'CD\r\n', 'OK\r\n']
+        )
+
+    def test_STRING(self):
+        self.periphery.add_to_input_queue('?STRING$(4,"*")\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=8000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?STRING$(4,"*")\r\n', '****\r\n', 'OK\r\n']
+        )
+
+    def test_ASC(self):
+        self.periphery.add_to_input_queue('X$="@":?ASC(X$)\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=15000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['X$="@":?ASC(X$)\r\n', ' 64 \r\n', 'OK\r\n']
+        )
+
+    def test_INSTR(self):
+        self.periphery.add_to_input_queue('?INSTR(2,"ABCDABCD","A")\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=13000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?INSTR(2,"ABCDABCD","A")\r\n', ' 5 \r\n', 'OK\r\n']
+        )
+
+    def test_LEN(self):
+        self.periphery.add_to_input_queue('?LEN("FOO")\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=7500)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?LEN("FOO")\r\n', ' 3 \r\n', 'OK\r\n']
+        )
+
+    def test_VAL(self):
+        self.periphery.add_to_input_queue('?VAL("12")\r\n')
+        op_call_count, cycles, output = self._run_until_OK(max_ops=8000)
+#         print op_call_count, cycles, output
+        self.assertEqual(output,
+            ['?VAL("12")\r\n', ' 12 \r\n', 'OK\r\n']
+        )
+
+
 
 class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
     def assertFPA(self, value, start, end):
@@ -497,7 +663,8 @@ if __name__ == '__main__':
             sys.argv[0],
 #             "Test_simple6809_BASIC.test_print04",
 
-            "Test_simple6809_BASIC_Float1",
+#             "Test_simple6809_BASIC_Float1",
+#             "Test_simple6809_BASIC_NumericFunctions",
 #             "Test_simple6809_BASIC_Float2",
 #            "Test_simple6809_BASIC_Float2.test_divide_FPA0_by_10",
 #            "Test_simple6809_BASIC_Float2.test_FPA0_to_D",
