@@ -9,3 +9,7 @@ script:
 #  coverage run --source=dragonpy setup.py test
 #after_success:
 #  coveralls
+branches:
+  only:
+    - master
+    - stable
