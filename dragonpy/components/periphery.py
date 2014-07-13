@@ -168,7 +168,9 @@ class TkPeripheryBase(PeripheryBase):
 
     def __init__(self, cfg):
         super(TkPeripheryBase, self).__init__(cfg)
+        assert Tkinter is not None, "ERROR: Tkinter can't be used, see import error above!"
         self.root = Tkinter.Tk()
+
         self.root.title(self.TITLE)
 #         self.root.geometry() # '640x480+500+300') # X*Y + x/y-offset
         self.root.geometry(self.GEOMETRY) # Change initial position

@@ -34,8 +34,6 @@ class UnittestCmdArgs(object):
     rom = None
     verbosity = None
     max = None
-    area_debug_active = None
-    area_debug_cycles = None
 
     # print CPU cycle/sec while running
     display_cycle = False
@@ -162,7 +160,7 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
     """
     TEMP_FILE = os.path.join(tempfile.gettempdir(), "BASIC_simple6809_unittests.dat")
     print "CPU state pickle file: %r" % TEMP_FILE
-    #os.remove(TEMP_FILE);print "Delete CPU date file!"
+    # os.remove(TEMP_FILE);print "Delete CPU date file!"
 
     @classmethod
     def setUpClass(cls):

@@ -84,12 +84,6 @@ class DragonPyCLI(Base_CLI):
         self.parser.add_argument("--max", type=int,
             help="If given: Stop CPU after given cycles else: run forever"
         )
-        self.parser.add_argument("--area_debug_active",
-            help="Debug in PC area: <level>:<start>-<end> - e.g.: --area_debug_active=10:db79-ffff"
-        )
-        self.parser.add_argument("--area_debug_cycles", type=int,
-            help="activate debug after CPU cycles",
-        )
 
     def setup_cfg(self):
         args = self.parse_args()
@@ -106,6 +100,7 @@ class DragonPyCLI(Base_CLI):
         #     url = "http://%s:%s" % (self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT)
         #     webbrowser.open(url)
 
+        print "use cfg:", self.cfg.config_name
         dragon = Dragon(self.cfg)
         dragon.run()
 

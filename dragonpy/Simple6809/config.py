@@ -59,25 +59,11 @@ class Simple6809Cfg(BaseConfig):
 
         self.periphery_class = Simple6809Periphery
 
-        """
-0077                         ** FLOATING POINT ACCUMULATOR #0                      
-0078 004f                    FP0EXP    RMB  1              *PV FLOATING POINT ACCUMULATOR #0 EXPONENT 
-0079 0050                    FPA0      RMB  4              *PV FLOATING POINT ACCUMULATOR #0 MANTISSA 
-0080 0054                    FP0SGN    RMB  1              *PV FLOATING POINT ACCUMULATOR #0 SIGN 
-0081 0055                    COEFCT    RMB  1              POLYNOMIAL COEFFICIENT COUNTER 
-0082 0056                    STRDES    RMB  5              TEMPORARY STRING DESCRIPTOR 
-0083 005b                    FPCARY    RMB  1              FLOATING POINT CARRY BYTE 
-0084                         ** FLOATING POINT ACCUMULATOR #1                      
-0085 005c                    FP1EXP    RMB  1              *PV FLOATING POINT ACCUMULATOR #1 EXPONENT 
-0086 005d                    FPA1      RMB  4              *PV FLOATING POINT ACCUMULATOR #1 MANTISSA 
-0087 0061                    FP1SGN    RMB  1              *PV FLOATING POINT ACCUMULATOR #1 SIGN 
-0088 0062                    RESSGN    RMB  1              SIGN OF RESULT OF FLOATING POINT OPERATION 
-        """
         self.memory_callbacks = {
 #            (0x004f, 0x0054): (None, self.float_accu_write0),
 #            (0x005c, 0x0061): (None, self.float_accu_write1),
         }
-    
+
     def float_accu_write0(self, cpu, addr, value):
         print "%04x| Write float accu 0 $%x to $%x %s" % (
             cpu.last_op_address, value, addr,
@@ -102,8 +88,6 @@ def test_run():
 #        "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
         "--verbosity=50", # CRITICAL/FATAL
-
-#         "--area_debug_cycles=23383", # First OK after copyright info
 
         "--cfg=Simple6809",
 #         "--max=500000",

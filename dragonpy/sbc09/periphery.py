@@ -6,14 +6,15 @@
     =======================================
 
 
-    :created: 2013 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :created: 2013-2014 by Jens Diemer - www.jensdiemer.de
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 import threading
 import logging
 import sys
+import os
 
 try:
     import Tkinter
@@ -23,7 +24,7 @@ except Exception, err:
 
 from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase
 
-log = logging.getLogger("DragonPy.Periphery")
+log = logging.getLogger("DragonPy.sbc09Periphery")
 
 
 
@@ -33,22 +34,22 @@ class SBC09PeripheryBase(PeripheryBase):
     TITLE = "DragonPy - Buggy machine language monitor and rudimentary O.S. version 1.0"
     INITAL_INPUT = (
         # Dump registers
-#         'r\r\n'
+        'r\r\n'
 
         # SSaddr,len - Dump memory region as Motorola S records.
-#         'ss\r\n'
+        'ss\r\n'
 
         # Daddr,len - Dump memory region
-#         'DE5E2\r\n'
+        'DE5E2\r\n'
 
         # Iaddr - Display the contents of the given address.
-#         'IE001\r\n' # e.g.: Show the ACIA status
+        'IE001\r\n' # e.g.: Show the ACIA status
 
         # Uaddr,len - Diassemble memory region
-#         'UE400\r\n'
+        'UE400\r\n'
 
         # Calculate simple expression in hex with + and -
-#         'H4444+A5\r\n'
+        'H4444+A5\r\n'
 
         #
 #         "UE400,20\r\n"
@@ -105,10 +106,6 @@ class SBC09PeripheryBase(PeripheryBase):
 class SBC09PeripheryTk(SBC09PeripheryBase, TkPeripheryBase):
     GEOMETRY = "+500+300"
 
-    INITAL_INPUT = "\r\n".join([
-        "UE400"
-    ]) + "\r\n"
-
 
 class DummyStdout(object):
     def dummy_func(self, *args):
@@ -150,24 +147,22 @@ class SBC09PeripheryConsole(SBC09PeripheryBase):
 
 
 # SBC09Periphery = SBC09PeripherySerial
-SBC09Periphery = SBC09PeripheryTk
-# SBC09Periphery = SBC09PeripheryConsole
+# SBC09Periphery = SBC09PeripheryTk
+SBC09Periphery = SBC09PeripheryConsole
 
 
 def test_run():
     import subprocess
-    cmd_args = [sys.executable,
-        "DragonPy_CLI.py",
+    cmd_args = [
+#         sys.executable,
+        "/usr/bin/pypy",
+        os.path.join("..", "DragonPy_CLI.py"),
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-        "--verbosity=30", # WARNING
+#         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
-
-#         "--area_debug_cycles=6355",
-#         "--area_debug_cycles=20241",
-#         "--area_debug_cycles=44983",
+        "--verbosity=50", # CRITICAL/FATAL
 
         "--cfg=sbc09",
 #         "--max=500000",

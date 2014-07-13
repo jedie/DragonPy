@@ -105,11 +105,6 @@ class Multicomp6809PeripheryTk(TkPeripheryBase, Multicomp6809PeripheryBase):
         'RUN',
         '',
         'LIST',
-
-        '?-1.2', # Should be: -1.2       but is: -1.75
-        '?5/3',  # should be: 1.66666667 but is: 1.25
-        '?6/5',  # should be: 1.2        but is: 1.75
-
     ]) + "\r\n"
 
     def event_return(self, event):
@@ -134,7 +129,9 @@ Multicomp6809Periphery = Multicomp6809PeripheryTk
 
 def test_run():
     import subprocess
-    cmd_args = [sys.executable,
+    cmd_args = [
+        sys.executable,
+#         "/usr/bin/pypy",
         os.path.join("..", "DragonPy_CLI.py"),
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
@@ -143,7 +140,6 @@ def test_run():
 #         "--verbosity=40", # ERROR
         "--verbosity=50", # CRITICAL/FATAL
 
-#         "--area_debug_cycles=1635000", # First OK after copyright info
 #                       "--max=1660000",
 #         "--max=1000",
 

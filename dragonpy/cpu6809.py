@@ -27,7 +27,6 @@ import os
 import select
 import socket
 import sys
-import time
 
 
 import MC6809data.MC6809_data_raw2 as MC6809_data
@@ -45,7 +44,7 @@ from dragonpy.cpu_utils.signed import signed8, signed16, signed5, unsigned8
 
 
 log = logging.getLogger("DragonPy.cpu6809")
-#HTML_TRACE = True
+# HTML_TRACE = True
 HTML_TRACE = False
 
 
@@ -215,23 +214,7 @@ class CPU(object):
 
     def __init__(self, cfg):
         self.cfg = cfg
-        log.info("Use config: %s", cfg)
-
-        if self.cfg.area_debug is not None:
-            self.area_debug_active = False
-            log.warn(
-                "Activate area debug: Set debug level to %i from $%x to $%x" % self.cfg.area_debug
-            )
-
-        if self.cfg.area_debug_cycles is not None:
-            log.critical("Activate debug after CPU cycle %i (%s)",
-                self.cfg.area_debug_cycles, __file__
-            )
-
-        if self.cfg.max_cpu_cycles is not None:
-            log.warn(
-                "--max set: Stop CPU after %i cycles" % self.cfg.max_cpu_cycles
-            )
+        sys.stderr.write("Startup 6809 with %s and config: %s\n" % (sys.executable, cfg))
 
         self.memory = Memory(self, cfg)
 
@@ -311,8 +294,6 @@ class CPU(object):
         self.running = True
         self.quit = False
 
-        self.setup_trace_compare()
-
     def get_state(self):
         """
         used in unittests
@@ -357,31 +338,6 @@ class CPU(object):
 
         self.cycles = state["cycles"]
         self.memory.ram._mem = state["RAM"]
-
-    def setup_trace_compare(self):
-        self.xroar_trace_file = None
-        self.v09_trace_file = None
-
-        if not self.cfg.compare_trace:
-            return
-
-        if self.cfg.__class__.__name__ == "Dragon32Cfg":
-            # XRoar bugtracking only with Dragon 32
-            try:
-                self.xroar_trace_file = open(os.path.expanduser(r"~/xroar_trace.txt"), "r")
-            except IOError, err:
-                log.error("No XRoar trace file: %s" % err)
-                sys.exc_clear() # clears all information relating this exception
-            else:
-                self.xroar_trace_file.readline() # Skip reset line
-
-        if self.cfg.__class__.__name__ == "SBC09Cfg":
-            # v09 bugtrackung only with sbc09
-            try:
-                self.v09_trace_file = open(os.path.expanduser(r"~/v09_trace.txt"), "r")
-            except IOError, err:
-                log.error("No trace file: %s" % err)
-                sys.exc_clear() # clears all information relating this exception
 
     ####
 
@@ -459,13 +415,6 @@ class CPU(object):
     last_trace_line = None
     trace_line_no = 0
     def call_instruction_func(self, op_address, opcode):
-
-#         if self.last_op_address == op_address:
-#             # endless loop?
-#             activate_full_debug_logging()
-#             log.error("Endless loop???")
-
-#         old_op_address = self.last_op_address
         self.last_op_address = op_address
         try:
             instruction = self.opcode_dict[opcode]
@@ -474,20 +423,7 @@ class CPU(object):
             log.error(msg)
             sys.exit(msg)
 
-        try:
-            instruction.call_instr_func()
-#         if opcode not in (0x10, 0x11):
-#         assert op_address != old_op_address, "$%x| Endless loop!" % opcode
-        except Exception, err:
-            # Display the op information log messages
-            activate_full_debug_logging()
-            log.info("Activate debug at $%x", op_address)
-
-            # raise the error later, after op information log messages
-            etype, evalue, etb = sys.exc_info()
-            evalue = etype("%s\n   kwargs: %s" % (evalue, hex_repr(instruction.op_kwargs)))
-        else:
-            etype = None
+        instruction.call_instr_func()
 
         if log.level <= logging.INFO:
             kwargs_info = []
@@ -510,159 +446,8 @@ class CPU(object):
                 "cc": self.cc.get_info,
                 "mem": self.cfg.mem_info.get_shortest(op_address)
             }
-#             if mnemonic in DEBUG_INSTR:
-#                 if "ea" in self.op_kwargs:
-#                     if self.OLD_EA != self.op_kwargs["ea"]:
-#                         self.OLD_EA = self.op_kwargs["ea"]
-#                         log.error(msg)
-#                     else:
-#                         log.info(msg)
-#                 else:
-#                     log.error(msg)
-#             else:
             log.info(msg)
-
-            if self.v09_trace_file is not None: # Hacked sbc09 bugtracking...
-                if opcode in (0x10, 0x11): # PAGE 1/2 instructions
-                    return
-
-                if self.v09_trace_file is not None and self.last_trace_line is None:
-                    self.last_trace_line = self.v09_trace_file.readline()
-                    self.trace_line_no += 1
-                ref_line = self.v09_trace_file.readline()
-                self.trace_line_no += 1
-                if ref_line == "":
-                    log.error("no sbc09 log line (CPU cycles: %i)", self.cycles)
-                    return
-
-                log.info("sbc09: %s", ref_line)
-                pc = int(self.last_trace_line[3:7], 16)
-                if pc != op_address:
-                    log.info("trace: %s" , ref_line)
-                    log.info("own..: %s" , msg)
-                    log.error("trace line number: %i - CPU cycles: %i", self.trace_line_no, self.cycles)
-                    err_msg = "programm counter (own: $%x != sbc09: $%x) not the same as trace reference!\n" % (
-                        op_address, pc
-                    )
-                    log.error(err_msg)
-                    if etype is None:
-                        raise RuntimeError(err_msg)
-
-                ref_ab = ref_line[44:53] # e.g.: a=ff b=57
-                own_ab = msg[52:61]
-                if own_ab != ref_ab:
-                    log.info("trace: %s" , ref_line)
-                    log.info("own..: %s" , msg)
-                    log.error("trace line number: %i - CPU cycles: %i", self.trace_line_no, self.cycles)
-                    err_msg = "'a' or 'b' (own: %s != sbc09: %s) not the same as trace reference!\n" % (
-                        own_ab, ref_ab
-                    )
-                    log.error(err_msg)
-#                     if etype is None:
-#                         raise RuntimeError(err_msg)
-
-                ref_xy_us = ref_line[16:43] # e.g.: x=e5e4 y=0000 u=0400 s=03e6
-                own_xy_us = msg[68:95]
-                if own_xy_us != ref_xy_us:
-                    log.info("trace: %s" , ref_line)
-                    log.info("own..: %s" , msg)
-                    log.error("trace line number: %i - CPU cycles: %i", self.trace_line_no, self.cycles)
-                    err_msg = "x,y,u or s (own: %s != sbc09: %s) not the same as trace reference!\n" % (
-                        own_xy_us, ref_xy_us
-                    )
-                    log.error(err_msg)
-#                     if etype is None:
-#                         raise RuntimeError(err_msg)
-
-                cc1 = msg[98:106]
-                ref_cc = int(ref_line[57:59], 16)
-                ref_cc = cc_value2txt(ref_cc)
-                if cc1 != ref_cc:
-                    log.info("trace: %s" , ref_line)
-                    log.info("own..: %s" , msg)
-                    log.error("trace line number: %i - CPU cycles: %i", self.trace_line_no, self.cycles)
-                    err_msg = "cc (own: %s != sbc09: %s) not the same as trace reference!\n" % (
-                        cc1, ref_cc
-                    )
-                    log.error(err_msg)
-#                     if etype is None:
-#                         raise RuntimeError(err_msg)
-
-                self.last_trace_line = ref_line
-
-
-            if self.xroar_trace_file is not None: # Hacked XRoar bugtracking...
-                if opcode in (0x10, 0x11): # PAGE 1/2 instructions
-                    return
-
-                ref_line = self.xroar_trace_file.readline()
-                if ref_line == "":
-                    log.error("no XRoar log line (CPU cycles: %i)", self.cycles)
-                    return
-
-                ref_line = ref_line.strip()
-
-                # Add CC register info, e.g.: .F.IN..C
-                xroar_cc = int(ref_line[49:51], 16)
-                xroar_cc = cc_value2txt(xroar_cc)
-                ref_line = "%s | %s" % (ref_line, xroar_cc)
-#                 log.info("%s | %s", ref_line, xroar_cc)
-                log.info("%s <<< XRoar", ref_line)
-
-                registers1 = msg[52:95]
-                registers2 = ref_line[52:95]
-                if registers1 != registers2:
-                    log.info("trace: %s" , ref_line)
-                    log.info("own..: %s" , msg)
-                    log.error("Error in CPU cycles: %i", self.cycles)
-                    log.error("registers (own: %r != XRoar: %r) not the same as trace reference!\n" % (
-                        registers1, registers2
-                    ))
-
-                cc1 = msg[98:106]
-                if cc1 != xroar_cc:
-                    log.info("trace: %s" , ref_line)
-                    log.info("own..: %s" , msg)
-                    log.error("Error in CPU cycles: %i", self.cycles)
-                    err_msg = "CC (own: %r != XRoar: %r) not the same as trace reference!\n" % (
-                        cc1, xroar_cc
-                    )
-                    log.error(err_msg)
-                    if registers1 == registers2 and etype is None:
-                        # same register values (except CC) but different CC
-                        raise RuntimeError(err_msg)
-
-                addr1 = msg.split("|", 1)[0]
-                addr2 = ref_line.split("|", 1)[0]
-                if addr1 != addr2:
-                    log.info("trace: %s", ref_line)
-                    log.info("own..: %s", msg)
-                    log.error("%04x|Error in CPU cycles: %i", op_address, self.cycles)
-                    log.error("address (own: %r != XRoar: %r) not the same as trace reference!\n" % (
-                        addr1, addr2
-                    ))
-
-                mnemonic1 = msg[11:18].strip()
-                mnemonic2 = ref_line[18:24].strip()
-                if mnemonic1 != mnemonic2:
-                    log.info("trace: %s", ref_line)
-                    log.info("own..: %s" , msg)
-                    log.error("%04x|Error in CPU cycles: %i", op_address, self.cycles)
-                    err_msg = "mnemonic (own: %r != XRoar: %r) not the same as trace reference!\n" % (
-                        mnemonic1, mnemonic2
-                    )
-                    log.error(err_msg)
-                    if etype is None:
-                        raise RuntimeError(err_msg)
-
-                log.debug("\t%s", repr(instruction.data))
-
             log.debug("-"*79)
-
-        if etype is not None:
-            # raise the error while calling instruction, above.
-            raise etype, evalue, etb
-
 
     @opcode(
         0x10, # PAGE 2 instructions
@@ -725,30 +510,6 @@ class CPU(object):
             self.get_and_call_next_op()
 
     ####
-
-    def get_CC(self):
-        """ 8 bit condition code register bits: E F H I N Z V C """
-        self.cc.status_as_byte()
-
-    def get_X(self):
-        """ return X - 16 bit index register """
-        return self.index_x
-
-    def get_Y(self):
-        """ return Y - 16 bit index register """
-        return self.index_y
-
-    def get_U(self):
-        """ return U - 16 bit user-stack pointer """
-        return self.user_stack_pointer
-
-    def get_S(self):
-        """ return S - 16 bit system-stack pointer """
-        return self._system_stack_pointer
-
-    def get_V(self):
-        """ return V - 16 bit variable inter-register """
-        return self.value_register
 
     @property
     def get_info(self):
@@ -831,34 +592,7 @@ class CPU(object):
 
     def _get_program_counter(self):
         return self._program_counter.get()
-
     def _set_program_counter(self, value):
-        if self.cfg.area_debug_cycles is not None:
-            if self.cycles >= self.cfg.area_debug_cycles:
-                activate_full_debug_logging()
-                log.debug("area debug activated after CPU cycle %i" % self.cycles)
-                self.cfg.area_debug_cycles = None
-
-        if self.cfg.area_debug is not None:
-            # cfg.area_debug = (level, start, end)
-            # TODO: make it workable with the other loggers
-            if not self.area_debug_active:
-                if value >= self.cfg.area_debug[1]: # start
-                    self.area_debug_active = True
-                    handler = logging.StreamHandler()
-                    handler.level = self.cfg.area_debug[0] # FIXME: Doesn't work?!?!
-                    log.handlers = (handler,)
-#                     log.addHandler(handler)
-                    log.info("Activate area debug at $%x", value)
-            else:
-                if value >= self.cfg.area_debug[2]: # end
-                    log.info("Deactivate area debug at $%x", value)
-                    self.area_debug_active = False
-                    self.cfg.area_debug = None
-#                     handler = log.handlers[-1]
-#                     log.removeHandler(handler)
-                    log.handlers = (logging.NullHandler(),)
-
         self._program_counter.set(value)
     program_counter = property(_get_program_counter, _set_program_counter)
 
@@ -2953,9 +2687,6 @@ def test_run():
 #         "--verbosity=50", # CRITICAL/FATAL
 #
 #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
-#
-#         "--area_debug_active=5:bb79-ffff",
-#         "--area_debug_cycles=1587101",
 #
 #         "--cfg=sbc09",
 #          "--cfg=Simple6809",

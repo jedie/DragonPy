@@ -47,11 +47,6 @@ class Dragon(object):
         self.cfg = cfg
         self.periphery = cfg.periphery_class(cfg)
 
-        if self.cfg.area_debug_cycles is not None:
-            log.critical("Activate debug after CPU cycle %i (%s)",
-                self.cfg.area_debug_cycles, __file__
-            )
-
         listener = socket.socket()
         listener.bind(("127.0.0.1", 0))
         listener.listen(0)
@@ -134,15 +129,6 @@ class Dragon(object):
             if should_quit is False:
                 log.critical("Exit DragonPy run loop.")
                 return
-
-            if self.cfg.area_debug_cycles is not None:
-                if cpu_cycles >= self.cfg.area_debug_cycles:
-                    activate_full_debug_logging()
-#                    log.debug("area debug activated after CPU cycle %i" % cpu_cycles)
-                    self.cfg.area_debug_cycles = None
-
-
-
 
 
 if __name__ == "__main__":

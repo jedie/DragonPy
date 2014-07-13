@@ -207,9 +207,6 @@ def test_run():
 #
 #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
 #
-#         "--area_debug_active=5:bb79-ffff",
-#         "--area_debug_cycles=1587101",
-#
         "--cfg=Dragon32",
 #
         "--display_cycle", # print CPU cycle/sec while running.
