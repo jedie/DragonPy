@@ -26,6 +26,7 @@ from dragonpy.sbc09.config import SBC09Cfg
 from dragonpy.sbc09.periphery import SBC09PeripheryConsole, \
     SBC09PeripheryUnittest
 from dragonpy.utils.logging_utils import setup_logging
+import hashlib
 
 
 log = logging.getLogger("DragonPy")
@@ -150,10 +151,12 @@ class TestCPU(object):
 
 
 def print_cpu_state_data(state):
+    print "cpu state data %r (ID:%i):" % (state.__class__.__name__, id(state))
     for k, v in sorted(state.items()):
         if k == "RAM":
             v = ",".join(["$%x" % i for i in v])
-        print "%r: %s" % (k, v)
+            print "\tSHA from RAM:", hashlib.sha224(v).hexdigest()
+        print "\t%r: %s" % (k, v)
 
 
 class Test6809_BASIC_simple6809_Base(BaseTestCase):
@@ -212,19 +215,19 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
             with open(cls.TEMP_FILE, "wb") as f:
                 pickle.dump(init_state, f)
                 print "Save CPU init state to: %r" % cls.TEMP_FILE
-            cls._init_state = init_state
+            cls.__init_state = init_state
         else:
             print "Load CPU init state from: %r" % cls.TEMP_FILE
-            cls._init_state = pickle.load(temp_file)
+            cls.__init_state = pickle.load(temp_file)
 
-#        print_cpu_state_data(cls._init_state)
+#        print_cpu_state_data(cls.__init_state)
 
     def setUp(self):
         """ restore CPU/Periphery state to a fresh startup. """
         self.periphery.user_input_queue = Queue.Queue()
         self.periphery.output_queue = Queue.Queue()
         self.periphery.out_lines = []
-        self.cpu.set_state(self._init_state)
+        self.cpu.set_state(self.__init_state)
 #         print_cpu_state_data(self.cpu.get_state())
 
     def _run_until_OK(self, OK_count=1, max_ops=5000):
@@ -258,7 +261,7 @@ class Test6809_sbc09_Base(BaseTestCase):
         "DragonPy_sbc09_unittests.dat"
     )
     print "CPU state pickle file: %r" % TEMP_FILE
-#    os.remove(TEMP_FILE);print "Delete CPU date file!"
+#     os.remove(TEMP_FILE);print "Delete CPU date file!"
 
     @classmethod
     def setUpClass(cls, cmd_args=None):
@@ -302,19 +305,19 @@ class Test6809_sbc09_Base(BaseTestCase):
             with open(cls.TEMP_FILE, "wb") as f:
                 pickle.dump(init_state, f)
                 print "Save CPU init state to: %r" % cls.TEMP_FILE
-            cls._init_state = init_state
+            cls.__init_state = init_state
         else:
             print "Load CPU init state from: %r" % cls.TEMP_FILE
-            cls._init_state = pickle.load(temp_file)
+            cls.__init_state = pickle.load(temp_file)
 
-#        print_cpu_state_data(cls._init_state)
+#         print_cpu_state_data(cls.__init_state)
 
     def setUp(self):
         """ restore CPU/Periphery state to a fresh startup. """
         self.periphery.user_input_queue = Queue.Queue()
         self.periphery.output_queue = Queue.Queue()
         self.periphery.out_lines = []
-        self.cpu.set_state(self._init_state)
+        self.cpu.set_state(self.__init_state)
 #         print_cpu_state_data(self.cpu.get_state())
 
     def _run_until_OK(self, OK_count=1, max_ops=5000):
@@ -335,6 +338,24 @@ class Test6809_sbc09_Base(BaseTestCase):
 
         msg = "ERROR: Abort after %i op calls (%i cycles)" % (
             op_call_count, (self.cpu.cycles - old_cycles)
+        )
+        raise self.failureException(msg)
+
+    def _run_until_newlines(self, newline_count=1, max_ops=5000):
+        old_cycles = self.cpu.cycles
+        output = []
+        for op_call_count in xrange(max_ops):
+            self.cpu.get_and_call_next_op()
+            out_lines = self.periphery.out_lines
+            if out_lines:
+                output += out_lines
+                if len(output) >= newline_count:
+                    cycles = self.cpu.cycles - old_cycles
+                    return op_call_count, cycles, output
+                self.periphery.out_lines = []
+
+        msg = "ERROR: Abort after %i op calls (%i cycles) newline count: %i" % (
+            op_call_count, (self.cpu.cycles - old_cycles), len(output)
         )
         raise self.failureException(msg)
 

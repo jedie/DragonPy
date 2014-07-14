@@ -153,8 +153,8 @@ class SBC09PeripheryUnittest(SBC09PeripheryBase):
         self.out_lines = []
 
     def new_output_char(self, char):
-        sys.stdout.write(char)
-        sys.stdout.flush()
+#         sys.stdout.write(char)
+#         sys.stdout.flush()
         self._out_buffer += char
         if char == "\n":
             self.out_lines.append(self._out_buffer)
@@ -179,7 +179,7 @@ def test_run():
 #         "--verbosity=40", # ERROR
         "--verbosity=50", # CRITICAL/FATAL
 
-        "--trace",
+#         "--trace",
 
         "--cfg=sbc09",
 #         "--max=500000",

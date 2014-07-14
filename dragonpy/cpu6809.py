@@ -140,7 +140,7 @@ class CPU(object):
         """
         used in unittests
         """
-        state = {
+        return {
             REG_X: self.index_x.get(),
             REG_Y: self.index_y.get(),
 
@@ -156,9 +156,8 @@ class CPU(object):
             REG_CC: self.cc.get(),
 
             "cycles": self.cycles,
-            "RAM":self.memory.ram._mem[:], # copy of RAM
+            "RAM":self.memory.ram._mem,
         }
-        return state
 
     def set_state(self, state):
         """
@@ -179,7 +178,7 @@ class CPU(object):
         self.cc.set(state[REG_CC])
 
         self.cycles = state["cycles"]
-        self.memory.ram._mem = state["RAM"]
+        self.memory.ram._mem = state["RAM"][:] # copy of RAM
 
     ####
 
