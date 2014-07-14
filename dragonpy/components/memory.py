@@ -163,7 +163,7 @@ class Memory(object):
         elif self.cfg.ROM_START <= address <= self.cfg.ROM_END:
             byte = self.rom.read_byte(address)
         else:
-            msg = "reading outside memory area (PC:$%x)" % self.cpu.program_counter
+            msg = "reading outside memory area (PC:$%x)" % self.cpu.program_counter.get()
             self.cfg.mem_info(address, msg)
             msg2 = "%s: $%x" % (msg, address)
             log.warn(msg2)
@@ -209,7 +209,7 @@ class Memory(object):
             self.ram.write_byte(address, value)
         else:
             msg = "writing to %x is outside RAM end %x (PC:$%x)" % (
-                address, self.cfg.RAM_END, self.cpu.program_counter
+                address, self.cfg.RAM_END, self.cpu.program_counter.get()
             )
             self.cfg.mem_info(address, msg)
             msg2 = "%s: $%x" % (msg, address)

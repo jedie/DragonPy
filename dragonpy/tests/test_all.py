@@ -36,7 +36,7 @@ if __name__ == '__main__':
     test_runner = unittest.TextTestRunner(
 #         verbosity=1,
         verbosity=2,
-#         failfast=True,
+        failfast=True,
     )
 
     test_runner.run(tests)

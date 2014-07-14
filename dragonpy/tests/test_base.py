@@ -115,7 +115,7 @@ class BaseStackTestCase(BaseTestCase):
     INITIAL_USER_STACK_ADDR = 0x2000
     def setUp(self):
         super(BaseStackTestCase, self).setUp()
-        self.cpu._system_stack_pointer.set(self.INITIAL_SYSTEM_STACK_ADDR)
+        self.cpu.system_stack_pointer.set(self.INITIAL_SYSTEM_STACK_ADDR)
         self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
 
 
@@ -158,7 +158,7 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
     """
     TEMP_FILE = os.path.join(tempfile.gettempdir(), "BASIC_simple6809_unittests.dat")
     print "CPU state pickle file: %r" % TEMP_FILE
-    # os.remove(TEMP_FILE);print "Delete CPU date file!"
+#     os.remove(TEMP_FILE);print "Delete CPU date file!"
 
     @classmethod
     def setUpClass(cls, cmd_args=None):
@@ -185,7 +185,7 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
             print "init machine..."
             init_start = time.time()
             cpu.test_run(
-                start=cpu.program_counter,
+                start=cpu.program_counter.get(),
                 end=cfg.STARTUP_END_ADDR,
             )
             duration = time.time() - init_start
@@ -258,7 +258,7 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-            "BaseCPUTestCase",
+#             "BaseCPUTestCase",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,

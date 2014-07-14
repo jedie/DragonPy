@@ -56,7 +56,7 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
     def __init__(self):
 #         os.remove(self.TEMP_FILE);print "Delete CPU date file!"
         cmd_args = UnittestCmdArgs
-        cmd_args.trace = True
+#         cmd_args.trace = True
         self.setUpClass(cmd_args)
 
     def hello_world(self):
