@@ -204,9 +204,8 @@ class Simple6809PeripheryUnittest(Simple6809PeripheryBase):
         self.out_lines = []
 
     def new_output_char(self, char):
-        sys.stdout.write(char)
-        sys.stdout.flush()
-
+#        sys.stdout.write(char)
+#        sys.stdout.flush()
         self._out_buffer += char
         if char == "\n":
             self.out_lines.append(self._out_buffer)
