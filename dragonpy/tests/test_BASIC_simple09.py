@@ -661,7 +661,7 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-#             "Test_simple6809_BASIC.test_print04",
+            "Test_simple6809_BASIC.test_print01",
 
 #             "Test_simple6809_BASIC_Float1",
 #             "Test_simple6809_BASIC_NumericFunctions",

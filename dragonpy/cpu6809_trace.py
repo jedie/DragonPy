@@ -12,30 +12,52 @@
 """
 
 
-from dragonpy.cpu6809 import Instruction
 import sys
 import logging
+
+
+from dragonpy.MC6809data.MC6809_data_utils import get_opdata
+from dragonpy.cpu_utils.instruction_call import PrepagedInstructions
 
 
 log = logging.getLogger("DragonPy.cpu6809.trace")
 
 
-class InstructionTrace(Instruction):
+MC6809OP_DATA_DICT = get_opdata()
+
+
+class InstructionTrace(PrepagedInstructions):
     def __init__(self, *args, **kwargs):
         super(InstructionTrace, self).__init__(*args, **kwargs)
         self.cfg = self.cpu.cfg
         self.get_mem_info = self.cpu.cfg.mem_info.get_shortest
 
-    def call_instr_func(self, *args, **kwargs):
-        super(InstructionTrace, self).call_instr_func(*args, **kwargs)
+        self.__origin_instr_func = self.instr_func
+        self.instr_func = self.__call_instr_func
 
-        if self.opcode in (0x10, 0x11):
+#    def __getattribute__(self, attr, *args, **kwargs):
+#        if attr not in ("__call", "cpu", "memory", "instr_func"):
+#            return InstructionTrace.__call
+#            print attr, args, kwargs
+#        return PrepagedInstructions.__getattribute__(self, attr, *args, **kwargs)
+#
+#    def __call(self, func, *args, **kwargs):
+#        print func, args, kwargs
+#        raise
+
+    def __call_instr_func(self, opcode, *args, **kwargs):
+        # call the op CPU code method
+        result = self.__origin_instr_func(opcode, *args, **kwargs)
+
+        if opcode in (0x10, 0x11):
             log.debug("Skip PAGE 2 and PAGE 3 instruction in trace")
             return
 
+        op_code_data = MC6809OP_DATA_DICT[opcode]
+
         op_address = self.cpu.last_op_address
 
-        ob_bytes = self.data["bytes"]
+        ob_bytes = op_code_data["bytes"]
 
         op_bytes = "".join([
             "%02x" % value
@@ -43,17 +65,17 @@ class InstructionTrace(Instruction):
         ])
 
         kwargs_info = []
-        if "register" in self.op_kwargs:
-            kwargs_info.append(str(self.op_kwargs["register"]))
-        if "ea" in self.op_kwargs:
-            kwargs_info.append("ea:%04x" % self.op_kwargs["ea"])
-        if "m" in self.op_kwargs:
-            kwargs_info.append("m:%x" % self.op_kwargs["m"])
+        if "register" in kwargs:
+            kwargs_info.append(str(kwargs["register"]))
+        if "ea" in kwargs:
+            kwargs_info.append("ea:%04x" % kwargs["ea"])
+        if "m" in kwargs:
+            kwargs_info.append("m:%x" % kwargs["m"])
 
         msg = "%(op_address)04x| %(op_bytes)-11s %(mnemonic)-7s %(kwargs)-19s %(cpu)s | %(cc)s | %(mem)s\n" % {
             "op_address": op_address,
             "op_bytes": op_bytes,
-            "mnemonic": self.data["mnemonic"],
+            "mnemonic": op_code_data["mnemonic"],
             "kwargs": " ".join(kwargs_info),
             "cpu": self.cpu.get_info,
             "cc": self.cpu.cc.get_info,
@@ -61,12 +83,14 @@ class InstructionTrace(Instruction):
         }
         sys.stdout.write(msg)
 
-        if not op_bytes.startswith("%02x" % self.opcode):
+        if not op_bytes.startswith("%02x" % opcode):
             self.cpu.memory.print_dump(op_address, op_address + ob_bytes)
             self.cpu.memory.print_dump(op_address - 10, op_address + ob_bytes + 10)
-        assert op_bytes.startswith("%02x" % self.opcode), "%s doesn't start with %02x" % (
+        assert op_bytes.startswith("%02x" % opcode), "%s doesn't start with %02x" % (
             op_bytes, self.opcode
         )
+
+        return result
 
 
 def test_run():
@@ -85,7 +109,8 @@ def test_run():
 
         "--trace",
 
-        "--cfg=Simple6809",
+#        "--cfg=Simple6809",
+        "--cfg=sbc09",
 #         "--max=500000",
 #         "--max=20000",
         "--max=1",

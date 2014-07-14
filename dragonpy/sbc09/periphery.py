@@ -154,8 +154,8 @@ SBC09Periphery = SBC09PeripheryConsole
 def test_run():
     import subprocess
     cmd_args = [
-#         sys.executable,
-        "/usr/bin/pypy",
+        sys.executable,
+#        "/usr/bin/pypy",
         os.path.join("..", "DragonPy_CLI.py"),
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG

@@ -42,7 +42,7 @@ from dragonpy.cpu_utils.MC6809_registers import (
 )
 from dragonpy.cpu_utils.signed import signed8, signed16, signed5
 from dragonpy.utils.simple_debugger import print_exc_plus
-import MC6809data.MC6809_data_raw2 as MC6809_data
+from dragonpy.cpu_utils.instruction_caller import OpCollection
 
 
 log = logging.getLogger("DragonPy.cpu6809")
@@ -50,19 +50,7 @@ log = logging.getLogger("DragonPy.cpu6809")
 HTML_TRACE = False
 
 
-def get_opdata():
-    opdata = {}
-    for instr_data in OP_DATA.values():
-        for mnemonic, mnemonic_data in instr_data["mnemonic"].items():
-            for op_code, op_data in mnemonic_data["ops"].items():
-                op_data["mnemonic"] = mnemonic
-                op_data["needs_ea"] = mnemonic_data["needs_ea"]
-                for key in ("read_from_memory", "write_to_memory", "register"):
-                    op_data[key] = mnemonic_data[key]
-                opdata[op_code] = op_data
-    return opdata
 
-MC6809OP_DATA_DICT = get_opdata()
 
 
 def opcode(*opcodes):
@@ -74,116 +62,6 @@ def opcode(*opcodes):
     return decorator
 
 
-class Instruction(object):
-    def __init__(self, cpu, memory, opcode, opcode_data, instr_func):
-        self.cpu = cpu
-        self.memory = memory
-        self.opcode = opcode
-        self.data = opcode_data # dict entry from: MC6809OP_DATA_DICT
-        self.instr_func = instr_func # unbound function for this op from cpu class
-
-        self.static_kwargs = {
-            "opcode": opcode
-        }
-        register_txt = opcode_data["register"]
-        if register_txt is not None:
-            self.static_kwargs["register"] = cpu.register_str2object[register_txt]
-
-        self.get_ea_func = None
-        self.get_m_func = None
-        self.get_ea_m_func = None
-        self.write_func = None
-
-        self.OLD_EA = 0
-
-#         print opcode_data
-        addr_mode = opcode_data["addr_mode"]
-        if addr_mode is not None and addr_mode != MC6809_data.INHERENT:
-            needs_ea = opcode_data["needs_ea"]
-            read_from_memory = opcode_data["read_from_memory"]
-
-            if needs_ea and read_from_memory:
-                ea_m_func_name = "get_ea_m_%s" % addr_mode.lower()
-                self.get_ea_m_func = getattr(cpu, ea_m_func_name)
-            else:
-                if needs_ea:
-                    # Instruction needs the ea (effective address)
-                    ea_func_name = "get_ea_%s" % addr_mode.lower()
-    #                 print ea_func_name
-                    self.get_ea_func = getattr(cpu, ea_func_name)
-
-                if read_from_memory is not None:
-                    # Instruction read data from memory
-                    m_func_name = "get_m_%s" % addr_mode.lower()
-    #                 print m_func_name
-                    self.get_m_func = getattr(cpu, m_func_name)
-
-        _width2name = {MC6809_data.BYTE:"byte", MC6809_data.WORD:"word"}
-
-        write_to_memory = opcode_data["write_to_memory"]
-        if write_to_memory is not None:
-            write_func_name = "write_%s" % (
-                _width2name[write_to_memory]
-            )
-#             print write_func_name
-            self.write_func = getattr(memory, write_func_name)
-            assert needs_ea == True
-
-#         log.debug("op code $%x data: %s" % (opcode, repr(instr_kwargs)))
-#         log.debug(pprint.pformat(opcode_data))
-#         log.debug(repr(opcode_data))
-#         log.debug(pprint.pformat(instr_kwargs))
-#         log.debug("-"*79)
-
-    def __repr__(self):
-        return "<Instruction $%x %s>" % (self.opcode, repr(self.data))
-
-    def call_instr_func(self):
-        # TODO: Split this function and use differend instances to skip if
-        self.op_kwargs = self.static_kwargs.copy()
-
-        if self.get_ea_m_func is not None:
-            self.op_kwargs["ea"], self.op_kwargs["m"] = self.get_ea_m_func()
-        else:
-            if self.get_ea_func is not None:
-#                log.debug("\tget ea with %s", self.get_ea_func.__name__)
-                self.op_kwargs["ea"] = self.get_ea_func()
-
-            if self.get_m_func is not None:
-#                log.debug("\tget m with %s", self.get_m_func.__name__)
-                self.op_kwargs["m"] = self.get_m_func()
-
-#         log.info("CPU cycles: %i", self.cpu.cycles)
-
-        result = self.instr_func(**self.op_kwargs)
-        self.cpu.cycles += self.data["cycles"]
-
-        if self.write_func is not None:
-            # Instruction write result to memory
-            assert result is not None, (
-                "Instruction %r write result to memory but returned None!"
-            ) % self.instr_func.__name__
-            ea, value = result
-#            log.debug("\twrite with %r to $%x the value $%x",
-#                self.write_func.__name__, ea, value
-#            )
-            self.write_func(ea, value)
-        else:
-            assert result is None, (
-                "Instruction %r doesn't write result to memory but returned: %s!"
-            ) % (self.instr_func.__name__, repr(result))
-
-
-class IllegalInstruction(object):
-    def __init__(self, cpu, opcode):
-        self.cpu = cpu
-        self.opcode = opcode
-
-    def call_instr_func(self):
-        op_address = self.cpu.last_op_address
-        msg = "%x +++ Illegal op code: $%x" % (op_address, self.opcode)
-#        log.error(msg)
-        raise RuntimeError(msg)
 
 
 undefined_reg = UndefinedRegister()
@@ -248,22 +126,7 @@ class CPU(object):
         self.last_op_address = 0 # Store the current run opcode memory address
 
 #         log.debug("Add opcode functions:")
-        self.opcode_dict = {}
-
-        # Get the members not from class instance, so that's possible to
-        # exclude properties without "activate" them.
-        cls = type(self)
-        for name, cls_method in inspect.getmembers(cls):
-            if name.startswith("_") or isinstance(cls_method, property):
-                continue
-
-            try:
-                opcodes = getattr(cls_method, "_opcodes")
-            except AttributeError:
-                continue
-
-            instr_func = getattr(self, name)
-            self._add_ops(opcodes, instr_func)
+        self.opcode_dict = OpCollection(self).get_opcode_dict()
 
 #         log.debug("illegal ops: %s" % ",".join(["$%x" % c for c in ILLEGAL_OPS]))
         # add illegal instruction
@@ -320,46 +183,6 @@ class CPU(object):
 
     ####
 
-    def _add_ops(self, opcodes, instr_func):
-#         log.debug("%20s: %s" % (
-#             instr_func.__name__, ",".join(["$%x" % c for c in opcodes])
-#         ))
-        for opcode in opcodes:
-            assert opcode not in self.opcode_dict, \
-                "Opcode $%x (%s) defined more then one time!" % (
-                    opcode, instr_func.__name__
-            )
-
-            try:
-                opcode_data = MC6809OP_DATA_DICT[opcode]
-            except KeyError:
-                msg = "ERROR: no OP_DATA entry for $%x" % opcode
-                log.error(msg)
-                raise RuntimeError(msg)
-                continue
-
-            if self.cfg.trace:
-                from dragonpy.cpu6809_trace import InstructionTrace # XXX
-                InstructionClass = InstructionTrace
-            elif HTML_TRACE: # XXX
-                # FIXME: Add as CLI argument or complete remove?
-                from dragonpy.cpu6809_html_debug import InstructionHTMLdebug
-                InstructionClass = InstructionHTMLdebug
-            else:
-                InstructionClass = Instruction
-
-            try:
-                instruction = InstructionClass(self, self.memory, opcode, opcode_data, instr_func)
-            except Exception, err:
-                print >> sys.stderr, "Error init instruction for $%x" % opcode
-                print >> sys.stderr, "opcode data: %s" % repr(opcode_data)
-                print >> sys.stderr, "instr_func: %s" % instr_func.__name__
-                raise
-
-            self.opcode_dict[opcode] = instruction
-
-    ####
-
     def reset(self):
 #        log.info("$%x CPU reset:" % self.program_counter)
 
@@ -390,7 +213,6 @@ class CPU(object):
 #        log.info("\tset PC to $%x" % (ea))
         self.program_counter.set(ea)
 
-
     def get_and_call_next_op(self):
         op_address, opcode = self.read_pc_byte()
         self.call_instruction_func(op_address, opcode)
@@ -402,13 +224,14 @@ class CPU(object):
     def call_instruction_func(self, op_address, opcode):
         self.last_op_address = op_address
         try:
-            instruction = self.opcode_dict[opcode]
+            cycles, instr_func = self.opcode_dict[opcode]
         except KeyError:
             msg = "$%x *** UNKNOWN OP $%x" % (op_address, opcode)
             log.error(msg)
             sys.exit(msg)
 
-        instruction.call_instr_func()
+        instr_func(opcode)
+        self.cycles += cycles
 
     @opcode(
         0x10, # PAGE 2 instructions
