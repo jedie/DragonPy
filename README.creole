@@ -91,97 +91,19 @@ install [[https://pypi.python.org/pypi/coverage|coverage]] for python 2:
 
 {{{
 .../path/to/DragonPy$ ./DragonPy_CLI.py --help
-logger name: DragonPy
-
-DragonPy - Dragon 32 emulator in Python None
--------------------------------------------------------------------------------
-
-usage: DragonPy_CLI.py [-h] [--verbosity {5,7,0,10,20,30,40,50}]
-                       [--logfile {5,7,0,10,20,30,40,50}]
-                       [--log_formatter LOG_FORMATTER]
-                       [--cfg {Multicomp6809,Dragon32,sbc09,Simple6809}]
-                       [--display_cycle] [--bus_socket_host BUS_SOCKET_HOST]
-                       [--bus_socket_port BUS_SOCKET_PORT] [--ram RAM]
-                       [--rom ROM] [--max MAX]
-
-DragonPy - Dragon 32 emulator in Python
-
-optional arguments:
-  -h, --help            show this help message and exit
-  --verbosity {5,7,0,10,20,30,40,50}
-                        verbosity level to stdout (lower == more output!)
-                        (default: 20)
-  --logfile {5,7,0,10,20,30,40,50}
-                        verbosity level to log file (lower == more output!)
-                        (default: 10)
-  --log_formatter LOG_FORMATTER
-                        see: http://docs.python.org/2/library/logging.html
-                        #logrecord-attributes
-  --cfg {Multicomp6809,Dragon32,sbc09,Simple6809}
-                        Used machine configuration
-  --display_cycle       print CPU cycle/sec while running.
-  --bus_socket_host BUS_SOCKET_HOST
-                        Host internal socket bus I/O (do not set manually!)
-  --bus_socket_port BUS_SOCKET_PORT
-                        Port for internal socket bus I/O (do not set
-                        manually!)
-  --ram RAM             RAM file to load (default none)
-  --rom ROM             ROM file to use (default set by machine configuration)
-  --max MAX             If given: Stop CPU after given cycles else: run
-                        forever
 }}}
 
-==== compare trace
-
-For developing we add a way to compare the CPU running with a trace file
-from XRoar or v09.
-
-For this we add the command line option **--compare_trace**
-Set it to:
-
-| **--compare_trace=1** | compare and info if differed
-| **--compare_trace=2** | exit if program counter is differed
-| **--compare_trace=3** | exit if program counter or CC flags are differed
-| **--compare_trace=4** | exit if program counter or CC flags or accu A/B are differed
-| **--compare_trace=5** | exit if program counter or CC flags or A,B,X,Y,U or S are differed
-
-A XRoar trace file must be stored at **~/xroar_trace.txt**
-The v09 trace file here: **~/v09_trace.txt**
 
 == current status
 
-sbc09, Simple6809 and Multicomp6809 seems to work:
+sbc09, Simple6809 and Multicomp6809 seems to work.
+
+First GUI used a simple Tkinter window. Looks like this:
+
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/DragonPy_sbc09_01.png}}
 
-First GUI used a simple Tkinter windows.
-Looks like this (outdated):
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/Simple6809_TK_03.PNG}}
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/Simple6809_TK_04.PNG}}
 
-Current running output:
-{{{
-6809 EXTENDED BASIC
-(C) 1982 BY MICROSOFT
-
-OK
-PRINT "HELLO WORLD!"
-HELLO WORLD!
-OK
-
-10 FOR I=1 TO 3
-20 PRINT STR$(I)+" DRAGONPY"
-30 NEXT I
-RUN
-1 DRAGONPY
-2 DRAGONPY
-3 DRAGONPY
-OK
-
-LIST
-10 FOR I=1 TO 3
-20 PRINT STR$(I)+" DRAGONPY"
-30 NEXT I
-OK
-}}}
 
 === performance
 
