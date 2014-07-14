@@ -408,7 +408,6 @@ class CPU(object):
             log.error(msg)
             sys.exit(msg)
 
-        assert isinstance(self.system_stack_pointer, ValueStorage16Bit)
         instruction.call_instr_func()
 
     @opcode(
@@ -445,7 +444,7 @@ class CPU(object):
             for __ in xrange(self.cfg.BURST_COUNT):
                 if not self.running:
                     break
-                assert isinstance(self.system_stack_pointer, ValueStorage16Bit)
+
                 self.get_and_call_next_op()
 
             if self.cfg.max_cpu_cycles is not None \
@@ -488,7 +487,6 @@ class CPU(object):
 
     def push_byte(self, stack_pointer, byte):
         """ pushed a byte onto stack """
-        assert isinstance(byte, int)
         # FIXME: self.system_stack_pointer -= 1
         stack_pointer.decrement(1)
         addr = stack_pointer.get()
@@ -518,7 +516,6 @@ class CPU(object):
         return byte
 
     def push_word(self, stack_pointer, word):
-        assert isinstance(word, int)
         # FIXME: self.system_stack_pointer -= 2
         stack_pointer.decrement(2)
 
