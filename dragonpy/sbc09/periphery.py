@@ -33,23 +33,23 @@ log = logging.getLogger("DragonPy.sbc09Periphery")
 class SBC09PeripheryBase(PeripheryBase):
     TITLE = "DragonPy - Buggy machine language monitor and rudimentary O.S. version 1.0"
     INITAL_INPUT = (
-        # Dump registers
-        'r\r\n'
-
-        # SSaddr,len - Dump memory region as Motorola S records.
-        'ss\r\n'
-
-        # Daddr,len - Dump memory region
-        'DE5E2\r\n'
-
-        # Iaddr - Display the contents of the given address.
-        'IE001\r\n' # e.g.: Show the ACIA status
-
-        # Uaddr,len - Diassemble memory region
-        'UE400\r\n'
-
-        # Calculate simple expression in hex with + and -
-        'H4444+A5\r\n'
+#        # Dump registers
+#        'r\r\n'
+#
+#        # SSaddr,len - Dump memory region as Motorola S records.
+#        'ss\r\n'
+#
+#        # Daddr,len - Dump memory region
+#        'DE5E2\r\n'
+#
+#        # Iaddr - Display the contents of the given address.
+#        'IE001\r\n' # e.g.: Show the ACIA status
+#
+#        # Uaddr,len - Diassemble memory region
+#        'UE400\r\n'
+#
+#        # Calculate simple expression in hex with + and -
+#        'H4444+A5\r\n'
 
         #
 #         "UE400,20\r\n"
@@ -100,7 +100,7 @@ class SBC09PeripheryBase(PeripheryBase):
             char = chr(value)
 #            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
 
-        self.output_queue.put(char)
+        self.new_output_char(char)
 
 
 class SBC09PeripheryTk(SBC09PeripheryBase, TkPeripheryBase):
@@ -146,6 +146,21 @@ class SBC09PeripheryConsole(SBC09PeripheryBase):
             self.origin_stdout.flush()
 
 
+class SBC09PeripheryUnittest(SBC09PeripheryBase):
+    def __init__(self, *args, **kwargs):
+        super(SBC09PeripheryUnittest, self).__init__(*args, **kwargs)
+        self._out_buffer = ""
+        self.out_lines = []
+
+    def new_output_char(self, char):
+        sys.stdout.write(char)
+        sys.stdout.flush()
+        self._out_buffer += char
+        if char == "\n":
+            self.out_lines.append(self._out_buffer)
+            self._out_buffer = ""
+
+
 # SBC09Periphery = SBC09PeripherySerial
 # SBC09Periphery = SBC09PeripheryTk
 SBC09Periphery = SBC09PeripheryConsole
@@ -163,6 +178,8 @@ def test_run():
 #         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
         "--verbosity=50", # CRITICAL/FATAL
+
+        "--trace",
 
         "--cfg=sbc09",
 #         "--max=500000",

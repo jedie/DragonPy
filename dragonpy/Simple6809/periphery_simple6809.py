@@ -62,9 +62,6 @@ class Simple6809PeripheryBase(PeripheryBase):
         )
         return value
 
-    def new_output_char(self, char):
-        self.output_queue.put(char)
-
     def write_acia_data(self, cpu_cycles, op_address, address, value):
         char = chr(value)
         log.info("*"*79)

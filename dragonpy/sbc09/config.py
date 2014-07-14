@@ -45,6 +45,8 @@ class SBC09Cfg(BaseConfig):
         os.path.abspath(os.path.dirname(__file__)),
         "sbc09", "v09.rom" # Source for this is monitor.asm
     )
+    # Used in unittest for init the machine:
+    STARTUP_END_ADDR = 0xe45a # == O.S. routine to read a character into B register.
 
     def __init__(self, cmd_args):
         self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1

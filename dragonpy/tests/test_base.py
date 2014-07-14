@@ -22,6 +22,10 @@ from dragonpy.Simple6809.periphery_simple6809 import Simple6809TestPeriphery
 from dragonpy.cpu6809 import CPU
 from dragonpy.cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
 from dragonpy.tests.test_config import TestCfg
+from dragonpy.sbc09.config import SBC09Cfg
+from dragonpy.sbc09.periphery import SBC09PeripheryConsole, \
+    SBC09PeripheryUnittest
+from dragonpy.utils.logging_utils import setup_logging
 
 
 log = logging.getLogger("DragonPy")
@@ -156,7 +160,10 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
     """
     Run tests with the BASIC Interpreter from simple6809 ROM.
     """
-    TEMP_FILE = os.path.join(tempfile.gettempdir(), "BASIC_simple6809_unittests.dat")
+    TEMP_FILE = os.path.join(
+        tempfile.gettempdir(),
+        "DragonPy_simple6809_unittests.dat"
+    )
     print "CPU state pickle file: %r" % TEMP_FILE
 #     os.remove(TEMP_FILE);print "Delete CPU date file!"
 
@@ -242,23 +249,111 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
         raise self.failureException(msg)
 
 
+class Test6809_sbc09_Base(BaseTestCase):
+    """
+    Run tests with the sbc09 ROM.
+    """
+    TEMP_FILE = os.path.join(
+        tempfile.gettempdir(),
+        "DragonPy_sbc09_unittests.dat"
+    )
+    print "CPU state pickle file: %r" % TEMP_FILE
+#    os.remove(TEMP_FILE);print "Delete CPU date file!"
+
+    @classmethod
+    def setUpClass(cls, cmd_args=None):
+        """
+        prerun ROM to complete initiate and ready for user input.
+        save the CPU state to speedup unittest
+        """
+        super(Test6809_sbc09_Base, cls).setUpClass()
+
+        if cmd_args is None:
+            cmd_args = UnittestCmdArgs
+        cfg = SBC09Cfg(cmd_args)
+
+        cls.periphery = SBC09PeripheryUnittest(cfg)
+        cfg.periphery = cls.periphery
+
+        cpu = CPU(cfg)
+        cpu.reset()
+        cls.cpu = cpu
+
+        try:
+            temp_file = open(cls.TEMP_FILE, "rb")
+        except IOError:
+            print "init machine..."
+            init_start = time.time()
+            cpu.test_run(
+                start=cpu.program_counter.get(),
+                end=cfg.STARTUP_END_ADDR,
+            )
+            duration = time.time() - init_start
+            print "done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
+                duration, float(cpu.cycles / duration), cpu.cycles
+            )
+
+            # Check if machine is ready
+            assert cls.periphery.out_lines == [
+                'Welcome to BUGGY version 1.0\r\n',
+            ]
+            # Save CPU state
+            init_state = cpu.get_state()
+            with open(cls.TEMP_FILE, "wb") as f:
+                pickle.dump(init_state, f)
+                print "Save CPU init state to: %r" % cls.TEMP_FILE
+            cls._init_state = init_state
+        else:
+            print "Load CPU init state from: %r" % cls.TEMP_FILE
+            cls._init_state = pickle.load(temp_file)
+
+#        print_cpu_state_data(cls._init_state)
+
+    def setUp(self):
+        """ restore CPU/Periphery state to a fresh startup. """
+        self.periphery.user_input_queue = Queue.Queue()
+        self.periphery.output_queue = Queue.Queue()
+        self.periphery.out_lines = []
+        self.cpu.set_state(self._init_state)
+#         print_cpu_state_data(self.cpu.get_state())
+
+    def _run_until_OK(self, OK_count=1, max_ops=5000):
+        old_cycles = self.cpu.cycles
+        output = []
+        existing_OK_count = 0
+        for op_call_count in xrange(max_ops):
+            self.cpu.get_and_call_next_op()
+            out_lines = self.periphery.out_lines
+            if out_lines:
+                output += out_lines
+                if out_lines[-1] == "OK\r\n":
+                    existing_OK_count += 1
+                if existing_OK_count >= OK_count:
+                    cycles = self.cpu.cycles - old_cycles
+                    return op_call_count, cycles, output
+                self.periphery.out_lines = []
+
+        msg = "ERROR: Abort after %i op calls (%i cycles)" % (
+            op_call_count, (self.cpu.cycles - old_cycles)
+        )
+        raise self.failureException(msg)
+
 
 
 if __name__ == '__main__':
-    log.setLevel(
-#        1
-#        10 # DEBUG
-#         20 # INFO
-#        30 # WARNING
-#         40 # ERROR
-        50 # CRITICAL/FATAL
+    setup_logging(log,
+#        level=1 # hardcore debug ;)
+#        level=10 # DEBUG
+#        level=20 # INFO
+#        level=30 # WARNING
+#         level=40 # ERROR
+        level=50 # CRITICAL/FATAL
     )
-    log.addHandler(logging.StreamHandler())
 
     unittest.main(
         argv=(
             sys.argv[0],
-#             "BaseCPUTestCase",
+            "Test6809_sbc09_Base",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,

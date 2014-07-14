@@ -49,6 +49,9 @@ class PeripheryBase(object):
     def reset_vector(self, cpu_cycles, op_address, address):
         return self.cfg.RESET_VECTOR_VALUE
 
+    def new_output_char(self, char):
+        self.output_queue.put(char)
+
     def add_to_input_queue(self, txt):
         for char in txt:
             log.debug("Add %r to input queue." % txt)
