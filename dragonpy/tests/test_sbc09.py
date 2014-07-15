@@ -5,7 +5,12 @@
     6809 unittests
     ~~~~~~~~~~~~~~
 
-    Test CPU with BASIC Interpreter from sbc09 ROM.
+    Test CPU with the monitor ROM from sbc09.
+
+    It's usefull, because the BASIC Interpreter doesn't used all existing
+    6809 Instructions. The Monitor ROM used some more e.g.:
+
+        DAA
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
@@ -19,11 +24,43 @@ import unittest
 
 from dragonpy.tests.test_base import TextTestRunner2, Test6809_sbc09_Base, \
     UnittestCmdArgs
-
 from dragonpy.utils.logging_utils import setup_logging
+from dragonpy.utils import srecord_utils
 
 
 log = logging.getLogger("DragonPy")
+
+
+def extract_s_record_data(srec):
+    """
+    Verify checksum and return the data from a srecord.
+    If checksum failed, a Error will be raised.
+    """
+    assert isinstance(srec, basestring)
+    blocks = ["S%s" % b for b in srec.split("S") if b]
+
+    result = []
+    for block in blocks:
+        record_type, data_len, addr, data, checksum = srecord_utils.parse_srec(block)
+        if record_type in ("S1", "S2", "S3"): # Data lines
+            result.append(data)
+#        print record_type, data_len, addr, data, checksum
+
+        raw_offset_srec = ''.join([record_type, data_len, addr, data])
+        int_checksum = srecord_utils.compute_srec_checksum(raw_offset_srec)
+        checksum2 = srecord_utils.int_to_padded_hex_byte(int_checksum)
+        if not checksum == checksum2:
+            raise ValueError("Wrong checksum %s in line: %s" % (checksum, block))
+
+    return result
+
+
+def split2chunks(seq, size):
+    """
+    >>> split2chunks("ABCEDFGH", 3)
+    ['ABC', 'EDF', 'GH']
+    """
+    return [seq[pos:pos + size] for pos in xrange(0, len(seq), size)]
 
 
 class Test_sbc09(Test6809_sbc09_Base):
@@ -82,35 +119,42 @@ class Test_sbc09(Test6809_sbc09_Base):
 
     def test_S_records(self):
         """ Dump memory region as Motorola S records """
-        print "TODO!!!"
-        return
-        self.periphery.add_to_input_queue('ss\r\n')
+
+        start_addr = 0xE400 # start of ROM
+        byte_count = 256
+
+        command = 'ss%04X,%X\r\n' % (start_addr, byte_count)
+#        print command
+
+        self.periphery.add_to_input_queue(command)
         op_call_count, cycles, output = self._run_until_newlines(
-#            newline_count=18,
-            newline_count=4,
-            max_ops=150000
+            newline_count=18,
+            max_ops=18000
         )
-        print op_call_count, cycles, len(output), pprint.pformat(output)
-        self.assertEqual(output, [
-            'ss\r\n',
-            "S11300007EE45A7EE4717EE4807EE4E47EE4F57E60\r\n",
-            "S1130010E4657EED447EED677EED8C7EEDCF7EED76\r\n",
-            "S1130020AC7EE5180C660000000000003000000003\r\n", # failed here is a 3 ?!?
-            "S113003000000000000000000000000000000000BC\r\n",
-            "S113004000000000000000000000000000000000AC\r\n",
-            "S1130050000000000000000000000000000000009C\r\n",
-            "S1130060000000000000000000000000000000008C\r\n",
-            "S1130070000000000000000000000000000000007C\r\n",
-            "S1130080000000000000000000000000000000006C\r\n",
-            "S1130090000000000000000000000000000000005C\r\n",
-            "S11300A0000000000000000000000000000000004C\r\n",
-            "S11300B0000000000000000000000000000000003C\r\n",
-            "S11300C0000000000000000000000000000000002C\r\n",
-            "S11300D0000000000000000000000000000000001C\r\n",
-            "S11300E0000000000000000000000000000000000C\r\n",
-            "S11300F000000000000000000000000000000000FC\r\n",
-            "S9030000FC\r\n",
-        ])
+#        print op_call_count, cycles, len(output), pprint.pformat(output)
+
+        # Check the echoed command
+        self.assertEqual(output[0], command)
+
+        # merge all S-Record bytes
+        srec = "".join(output[1:]).replace("\r\n", "")
+
+        # extract the data and verify every checksum
+        data = extract_s_record_data(srec)
+
+        # get the reference from the used ROM file:
+        with open(self.cpu.cfg.DEFAULT_ROM, "rb") as f:
+            f.seek(start_addr - 0x8000)
+            reference = f.read(byte_count)
+
+        #reference = [ord(char) for char in reference]
+        reference = "".join(["%02X" % ord(byte) for byte in reference])
+
+        # split into chunks of 32 bytes (same a extraced S-Record)
+        # for better error messages in assertEqual() ;)
+        reference = split2chunks(reference, 32)
+
+        self.assertEqual(data, reference)
 
     def test_disassemble(self):
         """
@@ -158,6 +202,9 @@ class Test_sbc09(Test6809_sbc09_Base):
 
 
 if __name__ == '__main__':
+    import doctest
+    print doctest.testmod(verbose=0)
+
     setup_logging(log,
 #        level=1 # hardcore debug ;)
 #        level=10 # DEBUG
@@ -171,7 +218,7 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #            "Create_sbc09_trace",
-#            "Test_sbc09.test_S_records",
+            "Test_sbc09.test_S_records",
 #            "Test_sbc09.test_calculate_hex_negative",
         ),
         testRunner=TextTestRunner2,
