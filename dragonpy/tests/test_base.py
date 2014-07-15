@@ -27,6 +27,7 @@ from dragonpy.sbc09.periphery import SBC09PeripheryConsole, \
     SBC09PeripheryUnittest
 from dragonpy.utils.logging_utils import setup_logging
 import hashlib
+import pprint
 
 
 log = logging.getLogger("DragonPy")
@@ -357,6 +358,7 @@ class Test6809_sbc09_Base(BaseTestCase):
         msg = "ERROR: Abort after %i op calls (%i cycles) newline count: %i" % (
             op_call_count, (self.cpu.cycles - old_cycles), len(output)
         )
+        msg += "\nOutput so far: %s\n" % pprint.pformat(output)
         raise self.failureException(msg)
 
 
