@@ -11,8 +11,11 @@ import logging
 import sys
 import unittest
 
-from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase
+from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase, \
+    UnittestCmdArgs
 from dragonpy.utils.logging_utils import setup_logging
+from dragonpy.tests.test_config import TestCfg
+from dragonpy.cpu6809 import CPU
 
 
 log = logging.getLogger("DragonPy")
@@ -628,23 +631,51 @@ loop:
     def test_XOR(self):
         print "TODO!!!"
 
+#    def setUp(self):
+#        cmd_args = UnittestCmdArgs
+#        cmd_args.trace = True # enable Trace output
+#        cfg = TestCfg(cmd_args)
+#        self.cpu = CPU(cfg)
+#        self.cpu.cc.set(0x00)
 
+    def test_DAA(self):
+        self.cpu_test_run(start=0x0100, end=None, mem=[
+            0x86, 0x67, #  LDA   #$67     ; A=$67
+            0x8b, 0x75, #  ADDA  #$75     ; A=$67+$75 = $DC
+            0x19, #        DAA   19       ; A=67+75=142 -> $42
+        ])
+        self.assertEqualHexByte(self.cpu.accu_a.get(), 0x42)
+        self.assertEqual(self.cpu.cc.C, 1)
+
+#    def test_DAA2(self):
+#        for add in xrange(0xff):
+#            self.cpu.cc.set(0x00)
+#            self.cpu.accu_a.set(0x01)
+#            self.cpu_test_run(start=0x0100, end=None, mem=[
+#                #0x86, 0x67, #  LDA   #$67     ; A=$67
+#                0x8b, add, #  ADDA  #$75     ; A=$67+$75 = $DC
+#                0x19, #        DAA   19       ; A=67+75=142 -> $42
+#            ])
+#            r = self.cpu.accu_a.get()
+#            print "$1 + $%02x = $%02x > DAA > $%02x | CC:%s" % (
+#                add, (1 + add), r, self.cpu.cc.get_info
+#            )
 
 if __name__ == '__main__':
     setup_logging(log,
-        level=1 # hardcore debug ;)
+#        level=1 # hardcore debug ;)
 #        level=10 # DEBUG
 #        level=20 # INFO
 #        level=30 # WARNING
 #         level=40 # ERROR
-#        level=50 # CRITICAL/FATAL
+        level=50 # CRITICAL/FATAL
     )
 
     unittest.main(
         argv=(
             sys.argv[0],
 #            "Test6809_Arithmetic",
-#             "Test6809_Arithmetic.test_INCB",
+            "Test6809_Arithmetic.test_DAA2",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
