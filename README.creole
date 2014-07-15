@@ -20,22 +20,33 @@ The Dragon ROMs can be downloaded here:
 I used {{{Dragon Data Ltd - Dragon 32 - IC17.zip}}} extract the ROM file
 and save it as {{{d32.rom}}} in {{{./Dragon32/}}}
 
+=== Quick start:
+
+{{{
+...path/to/DragonPy$ python2 console_6809_test.py
+}}}
+or better, using [[http://pypy.org|PyPy]]:
+{{{
+...path/to/DragonPy$ pypy console_6809_test.py
+}}}
+It's the Simple6809 BASIC ROM running on console. Currently the user input
+will be displayd double...
 
 == example
 
 Start sbc09:
 {{{
-DragonPy$ ./DragonPy_CLI.py --cfg sbc09 --display_cycle
+...path/to/DragonPy$ ./DragonPy_CLI.py --cfg sbc09 --display_cycle
 }}}
 
 Start Simple6809 (with many debug output):
 {{{
-DragonPy$ ./DragonPy_CLI.py --cfg Simple6809 --verbosity=5
+...path/to/DragonPy$ ./DragonPy_CLI.py --cfg Simple6809 --verbosity=5
 }}}
 
 Start Dragon 32 (with some debug output):
 {{{
-DragonPy$ ./DragonPy_CLI.py --cfg Dragon32 --verbosity=30
+...path/to/DragonPy$ ./DragonPy_CLI.py --cfg Dragon32 --verbosity=30
 }}}
 
 If the CPU runs, it starts a http server.
@@ -55,21 +66,21 @@ Just request http://localhost:6809 from your browser.
 You should use PyPy to run all tests. It's around 10 time faster.
 
 {{{
-.../path/to/DragonPy$ pypy -m unittest discover
+...path/to/DragonPy$ pypy -m unittest discover
 }}}
 or:
 {{{
-.../path/to/DragonPy$ pypy setup.py test
+...path/to/DragonPy$ pypy setup.py test
 }}}
 
 Use normal Python:
 
 {{{
-.../path/to/DragonPy$ python2 -m unittest discover
+...path/to/DragonPy$ python2 -m unittest discover
 }}}
 or:
 {{{
-.../path/to/DragonPy$ python2 setup.py test
+...path/to/DragonPy$ python2 setup.py test
 }}}
 
 
@@ -81,16 +92,16 @@ install [[https://pypi.python.org/pypi/coverage|coverage]] for python 2:
 }}}
 
 {{{
-.../path/to/DragonPy$ coverage2 run --source=dragonpy setup.py test
-.../path/to/DragonPy$ coverage2 coverage2 html
+...path/to/DragonPy$ coverage2 run --source=dragonpy setup.py test
+...path/to/DragonPy$ coverage2 coverage2 html
 # e.g.:
-.../path/to/DragonPy$ firefox htmlcov/index.html
+...path/to/DragonPy$ firefox htmlcov/index.html
 }}}
 
 == CLI
 
 {{{
-.../path/to/DragonPy$ ./DragonPy_CLI.py --help
+...path/to/DragonPy$ ./DragonPy_CLI.py --help
 }}}
 
 
@@ -107,15 +118,17 @@ First GUI used a simple Tkinter window. Looks like this:
 
 === performance
 
-The current implementation is not optimized.
+The current implementation is not really optimized.
 
-With CPython there is round about 235.000 CPU cycles/sec.
+With CPython there is round about 490.000 CPU cycles/sec. in console version.
+This is half as fast as the real Hardware.
 
-With PyPy (sbc09 with Text output) round about 1.370.000 CPU cycles/sec.
-In other words with PyPy a 1,37MHz CPU is emulated. 
+With PyPy round about 6.900.000 - 8.000.000 CPU cycles/sec.
+In other words with PyPy it's ~8 times faster as the real Hardware.
 
 e.g. The Dragon 32 6809 machine with a 14.31818 MHz crystal runs with:
 0,895MHz (14,31818Mhz/16=0,895MHz) in other words: 895.000 CPU-cycles/sec.
+
 
 === about implementation
 
@@ -141,6 +154,8 @@ It looks like this:
 |-cassette |   via socket  |          |              |                    |
 +----------+               +----------+              +--------------------+
 }}}
+
+Problem: socket communication will slowdown the CPU.
 
 == TODO:
 
