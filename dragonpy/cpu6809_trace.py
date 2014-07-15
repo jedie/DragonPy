@@ -16,14 +16,11 @@ import sys
 import logging
 
 
-from dragonpy.MC6809data.MC6809_data_utils import get_opdata
+from dragonpy.MC6809data.MC6809_data_utils import MC6809OP_DATA_DICT
 from dragonpy.cpu_utils.instruction_call import PrepagedInstructions
 
 
 log = logging.getLogger("DragonPy.cpu6809.trace")
-
-
-MC6809OP_DATA_DICT = get_opdata()
 
 
 class InstructionTrace(PrepagedInstructions):

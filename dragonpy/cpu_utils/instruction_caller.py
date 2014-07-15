@@ -10,7 +10,8 @@
 
 import inspect
 
-from dragonpy.cpu6809_trace import MC6809OP_DATA_DICT, InstructionTrace
+from dragonpy.MC6809data.MC6809_data_utils import MC6809OP_DATA_DICT
+from dragonpy.cpu6809_trace import InstructionTrace
 from dragonpy.cpu_utils.Instruction_generator import func_name_from_op_code
 from dragonpy.cpu_utils.instruction_call import PrepagedInstructions
 
