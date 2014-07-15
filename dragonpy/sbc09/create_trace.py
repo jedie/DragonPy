@@ -86,6 +86,10 @@ def reformat_v09_trace(raw_trace, max_lines=None):
     """
     reformat v09 trace simmilar to XRoar one
     and add CC and Memory-Information.
+
+    Note:
+        v09 traces contains the register info line one trace line later!
+        We reoder it as XRoar done: addr+Opcode with resulted registers
     """
     print
     print "Reformat v09 trace..."
@@ -93,6 +97,7 @@ def reformat_v09_trace(raw_trace, max_lines=None):
 
     result = []
     next_update = time.time() + 1
+    old_line = None
     for line_no, line in enumerate(raw_trace.splitlines()):
         if max_lines is not None and line_no >= max_lines:
             msg = "max lines %i arraived -> Abort." % max_lines
@@ -129,11 +134,19 @@ def reformat_v09_trace(raw_trace, max_lines=None):
         mem = mem_info.get_shortest(pc)
 #        print op_data
 
-        line = "%04x| %-11s %-27s cc=%02x a=%02x b=%02x dp=?? x=%04x y=%04x u=%04x s=%04x| %s | %s" % (
-            pc, "%x" % op_code, mnemonic,
-            cc, a, b, x, y, u, s,
-            cc_txt, mem
+        register_line = "cc=%02x a=%02x b=%02x dp=?? x=%04x y=%04x u=%04x s=%04x| %s" % (
+            cc, a, b, x, y, u, s, cc_txt
         )
+        if old_line is None:
+            line = "(init with: %s)" % register_line
+        else:
+            line = old_line % register_line
+
+        old_line = "%04x| %-11s %-27s %%s | %s" % (
+            pc, "%x" % op_code, mnemonic,
+            mem
+        )
+
         result.append(line)
 
     print "Done, %i trace lines converted." % line_no
@@ -165,9 +178,10 @@ if __name__ == '__main__':
     )
 #    print raw_trace
     trace = reformat_v09_trace(raw_trace,
-#        max_lines=10
+#        max_lines=15
         max_lines=None # All lines
     )
+#    print "\n".join(trace)
 
     out_filename = os.path.abspath("../v09_trace.txt")
     with open(out_filename, "w") as f:
