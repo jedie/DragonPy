@@ -156,13 +156,9 @@ unimplemented OPs:
  * SYNC
 
 
-missing unittests after coverage run:
- 
- * ea relative byte
- * ea relative word
- * DAA
+missing 6809 unittests after coverage run:
+
  * MUL
- * SEX
  * BVS
 
 

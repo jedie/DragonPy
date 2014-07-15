@@ -610,18 +610,6 @@ class CPU(object):
 #        )
         return ea
 
-    def get_relative(self):
-        ea = self.get_ea_relative()
-        m = self.memory.read_byte(ea)
-#        log.debug("\tget_relative(): ea = $%x m = $%x", ea, m)
-        return ea, m
-
-    def get_relative_word(self):
-        ea = self.get_ea_relative()
-        m = self.memory.read_word(ea)
-#        log.debug("\tget_relative_word(): ea = $%x m = $%x", ea, m)
-        return ea, m
-
     #### Op methods:
 
     @opcode(# Add B accumulator to X (unsigned)
