@@ -788,25 +788,50 @@ class CPU(object):
         source code forms: DAA
 
         CC bits "HNZVC": -aa0a
+
+        Operation:
+            ACCA' ← ACCA + CF(MSN):CF(LSN)
+
+        where CF is a Correction Factor, as follows:
+        the CF for each nibble (BCD) digit is determined separately,
+        and is either 6 or 0.
+
+        Least Significant Nibble
+        CF(LSN) = 6 IFF 1)    C = 1
+                     or 2)    LSN > 9
+
+        Most Significant Nibble
+        CF(MSN) = 6 IFF 1)    C = 1
+                     or 2)    MSN > 9
+                     or 3)    MSN > 8 and LSN > 9
+
+        Condition Codes:
+        H    -    Not affected.
+        N    -    Set if the result is negative; cleared otherwise.
+        Z    -    Set if the result is zero; cleared otherwise.
+        V    -    Undefined.
+        C    -    Set if a carry is generated or if the carry bit was set before the operation; cleared otherwise.
         """
-        tmp = 0
         a = self.accu_a.get()
         cc = self.cc.get()
 
-        if (a & 0x0f) >= 0x0a or cc & self.cc.H:
-            tmp |= 0x06
+        correction_factor = 0
+        a_hi = a & 0xf0 # MSN - Most Significant Nibble
+        a_lo = a & 0x0f # LSN - Least Significant Nibble
 
-        if a >= 0x90 and (a & 0x0f) >= 0x0a:
-            tmp |= 0x60
+        if a_lo > 0x09 or cc & 0x20:
+            correction_factor |= 0x06
 
-        if a >= 0xa0 or cc & self.cc.C:
-            tmp |= 0x60
+        if a_hi > 0x80 and a_lo > 0x09:
+            correction_factor |= 0x60
 
-        new_value = tmp + a
+        if a_hi > 0x90 or cc & 0x01:
+            correction_factor |= 0x60
+
+        new_value = correction_factor + a
         self.accu_a.set(new_value)
 
-        # CC.C NOT cleared, only set if appropriate
-        self.cc.clear_NZV()
+        self.cc.clear_NZ() # V is undefined
         self.cc.update_NZC_8(new_value)
 
     def DEC(self, a):
