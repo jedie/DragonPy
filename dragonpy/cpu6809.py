@@ -807,7 +807,7 @@ class CPU(object):
 
         # CC.C NOT cleared, only set if appropriate
         self.cc.clear_NZV()
-        self.cc.update_NZC_8(tmp)
+        self.cc.update_NZC_8(new_value)
 
     def DEC(self, a):
         """
