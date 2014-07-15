@@ -34,53 +34,39 @@ class Test_sbc09(Test6809_sbc09_Base):
 #        cmd_args.trace = True # enable Trace output
 #        super(Test_sbc09, cls).setUpClass(cmd_args)
 
-    def test_calculate_hex1(self):
+    def test_calculate_hex_positive(self):
         """
         Calculate simple expression in hex with + and -
         """
-        self.periphery.add_to_input_queue(
-            'H1230+1\r\n' # ok
-#             'H1200+85\r\n' # ok
-#             'H1200+EF\r\n' # wrong: 12DE
-#             'H100+F\r\n' # wrong: 010E
-        )
-        op_call_count, cycles, output = self._run_until_newlines(
-            newline_count=2, max_ops=600
-        )
-#         print op_call_count, cycles, output
-        self.assertEqual(output, [
-            'H1230+1\r\n',
-            '1231\r\n'
-        ])
-        self.assertEqual(op_call_count, 572)
-        self.assertEqual(cycles, 3605) # TODO: cycles are probably not set corrent in CPU, yet!
+        for i in xrange(20):
+            self.setUp() # Reset CPU
+            self.periphery.add_to_input_queue(
+                 'H100+%X\r\n' % i
+            )
+            op_call_count, cycles, output = self._run_until_newlines(
+                newline_count=2, max_ops=700
+            )
+#            print op_call_count, cycles, output
+            self.assertEqual(output[1:], [
+                '%04X\r\n' % (0x100 + i)
+            ])
 
-    def test_calculate_hex2(self):
-        self.periphery.add_to_input_queue(
-             'H1200+EF\r\n' # wrong: 12DE
-#             'H100+F\r\n' # wrong: 010E
-        )
-        op_call_count, cycles, output = self._run_until_newlines(
-            newline_count=2, max_ops=2000
-        )
-#         print op_call_count, cycles, output
-        self.assertEqual(output, [
-            'H1200+EF\r\n',
-            '12EF\r\n'
-        ])
-
-    def test_calculate_hex3(self):
-        self.periphery.add_to_input_queue(
-             'H100+F\r\n' # wrong: 010E
-        )
-        op_call_count, cycles, output = self._run_until_newlines(
-            newline_count=2, max_ops=2000
-        )
-#         print op_call_count, cycles, output
-        self.assertEqual(output, [
-            'H100+F\r\n',
-            '010F\r\n'
-        ])
+    def test_calculate_hex_negative(self):
+        """
+        Calculate simple expression in hex with + and -
+        """
+        for i in xrange(20):
+            self.setUp() # Reset CPU
+            self.periphery.add_to_input_queue(
+                 'H100-%X\r\n' % i
+            )
+            op_call_count, cycles, output = self._run_until_newlines(
+                newline_count=2, max_ops=700
+            )
+#            print op_call_count, cycles, output
+            self.assertEqual(output[1:], [
+                '%04X\r\n' % (0x100 - i)
+            ])
 
     def test_dump_registers(self):
         self.periphery.add_to_input_queue('r\r\n')
@@ -185,7 +171,8 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #            "Create_sbc09_trace",
-            "Test_sbc09.test_S_records",
+#            "Test_sbc09.test_S_records",
+#            "Test_sbc09.test_calculate_hex_negative",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
