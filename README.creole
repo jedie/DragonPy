@@ -213,21 +213,37 @@ Dragon 32 resources:
 
 == Credits
 
-Based on:
+Some code based on:
 
-ApplePy - an Apple ][ emulator in Python by James Tauber:
+**ApplePy**
 
+An Apple ][ emulator in Python
+ * Author: James Tauber
  * https://github.com/jtauber/applepy
+ * License: MIT 
 
-ApplyPy is free software, licensed under MIT License.
 
+**XRoar**
+A really cool Dragon / CoCo emulator
+ * Author: Ciaran Anscomb
+ * http://www.6809.org.uk/xroar/
+ * License: GNU GPL v2
 
-Some code based on "Xroar" by Ciaran Anscomb:
+=== included Python modules:
 
- * http://www.6809.org.uk/dragon/xroar.shtml
+**python-pager**
+Page output and find dimensions of console.
+ * Author: Anatoly Techtonik
+ * License: Public Domain
+ * Homepage: https://bitbucket.org/techtonik/python-pager/
+ * Stored here: [[https://github.com/jedie/DragonPy/blob/master/dragonpy/utils/pager.py|/dragonpy/utils/pager.py]]
 
-XRoar is free software, licensed under GNU GPL v2 or above
-
+**srecutils.py**
+Motorola S-Record utilities
+ * Author: Gabriel Tremblay
+ * License: GNU GPL v2 
+ * Homepage: https://github.com/gabtremblay/pysrec
+ * Stored here: [[https://github.com/jedie/DragonPy/blob/master/dragonpy/utils/srecord_utils.py|/dragonpy/utils/srecord_utils.py]]
 
 
 == Links:
