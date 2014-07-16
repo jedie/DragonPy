@@ -29,8 +29,7 @@ or better, using [[http://pypy.org|PyPy]]:
 {{{
 ...path/to/DragonPy$ pypy console_6809_test.py
 }}}
-It's the Simple6809 BASIC ROM running on console. Currently the user input
-will be displayd double...
+It's the Simple6809 BASIC ROM running on console.
 
 == example
 
