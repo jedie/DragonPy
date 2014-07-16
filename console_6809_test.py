@@ -82,6 +82,16 @@ class Console6809Periphery(Simple6809PeripheryBase):
             self.next_cycles_update = current_time + self.update_duration
 
 
+def calc_new_burst_count(burst_count, loop_count, target_loop_count):
+    a = float(burst_count) / float(loop_count) * target_loop_count
+    b = (burst_count - a)
+    new_burst_count = burst_count + b
+    new_burst_count = int(round(new_burst_count))
+    if new_burst_count < 1:
+        new_burst_count = 1
+    return new_burst_count
+
+
 class Console6809(object):
     def __init__(self):
         cmd_args = CmdArgs
@@ -112,12 +122,22 @@ class Console6809(object):
         next_update = time.time() + update_duration
         burst_count = 1000
         op_count = 0
+        loop_count = 0
+        target_loop_count = 5
         try:
             while True:
+                loop_count += 1
                 if time.time() > next_update:
-                    # TODO: Recalculate burst_count here to match update_duration!
                     self.periphery.update(self.cpu.cycles)
                     next_update = time.time() + update_duration
+
+                    if loop_count != target_loop_count:
+                        # Recalculate the burst_count
+                        # to match the arget_loop_count
+#                        old_burst = burst_count # Only for display updates
+                        burst_count = calc_new_burst_count(burst_count, loop_count, target_loop_count)
+#                        if old_burst != burst_count: # Display a update
+#                            print "*** Set burst count to: %s op calls." % burst_count
 
                 for __ in xrange(burst_count):
                     self.cpu.get_and_call_next_op()
