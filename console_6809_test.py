@@ -20,6 +20,7 @@ from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809PeripheryBase
 from dragonpy.cpu6809 import CPU
 from dragonpy.utils.logging_utils import setup_logging
+from dragonpy.utils import pager
 
 
 log = logging.getLogger("DragonPy.6809Console")
@@ -45,13 +46,12 @@ class InputPoll(threading.Thread):
 
     def run(self):
         while True:
-            char = sys.stdin.read(1)
+            char = pager.getch()
             if char == "\n":
                 self.input_queue.put("\r")
 
             char = char.upper()
             self.input_queue.put(char)
-            time.sleep(0.1)
 
 
 class Console6809Periphery(Simple6809PeripheryBase):
