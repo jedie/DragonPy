@@ -60,9 +60,6 @@ class Console6809Periphery(Simple6809PeripheryBase):
 
         self.user_input_queue = input_queue # Buffer for input to send back to the CPU
 
-        self._out_buffer = ""
-        self.out_lines = []
-
         self.last_cycles = 0
         self.update_duration = 10
         self.last_cycles_update = time.time()
