@@ -42,7 +42,7 @@ class CmdArgs(object):
 class InputPoll(threading.Thread):
     def __init__ (self, in_queue):
         self.input_queue = in_queue
-        threading.Thread.__init__ (self)
+        super(InputPoll, self).__init__()
 
     def run(self):
         while True:
@@ -61,35 +61,21 @@ class Console6809Periphery(Simple6809PeripheryBase):
         self.user_input_queue = input_queue # Buffer for input to send back to the CPU
 
         self.last_cycles = 0
-        self.update_duration = 10
         self.last_cycles_update = time.time()
-        self.next_cycles_update = self.last_cycles_update + self.update_duration
 
     def new_output_char(self, char):
         sys.stdout.write(char)
         sys.stdout.flush()
 
     def update(self, cpu_cycles):
-        if time.time() >= self.next_cycles_update:
-            current_time = time.time()
-            duration = current_time - self.last_cycles_update
+        current_time = time.time()
+        duration = current_time - self.last_cycles_update
 
-            count = cpu_cycles - self.last_cycles
-            log.critical("%.2f cycles/sec. (current cycle: %i)", float(count / duration), cpu_cycles)
+        count = cpu_cycles - self.last_cycles
+        log.critical("\n%.2f cycles/sec. (current cycle: %i)", float(count / duration), cpu_cycles)
 
-            self.last_cycles = cpu_cycles
-            self.last_cycles_update = current_time
-            self.next_cycles_update = current_time + self.update_duration
-
-
-def calc_new_burst_count(burst_count, loop_count, target_loop_count):
-    a = float(burst_count) / float(loop_count) * target_loop_count
-    b = (burst_count - a)
-    new_burst_count = burst_count + b
-    new_burst_count = int(round(new_burst_count))
-    if new_burst_count < 1:
-        new_burst_count = 1
-    return new_burst_count
+        self.last_cycles = cpu_cycles
+        self.last_cycles_update = current_time
 
 
 class Console6809(object):
@@ -113,41 +99,22 @@ class Console6809(object):
             'RUN',
         ]) + "\r\n")
 
-        print "Startup 6809 machine..."
-
         input_thread = InputPoll(self.input_queue)
         input_thread.start()
 
-        update_duration = 0.5
-        next_update = time.time() + update_duration
-        burst_count = 1000
-        op_count = 0
-        loop_count = 0
-        target_loop_count = 5
-        try:
-            while True:
-                loop_count += 1
-                if time.time() > next_update:
-                    self.periphery.update(self.cpu.cycles)
-                    next_update = time.time() + update_duration
+        self.update_intervall()
 
-                    if loop_count != target_loop_count:
-                        # Recalculate the burst_count
-                        # to match the arget_loop_count
-#                        old_burst = burst_count # Only for display updates
-                        burst_count = calc_new_burst_count(burst_count, loop_count, target_loop_count)
-#                        if old_burst != burst_count: # Display a update
-#                            print "*** Set burst count to: %s op calls." % burst_count
+        while True:
+            self.cpu.get_and_call_next_op()
 
-                for __ in xrange(burst_count):
-                    self.cpu.get_and_call_next_op()
-
-                op_count += burst_count
-        except SystemExit:
-            print "EXIT. Running %i op calls." % op_count
+    def update_intervall(self):
+        self.periphery.update(self.cpu.cycles)
+        threading.Timer(interval=10.0, function=self.update_intervall).start()
 
 
 if __name__ == '__main__':
+    print "Startup 6809 machine..."
+
     setup_logging(log,
 #        level=1 # hardcore debug ;)
 #        level=10 # DEBUG
