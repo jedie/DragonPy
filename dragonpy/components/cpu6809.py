@@ -31,7 +31,7 @@ import warnings
 import threading
 
 
-from MC6809data.MC6809_data_raw2 import (
+from dragonpy.MC6809data.MC6809_data_raw2 import (
     OP_DATA, REG_A, REG_B, REG_CC, REG_D , REG_DP, REG_PC,
     REG_S, REG_U, REG_X, REG_Y
 )
