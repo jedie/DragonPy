@@ -162,12 +162,15 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.response(json.dumps(list(map(self.cpu.read_byte, range(addr, end + 1)))))
 
     def get_status(self, m):
-        self.response(json.dumps({
+        data = {
             "cpu": self.cpu.get_info,
             "cc": self.cpu.cc.get_info,
-            "pc": self.cpu.program_counter,
+            "pc": self.cpu.program_counter.get(),
             "cycle_count": self.cpu.cycles,
-        }))
+        }
+        log.critical("status dict: %s", repr(data))
+        json_string = json.dumps(data)
+        self.response(json_string)
 
     def post_memory(self, m):
         addr = int(m.group(1))
