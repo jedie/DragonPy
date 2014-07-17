@@ -21,16 +21,17 @@ import re
 import logging
 import traceback
 import sys
+import threading
+import select
 
 log = logging.getLogger("DragonPy.cpu_control_server")
 
 
 class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
-    def __init__(self, request, client_address, server, cpu, cfg):
+    def __init__(self, request, client_address, server, cpu):
         log.error("ControlHandler %s %s %s", request, client_address, server)
         self.cpu = cpu
-        self.cfg = cfg
 
         self.get_urls = {
             r"/disassemble/(\s+)/$": self.get_disassemble,
@@ -214,25 +215,42 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
 
 class ControlHandlerFactory:
-    def __init__(self, cpu, cfg):
+    def __init__(self, cpu):
         self.cpu = cpu
-        self.cfg = cfg
-
     def __call__(self, request, client_address, server):
-        return ControlHandler(request, client_address, server, self.cpu, self.cfg)
+        return ControlHandler(request, client_address, server, self.cpu)
 
 
-def get_http_control_server(cpu, cfg):
-    if cfg.bus is None:
-        log.info("Don't init CPU control server, because cfg.bus is None, ok.")
+def control_server_thread(cpu, cfg, control_server):
+    # FIXME: Refactor this!
+    timeout = 1
+
+    sockets = [control_server]
+    rs, _, _ = select.select(sockets, [], [], timeout)
+    for s in rs:
+        if s is control_server:
+            control_server._handle_request_noblock()
+        else:
+            pass
+
+    if not cpu.quit:
+        threading.Timer(interval=0.5,
+            function=control_server_thread,
+            args=(cpu, cfg, control_server)
+        ).start()
+
+def start_http_control_server(cpu, cfg):
+    if not cfg.cfg_dict["use_bus"]:
+        log.info("Don't init CPU control server, ok.")
         return None
 
-    control_handler = ControlHandlerFactory(cpu, cfg)
+    control_handler = ControlHandlerFactory(cpu)
     server_address = (cfg.CPU_CONTROL_ADDR, cfg.CPU_CONTROL_PORT)
     control_server = BaseHTTPServer.HTTPServer(server_address, control_handler)
     url = "http://%s:%s" % server_address
     log.error("Start http control server on: %s", url)
-    return control_server
+
+    control_server_thread(cpu, cfg, control_server)
 
 
 def test_run():

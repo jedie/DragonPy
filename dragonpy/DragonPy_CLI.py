@@ -17,10 +17,10 @@ import argparse
 from Dragon32.config import Dragon32Cfg
 from dragonpy.Multicomp6809.config import Multicomp6809Cfg
 from dragonpy.Simple6809.config import Simple6809Cfg
-from dragonpy.core.DragonPy import Dragon
 from dragonpy.core.base_cli import Base_CLI
 from dragonpy.core.configs import configs
 from dragonpy.sbc09.config import SBC09Cfg
+from dragonpy.core.DragonPy import main_process_startup
 
 
 configs.register("Dragon32", Dragon32Cfg, default=True)
@@ -76,7 +76,7 @@ class DragonPyCLI(Base_CLI):
         self.parser.add_argument("--rom",
             help="ROM file to use (default set by machine configuration)"
         )
-        self.parser.add_argument("--max", type=int,
+        self.parser.add_argument("--max_ops", type=int,
             help="If given: Stop CPU after given cycles else: run forever"
         )
 
@@ -86,7 +86,17 @@ class DragonPyCLI(Base_CLI):
 
         config_name = args.cfg
         config_cls = self.configs[config_name]
-        self.cfg = config_cls(args)
+        cfg_dict = {
+            "verbosity":args.verbosity,
+            "display_cycle":args.display_cycle,
+            "trace":args.trace,
+            "bus_socket_host":args.bus_socket_host,
+            "bus_socket_port":args.bus_socket_port,
+            "ram":args.ram,
+            "rom":args.rom,
+            "max_ops":args.max_ops,
+        }
+        self.cfg = config_cls(cfg_dict)
         self.cfg.config_name = config_name
 
     def run(self):
@@ -94,10 +104,7 @@ class DragonPyCLI(Base_CLI):
         # if self.cfg.bus is None:
         #     url = "http://%s:%s" % (self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT)
         #     webbrowser.open(url)
-
-        print "use cfg:", self.cfg.config_name
-        dragon = Dragon(self.cfg)
-        dragon.run()
+        main_process_startup(self.cfg)
 
 
 def get_cli():

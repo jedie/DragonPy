@@ -15,6 +15,7 @@ import time
 import logging
 import sys
 import httplib
+import threading
 
 try:
     import Tkinter
@@ -78,14 +79,9 @@ class PeripheryBase(object):
         log.error("FIXME: request_cpu in %s", __file__)
 
     def exit(self):
+        self.quit = True
         self.running = False
-
-        # FIXME: It doesn't work to request that CPU shutdown:
-        #        will get timeouts
         self.request_cpu(url="/quit/")
-
-        time.sleep(1) # Wait that CPU quit
-        sys.exit(0)
 
     def activate_full_debug_logging(self):
         handler = logging.StreamHandler()
@@ -117,10 +113,10 @@ class PeripheryBase(object):
     read_word = read_byte
 
     def write_byte(self, cpu_cycles, op_address, address, value):
-#        log.debug(
-#            "%04x| Periphery.write_byte $%x to $%x (cpu_cycles: %i)",
-#            op_address, value, address, cpu_cycles
-#        )
+        log.debug(
+            "%04x| Periphery.write_byte $%x to $%x (cpu_cycles: %i)",
+            op_address, value, address, cpu_cycles
+        )
         try:
             func = self.write_address2func_map[address]
         except KeyError, err:
@@ -128,31 +124,13 @@ class PeripheryBase(object):
             log.error(msg)
             raise NotImplementedError(msg)
         else:
-#            log.debug("func: %s", func.__name__)
+            log.debug("func: %s", func.__name__)
             func(cpu_cycles, op_address, address, value)
 
     write_word = write_byte
 
-    last_cycles_update = time.time()
-    last_cycles = 0
-    def update(self, cpu_cycles):
-#         sys.stdout.write("u")
-#         sys.stdout.flush()
-        if self.cfg.display_cycle:
-            duration = time.time() - self.last_cycles_update
-            if duration >= 1:
-                count = cpu_cycles - self.last_cycles
-                log.critical("%.2f cycles/sec. (current cycle: %i)", float(count / duration), cpu_cycles)
-                self.last_cycles = cpu_cycles
-                self.last_cycles_update = time.time()
-
-    def cycle(self, cpu_cycles, op_address):
-#         sys.stdout.write("c")
-#         sys.stdout.flush()
-        if time.time() - self.last_update > self.update_time:
-            self.last_update = time.time()
-            self.update(cpu_cycles)
-            return self.running # send pack if CPU quit
+    def mainloop(self):
+        raise NotImplementedError
 
     def write_acia_status(self, cpu_cycles, op_address, address, value):
         raise NotImplementedError
@@ -203,7 +181,7 @@ class TkPeripheryBase(PeripheryBase):
         self.root.bind("<Key>", self.event_key_pressed)
         self.root.bind("<Destroy>", self.destroy)
 
-        self.root.update()
+        self.update()
 
     def event_return(self, event):
 #        log.critical("ENTER: add \\n")
@@ -230,20 +208,20 @@ class TkPeripheryBase(PeripheryBase):
             log.error("Send %s", repr(char))
             self.user_input_queue.put(char)
 
-    def destroy(self, event=None):
-        """
-        FIXME: How destroy the CPU process?
-        """
+    def exit(self):
         log.critical("Tk window closed.")
+        super(TkPeripheryBase, self).exit()
         self.root.destroy()
+
+    def destroy(self, event=None):
         self.exit()
 
     STATE = 0
     LAST_INPUT = ""
     def write_acia_data(self, cpu_cycles, op_address, address, value):
-#        log.error("%04x| (%i) write to ACIA-data value: $%x (dez.: %i) ASCII: %r" % (
-#            op_address, cpu_cycles, value, value, chr(value)
-#        ))
+        log.error("%04x| (%i) write to ACIA-data value: $%x (dez.: %i) ASCII: %r" % (
+            op_address, cpu_cycles, value, value, chr(value)
+        ))
         if value == 0x8: # Backspace
             self.text.config(state=Tkinter.NORMAL)
             # delete last character
@@ -253,7 +231,7 @@ class TkPeripheryBase(PeripheryBase):
 
         super(TkPeripheryBase, self).write_acia_data(cpu_cycles, op_address, address, value)
 
-    def update(self, cpu_cycles):
+    def update(self):
         if not self.output_queue.empty():
             text_buffer = []
             while not self.output_queue.empty():
@@ -270,6 +248,9 @@ class TkPeripheryBase(PeripheryBase):
             self.text.insert("end", text)
             self.text.see("end")
             self.text.config(state=Tkinter.DISABLED)
-
         self.root.update()
-        return super(TkPeripheryBase, self).update(cpu_cycles)
+
+    def mainloop(self):
+        while self.running:
+            self.update()
+            time.sleep(0.1)
