@@ -91,7 +91,7 @@ class DragonPyCLI(Base_CLI):
 
     def run(self):
         # TODO:
-        # if self.cfg.use_bus:
+        # if self.cfg.bus is None:
         #     url = "http://%s:%s" % (self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT)
         #     webbrowser.open(url)
 

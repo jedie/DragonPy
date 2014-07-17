@@ -53,7 +53,7 @@ class PeripheryBase(object):
         self.output_queue.put(char)
 
     def add_to_input_queue(self, txt):
-        log.debug("Add %r to input queue." % txt)
+        log.debug("Add %s to input queue.", repr(txt))
         for char in txt:
             self.user_input_queue.put(char)
 

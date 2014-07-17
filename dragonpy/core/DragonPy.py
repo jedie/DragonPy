@@ -25,6 +25,7 @@ import subprocess
 import sys
 import logging
 import os
+import multiprocessing
 
 from dragonpy import cpu6809
 import dragonpy
@@ -46,6 +47,7 @@ class Dragon(object):
     def __init__(self, cfg):
         self.cfg = cfg
         self.periphery = cfg.periphery_class(cfg)
+        self.cfg.periphery = self.periphery
 
         listener = socket.socket()
         listener.bind(("127.0.0.1", 0))
@@ -53,27 +55,35 @@ class Dragon(object):
 
         bus_socket_host, bus_socket_port = listener.getsockname()
 
-        cmd_args = [
-            sys.executable,
-            "-m", "dragonpy.cpu6809",
-#            os.path.abspath(cpu6809.__file__),
-             "--bus_socket_host=%s" % bus_socket_host,
-             "--bus_socket_port=%i" % bus_socket_port,
-        ]
-        cmd_args += sys.argv[1:]
-
-        root_path = os.path.abspath(
-            os.path.join(os.path.dirname(dragonpy.__file__), "..")
+        p = multiprocessing.Process(
+            target=cpu6809.start_CPU,
+            args=(self.cfg, True, bus_socket_host, bus_socket_port)
         )
+        p.daemon = True
+        p.start()
 
-        print "Startup CPU with: %s in %s" % (" ".join(cmd_args), root_path)
-        try:
-            # XXX: use multiprocessing module here?
-            self.core = subprocess.Popen(cmd_args,
-                cwd=root_path
-            )
-        except:
-            print_exc_plus()
+
+#        cmd_args = [
+#            sys.executable,
+#            "-m", "dragonpy.cpu6809",
+##            os.path.abspath(cpu6809.__file__),
+#             "--bus_socket_host=%s" % bus_socket_host,
+#             "--bus_socket_port=%i" % bus_socket_port,
+#        ]
+#        cmd_args += sys.argv[1:]
+#
+#        root_path = os.path.abspath(
+#            os.path.join(os.path.dirname(dragonpy.__file__), "..")
+#        )
+#
+#        print "Startup CPU with: %s in %s" % (" ".join(cmd_args), root_path)
+#        try:
+#            # XXX: use multiprocessing module here?
+#            self.core = subprocess.Popen(cmd_args,
+#                cwd=root_path
+#            )
+#        except:
+#            print_exc_plus()
 
         rs, _, _ = select.select([listener], [], [], 2)
         if not rs:

@@ -249,7 +249,6 @@ class CPU(object):
     def control_server_thread(self):
         timeout = 1
 
-        # XXX: use multiprocessing ?
         sockets = [self.control_server]
         rs, _, _ = select.select(sockets, [], [], timeout)
         for s in rs:
@@ -262,6 +261,7 @@ class CPU(object):
             threading.Timer(interval=0.5, function=self.control_server_thread).start()
 
     def run(self):
+        assert self.control_server is not None
         self.control_server_thread() # start control server interval thread
 
         while not self.quit:
@@ -2486,6 +2486,29 @@ class TypeAssert(CPU):
 
 
 
+def start_CPU(cfg, use_bus, bus_socket_host, bus_socket_port):
+    log.info(
+        "Connect to internal socket bus I/O %s:%s", bus_socket_host, bus_socket_port
+    )
+
+    if use_bus:
+        bus = socket.socket()
+        bus.connect(
+            (bus_socket_host, bus_socket_port)
+        )
+        assert bus is not None
+        cfg.bus = bus
+
+    cpu = CPU(cfg)
+    cpu.reset()
+    try:
+        cpu.run()
+    except SystemExit:
+        log.critical("CPU has raised system exit, ok.")
+    except:
+        print_exc_plus()
+
+
 def test_run():
     print "test run..."
     import subprocess
@@ -2493,10 +2516,10 @@ def test_run():
         os.path.join("..", "DragonPy_CLI.py"),
 #        "--verbosity=5",
 #         "--verbosity=10", # DEBUG
-#         "--verbosity=20", # INFO
+        "--verbosity=20", # INFO
 #         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-        "--verbosity=50", # CRITICAL/FATAL
+#        "--verbosity=50", # CRITICAL/FATAL
 #
 #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
 #
@@ -2517,28 +2540,5 @@ def test_run():
 
 
 if __name__ == "__main__":
-    from dragonpy.DragonPy_CLI import get_cli
-    cli = get_cli()
-
-    if not cli.cfg.use_bus:
-        print "DragonPy cpu core"
-        print "Run DragonPy_CLI.py instead"
-        test_run()
-        sys.exit(0)
-
-    bus_socket_addr = cli.cfg.bus_socket_addr
-
-    print "Connect to internal socket bus I/O %s" % repr(bus_socket_addr)
-    assert isinstance(bus_socket_addr, tuple)
-    bus = socket.socket()
-    bus.connect(bus_socket_addr)
-    assert bus is not None
-    cli.cfg.bus = bus
-
-    cpu = CPU(cli.cfg)
-    cpu.reset()
-    try:
-        cpu.run()
-    except:
-        print_exc_plus()
+    test_run()
 

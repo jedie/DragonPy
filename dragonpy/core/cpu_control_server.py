@@ -223,7 +223,8 @@ class ControlHandlerFactory:
 
 
 def get_http_control_server(cpu, cfg):
-    if not cfg.use_bus:
+    if cfg.bus is None:
+        log.info("Don't init CPU control server, because cfg.bus is None, ok.")
         return None
 
     control_handler = ControlHandlerFactory(cpu, cfg)

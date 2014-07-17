@@ -30,7 +30,7 @@ class BaseDragon32TestCase(BaseTestCase):
     def setUp(self):
         cmd_args = UnittestCmdArgs
         cfg = Dragon32Cfg(cmd_args)
-        self.assertFalse(cfg.use_bus)
+        self.assertFalse(cfg.bus is None)
         cfg.mem_info = DragonMemInfo(log.debug)
         try:
             self.cpu = CPU(cfg)
@@ -728,5 +728,5 @@ if __name__ == '__main__':
         testRunner=TextTestRunner2,
 #         verbosity=1,
         verbosity=2,
-#         failfast=True,
+        failfast=True,
     )

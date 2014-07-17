@@ -97,13 +97,10 @@ class Memory(object):
     def __init__(self, cpu, cfg):
         self.cpu = cpu
         self.cfg = cfg
-        self.use_bus = cfg.use_bus
-        if self.use_bus:
-            self.bus = cfg.bus # socket for internal bus I/O
+
+        self.bus = cfg.bus # socket for internal bus I/O
+        if self.bus is not None:
             log.debug("Bus socket: %s" % repr(self.bus))
-            assert self.bus is not None
-        else:
-            self.bus = None
 
         self.rom = ROM(
             cfg, memory=cfg.get_initial_ROM(),
@@ -244,10 +241,6 @@ class Memory(object):
 #            log.debug(" **** bus write $%x to $%x" % (value, address))
             action = self.cfg.BUS_ACTION_WRITE # = 1
 
-        if not self.use_bus:
-            log.debug(" **** don't use bus")
-            return
-
         args = (
             self.cpu.cycles,
             self.cpu.last_op_address,
@@ -265,7 +258,7 @@ class Memory(object):
     def _bus_read(self, structure, address):
 #         self.cpu.cycles += 1 # ???
 
-        if not self.cfg.use_bus:
+        if self.bus is None:
             if structure == self.cfg.BUS_STRUCTURE_WORD:
                 return self.cfg.periphery.read_word(
                     self.cpu.cycles, self.cpu.last_op_address, address
@@ -296,7 +289,7 @@ class Memory(object):
 
     def _bus_write(self, structure, address, value):
 #         self.cpu.cycles += 1 # ???
-        if not self.cfg.use_bus:
+        if self.bus is None:
             if structure == self.cfg.BUS_STRUCTURE_WORD:
                 self.cfg.periphery.write_word(
                     self.cpu.cycles, self.cpu.last_op_address, address, value

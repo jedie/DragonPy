@@ -89,11 +89,7 @@ class BaseConfig(object):
         self.display_cycle = cmd_args.display_cycle
 
         # socket address for internal bus I/O:
-        if cmd_args.bus_socket_host and cmd_args.bus_socket_port:
-            self.use_bus = True
-            self.bus_socket_addr = (cmd_args.bus_socket_host, cmd_args.bus_socket_port)
-        else:
-            self.use_bus = False
+        self.bus = None # Will be set in cpu6809.start_CPU()
 
         if cmd_args.ram:
             self.ram = cmd_args.ram
