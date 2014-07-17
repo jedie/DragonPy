@@ -53,8 +53,8 @@ class PeripheryBase(object):
         self.output_queue.put(char)
 
     def add_to_input_queue(self, txt):
+        log.debug("Add %r to input queue." % txt)
         for char in txt:
-            log.debug("Add %r to input queue." % txt)
             self.user_input_queue.put(char)
 
     def request_cpu(self, url):
