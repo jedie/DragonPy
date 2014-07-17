@@ -28,6 +28,7 @@ import select
 import socket
 import sys
 import warnings
+import threading
 
 
 from MC6809data.MC6809_data_raw2 import (
@@ -245,24 +246,25 @@ class CPU(object):
 #        ))
         self.call_instruction_func(op_address - 1, paged_opcode)
 
-    def run(self):
-        while not self.quit:
-            timeout = 0
-            if not self.running:
-                timeout = 1
-            # Currently this handler blocks from the moment
-            # a connection is accepted until the response
-            # is sent. TODO: use an async HTTP server that
-            # handles input data asynchronously.
-            # XXX: use multiprocessing ?
-            sockets = [self.control_server]
-            rs, _, _ = select.select(sockets, [], [], timeout)
-            for s in rs:
-                if s is self.control_server:
-                    self.control_server._handle_request_noblock()
-                else:
-                    pass
+    def control_server_thread(self):
+        timeout = 1
 
+        # XXX: use multiprocessing ?
+        sockets = [self.control_server]
+        rs, _, _ = select.select(sockets, [], [], timeout)
+        for s in rs:
+            if s is self.control_server:
+                self.control_server._handle_request_noblock()
+            else:
+                pass
+
+        if not self.quit:
+            threading.Timer(interval=0.5, function=self.control_server_thread).start()
+
+    def run(self):
+        self.control_server_thread() # start control server interval thread
+
+        while not self.quit:
             for __ in xrange(self.cfg.BURST_COUNT):
                 if not self.running:
                     break
@@ -2505,7 +2507,9 @@ def test_run():
          "--cfg=Multicomp6809",
 
 #         "--max=15000",
-        "--max=1",
+#        "--max=1",
+
+        "--display_cycle",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args).wait()
