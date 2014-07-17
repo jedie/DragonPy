@@ -67,11 +67,11 @@ class Dragon(object):
         # pickle.dumps(process_args)
         #
         if sys.platform != "win32":
-            p = multiprocessing.Process(
+            periphery_process = multiprocessing.Process(
                 target=cpu6809.start_CPU, args=process_args
             )
-            p.daemon = True
-            p.start()
+            periphery_process.daemon = True
+            periphery_process.start()
         else:
             cmd_args = [sys.executable, "-m", "dragonpy.cpu6809",
                  "--bus_socket_host=%s" % bus_socket_host,
