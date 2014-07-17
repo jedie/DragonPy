@@ -2540,5 +2540,22 @@ def test_run():
 
 
 if __name__ == "__main__":
-    test_run()
+    #
+    # TODO: Only needed for windows-multiprocessing-work-a-round:
+    #       start with script with subprocess.Popen()
+    #
+    #    See: dragonpy.core.DragonPy
+    #
+    from dragonpy.DragonPy_CLI import get_cli
+    cli = get_cli()
 
+    if cli.cfg.bus is None:
+        print "DragonPy cpu core"
+        print "Run DragonPy_CLI.py instead"
+        test_run()
+        sys.exit(0)
+
+    bus_socket_host = cli.cfg.bus_socket_host
+    bus_socket_port = cli.cfg.bus_socket_port
+
+    start_CPU(cli.cfg, True, bus_socket_host, bus_socket_port)
