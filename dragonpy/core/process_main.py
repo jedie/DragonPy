@@ -29,7 +29,7 @@ import sys
 import threading
 
 from dragonpy.utils.simple_debugger import print_exc_plus
-from dragonpy.core.cpu_startup import start_cpu
+from dragonpy.core.process_sub import start_cpu
 
 log = multiprocessing.log_to_stderr()
 

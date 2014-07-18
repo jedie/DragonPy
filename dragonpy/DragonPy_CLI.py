@@ -21,7 +21,7 @@ from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.core.base_cli import Base_CLI
 from dragonpy.core.configs import configs
 from dragonpy.sbc09.config import SBC09Cfg
-from dragonpy.core.DragonPy import main_process_startup
+from dragonpy.core.process_main import main_process_startup
 
 
 configs.register("Dragon32", Dragon32Cfg)
