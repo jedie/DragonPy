@@ -36,15 +36,15 @@ class CPUThread(threading.Thread):
                 cpu.get_and_call_next_op()
             log.critical("Quit CPU after given 'max_ops' %i ops.", max_ops)
         else:
-            while not cpu.quit:
+            while cpu.running:
 #             for __ in xrange(20000):
                 cpu.get_and_call_next_op()
         print "Quit CPU"
 
 
 def start_cpu(cfg_dict, read_bus_request_queue, read_bus_response_queue, write_bus_queue):
-    log.info(" +++ start_cpu() +++ ")
-    log.info("cfg_dict: %s", repr(cfg_dict))
+    log.critical(" +++ start_cpu() +++ ")
+    log.debug("cfg_dict: %s", repr(cfg_dict))
 
     log.setLevel(cfg_dict["verbosity"])
     cfg_module = importlib.import_module(cfg_dict["cfg_module"])
@@ -58,7 +58,7 @@ def start_cpu(cfg_dict, read_bus_request_queue, read_bus_response_queue, write_b
     cpu_thread.start()
     cpu_thread.join()
 
-    log.info(" +++ start_cpu(): CPU has quit +++ ")
+    log.critical(" +++ start_cpu(): CPU stops +++ ")
 
 
 def test_run():

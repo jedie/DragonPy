@@ -6,7 +6,7 @@
     ==================================
 
 
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 
     Based on:
@@ -44,7 +44,7 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.post_urls = {
             r"/memory/(\s+)(-(\s+))?/$": self.post_memory,
             r"/memory/(\s+)(-(\s+))?/raw/$": self.post_memory_raw,
-            r"/quit/$": self.post_quit,
+            r"/running/$": self.post_quit,
             r"/reset/$": self.post_reset,
             r"/debug/$": self.post_debug,
         }
@@ -128,7 +128,7 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             '<li>6809 interrupt vectors memory dump:'
             '<a href="/memory/fff0-ffff/">/memory/fff0-ffff/</a></li>'
             '</ul>'
-            '<form action="/quit/" method="post">'
+            '<form action="/running/" method="post">'
             '<input type="submit" value="Quit CPU">'
             '</form>'
         ))
@@ -205,13 +205,13 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.response("")
 
     def post_quit(self, m):
-        self.cpu.quit = True
-        self.response_html(headline="CPU quit")
+        log.critical("Quit CPU from controller server.")
+        self.cpu.running = False
+        self.response_html(headline="CPU running")
 
     def post_reset(self, m):
         self.response_html(headline="CPU reset")
-        # self.cpu.reset()
-        self.cpu.running = True
+        self.cpu.reset()
 
 
 class ControlHandlerFactory:
@@ -233,7 +233,7 @@ def control_server_thread(cpu, cfg, control_server):
         else:
             pass
 
-    if not cpu.quit:
+    if not cpu.running:
         threading.Timer(interval=0.5,
             function=control_server_thread,
             args=(cpu, cfg, control_server)

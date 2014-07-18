@@ -72,7 +72,6 @@ class CPU(object):
         self.cfg = cfg
 
         self.running = True
-        self.quit = False
 
         start_http_control_server(self, cfg)
 

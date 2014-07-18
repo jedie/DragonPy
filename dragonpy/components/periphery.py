@@ -67,32 +67,23 @@ class PeripheryBase(object):
             port=self.cfg.CPU_CONTROL_PORT,
             timeout=1
         )
-        conn.request("POST", url)
         try:
+            conn.request("POST", url)
             response = conn.getresponse()
         except Exception, err:
             log.critical("Error request %s: %s", url, err)
         else:
             print response.status, response.reason
 
-        log.error("FIXME: request_cpu in %s", __file__)
-
     def exit(self):
-        self.quit = True
+        log.critical("Exit called in periphery.")
         self.running = False
         self.request_cpu(url="/quit/")
 
-    def activate_full_debug_logging(self):
-        handler = logging.StreamHandler()
-        handler.level = 5
-        log.handlers = (handler,)
-        log.critical("Activate full debug logging in %s!", __file__)
-        self.request_cpu(url="/debug/")
-
     def read_byte(self, cpu_cycles, op_address, address):
         if not self.running:
-            log.critical("Periphery.read_byte, but not running anymore.")
-            return 0x0
+            self.exit()
+            return
 
 #        log.debug(
 #            "%04x| Periphery.read_byte from $%x (cpu_cycles: %i)",
@@ -112,6 +103,10 @@ class PeripheryBase(object):
     read_word = read_byte
 
     def write_byte(self, cpu_cycles, op_address, address, value):
+        if not self.running:
+            self.exit()
+            return
+
         log.debug(
             "%04x| Periphery.write_byte $%x to $%x (cpu_cycles: %i)",
             op_address, value, address, cpu_cycles

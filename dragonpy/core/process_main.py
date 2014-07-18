@@ -17,14 +17,8 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import dragonpy
-import logging
 import multiprocessing
 import os
-import select
-import socket
-import struct
-import subprocess
 import sys
 import threading
 
@@ -45,11 +39,11 @@ class BusReadThread(threading.Thread):
         self.periphery = periphery
         self.read_bus_request_queue = read_bus_request_queue
         self.read_bus_response_queue = read_bus_response_queue
-        self.quit = False
+        self.running = True
 
     def run(self):
         log.info(" *** BusReadThread.run() *** ")
-        while not self.quit:
+        while self.running:
 #         for __ in xrange(100):
             try:
                 cycles, op_address, structure, address = self.read_bus_request_queue.get(timeout=0.5)
@@ -74,11 +68,11 @@ class BusWriteThread(threading.Thread):
         self.cfg = cfg
         self.periphery = periphery
         self.write_bus_queue = write_bus_queue
-        self.quit = False
+        self.running = True
 
     def run(self):
         log.info(" *** BusWriteThread.run() *** ")
-        while not self.quit:
+        while self.running:
 #         for __ in xrange(100):
             try:
                 cycles, op_address, structure, address, value = self.write_bus_queue.get(timeout=0.5)
@@ -124,16 +118,16 @@ def main_process_startup(cfg):
     periphery.mainloop()
 
     p.join() # Wait if CPU quits
-    log.info(" *** CPU has quit ***")
+    log.info(" *** CPU has running ***")
 
     periphery.exit()
 
     # Quit all threads:
-    bus_read_thread.quit = True
-    bus_write_thread.quit = True
-#     periphery.input_thread.quit = True
+    bus_read_thread.running = False # Quit the while loop.
+    bus_write_thread.running = False # Quit the while loop.
+#     periphery.input_thread.running = True
 
-    log.info("Wait for quit bus threads")
+    log.info("Wait for running bus threads")
     bus_read_thread.join()
     bus_write_thread.join()
 
