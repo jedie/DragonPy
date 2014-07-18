@@ -24,18 +24,15 @@
 import inspect
 import logging
 import os
-import select
 import socket
 import sys
 import warnings
-import threading
 
 
 from dragonpy.MC6809data.MC6809_data_raw2 import (
     OP_DATA, REG_A, REG_B, REG_CC, REG_D , REG_DP, REG_PC,
     REG_S, REG_U, REG_X, REG_Y
 )
-from dragonpy.components.memory import Memory
 from dragonpy.core.cpu_control_server import start_http_control_server
 from dragonpy.cpu_utils.MC6809_registers import (
     ValueStorage8Bit, ConcatenatedAccumulator,

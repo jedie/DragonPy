@@ -7,13 +7,12 @@
 
 import os
 import threading
-import time
 import multiprocessing
 import importlib
+import sys
 
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
-import sys
 
 
 log = multiprocessing.log_to_stderr()

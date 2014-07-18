@@ -5,14 +5,15 @@
     DragonPy - CLI
     ~~~~~~~~~~~~~~
 
-    :created: 2013-2014 by Jens Diemer - www.jensdiemer.de
+    :created: 2013 by Jens Diemer - www.jensdiemer.de
     :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 import atexit
 import sys
-import argparse
+import webbrowser
+import threading
 
 from Dragon32.config import Dragon32Cfg
 from dragonpy.Multicomp6809.config import Multicomp6809Cfg
@@ -23,9 +24,9 @@ from dragonpy.sbc09.config import SBC09Cfg
 from dragonpy.core.DragonPy import main_process_startup
 
 
-configs.register("Dragon32", Dragon32Cfg, default=True)
+configs.register("Dragon32", Dragon32Cfg)
 configs.register("sbc09", SBC09Cfg)
-configs.register("Simple6809", Simple6809Cfg)
+configs.register("Simple6809", Simple6809Cfg, default=True)
 configs.register("Multicomp6809", Multicomp6809Cfg)
 
 
@@ -63,6 +64,9 @@ class DragonPyCLI(Base_CLI):
         self.parser.add_argument('--trace', action='store_true',
             help="Create trace lines."
         )
+        self.parser.add_argument('--dont_open_webbrowser', action='store_true',
+            help="Don't open the Webbrowser on CPU http control Server"
+        )
 
         self.parser.add_argument("--bus_socket_host",
             help="Host internal socket bus I/O (do not set manually!)"
@@ -81,29 +85,32 @@ class DragonPyCLI(Base_CLI):
         )
 
     def setup_cfg(self):
-        args = self.parse_args()
-        self.setup_logging(args)
+        self.args = self.parse_args()
+        self.setup_logging(self.args)
 
-        config_name = args.cfg
+        config_name = self.args.cfg
         config_cls = self.configs[config_name]
         cfg_dict = {
-            "verbosity":args.verbosity,
-            "display_cycle":args.display_cycle,
-            "trace":args.trace,
-            "bus_socket_host":args.bus_socket_host,
-            "bus_socket_port":args.bus_socket_port,
-            "ram":args.ram,
-            "rom":args.rom,
-            "max_ops":args.max_ops,
+            "verbosity":self.args.verbosity,
+            "display_cycle":self.args.display_cycle,
+            "trace":self.args.trace,
+            "bus_socket_host":self.args.bus_socket_host,
+            "bus_socket_port":self.args.bus_socket_port,
+            "ram":self.args.ram,
+            "rom":self.args.rom,
+            "max_ops":self.args.max_ops,
         }
         self.cfg = config_cls(cfg_dict)
         self.cfg.config_name = config_name
 
-    def run(self):
-        # TODO:
-        # if self.cfg.bus is None:
-        #     url = "http://%s:%s" % (self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT)
-        #     webbrowser.open(url)
+    def open_webbrowser(self):
+        url = "http://%s:%s" % (self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT)
+        webbrowser.open(url)
+
+    def run(self): # Called from ../DragonPy_CLI.py
+        if not self.args.dont_open_webbrowser:
+            threading.Timer(interval=1.0, function=self.open_webbrowser).start()
+
         main_process_startup(self.cfg)
 
 

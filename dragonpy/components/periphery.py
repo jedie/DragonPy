@@ -15,7 +15,6 @@ import time
 import logging
 import sys
 import httplib
-import threading
 
 try:
     import Tkinter
