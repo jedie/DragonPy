@@ -10,6 +10,22 @@ This project is primarily to lean and understand.
 
 Currently you can run "single board computer" ROMs like: sbc09, Simple6809 and Multicomp6809.
 
+
+Currently the work is focus of a better multiprocessing solution.
+This is in the branch:
+
+https://github.com/jedie/DragonPy/compare/multiprocessing2
+
+Only Simple6809 with Tkinter GUI works there, yet.
+It seems that it is a good performance boost.
+
+The concept of the new implementation can be seen in these two files:
+
+https://github.com/jedie/DragonPy/blob/0fe2833d92822c45d187a8776610085b0cfad865/concept2_main_process.py
+https://github.com/jedie/DragonPy/blob/0fe2833d92822c45d187a8776610085b0cfad865/concept2_sub_process.py
+
+
+
 Future goals are:
 * run Dragon 32 ROMs (maybe in far future: Dragon 64)
 * Implement a integrated development environment for BASIC programs
@@ -113,6 +129,7 @@ First GUI used a simple Tkinter window. Looks like this:
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/DragonPy_sbc09_01.png}}
 
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/Simple6809_TK_04.PNG}}
+
 
 
 === performance
