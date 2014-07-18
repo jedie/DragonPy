@@ -59,7 +59,7 @@ class PeripheryBase(object):
 
     def request_cpu(self, url):
 #         log.critical(
-        log.error(
+        log.debug(
             "request %s:%s%s", self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT, url
         )
         conn = httplib.HTTPConnection(
@@ -201,10 +201,10 @@ class TkPeripheryBase(PeripheryBase):
     def event_key_pressed(self, event):
         log.critical("keycode %s", repr(event.keycode))
         char = event.char
-        log.error("char %s", repr(char))
+        log.debug("char %s", repr(char))
         if char:
             char = char.upper()
-            log.error("Send %s", repr(char))
+            log.debug("Send %s", repr(char))
             self.user_input_queue.put(char)
 
     def exit(self):
@@ -218,7 +218,7 @@ class TkPeripheryBase(PeripheryBase):
     STATE = 0
     LAST_INPUT = ""
     def write_acia_data(self, cpu_cycles, op_address, address, value):
-        log.error("%04x| (%i) write to ACIA-data value: $%x (dez.: %i) ASCII: %r" % (
+        log.debug("%04x| (%i) write to ACIA-data value: $%x (dez.: %i) ASCII: %r" % (
             op_address, cpu_cycles, value, value, chr(value)
         ))
         if value == 0x8: # Backspace
