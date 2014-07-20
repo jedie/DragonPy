@@ -15,7 +15,7 @@ import threading
 import time
 import multiprocessing
 
-log = multiprocessing.log_to_stderr()
+from dragonpy.utils.logging_utils import log
 
 
 #------------------------------------------------------------------------------

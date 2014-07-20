@@ -12,6 +12,10 @@
 
 import logging
 import sys
+import multiprocessing
+
+
+log = multiprocessing.log_to_stderr()
 
 
 def setup_logging(log, level, handler=None):

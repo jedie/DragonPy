@@ -31,7 +31,7 @@ except ImportError:
 from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase
 
 
-log = multiprocessing.log_to_stderr()
+from dragonpy.utils.logging_utils import log
 
 
 class Simple6809PeripheryBase(PeripheryBase):

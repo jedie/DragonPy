@@ -6,13 +6,12 @@
 
 
     :created: 2013 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 import Queue
 import time
-import logging
 import sys
 import httplib
 
@@ -22,8 +21,7 @@ except Exception, err:
     print "Error importing Tkinter: %s" % err
     Tkinter = None
 
-
-log = logging.getLogger("DragonPy.components.Periphery")
+from dragonpy.utils.logging_utils import log
 
 
 class PeripheryBase(object):
@@ -204,8 +202,9 @@ class TkPeripheryBase(PeripheryBase):
 
     def exit(self):
         log.critical("Tk window closed.")
+        if self.running:
+            self.root.destroy()
         super(TkPeripheryBase, self).exit()
-        self.root.destroy()
 
     def destroy(self, event=None):
         self.exit()
@@ -245,6 +244,8 @@ class TkPeripheryBase(PeripheryBase):
         self.root.update()
 
     def mainloop(self):
+        log.critical("Tk mainloop started.")
         while self.running:
             self.update()
             time.sleep(0.1)
+        log.critical("Tk mainloop stopped.")

@@ -23,8 +23,8 @@ import traceback
 import sys
 import threading
 import select
-
-log = logging.getLogger("DragonPy.cpu_control_server")
+import os
+from dragonpy.utils.logging_utils import log
 
 
 class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
@@ -44,7 +44,7 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.post_urls = {
             r"/memory/(\s+)(-(\s+))?/$": self.post_memory,
             r"/memory/(\s+)(-(\s+))?/raw/$": self.post_memory_raw,
-            r"/running/$": self.post_quit,
+            r"/quit/$": self.post_quit,
             r"/reset/$": self.post_reset,
             r"/debug/$": self.post_debug,
         }
@@ -128,7 +128,7 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             '<li>6809 interrupt vectors memory dump:'
             '<a href="/memory/fff0-ffff/">/memory/fff0-ffff/</a></li>'
             '</ul>'
-            '<form action="/running/" method="post">'
+            '<form action="/quit/" method="post">'
             '<input type="submit" value="Quit CPU">'
             '</form>'
         ))
@@ -233,11 +233,13 @@ def control_server_thread(cpu, cfg, control_server):
         else:
             pass
 
-    if not cpu.running:
+    if cpu.running:
         threading.Timer(interval=0.5,
             function=control_server_thread,
             args=(cpu, cfg, control_server)
         ).start()
+    else:
+        log.critical("Quit control server thread, because CPU doesn't run.")
 
 def start_http_control_server(cpu, cfg):
     if not cfg.cfg_dict["use_bus"]:
@@ -246,7 +248,11 @@ def start_http_control_server(cpu, cfg):
 
     control_handler = ControlHandlerFactory(cpu)
     server_address = (cfg.CPU_CONTROL_ADDR, cfg.CPU_CONTROL_PORT)
-    control_server = BaseHTTPServer.HTTPServer(server_address, control_handler)
+    try:
+        control_server = BaseHTTPServer.HTTPServer(server_address, control_handler)
+    except:
+        cpu.running = False
+        raise
     url = "http://%s:%s" % server_address
     log.error("Start http control server on: %s", url)
 
@@ -254,20 +260,25 @@ def start_http_control_server(cpu, cfg):
 
 
 def test_run():
+    print "test run..."
     import subprocess
     cmd_args = [sys.executable,
-        "DragonPy_CLI.py",
+        os.path.join("..", "..", "DragonPy_CLI.py"),
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-        "--verbosity=30", # WARNING
+#         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
-
-        "--cfg=Multicomp6809",
+        "--verbosity=50", # CRITICAL/FATAL
+#         "--cfg=sbc09",
+        "--cfg=Simple6809",
+#         "--cfg=Dragon32",
+#         "--cfg=Multicomp6809",
+#         "--max=100000",
+        "--display_cycle",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
-    subprocess.Popen(cmd_args, cwd="..").wait()
+    subprocess.Popen(cmd_args).wait()
 
 if __name__ == "__main__":
     test_run()

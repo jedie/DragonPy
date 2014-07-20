@@ -14,7 +14,7 @@ import struct
 import multiprocessing
 
 
-log = multiprocessing.log_to_stderr()
+from dragonpy.utils.logging_utils import log
 
 
 class ConfigDict(dict):

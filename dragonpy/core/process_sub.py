@@ -13,33 +13,38 @@ import sys
 
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
-
-
-log = multiprocessing.log_to_stderr()
+from dragonpy.utils.logging_utils import log
+import time
 
 
 class CPUThread(threading.Thread):
     def __init__ (self, cfg, cpu):
         super(CPUThread, self).__init__()
-        log.info(" *** CPUThread init *** ")
+        log.critical(" *** CPUThread init *** ")
         self.cfg = cfg
         self.cpu = cpu
 
     def run(self):
-        log.info(" *** CPUThread.run() *** ")
+        log.critical(" *** CPUThread.run() start *** ")
         cpu = self.cpu
         cpu.reset()
         max_ops = self.cfg.cfg_dict["max_ops"]
+        next_update = time.time() + 1
         if max_ops:
-            log.critical("Runing only %i ops!", max_ops)
+            log.critical("Running only %i ops!", max_ops)
             for __ in xrange(max_ops):
                 cpu.get_and_call_next_op()
+                if not cpu.running:
+                    break
             log.critical("Quit CPU after given 'max_ops' %i ops.", max_ops)
+            return
         else:
             while cpu.running:
-#             for __ in xrange(20000):
+                if time.time() > next_update:
+                    log.critical("CPU is running == %s - %s cycles.", cpu.running, cpu.cycles)
+                    next_update = time.time() + 1
                 cpu.get_and_call_next_op()
-        print "Quit CPU"
+        log.critical(" *** CPUThread.run() stopped. *** ")
 
 
 def start_cpu(cfg_dict, read_bus_request_queue, read_bus_response_queue, write_bus_queue):
@@ -56,9 +61,9 @@ def start_cpu(cfg_dict, read_bus_request_queue, read_bus_response_queue, write_b
 
     cpu_thread = CPUThread(cfg, cpu)
     cpu_thread.start()
+    log.critical("Wait for CPU thread stop.")
     cpu_thread.join()
-
-    log.critical(" +++ start_cpu(): CPU stops +++ ")
+    log.critical("CPU thread stopped.")
 
 
 def test_run():
@@ -66,11 +71,11 @@ def test_run():
     import subprocess
     cmd_args = [sys.executable,
         os.path.join("..", "..", "DragonPy_CLI.py"),
-        "--verbosity=5",
+#         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
 #         "--verbosity=30", # WARNING
-#         "--verbosity=40", # ERROR
+        "--verbosity=40", # ERROR
 #         "--verbosity=50", # CRITICAL/FATAL
 #         "--cfg=sbc09",
         "--cfg=Simple6809",

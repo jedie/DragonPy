@@ -21,7 +21,7 @@ from dragonpy.utils import pager
 import sys
 
 
-log = multiprocessing.log_to_stderr()
+from dragonpy.utils.logging_utils import log
 
 #------------------------------------------------------------------------------
 
