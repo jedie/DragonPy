@@ -22,7 +22,8 @@ except Exception, err:
     print "Error importing Tkinter: %s" % err
     Tkinter = None
 
-from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase
+from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase, \
+    ConsolePeripheryBase
 
 log = logging.getLogger("DragonPy.sbc09Periphery")
 
@@ -114,36 +115,13 @@ class DummyStdout(object):
     flush = dummy_func
 
 
-class SBC09PeripheryConsole(SBC09PeripheryBase):
+class SBC09PeripheryConsole(SBC09PeripheryBase, ConsolePeripheryBase):
     """
     A simple console to interact with the 6809 simulation.
     """
-    def __init__(self, cfg):
-        super(SBC09PeripheryConsole, self).__init__(cfg)
-
-        input_thread = threading.Thread(target=self.input_thread, args=(self.user_input_queue,))
-        input_thread.daemon = True
-        input_thread.start()
-
-        # "redirect" use input into nirvana, because the ROM code will echo
-        # the user input back.
-        self.origin_stdout = sys.stdout
-        sys.stdout = DummyStdout()
-
-    def input_thread(self, input_queue):
-        while True:
-            input_queue.put(sys.stdin.read(1))
-
-    def update(self, cpu_cycles):
-        super(SBC09PeripheryConsole, self).update(cpu_cycles)
-        if not self.output_queue.empty():
-            text_buffer = []
-            while not self.output_queue.empty():
-                text_buffer.append(self.output_queue.get())
-
-            text = "".join(text_buffer)
-            self.origin_stdout.write(text)
-            self.origin_stdout.flush()
+    def new_output_char(self, char):
+        sys.stdout.write(char)
+        sys.stdout.flush()
 
 
 class SBC09PeripheryUnittest(SBC09PeripheryBase):

@@ -44,7 +44,6 @@ class BusReadThread(threading.Thread):
     def run(self):
         log.critical(" *** BusReadThread.run() started. *** ")
         while self.running:
-#         for __ in xrange(100):
             try:
                 cycles, op_address, structure, address = self.read_bus_request_queue.get(timeout=0.5)
             except multiprocessing.queues.Empty:
@@ -74,7 +73,6 @@ class BusWriteThread(threading.Thread):
     def run(self):
         log.critical(" *** BusWriteThread.run() started. *** ")
         while self.running:
-#         for __ in xrange(100):
             try:
                 cycles, op_address, structure, address, value = self.write_bus_queue.get(timeout=0.5)
             except multiprocessing.queues.Empty:

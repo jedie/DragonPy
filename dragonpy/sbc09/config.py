@@ -58,16 +58,19 @@ class SBC09Cfg(BaseConfig):
         self.periphery_class = SBC09Periphery
 
 
+config = SBC09Cfg
+
+
 def test_run():
     import sys, subprocess
     cmd_args = [sys.executable,
-        "DragonPy_CLI.py",
+        os.path.join("..", "DragonPy_CLI.py"),
 #         "--verbosity=5",
-        "--verbosity=10", # DEBUG
+#         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
 #         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
+        "--verbosity=50", # CRITICAL/FATAL
 
         "--cfg=sbc09",
     ]

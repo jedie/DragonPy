@@ -26,24 +26,24 @@ from dragonpy.utils.logging_utils import log
 #------------------------------------------------------------------------------
 
 
-class InputPoll(threading.Thread):
+class InputPollThread(threading.Thread):
     """
     Seperate thread for user input from console.
     """
     def __init__ (self, in_queue):
-        super(InputPoll, self).__init__()
-        log.info(" *** InputPoll init *** ")
-        self.input_queue = in_queue
+        super(InputPollThread, self).__init__()
+        log.info(" *** InputPollThread init *** ")
+        self.user_input_queue = in_queue
         self.quit = False
 
     def run(self):
-        log.info(" *** InputPoll running *** ")
+        log.info(" *** InputPollThread running *** ")
         while not self.quit:
             char = pager.getch() # XXX: Blocks, becuase it waits for one input char
-            print "Char from InputPoll: %s" % repr(char)
+            print "Char from InputPollThread: %s" % repr(char)
             if char == '\x04':
                 sys.exit()
-            self.input_queue.put(char)
+            self.user_input_queue.put(char)
 
 
 class Periphery(object):
@@ -53,7 +53,7 @@ class Periphery(object):
         self.user_input_queue = Queue.Queue() # Buffer for input to send back to the CPU
         self.output_queue = Queue.Queue() # Buffer with content from the CPU to display
 
-        self.input_thread = InputPoll(self.user_input_queue)
+        self.input_thread = InputPollThread(self.user_input_queue)
         self.input_thread.start()
 
     def read_byte(self, cpu_cycles, op_address, address):

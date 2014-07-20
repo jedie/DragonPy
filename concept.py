@@ -19,18 +19,18 @@ import time
 from dragonpy.utils import pager
 
 
-class InputPoll(threading.Thread):
+class InputPollThread(threading.Thread):
     def __init__ (self, in_queue):
-        print " *** InputPoll init, pid:", os.getpid()
-        self.input_queue = in_queue
-        super(InputPoll, self).__init__()
+        print " *** InputPollThread init, pid:", os.getpid()
+        self.user_input_queue = in_queue
+        super(InputPollThread, self).__init__()
 
     def run(self):
-        print " *** InputPoll running, pid:", os.getpid()
+        print " *** InputPollThread running, pid:", os.getpid()
         while True:
             char = pager.getch()
-            print "Char from InputPoll:", repr(char)
-            self.input_queue.put(char)
+            print "Char from InputPollThread:", repr(char)
+            self.user_input_queue.put(char)
 
 
 class Periphery(object):
@@ -40,7 +40,7 @@ class Periphery(object):
         self.user_input_queue = Queue.Queue() # Buffer for input to send back to the CPU
         self.output_queue = Queue.Queue() # Buffer with content from the CPU to display
 
-        input_thread = InputPoll(self.user_input_queue)
+        input_thread = InputPollThread(self.user_input_queue)
         input_thread.start()
 
     def read_byte(self, cpu_cycles, op_address, address):

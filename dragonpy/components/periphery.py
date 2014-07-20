@@ -15,6 +15,7 @@ import time
 import sys
 import httplib
 import threading
+from dragonpy.utils import pager
 
 try:
     import Tkinter
@@ -33,7 +34,6 @@ class PeripheryBase(object):
         self.running = True
 
         self.user_input_queue = Queue.Queue() # Buffer for input to send back to the CPU
-        self.output_queue = Queue.Queue() # Buffer with content from the CPU to display
 
         self.update_time = 0.1
         self.last_update = time.time()
@@ -47,9 +47,6 @@ class PeripheryBase(object):
 
     def reset_vector(self, cpu_cycles, op_address, address):
         return self.cfg.RESET_VECTOR_VALUE
-
-    def new_output_char(self, char):
-        self.output_queue.put(char)
 
     def add_to_input_queue(self, txt):
         log.debug("Add %s to input queue.", repr(txt))
@@ -98,10 +95,6 @@ class PeripheryBase(object):
     read_word = read_byte
 
     def write_byte(self, cpu_cycles, op_address, address, value):
-        if not self.running:
-            self.exit()
-            return
-
         log.debug(
             "%04x| Periphery.write_byte $%x to $%x (cpu_cycles: %i)",
             op_address, value, address, cpu_cycles
@@ -118,7 +111,7 @@ class PeripheryBase(object):
 
     write_word = write_byte
 
-    def mainloop(self, cpu_process):
+    def add_output(self, text):
         raise NotImplementedError
 
     def write_acia_status(self, cpu_cycles, op_address, address, value):
@@ -132,40 +125,9 @@ class PeripheryBase(object):
         raise NotImplementedError
 
 
-
-class TkUpdateThread(threading.Thread):
-    """
-    Wait for CPU/Memory bus write: Redirect write to periphery
-    """
-    def __init__ (self, periphery, cpu_process):
-        super(TkUpdateThread, self).__init__()
-        log.critical(" *** TkUpdateThread init *** ")
-        self.periphery = periphery
-        self.cpu_process = cpu_process
-        self.running = True
-
-    def run(self):
-        log.critical(" *** TkUpdateThread.run() started. *** ")
-        while self.periphery.running and self.cpu_process.is_alive():
-            if not self.periphery.output_queue.empty():
-                text_buffer = []
-                while not self.periphery.output_queue.empty():
-                    text_buffer.append(self.periphery.output_queue.get())
-
-                text = "".join(text_buffer)
-
-                # Duplicate output
-                sys.stdout.write(text)
-                sys.stdout.flush()
-
-                # insert in text field
-                self.periphery.text.config(state=Tkinter.NORMAL)
-                self.periphery.text.insert("end", text)
-                self.periphery.text.see("end")
-                self.periphery.text.config(state=Tkinter.DISABLED)
-
-        self.periphery.exit("Exit from TkUpdateThread.")
-        log.critical(" *** TkUpdateThread.run() stopped. *** ")
+###############################################################################
+# TKinter Base ################################################################
+###############################################################################
 
 
 class TkPeripheryBase(PeripheryBase):
@@ -257,12 +219,73 @@ class TkPeripheryBase(PeripheryBase):
 
         super(TkPeripheryBase, self).write_acia_data(cpu_cycles, op_address, address, value)
 
+    def new_output_char(self, char):
+        # Duplicate output
+        sys.stdout.write(char)
+        sys.stdout.flush()
+
+        # insert in text field
+        self.text.config(state=Tkinter.NORMAL)
+        self.text.insert("end", char)
+        self.text.see("end")
+        self.text.config(state=Tkinter.DISABLED)
+
+    def cpu_check_interval(self, cpu_process):
+        """
+        Destroy Tk window (Exit mainloop), if the CPU not running anymore.
+        e.g.: CPU quit per http control server.
+        """
+        if cpu_process.is_alive():
+            # Check again, after 500ms
+            self.root.after(500, self.cpu_check_interval, cpu_process)
+        else:
+            self.exit("CPU process is not alive.")
+
     def mainloop(self, cpu_process):
         log.critical("Tk mainloop started.")
-
-        self.update_thread = TkUpdateThread(self, cpu_process)
-        self.update_thread.start()
-
+        self.cpu_check_interval(cpu_process)
         self.root.mainloop()
-
         log.critical("Tk mainloop stopped.")
+
+
+###############################################################################
+# Console Base ################################################################
+###############################################################################
+
+
+class InputPollThread(threading.Thread):
+    def __init__ (self, cpu_process, user_input_queue):
+        self.cpu_process = cpu_process
+        self.user_input_queue = user_input_queue
+        self.check_cpu_interval()
+        super(InputPollThread, self).__init__()
+
+    def check_cpu_interval(self):
+        log.critical("check_cpu_interval()")
+        if not self.cpu_process.is_alive():
+            log.critical("Kill pager.getch()")
+            raise SystemExit("Kill pager.getch()")
+        threading.Timer(0.5, self.check_cpu_interval)
+
+    def run(self):
+        log.critical("InputPollThread.run() start")
+        while self.cpu_process.is_alive():
+            char = pager.getch()
+            if char == "\n":
+                self.user_input_queue.put("\r")
+
+            char = char.upper()
+            self.user_input_queue.put(char)
+        log.critical("InputPollThread.run() ends, because CPU not alive anymore.")
+
+
+class ConsolePeripheryBase(PeripheryBase):
+    def new_output_char(self, char):
+        sys.stdout.write(char)
+        sys.stdout.flush()
+
+    def mainloop(self, cpu_process):
+        log.critical("ConsolePeripheryBase.mainloop() start")
+        input_thread = InputPollThread(cpu_process, self.user_input_queue)
+        input_thread.deamon = True
+        input_thread.start()

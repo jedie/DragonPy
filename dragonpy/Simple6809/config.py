@@ -78,7 +78,9 @@ class Simple6809Cfg(BaseConfig):
         )
         cpu.memory.ram.print_dump(0x005c, 0x0061)
 
+
 config = Simple6809Cfg
+
 
 def test_run():
     import sys, subprocess

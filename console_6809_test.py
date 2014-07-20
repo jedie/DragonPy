@@ -18,9 +18,9 @@ import time
 
 from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809PeripheryBase
-from dragonpy.cpu6809 import CPU
 from dragonpy.utils.logging_utils import setup_logging
 from dragonpy.utils import pager
+from dragonpy.components.cpu6809 import CPU
 
 
 log = logging.getLogger("DragonPy.6809Console")
@@ -39,19 +39,19 @@ class CmdArgs(object):
     display_cycle = False
 
 
-class InputPoll(threading.Thread):
+class InputPollThread(threading.Thread):
     def __init__ (self, in_queue):
-        self.input_queue = in_queue
-        super(InputPoll, self).__init__()
+        self.user_input_queue = in_queue
+        super(InputPollThread, self).__init__()
 
     def run(self):
         while True:
             char = pager.getch()
             if char == "\n":
-                self.input_queue.put("\r")
+                self.user_input_queue.put("\r")
 
             char = char.upper()
-            self.input_queue.put(char)
+            self.user_input_queue.put(char)
 
 
 class Console6809Periphery(Simple6809PeripheryBase):
@@ -83,8 +83,8 @@ class Console6809(object):
         cmd_args = CmdArgs
         cfg = Simple6809Cfg(cmd_args)
 
-        self.input_queue = Queue.Queue()
-        self.periphery = Console6809Periphery(self.input_queue, cfg)
+        self.user_input_queue = Queue.Queue()
+        self.periphery = Console6809Periphery(self.user_input_queue, cfg)
         cfg.periphery = self.periphery
 
         self.cpu = CPU(cfg)
@@ -99,7 +99,7 @@ class Console6809(object):
             'RUN',
         ]) + "\r\n")
 
-        input_thread = InputPoll(self.input_queue)
+        input_thread = InputPollThread(self.user_input_queue)
         input_thread.start()
 
         self.update_intervall()
