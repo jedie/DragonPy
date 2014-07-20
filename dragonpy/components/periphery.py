@@ -14,6 +14,7 @@ import Queue
 import time
 import sys
 import httplib
+import threading
 
 try:
     import Tkinter
@@ -79,10 +80,6 @@ class PeripheryBase(object):
         self.request_cpu(url="/quit/")
 
     def read_byte(self, cpu_cycles, op_address, address):
-        if not self.running:
-            self.exit()
-            return
-
 #        log.debug(
 #            "%04x| Periphery.read_byte from $%x (cpu_cycles: %i)",
 #            op_address, address, cpu_cycles
@@ -121,7 +118,7 @@ class PeripheryBase(object):
 
     write_word = write_byte
 
-    def mainloop(self):
+    def mainloop(self, cpu_process):
         raise NotImplementedError
 
     def write_acia_status(self, cpu_cycles, op_address, address, value):
@@ -133,6 +130,42 @@ class PeripheryBase(object):
         raise NotImplementedError
     def write_acia_data(self, cpu_cycles, op_address, address, value):
         raise NotImplementedError
+
+
+
+class TkUpdateThread(threading.Thread):
+    """
+    Wait for CPU/Memory bus write: Redirect write to periphery
+    """
+    def __init__ (self, periphery, cpu_process):
+        super(TkUpdateThread, self).__init__()
+        log.critical(" *** TkUpdateThread init *** ")
+        self.periphery = periphery
+        self.cpu_process = cpu_process
+        self.running = True
+
+    def run(self):
+        log.critical(" *** TkUpdateThread.run() started. *** ")
+        while self.periphery.running and self.cpu_process.is_alive():
+            if not self.periphery.output_queue.empty():
+                text_buffer = []
+                while not self.periphery.output_queue.empty():
+                    text_buffer.append(self.periphery.output_queue.get())
+
+                text = "".join(text_buffer)
+
+                # Duplicate output
+                sys.stdout.write(text)
+                sys.stdout.flush()
+
+                # insert in text field
+                self.periphery.text.config(state=Tkinter.NORMAL)
+                self.periphery.text.insert("end", text)
+                self.periphery.text.see("end")
+                self.periphery.text.config(state=Tkinter.DISABLED)
+
+        self.periphery.exit("Exit from TkUpdateThread.")
+        log.critical(" *** TkUpdateThread.run() stopped. *** ")
 
 
 class TkPeripheryBase(PeripheryBase):
@@ -173,7 +206,8 @@ class TkPeripheryBase(PeripheryBase):
         self.root.bind("<Key>", self.event_key_pressed)
         self.root.bind("<Destroy>", self.destroy)
 
-        self.update()
+        self.root.update()
+        self.update_thread = None
 
     def event_return(self, event):
 #        log.critical("ENTER: add \\n")
@@ -200,14 +234,13 @@ class TkPeripheryBase(PeripheryBase):
             log.debug("Send %s", repr(char))
             self.user_input_queue.put(char)
 
-    def exit(self):
-        log.critical("Tk window closed.")
-        if self.running:
-            self.root.destroy()
+    def exit(self, msg):
+        log.critical(msg)
+        self.root.quit()
         super(TkPeripheryBase, self).exit()
 
     def destroy(self, event=None):
-        self.exit()
+        self.exit("Tk window closed.")
 
     STATE = 0
     LAST_INPUT = ""
@@ -224,28 +257,12 @@ class TkPeripheryBase(PeripheryBase):
 
         super(TkPeripheryBase, self).write_acia_data(cpu_cycles, op_address, address, value)
 
-    def update(self):
-        if not self.output_queue.empty():
-            text_buffer = []
-            while not self.output_queue.empty():
-                text_buffer.append(self.output_queue.get())
-
-            text = "".join(text_buffer)
-
-            # Duplicate output
-            sys.stdout.write(text)
-            sys.stdout.flush()
-
-            # insert in text field
-            self.text.config(state=Tkinter.NORMAL)
-            self.text.insert("end", text)
-            self.text.see("end")
-            self.text.config(state=Tkinter.DISABLED)
-        self.root.update()
-
-    def mainloop(self):
+    def mainloop(self, cpu_process):
         log.critical("Tk mainloop started.")
-        while self.running:
-            self.update()
-            time.sleep(0.1)
+
+        self.update_thread = TkUpdateThread(self, cpu_process)
+        self.update_thread.start()
+
+        self.root.mainloop()
+
         log.critical("Tk mainloop stopped.")

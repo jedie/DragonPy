@@ -210,6 +210,10 @@ class CPU(object):
         op_address, opcode = self.read_pc_byte()
         self.call_instruction_func(op_address, opcode)
 
+    def quit(self):
+        log.critical("CPU quit() called.")
+        self.running = False
+
     # same_op_count = 0
     # last_op_code = None
     # last_trace_line = None

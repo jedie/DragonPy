@@ -108,19 +108,20 @@ def main_process_startup(cfg):
     bus_write_thread.start()
 
     log.critical("Start CPU/Memory as separated process")
-    p = multiprocessing.Process(target=start_cpu,
+    cpu_process = multiprocessing.Process(target=start_cpu,
         args=(
             cfg_dict,
             read_bus_request_queue, read_bus_response_queue,
             write_bus_queue
         )
     )
-    p.start()
+    cpu_process.deamon = True
+    cpu_process.start()
 
-    periphery.mainloop()
+    periphery.mainloop(cpu_process)
 
     log.critical("Wait for CPU quit.")
-    p.join()
+    cpu_process.join()
 
     log.critical(" *** CPU process stopped. ***")
 
