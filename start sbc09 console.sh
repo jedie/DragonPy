@@ -16,8 +16,6 @@ case $doit in
         echo "bye bye"
         ;;
     *)
-        echo "input, don't know"
+        echo "input, don't know, bye."
         ;;
 esac
-echo
-read -n1 -P "ENTER" ENTER

@@ -257,20 +257,24 @@ class InputPollThread(threading.Thread):
     def __init__ (self, cpu_process, user_input_queue):
         self.cpu_process = cpu_process
         self.user_input_queue = user_input_queue
-        self.check_cpu_interval()
+        self.check_cpu_interval(cpu_process)
         super(InputPollThread, self).__init__()
 
-    def check_cpu_interval(self):
+    def check_cpu_interval(self, cpu_process):
+        """
+        work-a-round for blocking input
+        """
         log.critical("check_cpu_interval()")
-        if not self.cpu_process.is_alive():
-            log.critical("Kill pager.getch()")
+        if not cpu_process.is_alive():
+            log.critical("raise SystemExit, because CPU is not alive.")
             raise SystemExit("Kill pager.getch()")
-        threading.Timer(0.5, self.check_cpu_interval)
+        t = threading.Timer(1.0, self.check_cpu_interval, args=[cpu_process])
+        t.start()
 
     def run(self):
         log.critical("InputPollThread.run() start")
         while self.cpu_process.is_alive():
-            char = pager.getch()
+            char = pager.getch() # Important: It blocks while waiting for a input
             if char == "\n":
                 self.user_input_queue.put("\r")
 

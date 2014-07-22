@@ -100,9 +100,11 @@ def main_process_startup(cfg):
     # API between processes and local periphery
     log.critical("start BusReadThread()")
     bus_read_thread = BusReadThread(cfg, periphery, read_bus_request_queue, read_bus_response_queue)
+    bus_read_thread.deamon = True
     bus_read_thread.start()
     log.critical("start BusWriteThread()")
     bus_write_thread = BusWriteThread(cfg, periphery, write_bus_queue)
+    bus_write_thread.deamon = True
     bus_write_thread.start()
 
     log.critical("Start CPU/Memory as separated process")
@@ -119,9 +121,12 @@ def main_process_startup(cfg):
     periphery.mainloop(cpu_process)
 
     log.critical("Wait for CPU quit.")
-    cpu_process.join()
-
-    log.critical(" *** CPU process stopped. ***")
+    try:
+        cpu_process.join()
+    except KeyboardInterrupt:
+        log.critical("CPU process stops by keyboard interrupt.")
+    else:
+        log.critical(" *** CPU process stopped. ***")
 
     # Quit all threads:
     bus_read_thread.running = False # Quit the while loop.

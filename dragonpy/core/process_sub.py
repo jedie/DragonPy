@@ -60,10 +60,16 @@ def start_cpu(cfg_dict, read_bus_request_queue, read_bus_response_queue, write_b
     memory.cpu = cpu
 
     cpu_thread = CPUThread(cfg, cpu)
+    cpu_thread.deamon = True
     cpu_thread.start()
     log.critical("Wait for CPU thread stop.")
-    cpu_thread.join()
-    log.critical("CPU thread stopped.")
+    try:
+        cpu_thread.join()
+    except KeyboardInterrupt:
+        log.critical("CPU thread stops by keyboard interrupt.")
+    else:
+        log.critical("CPU thread stopped.")
+    cpu.running = False
 
 
 def test_run():
