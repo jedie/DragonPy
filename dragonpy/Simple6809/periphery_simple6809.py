@@ -58,7 +58,9 @@ class Simple6809PeripheryBase(PeripheryBase):
 
         char = self.user_input_queue.get()
         value = ord(char)
-        log.info("%04x| (%i) read from ACIA-data, send back %r $%x",
+#         log.info(
+        log.critical(
+            "%04x| (%i) read from ACIA-data, send back %r $%x",
             op_address, cpu_cycles, char, value
         )
         return value
@@ -79,7 +81,7 @@ class Simple6809PeripheryBase(PeripheryBase):
             char = chr(value)
 #            log.info("convert value += 0x41 to %s ($%x)" , repr(char), value)
 
-        self.new_output_char(char)
+        self.output_queue.put(char)
 
 
 class Simple6809PeripheryUnittest(Simple6809PeripheryBase):
@@ -100,6 +102,9 @@ class Simple6809PeripheryUnittest(Simple6809PeripheryBase):
 class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
     TITLE = "DragonPy - Simple 6809"
     GEOMETRY = "+500+300"
+    KEYCODE_MAP = {
+        127: 0x03, # Break Key
+    }
     INITAL_INPUT = "\r\n".join([
 #         'PRINT "HELLO WORLD!"',
 #         '? 123',

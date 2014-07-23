@@ -34,6 +34,7 @@ class PeripheryBase(object):
         self.cfg = cfg
         self.running = True
 
+        self.output_queue = Queue.Queue() # Buffer for output from CPU
         self.user_input_queue = Queue.Queue() # Buffer for input to send back to the CPU
 
         self.update_time = 0.1
@@ -134,6 +135,8 @@ class PeripheryBase(object):
 class TkPeripheryBase(PeripheryBase):
     TITLE = "DragonPy - Base Tkinter Periphery"
     GEOMETRY = "+500+300"
+    KEYCODE_MAP = {}
+    ESC_KEYCODE = "\x03" # What keycode to send, if escape Key pressed?
 
     def __init__(self, cfg):
         super(TkPeripheryBase, self).__init__(cfg)
@@ -177,9 +180,8 @@ class TkPeripheryBase(PeripheryBase):
         self.user_input_queue.put("\n")
 
     def from_console_break(self, event):
-#        log.critical("BREAK: add 0x03")
-        # dc61 81 03              LA3C2     CMPA #3             BREAK KEY?
-        self.user_input_queue.put("\x03")
+        log.critical("from_console_break(): Add %r to input queue", self.ESC_KEYCODE)
+        self.user_input_queue.put(self.ESC_KEYCODE)
 
     def copy_to_clipboard(self, event):
         log.critical("Copy to clipboard")
@@ -189,13 +191,20 @@ class TkPeripheryBase(PeripheryBase):
         self.root.clipboard_append(text)
 
     def event_key_pressed(self, event):
-        log.critical("keycode %s", repr(event.keycode))
+        keycode = event.keycode
         char = event.char
-        log.debug("char %s", repr(char))
+        log.critical("keycode %s - char %s", keycode, repr(char))
         if char:
             char = char.upper()
-            log.debug("Send %s", repr(char))
-            self.user_input_queue.put(char)
+        elif keycode in self.KEYCODE_MAP:
+            char = chr(self.KEYCODE_MAP[keycode])
+            log.critical("keycode %s translated to: %s", keycode, repr(char))
+        else:
+            log.critical("Ignore input, doesn't send to CPU.")
+            return
+
+        log.debug("Send %s", repr(char))
+        self.user_input_queue.put(char)
 
     def exit(self, msg):
         log.critical(msg)
@@ -220,32 +229,26 @@ class TkPeripheryBase(PeripheryBase):
 
         super(TkPeripheryBase, self).write_acia_data(cpu_cycles, op_address, address, value)
 
-    def new_output_char(self, char):
-#        log.critical("Tk - new_output_char(%s)" % repr(char))
-        # insert in text field
+    def _new_output_char(self, char):
+        """ insert in text field """
         self.text.config(state=Tkinter.NORMAL)
         self.text.insert("end", char)
         self.text.see("end")
         self.text.config(state=Tkinter.DISABLED)
 
-    def cpu_check_interval(self, cpu_process):
-        """
-        Destroy Tk window (Exit mainloop), if the CPU not running anymore.
-        e.g.: CPU running per http control server.
-        """
-        if cpu_process.is_alive():
-#            log.critical("Tk - self.root.update()")
-#            self.root.update()
-            # Check again, after 500ms
-#            self.root.after(500, self.cpu_check_interval, cpu_process)
-            t = threading.Timer(1.0, self.cpu_check_interval, args=[cpu_process])
-            t.start()
-        else:
+    def add_input_interval(self, cpu_process):
+        if not cpu_process.is_alive():
             self.exit("CPU process is not alive.")
+
+        while not self.output_queue.empty():
+            char = self.output_queue.get(1)
+            self._new_output_char(char)
+
+        self.root.after(100, self.add_input_interval, cpu_process)
 
     def mainloop(self, cpu_process):
         log.critical("Tk mainloop started.")
-        self.cpu_check_interval(cpu_process)
+        self.add_input_interval(cpu_process)
         self.root.mainloop()
         log.critical("Tk mainloop stopped.")
 
