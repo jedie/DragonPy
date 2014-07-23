@@ -157,7 +157,7 @@ class TkPeripheryBase(PeripheryBase):
             background="#08ff08", # nearly green
             foreground="#004100", # nearly black
             font=('courier', 11, 'bold'),
-            yscrollcommand=scollbar.set,
+#            yscrollcommand=scollbar.set, # FIXME
         )
 
         scollbar.pack(side=Tkinter.RIGHT, fill=Tkinter.Y)
@@ -221,10 +221,7 @@ class TkPeripheryBase(PeripheryBase):
         super(TkPeripheryBase, self).write_acia_data(cpu_cycles, op_address, address, value)
 
     def new_output_char(self, char):
-        # Duplicate output
-        sys.stdout.write(char)
-        sys.stdout.flush()
-
+#        log.critical("Tk - new_output_char(%s)" % repr(char))
         # insert in text field
         self.text.config(state=Tkinter.NORMAL)
         self.text.insert("end", char)
@@ -237,7 +234,8 @@ class TkPeripheryBase(PeripheryBase):
         e.g.: CPU running per http control server.
         """
         if cpu_process.is_alive():
-            self.root.update()
+#            log.critical("Tk - self.root.update()")
+#            self.root.update()
             # Check again, after 500ms
 #            self.root.after(500, self.cpu_check_interval, cpu_process)
             t = threading.Timer(1.0, self.cpu_check_interval, args=[cpu_process])
