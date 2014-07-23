@@ -5,6 +5,7 @@
     DragonPy - CPU control http server
     ==================================
 
+    TODO: Use bottle!
 
     :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
@@ -24,6 +25,7 @@ import sys
 import threading
 import select
 import os
+
 from dragonpy.utils.logging_utils import log
 
 
@@ -206,12 +208,12 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
     def post_quit(self, m):
         log.critical("Quit CPU from controller server.")
-        self.cpu.running = False
+        self.cpu.quit()
         self.response_html(headline="CPU running")
 
     def post_reset(self, m):
-        self.response_html(headline="CPU reset")
         self.cpu.reset()
+        self.response_html(headline="CPU reset")
 
 
 class ControlHandlerFactory:
