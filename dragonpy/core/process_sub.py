@@ -63,7 +63,7 @@ def start_cpu(cfg_dict, read_bus_request_queue, read_bus_response_queue, write_b
 
     memory = Memory(cfg, read_bus_request_queue, read_bus_response_queue, write_bus_queue)
     cpu = CPU(memory, cfg)
-    memory.cpu = cpu
+    memory.cpu = cpu # FIXME
 
     cpu_thread = CPUThread(cfg, cpu)
     cpu_thread.deamon = True

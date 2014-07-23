@@ -28,7 +28,8 @@ try:
 except ImportError:
     pass
 
-from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase
+from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase, \
+    PeripheryUnittestBase
 
 
 from dragonpy.utils.logging_utils import log
@@ -58,8 +59,8 @@ class Simple6809PeripheryBase(PeripheryBase):
 
         char = self.user_input_queue.get()
         value = ord(char)
-#         log.info(
-        log.critical(
+        log.info(
+#         log.critical(
             "%04x| (%i) read from ACIA-data, send back %r $%x",
             op_address, cpu_cycles, char, value
         )
@@ -84,19 +85,9 @@ class Simple6809PeripheryBase(PeripheryBase):
         self.output_queue.put(char)
 
 
-class Simple6809PeripheryUnittest(Simple6809PeripheryBase):
-    def __init__(self, *args, **kwargs):
-        super(Simple6809PeripheryUnittest, self).__init__(*args, **kwargs)
-        self._out_buffer = ""
-        self.out_lines = []
+class Simple6809PeripheryUnittest(PeripheryUnittestBase, Simple6809PeripheryBase):
+    pass
 
-    def new_output_char(self, char):
-#        sys.stdout.write(char)
-#        sys.stdout.flush()
-        self._out_buffer += char
-        if char == "\n":
-            self.out_lines.append(self._out_buffer)
-            self._out_buffer = ""
 
 
 class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):

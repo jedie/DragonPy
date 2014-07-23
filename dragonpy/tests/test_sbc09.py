@@ -22,8 +22,7 @@ import pprint
 import sys
 import unittest
 
-from dragonpy.tests.test_base import TextTestRunner2, Test6809_sbc09_Base, \
-    UnittestCmdArgs
+from dragonpy.tests.test_base import TextTestRunner2, Test6809_sbc09_Base
 from dragonpy.utils.logging_utils import setup_logging
 from dragonpy.utils import srecord_utils
 
@@ -218,7 +217,7 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #            "Create_sbc09_trace",
-            "Test_sbc09.test_S_records",
+#             "Test_sbc09.test_S_records",
 #            "Test_sbc09.test_calculate_hex_negative",
         ),
         testRunner=TextTestRunner2,

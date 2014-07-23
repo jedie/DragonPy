@@ -94,7 +94,7 @@ class RAM(ROM):
 
 
 class Memory(object):
-    def __init__(self, cfg, read_bus_request_queue, read_bus_response_queue, write_bus_queue):
+    def __init__(self, cfg, read_bus_request_queue=None, read_bus_response_queue=None, write_bus_queue=None):
         self.cfg = cfg
         self.use_bus = cfg.cfg_dict["use_bus"]
         self.read_bus_request_queue = read_bus_request_queue

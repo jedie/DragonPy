@@ -23,7 +23,7 @@ except Exception, err:
     Tkinter = None
 
 from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase, \
-    ConsolePeripheryBase
+    ConsolePeripheryBase, PeripheryUnittestBase
 
 log = logging.getLogger("DragonPy.sbc09Periphery")
 
@@ -124,19 +124,9 @@ class SBC09PeripheryConsole(SBC09PeripheryBase, ConsolePeripheryBase):
         sys.stdout.flush()
 
 
-class SBC09PeripheryUnittest(SBC09PeripheryBase):
-    def __init__(self, *args, **kwargs):
-        super(SBC09PeripheryUnittest, self).__init__(*args, **kwargs)
-        self._out_buffer = ""
-        self.out_lines = []
+class SBC09PeripheryUnittest(PeripheryUnittestBase, SBC09PeripheryBase):
+    pass
 
-    def new_output_char(self, char):
-#         sys.stdout.write(char)
-#         sys.stdout.flush()
-        self._out_buffer += char
-        if char == "\n":
-            self.out_lines.append(self._out_buffer)
-            self._out_buffer = ""
 
 
 # SBC09Periphery = SBC09PeripherySerial

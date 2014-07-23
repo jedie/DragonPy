@@ -309,3 +309,29 @@ class ConsolePeripheryBase(PeripheryBase):
         input_thread = InputPollThread(cpu_process, self.user_input_queue)
         input_thread.deamon = True
         input_thread.start()
+
+
+###############################################################################
+# Unittest Base ###############################################################
+###############################################################################
+
+
+class PeripheryUnittestBase(object):
+    def __init__(self, *args, **kwargs):
+        super(PeripheryUnittestBase, self).__init__(*args, **kwargs)
+        self._out_buffer = ""
+        self.out_lines = []
+
+    def _new_output_char(self, char):
+#        sys.stdout.write(char)
+#        sys.stdout.flush()
+        self._out_buffer += char
+        if char == "\n":
+            self.out_lines.append(self._out_buffer)
+            self._out_buffer = ""
+
+    def write_acia_data(self, cpu_cycles, op_address, address, value):
+        super(PeripheryUnittestBase, self).write_acia_data(cpu_cycles, op_address, address, value)
+        while not self.output_queue.empty():
+            char = self.output_queue.get(1)
+            self._new_output_char(char)

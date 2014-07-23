@@ -2,7 +2,7 @@
 
 (
     set -x
-    ~/pypy-2.3.1/bin/pypy DragonPy_CLI.py --verbosity=50 --cfg=Simple6809 --display_cycle
+    python2 DragonPy_CLI.py --verbosity=50 --cfg=Multicomp6809 --display_cycle
 )
 echo
 read -n1 -p "Start bash? [y,n]" doit

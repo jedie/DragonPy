@@ -11,11 +11,10 @@ import logging
 import sys
 import unittest
 
-from dragonpy.cpu6809 import CPU
+from dragonpy.components.cpu6809 import CPU
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.mem_info import DragonMemInfo
-from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase, UnittestCmdArgs, \
-    BaseStackTestCase
+from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase, BaseStackTestCase
 from dragonpy.utils.logging_utils import setup_logging
 
 
