@@ -16,41 +16,43 @@ import tempfile
 import time
 import unittest
 import Queue
+import hashlib
+import pprint
 
 from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809TestPeriphery
-from dragonpy.cpu6809 import CPU
 from dragonpy.cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
 from dragonpy.tests.test_config import TestCfg
 from dragonpy.sbc09.config import SBC09Cfg
 from dragonpy.sbc09.periphery import SBC09PeripheryConsole, \
     SBC09PeripheryUnittest
 from dragonpy.utils.logging_utils import setup_logging
-import hashlib
-import pprint
+from dragonpy.components.cpu6809 import CPU
+from dragonpy.components.memory import Memory
+
+
 
 
 log = logging.getLogger("DragonPy")
 
 
-class UnittestCmdArgs(object):
-    bus_socket_host = None
-    bus_socket_port = None
-    ram = None
-    rom = None
-    verbosity = None
-    max = None
-    trace = False
-
-    # print CPU cycle/sec while running
-    display_cycle = False
-
-
 class BaseTestCase(unittest.TestCase):
+    UNITTEST_CFG_DICT = {
+        "verbosity":None,
+        "display_cycle":False,
+        "trace":None,
+        "bus_socket_host":None,
+        "bus_socket_port":None,
+        "ram":None,
+        "rom":None,
+
+        "use_bus":False,
+    }
     def setUp(self):
-        cmd_args = UnittestCmdArgs
-        cfg = TestCfg(cmd_args)
-        self.cpu = CPU(cfg)
+        cfg = TestCfg(self.UNITTEST_CFG_DICT)
+        memory = Memory(cfg)
+        self.cpu = CPU(memory, cfg)
+        memory.cpu = self.cpu # FIXME
         self.cpu.cc.set(0x00)
 
     def assertEqualHex(self, hex1, hex2, msg=None):
@@ -150,7 +152,6 @@ class TestCPU(object):
 
 
 
-
 def print_cpu_state_data(state):
     print "cpu state data %r (ID:%i):" % (state.__class__.__name__, id(state))
     for k, v in sorted(state.items()):
@@ -168,8 +169,6 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
         tempfile.gettempdir(),
         "DragonPy_simple6809_unittests.dat"
     )
-    print "CPU state pickle file: %r" % TEMP_FILE
-#     os.remove(TEMP_FILE);print "Delete CPU date file!"
 
     @classmethod
     def setUpClass(cls, cmd_args=None):
@@ -179,14 +178,17 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
         """
         super(Test6809_BASIC_simple6809_Base, cls).setUpClass()
 
-        if cmd_args is None:
-            cmd_args = UnittestCmdArgs
-        cfg = Simple6809Cfg(cmd_args)
+        print "CPU state pickle file: %r" % cls.TEMP_FILE
+#         os.remove(cls.TEMP_FILE);print "Delete CPU date file!"
+
+        cfg = Simple6809Cfg(cls.UNITTEST_CFG_DICT)
 
         cls.periphery = Simple6809TestPeriphery(cfg)
         cfg.periphery = cls.periphery
 
-        cpu = CPU(cfg)
+        memory = Memory(cfg)
+        cpu = CPU(memory, cfg)
+        memory.cpu = cpu # FIXME
         cpu.reset()
         cls.cpu = cpu
 
@@ -210,7 +212,7 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
                 '(C) 1982 BY MICROSOFT\r\n',
                 '\r\n',
                 'OK\r\n'
-            ]
+            ], "Outlines are: %s" % repr(cls.periphery.out_lines)
             # Save CPU state
             init_state = cpu.get_state()
             with open(cls.TEMP_FILE, "wb") as f:
@@ -261,8 +263,6 @@ class Test6809_sbc09_Base(BaseTestCase):
         tempfile.gettempdir(),
         "DragonPy_sbc09_unittests.dat"
     )
-    print "CPU state pickle file: %r" % TEMP_FILE
-#     os.remove(TEMP_FILE);print "Delete CPU date file!"
 
     @classmethod
     def setUpClass(cls, cmd_args=None):
@@ -272,14 +272,17 @@ class Test6809_sbc09_Base(BaseTestCase):
         """
         super(Test6809_sbc09_Base, cls).setUpClass()
 
-        if cmd_args is None:
-            cmd_args = UnittestCmdArgs
-        cfg = SBC09Cfg(cmd_args)
+        print "CPU state pickle file: %r" % cls.TEMP_FILE
+#         os.remove(cls.TEMP_FILE);print "Delete CPU date file!"
+
+        cfg = SBC09Cfg(cls.UNITTEST_CFG_DICT)
 
         cls.periphery = SBC09PeripheryUnittest(cfg)
         cfg.periphery = cls.periphery
 
-        cpu = CPU(cfg)
+        memory = Memory(cfg)
+        cpu = CPU(memory, cfg)
+        memory.cpu = cpu # FIXME
         cpu.reset()
         cls.cpu = cpu
 
@@ -300,7 +303,7 @@ class Test6809_sbc09_Base(BaseTestCase):
             # Check if machine is ready
             assert cls.periphery.out_lines == [
                 'Welcome to BUGGY version 1.0\r\n',
-            ]
+            ], "Outlines are: %s" % repr(cls.periphery.out_lines)
             # Save CPU state
             init_state = cpu.get_state()
             with open(cls.TEMP_FILE, "wb") as f:
@@ -361,25 +364,3 @@ class Test6809_sbc09_Base(BaseTestCase):
         msg += "\nOutput so far: %s\n" % pprint.pformat(output)
         raise self.failureException(msg)
 
-
-
-if __name__ == '__main__':
-    setup_logging(log,
-#        level=1 # hardcore debug ;)
-#        level=10 # DEBUG
-#        level=20 # INFO
-#        level=30 # WARNING
-#         level=40 # ERROR
-        level=50 # CRITICAL/FATAL
-    )
-
-    unittest.main(
-        argv=(
-            sys.argv[0],
-            "Test6809_sbc09_Base",
-        ),
-        testRunner=TextTestRunner2,
-#         verbosity=1,
-        verbosity=2,
-#         failfast=True,
-    )

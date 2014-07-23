@@ -5,12 +5,17 @@
     =======================================
 
     :created: 2013 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 import inspect
 import struct
+import multiprocessing
+
+
+from dragonpy.utils.logging_utils import log
+
 
 class ConfigDict(dict):
     DEFAULT = None
@@ -21,7 +26,6 @@ class ConfigDict(dict):
             self.DEFAULT = name
 
 configs = ConfigDict()
-
 
 
 class DummyMemInfo(object):
@@ -79,44 +83,44 @@ class BaseConfig(object):
     # How many ops should be execute before make a control server update cycle?
     BURST_COUNT = 10000
 
-    def __init__(self, cmd_args):
+    def __init__(self, cfg_dict):
+        self.cfg_dict = cfg_dict
+        self.cfg_dict["cfg_module"] = self.__module__ # FIXME: !
+
         assert self.RAM_SIZE == (self.RAM_END - self.RAM_START) + 1
         assert self.ROM_SIZE == (self.ROM_END - self.ROM_START) + 1
+
+        log.debug("cfg_dict: %s", repr(cfg_dict))
 
         self.bus_addr_areas = AddressAreas(self.BUS_ADDR_AREAS)
 
         # print CPU cycle/sec while running
-        self.display_cycle = cmd_args.display_cycle
+        self.display_cycle = cfg_dict["display_cycle"]
 
         # socket address for internal bus I/O:
-        if cmd_args.bus_socket_host and cmd_args.bus_socket_port:
+        if cfg_dict["bus_socket_host"] and cfg_dict["bus_socket_port"]:
             self.bus = True
-            self.bus_socket_host = cmd_args.bus_socket_host
-            self.bus_socket_port = cmd_args.bus_socket_port
+            self.bus_socket_host = cfg_dict["bus_socket_host"]
+            self.bus_socket_port = cfg_dict["bus_socket_port"]
         else:
             self.bus = None # Will be set in cpu6809.start_CPU()
 
-        if cmd_args.ram:
-            self.ram = cmd_args.ram
+        if cfg_dict["ram"]:
+            self.ram = cfg_dict["ram"]
         else:
             self.ram = None
 
-        if cmd_args.rom:
-            self.rom = cmd_args.rom
+        if cfg_dict["rom"]:
+            self.rom = cfg_dict["rom"]
         else:
             self.rom = self.DEFAULT_ROM
 
-        if cmd_args.trace:
+        if cfg_dict["trace"]:
             self.trace = True
         else:
             self.trace = False
 
-        self.verbosity = cmd_args.verbosity
-
-        if cmd_args.max:
-            self.max_cpu_cycles = cmd_args.max
-        else:
-            self.max_cpu_cycles = None
+        self.verbosity = cfg_dict["verbosity"]
 
         self.mem_info = DummyMemInfo()
         self.memory_callbacks = {}

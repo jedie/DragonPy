@@ -5,8 +5,9 @@
     DragonPy - CPU control http server
     ==================================
 
+    TODO: Use bottle!
 
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 
     Based on:
@@ -21,16 +22,18 @@ import re
 import logging
 import traceback
 import sys
+import threading
+import select
+import os
 
-log = logging.getLogger("DragonPy.cpu_control_server")
+from dragonpy.utils.logging_utils import log
 
 
 class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
 
-    def __init__(self, request, client_address, server, cpu, cfg):
+    def __init__(self, request, client_address, server, cpu):
         log.error("ControlHandler %s %s %s", request, client_address, server)
         self.cpu = cpu
-        self.cfg = cfg
 
         self.get_urls = {
             r"/disassemble/(\s+)/$": self.get_disassemble,
@@ -204,52 +207,80 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         self.response("")
 
     def post_quit(self, m):
-        self.cpu.quit = True
-        self.response_html(headline="CPU quit")
+        log.critical("Quit CPU from controller server.")
+        self.cpu.quit()
+        self.response_html(headline="CPU running")
 
     def post_reset(self, m):
+        self.cpu.reset()
         self.response_html(headline="CPU reset")
-        # self.cpu.reset()
-        self.cpu.running = True
 
 
 class ControlHandlerFactory:
-    def __init__(self, cpu, cfg):
+    def __init__(self, cpu):
         self.cpu = cpu
-        self.cfg = cfg
-
     def __call__(self, request, client_address, server):
-        return ControlHandler(request, client_address, server, self.cpu, self.cfg)
+        return ControlHandler(request, client_address, server, self.cpu)
 
 
-def get_http_control_server(cpu, cfg):
-    if cfg.bus is None:
-        log.info("Don't init CPU control server, because cfg.bus is None, ok.")
+def control_server_thread(cpu, cfg, control_server):
+    # FIXME: Refactor this!
+    timeout = 1
+
+    sockets = [control_server]
+    rs, _, _ = select.select(sockets, [], [], timeout)
+    for s in rs:
+        if s is control_server:
+            control_server._handle_request_noblock()
+        else:
+            pass
+
+    if cpu.running:
+        threading.Timer(interval=0.5,
+            function=control_server_thread,
+            args=(cpu, cfg, control_server)
+        ).start()
+    else:
+        log.critical("Quit control server thread, because CPU doesn't run.")
+
+def start_http_control_server(cpu, cfg):
+    if not cfg.cfg_dict["use_bus"]:
+        log.info("Don't init CPU control server, ok.")
         return None
 
-    control_handler = ControlHandlerFactory(cpu, cfg)
+    control_handler = ControlHandlerFactory(cpu)
     server_address = (cfg.CPU_CONTROL_ADDR, cfg.CPU_CONTROL_PORT)
-    control_server = BaseHTTPServer.HTTPServer(server_address, control_handler)
+    try:
+        control_server = BaseHTTPServer.HTTPServer(server_address, control_handler)
+    except:
+        cpu.running = False
+        raise
     url = "http://%s:%s" % server_address
     log.error("Start http control server on: %s", url)
-    return control_server
+
+    control_server_thread(cpu, cfg, control_server)
 
 
 def test_run():
+    print "test run..."
     import subprocess
     cmd_args = [sys.executable,
-        "DragonPy_CLI.py",
+        os.path.join("..", "..", "DragonPy_CLI.py"),
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-        "--verbosity=30", # WARNING
+#         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
-
-        "--cfg=Multicomp6809",
+        "--verbosity=50", # CRITICAL/FATAL
+#         "--cfg=sbc09",
+        "--cfg=Simple6809",
+#         "--cfg=Dragon32",
+#         "--cfg=Multicomp6809",
+#         "--max=100000",
+        "--display_cycle",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
-    subprocess.Popen(cmd_args, cwd="..").wait()
+    subprocess.Popen(cmd_args).wait()
 
 if __name__ == "__main__":
     test_run()

@@ -22,7 +22,8 @@ except Exception, err:
     print "Error importing Tkinter: %s" % err
     Tkinter = None
 
-from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase
+from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase, \
+    ConsolePeripheryBase, PeripheryUnittestBase
 
 log = logging.getLogger("DragonPy.sbc09Periphery")
 
@@ -100,7 +101,7 @@ class SBC09PeripheryBase(PeripheryBase):
             char = chr(value)
 #            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
 
-        self.new_output_char(char)
+        self.output_queue.put(char)
 
 
 class SBC09PeripheryTk(SBC09PeripheryBase, TkPeripheryBase):
@@ -114,56 +115,23 @@ class DummyStdout(object):
     flush = dummy_func
 
 
-class SBC09PeripheryConsole(SBC09PeripheryBase):
+class SBC09PeripheryConsole(SBC09PeripheryBase, ConsolePeripheryBase):
     """
     A simple console to interact with the 6809 simulation.
     """
-    def __init__(self, cfg):
-        super(SBC09PeripheryConsole, self).__init__(cfg)
-
-        input_thread = threading.Thread(target=self.input_thread, args=(self.user_input_queue,))
-        input_thread.daemon = True
-        input_thread.start()
-
-        # "redirect" use input into nirvana, because the ROM code will echo
-        # the user input back.
-        self.origin_stdout = sys.stdout
-        sys.stdout = DummyStdout()
-
-    def input_thread(self, input_queue):
-        while True:
-            input_queue.put(sys.stdin.read(1))
-
-    def update(self, cpu_cycles):
-        super(SBC09PeripheryConsole, self).update(cpu_cycles)
-        if not self.output_queue.empty():
-            text_buffer = []
-            while not self.output_queue.empty():
-                text_buffer.append(self.output_queue.get())
-
-            text = "".join(text_buffer)
-            self.origin_stdout.write(text)
-            self.origin_stdout.flush()
-
-
-class SBC09PeripheryUnittest(SBC09PeripheryBase):
-    def __init__(self, *args, **kwargs):
-        super(SBC09PeripheryUnittest, self).__init__(*args, **kwargs)
-        self._out_buffer = ""
-        self.out_lines = []
-
     def new_output_char(self, char):
-#         sys.stdout.write(char)
-#         sys.stdout.flush()
-        self._out_buffer += char
-        if char == "\n":
-            self.out_lines.append(self._out_buffer)
-            self._out_buffer = ""
+        sys.stdout.write(char)
+        sys.stdout.flush()
+
+
+class SBC09PeripheryUnittest(PeripheryUnittestBase, SBC09PeripheryBase):
+    pass
+
 
 
 # SBC09Periphery = SBC09PeripherySerial
-# SBC09Periphery = SBC09PeripheryTk
-SBC09Periphery = SBC09PeripheryConsole
+SBC09Periphery = SBC09PeripheryTk
+# SBC09Periphery = SBC09PeripheryConsole
 
 
 def test_run():

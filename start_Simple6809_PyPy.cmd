@@ -9,11 +9,7 @@ if NOT exist %python% (
     pause
     exit 1
 )
-:loop
-    echo on
-    cls
-    REM ~ %python% setup.py test
-    %python% -m unittest discover
-    @echo off
-    pause
-goto:loop
+
+echo on
+%python% DragonPy_CLI.py --verbosity=50 --cfg=Simple6809 --display_cycle
+@pause

@@ -11,11 +11,10 @@ import logging
 import sys
 import unittest
 
-from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase, \
-    UnittestCmdArgs
+from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase
 from dragonpy.utils.logging_utils import setup_logging
 from dragonpy.tests.test_config import TestCfg
-from dragonpy.cpu6809 import CPU
+from dragonpy.components.cpu6809 import CPU
 
 
 log = logging.getLogger("DragonPy")
@@ -707,7 +706,7 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #            "Test6809_Arithmetic",
-            "Test6809_Arithmetic.test_DAA2",
+#             "Test6809_Arithmetic.test_DAA2",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,

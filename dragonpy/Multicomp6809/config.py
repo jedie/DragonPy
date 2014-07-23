@@ -63,6 +63,10 @@ class Multicomp6809Cfg(BaseConfig):
 
         self.periphery_class = Multicomp6809Periphery
 
+
+config = Multicomp6809Cfg
+
+
 if __name__ == "__main__":
     from dragonpy.tests.test_base import UnittestCmdArgs
 

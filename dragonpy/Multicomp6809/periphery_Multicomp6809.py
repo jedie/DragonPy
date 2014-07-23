@@ -14,7 +14,6 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import logging
 import sys
 import os
 
@@ -26,9 +25,7 @@ except Exception, err:
 
 
 from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase
-
-
-log = logging.getLogger("DragonPy.Multicomp6809.Periphery")
+from dragonpy.utils.logging_utils import log
 
 
 class Multicomp6809PeripheryBase(PeripheryBase):
@@ -73,9 +70,9 @@ class Multicomp6809PeripheryBase(PeripheryBase):
 
     def write_acia_data(self, cpu_cycles, op_address, address, value):
         char = chr(value)
-#        log.error("*"*79)
-#        log.error("Write to screen: %s ($%x)" , repr(char), value)
-#        log.error("*"*79)
+#         log.error("*"*79)
+#         log.error("Write to screen: %s ($%x)" , repr(char), value)
+#         log.error("*"*79)
 
         if value >= 0x90: # FIXME: Why?
             value -= 0x60
@@ -95,6 +92,9 @@ class Multicomp6809PeripheryBase(PeripheryBase):
 class Multicomp6809PeripheryTk(TkPeripheryBase, Multicomp6809PeripheryBase):
     TITLE = "DragonPy - Multicomp 6809"
     GEOMETRY = "+500+300"
+    KEYCODE_MAP = {
+        127: 0x03, # Break Key
+    }
     INITAL_INPUT = "\r\n".join([
 #         'PRINT "HELLO WORLD!"',
 #         '? 123',
@@ -110,17 +110,6 @@ class Multicomp6809PeripheryTk(TkPeripheryBase, Multicomp6809PeripheryBase):
     def event_return(self, event):
         self.user_input_queue.put("\r")
 #         self.user_input_queue.put("\n")
-
-    _STOP_AFTER_OK_COUNT = None
-#     _STOP_AFTER_OK_COUNT = 2
-    def update(self, cpu_cycles):
-        is_empty = self.output_queue.empty()
-        super(Multicomp6809PeripheryTk, self).update(cpu_cycles)
-        if self._STOP_AFTER_OK_COUNT is not None and not is_empty:
-            txt = self.text.get(1.0, Tkinter.END)
-            if txt.count("OK\r\n") >= self._STOP_AFTER_OK_COUNT:
-                log.error("-> exit!")
-                self.destroy()
 
 
 # Multicomp6809Periphery = Multicomp6809PeripherySerial

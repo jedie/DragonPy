@@ -49,10 +49,10 @@ class Simple6809Cfg(BaseConfig):
         "ExBasROM.bin"
     )
 
-    def __init__(self, cmd_args):
+    def __init__(self, cfg_dict):
         self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
         self.RAM_SIZE = (self.RAM_END - self.RAM_START) + 1
-        super(Simple6809Cfg, self).__init__(cmd_args)
+        super(Simple6809Cfg, self).__init__(cfg_dict)
 
 #         if self.verbosity <= logging.INFO:
         self.mem_info = get_simple6809_meminfo()
@@ -77,6 +77,10 @@ class Simple6809Cfg(BaseConfig):
             self.mem_info.get_shortest(addr)
         )
         cpu.memory.ram.print_dump(0x005c, 0x0061)
+
+
+config = Simple6809Cfg
+
 
 def test_run():
     import sys, subprocess

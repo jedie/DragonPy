@@ -22,21 +22,17 @@
 """
 
 import inspect
-import logging
 import os
-import select
 import socket
 import sys
 import warnings
-import threading
 
 
-from MC6809data.MC6809_data_raw2 import (
+from dragonpy.MC6809data.MC6809_data_raw2 import (
     OP_DATA, REG_A, REG_B, REG_CC, REG_D , REG_DP, REG_PC,
     REG_S, REG_U, REG_X, REG_Y
 )
-from dragonpy.components.memory import Memory
-from dragonpy.core.cpu_control_server import get_http_control_server
+from dragonpy.core.cpu_control_server import start_http_control_server
 from dragonpy.cpu_utils.MC6809_registers import (
     ValueStorage8Bit, ConcatenatedAccumulator,
     ValueStorage16Bit, ConditionCodeRegister, UndefinedRegister
@@ -44,14 +40,11 @@ from dragonpy.cpu_utils.MC6809_registers import (
 from dragonpy.cpu_utils.signed import signed8, signed16, signed5
 from dragonpy.utils.simple_debugger import print_exc_plus
 from dragonpy.cpu_utils.instruction_caller import OpCollection
+from dragonpy.utils.logging_utils import log
 
 
-log = logging.getLogger("DragonPy.cpu6809")
 # HTML_TRACE = True
 HTML_TRACE = False
-
-
-
 
 
 def opcode(*opcodes):
@@ -70,14 +63,13 @@ undefined_reg = UndefinedRegister()
 
 class CPU(object):
 
-    def __init__(self, cfg):
+    def __init__(self, memory, cfg):
+        self.memory = memory
         self.cfg = cfg
-#         sys.stderr.write("Startup 6809 with %s and config: %s\n" % (sys.executable, cfg))
 
-        self.memory = Memory(self, cfg)
+        self.running = True
 
-        # XXX: Maybe use multiprocessing to start a server?
-        self.control_server = get_http_control_server(self, cfg)
+        start_http_control_server(self, cfg)
 
         self.index_x = ValueStorage16Bit(REG_X, 0) # X - 16 bit index register
         self.index_y = ValueStorage16Bit(REG_Y, 0) # Y - 16 bit index register
@@ -133,9 +125,6 @@ class CPU(object):
         # add illegal instruction
 #         for opcode in ILLEGAL_OPS:
 #             self.opcode_dict[opcode] = IllegalInstruction(self, opcode)
-
-        self.running = True
-        self.quit = False
 
     def get_state(self):
         """
@@ -217,6 +206,10 @@ class CPU(object):
         op_address, opcode = self.read_pc_byte()
         self.call_instruction_func(op_address, opcode)
 
+    def quit(self):
+        log.critical("CPU quit() called.")
+        self.running = False
+
     # same_op_count = 0
     # last_op_code = None
     # last_trace_line = None
@@ -232,52 +225,6 @@ class CPU(object):
 
         instr_func(opcode)
         self.cycles += cycles
-
-    @opcode(
-        0x10, # PAGE 2 instructions
-        0x11, # PAGE 3 instructions
-    )
-    def instruction_PAGE(self, opcode):
-        """ call op from page 2 or 3 """
-        op_address, opcode2 = self.read_pc_byte()
-        paged_opcode = opcode * 256 + opcode2
-#        log.debug("$%x *** call paged opcode $%x" % (
-#            self.program_counter, paged_opcode
-#        ))
-        self.call_instruction_func(op_address - 1, paged_opcode)
-
-    def control_server_thread(self):
-        timeout = 1
-
-        sockets = [self.control_server]
-        rs, _, _ = select.select(sockets, [], [], timeout)
-        for s in rs:
-            if s is self.control_server:
-                self.control_server._handle_request_noblock()
-            else:
-                pass
-
-        if not self.quit:
-            threading.Timer(interval=0.5, function=self.control_server_thread).start()
-
-    def run(self):
-        assert self.control_server is not None
-        self.control_server_thread() # start control server interval thread
-
-        while not self.quit:
-            for __ in xrange(self.cfg.BURST_COUNT):
-                if not self.running:
-                    break
-
-                self.get_and_call_next_op()
-
-            if self.cfg.max_cpu_cycles is not None \
-                and self.cycles >= self.cfg.max_cpu_cycles:
-                log.warn(
-                    "Stop CPU after %i cycles" % self.cycles
-                )
-                self.quit = True
-#        log.critical("CPU quit")
 
     def test_run(self, start, end):
 #        log.warn("CPU test_run(): from $%x to $%x" % (start, end))
@@ -613,6 +560,19 @@ class CPU(object):
         return ea
 
     #### Op methods:
+
+    @opcode(
+        0x10, # PAGE 2 instructions
+        0x11, # PAGE 3 instructions
+    )
+    def instruction_PAGE(self, opcode):
+        """ call op from page 2 or 3 """
+        op_address, opcode2 = self.read_pc_byte()
+        paged_opcode = opcode * 256 + opcode2
+#        log.debug("$%x *** call paged opcode $%x" % (
+#            self.program_counter, paged_opcode
+#        ))
+        self.call_instruction_func(op_address - 1, paged_opcode)
 
     @opcode(# Add B accumulator to X (unsigned)
         0x3a, # ABX (inherent)
@@ -2482,7 +2442,7 @@ class TypeAssert(CPU):
                 )
         return object.__setattr__(self, attr, value)
 
-#CPU = TypeAssert # Should be only activated for debugging!
+# CPU = TypeAssert # Should be only activated for debugging!
 
 
 

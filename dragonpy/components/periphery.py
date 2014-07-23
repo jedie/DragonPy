@@ -6,15 +6,16 @@
 
 
     :created: 2013 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 import Queue
 import time
-import logging
 import sys
 import httplib
+import threading
+import thread
 
 try:
     import Tkinter
@@ -22,8 +23,8 @@ except Exception, err:
     print "Error importing Tkinter: %s" % err
     Tkinter = None
 
-
-log = logging.getLogger("DragonPy.components.Periphery")
+from dragonpy.utils import pager
+from dragonpy.utils.logging_utils import log
 
 
 class PeripheryBase(object):
@@ -33,8 +34,8 @@ class PeripheryBase(object):
         self.cfg = cfg
         self.running = True
 
+        self.output_queue = Queue.Queue() # Buffer for output from CPU
         self.user_input_queue = Queue.Queue() # Buffer for input to send back to the CPU
-        self.output_queue = Queue.Queue() # Buffer with content from the CPU to display
 
         self.update_time = 0.1
         self.last_update = time.time()
@@ -49,9 +50,6 @@ class PeripheryBase(object):
     def reset_vector(self, cpu_cycles, op_address, address):
         return self.cfg.RESET_VECTOR_VALUE
 
-    def new_output_char(self, char):
-        self.output_queue.put(char)
-
     def add_to_input_queue(self, txt):
         log.debug("Add %s to input queue.", repr(txt))
         for char in txt:
@@ -59,7 +57,7 @@ class PeripheryBase(object):
 
     def request_cpu(self, url):
 #         log.critical(
-        log.error(
+        log.debug(
             "request %s:%s%s", self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT, url
         )
         conn = httplib.HTTPConnection(
@@ -67,38 +65,20 @@ class PeripheryBase(object):
             port=self.cfg.CPU_CONTROL_PORT,
             timeout=1
         )
-        conn.request("POST", url)
         try:
+            conn.request("POST", url)
             response = conn.getresponse()
         except Exception, err:
             log.critical("Error request %s: %s", url, err)
         else:
             print response.status, response.reason
 
-        log.error("FIXME: request_cpu in %s", __file__)
-
     def exit(self):
+        log.critical("Exit called in periphery.")
         self.running = False
-
-        # FIXME: It doesn't work to request that CPU shutdown:
-        #        will get timeouts
         self.request_cpu(url="/quit/")
 
-        time.sleep(1) # Wait that CPU quit
-        sys.exit(0)
-
-    def activate_full_debug_logging(self):
-        handler = logging.StreamHandler()
-        handler.level = 5
-        log.handlers = (handler,)
-        log.critical("Activate full debug logging in %s!", __file__)
-        self.request_cpu(url="/debug/")
-
     def read_byte(self, cpu_cycles, op_address, address):
-        if not self.running:
-            log.critical("Periphery.read_byte, but not running anymore.")
-            return 0x0
-
 #        log.debug(
 #            "%04x| Periphery.read_byte from $%x (cpu_cycles: %i)",
 #            op_address, address, cpu_cycles
@@ -117,10 +97,10 @@ class PeripheryBase(object):
     read_word = read_byte
 
     def write_byte(self, cpu_cycles, op_address, address, value):
-#        log.debug(
-#            "%04x| Periphery.write_byte $%x to $%x (cpu_cycles: %i)",
-#            op_address, value, address, cpu_cycles
-#        )
+        log.debug(
+            "%04x| Periphery.write_byte $%x to $%x (cpu_cycles: %i)",
+            op_address, value, address, cpu_cycles
+        )
         try:
             func = self.write_address2func_map[address]
         except KeyError, err:
@@ -128,31 +108,13 @@ class PeripheryBase(object):
             log.error(msg)
             raise NotImplementedError(msg)
         else:
-#            log.debug("func: %s", func.__name__)
+            log.debug("func: %s", func.__name__)
             func(cpu_cycles, op_address, address, value)
 
     write_word = write_byte
 
-    last_cycles_update = time.time()
-    last_cycles = 0
-    def update(self, cpu_cycles):
-#         sys.stdout.write("u")
-#         sys.stdout.flush()
-        if self.cfg.display_cycle:
-            duration = time.time() - self.last_cycles_update
-            if duration >= 1:
-                count = cpu_cycles - self.last_cycles
-                log.critical("%.2f cycles/sec. (current cycle: %i)", float(count / duration), cpu_cycles)
-                self.last_cycles = cpu_cycles
-                self.last_cycles_update = time.time()
-
-    def cycle(self, cpu_cycles, op_address):
-#         sys.stdout.write("c")
-#         sys.stdout.flush()
-        if time.time() - self.last_update > self.update_time:
-            self.last_update = time.time()
-            self.update(cpu_cycles)
-            return self.running # send pack if CPU quit
+    def add_output(self, text):
+        raise NotImplementedError
 
     def write_acia_status(self, cpu_cycles, op_address, address, value):
         raise NotImplementedError
@@ -165,9 +127,16 @@ class PeripheryBase(object):
         raise NotImplementedError
 
 
+###############################################################################
+# TKinter Base ################################################################
+###############################################################################
+
+
 class TkPeripheryBase(PeripheryBase):
     TITLE = "DragonPy - Base Tkinter Periphery"
     GEOMETRY = "+500+300"
+    KEYCODE_MAP = {}
+    ESC_KEYCODE = "\x03" # What keycode to send, if escape Key pressed?
 
     def __init__(self, cfg):
         super(TkPeripheryBase, self).__init__(cfg)
@@ -191,7 +160,7 @@ class TkPeripheryBase(PeripheryBase):
             background="#08ff08", # nearly green
             foreground="#004100", # nearly black
             font=('courier', 11, 'bold'),
-            yscrollcommand=scollbar.set,
+#            yscrollcommand=scollbar.set, # FIXME
         )
 
         scollbar.pack(side=Tkinter.RIGHT, fill=Tkinter.Y)
@@ -204,15 +173,15 @@ class TkPeripheryBase(PeripheryBase):
         self.root.bind("<Destroy>", self.destroy)
 
         self.root.update()
+        self.update_thread = None
 
     def event_return(self, event):
 #        log.critical("ENTER: add \\n")
         self.user_input_queue.put("\n")
 
     def from_console_break(self, event):
-#        log.critical("BREAK: add 0x03")
-        # dc61 81 03              LA3C2     CMPA #3             BREAK KEY?
-        self.user_input_queue.put("\x03")
+        log.critical("from_console_break(): Add %r to input queue", self.ESC_KEYCODE)
+        self.user_input_queue.put(self.ESC_KEYCODE)
 
     def copy_to_clipboard(self, event):
         log.critical("Copy to clipboard")
@@ -222,28 +191,35 @@ class TkPeripheryBase(PeripheryBase):
         self.root.clipboard_append(text)
 
     def event_key_pressed(self, event):
-        log.critical("keycode %s", repr(event.keycode))
+        keycode = event.keycode
         char = event.char
-        log.error("char %s", repr(char))
+        log.critical("keycode %s - char %s", keycode, repr(char))
         if char:
             char = char.upper()
-            log.error("Send %s", repr(char))
-            self.user_input_queue.put(char)
+        elif keycode in self.KEYCODE_MAP:
+            char = chr(self.KEYCODE_MAP[keycode])
+            log.critical("keycode %s translated to: %s", keycode, repr(char))
+        else:
+            log.critical("Ignore input, doesn't send to CPU.")
+            return
+
+        log.debug("Send %s", repr(char))
+        self.user_input_queue.put(char)
+
+    def exit(self, msg):
+        log.critical(msg)
+        self.root.quit()
+        super(TkPeripheryBase, self).exit()
 
     def destroy(self, event=None):
-        """
-        FIXME: How destroy the CPU process?
-        """
-        log.critical("Tk window closed.")
-        self.root.destroy()
-        self.exit()
+        self.exit("Tk window closed.")
 
     STATE = 0
     LAST_INPUT = ""
     def write_acia_data(self, cpu_cycles, op_address, address, value):
-#        log.error("%04x| (%i) write to ACIA-data value: $%x (dez.: %i) ASCII: %r" % (
-#            op_address, cpu_cycles, value, value, chr(value)
-#        ))
+        log.debug("%04x| (%i) write to ACIA-data value: $%x (dez.: %i) ASCII: %r" % (
+            op_address, cpu_cycles, value, value, chr(value)
+        ))
         if value == 0x8: # Backspace
             self.text.config(state=Tkinter.NORMAL)
             # delete last character
@@ -253,23 +229,109 @@ class TkPeripheryBase(PeripheryBase):
 
         super(TkPeripheryBase, self).write_acia_data(cpu_cycles, op_address, address, value)
 
-    def update(self, cpu_cycles):
-        if not self.output_queue.empty():
-            text_buffer = []
-            while not self.output_queue.empty():
-                text_buffer.append(self.output_queue.get())
+    def _new_output_char(self, char):
+        """ insert in text field """
+        self.text.config(state=Tkinter.NORMAL)
+        self.text.insert("end", char)
+        self.text.see("end")
+        self.text.config(state=Tkinter.DISABLED)
 
-            text = "".join(text_buffer)
+    def add_input_interval(self, cpu_process):
+        if not cpu_process.is_alive():
+            self.exit("CPU process is not alive.")
 
-            # Duplicate output
-            sys.stdout.write(text)
-            sys.stdout.flush()
+        while not self.output_queue.empty():
+            char = self.output_queue.get(1)
+            self._new_output_char(char)
 
-            # insert in text field
-            self.text.config(state=Tkinter.NORMAL)
-            self.text.insert("end", text)
-            self.text.see("end")
-            self.text.config(state=Tkinter.DISABLED)
+        self.root.after(100, self.add_input_interval, cpu_process)
 
-        self.root.update()
-        return super(TkPeripheryBase, self).update(cpu_cycles)
+    def mainloop(self, cpu_process):
+        log.critical("Tk mainloop started.")
+        self.add_input_interval(cpu_process)
+        self.root.mainloop()
+        log.critical("Tk mainloop stopped.")
+
+
+###############################################################################
+# Console Base ################################################################
+###############################################################################
+
+
+class InputPollThread(threading.Thread):
+    def __init__ (self, cpu_process, user_input_queue):
+        super(InputPollThread, self).__init__(name="InputThread")
+        self.cpu_process = cpu_process
+        self.user_input_queue = user_input_queue
+        self.check_cpu_interval(cpu_process)
+
+    def check_cpu_interval(self, cpu_process):
+        """
+        work-a-round for blocking input
+        """
+        try:
+            log.critical("check_cpu_interval()")
+            if not cpu_process.is_alive():
+                log.critical("raise SystemExit, because CPU is not alive.")
+                thread.interrupt_main()
+                raise SystemExit("Kill pager.getch()")
+        except KeyboardInterrupt:
+            thread.interrupt_main()
+        else:
+            t = threading.Timer(1.0, self.check_cpu_interval, args=[cpu_process])
+            t.start()
+
+    def loop(self):
+        while self.cpu_process.is_alive():
+            char = pager.getch() # Important: It blocks while waiting for a input
+            if char == "\n":
+                self.user_input_queue.put("\r")
+
+            char = char.upper()
+            self.user_input_queue.put(char)
+
+    def run(self):
+        log.critical("InputPollThread.run() start")
+        try:
+            self.loop()
+        except KeyboardInterrupt:
+            thread.interrupt_main()
+        log.critical("InputPollThread.run() ends, because CPU not alive anymore.")
+
+
+class ConsolePeripheryBase(PeripheryBase):
+    def new_output_char(self, char):
+        sys.stdout.write(char)
+        sys.stdout.flush()
+
+    def mainloop(self, cpu_process):
+        log.critical("ConsolePeripheryBase.mainloop() start")
+        input_thread = InputPollThread(cpu_process, self.user_input_queue)
+        input_thread.deamon = True
+        input_thread.start()
+
+
+###############################################################################
+# Unittest Base ###############################################################
+###############################################################################
+
+
+class PeripheryUnittestBase(object):
+    def __init__(self, *args, **kwargs):
+        super(PeripheryUnittestBase, self).__init__(*args, **kwargs)
+        self._out_buffer = ""
+        self.out_lines = []
+
+    def _new_output_char(self, char):
+#        sys.stdout.write(char)
+#        sys.stdout.flush()
+        self._out_buffer += char
+        if char == "\n":
+            self.out_lines.append(self._out_buffer)
+            self._out_buffer = ""
+
+    def write_acia_data(self, cpu_cycles, op_address, address, value):
+        super(PeripheryUnittestBase, self).write_acia_data(cpu_cycles, op_address, address, value)
+        while not self.output_queue.empty():
+            char = self.output_queue.get(1)
+            self._new_output_char(char)

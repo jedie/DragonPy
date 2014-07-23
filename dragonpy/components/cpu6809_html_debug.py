@@ -10,7 +10,6 @@
 """
 
 
-from dragonpy.cpu6809 import Instruction, hex_repr
 import atexit
 import os
 import datetime

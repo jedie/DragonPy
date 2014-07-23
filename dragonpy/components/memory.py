@@ -22,11 +22,8 @@
 import logging
 import os
 import sys
-import socket
-import struct
 
-
-log = logging.getLogger("DragonPy.memory")
+from dragonpy.utils.logging_utils import log
 
 
 class ROM(object):
@@ -94,13 +91,12 @@ class RAM(ROM):
 
 
 class Memory(object):
-    def __init__(self, cpu, cfg):
-        self.cpu = cpu
+    def __init__(self, cfg, read_bus_request_queue=None, read_bus_response_queue=None, write_bus_queue=None):
         self.cfg = cfg
-
-        self.bus = cfg.bus # socket for internal bus I/O
-        if self.bus is not None:
-            log.debug("Bus socket: %s" % repr(self.bus))
+        self.use_bus = cfg.cfg_dict["use_bus"]
+        self.read_bus_request_queue = read_bus_request_queue
+        self.read_bus_response_queue = read_bus_response_queue
+        self.write_bus_queue = write_bus_queue
 
         self.rom = ROM(
             cfg, memory=cfg.get_initial_ROM(),
@@ -229,36 +225,18 @@ class Memory(object):
         self.write_byte(address, value >> 8)
         self.write_byte(address + 1, value & 0xff)
 
-    def _bus_communication(self, structure, address, value=None):
-        """
-        XXX: Use multiprocessing.Pipe here?
-        """
-        if value is None:
-#            log.debug(" **** bus read $%x" % (address))
-            action = self.cfg.BUS_ACTION_READ # = 0
-            value = 0
-        else:
-#            log.debug(" **** bus write $%x to $%x" % (value, address))
-            action = self.cfg.BUS_ACTION_WRITE # = 1
-
-        args = (
-            self.cpu.cycles,
-            self.cpu.last_op_address,
-            action, # 0 = read, 1 = write
-            structure, # 0 = byte, 1 = word
-            address,
-            value, # value to write
-        )
-        data = struct.pack(self.cfg.STRUCT_TO_PERIPHERY_FORMAT, *args)
-#        log.debug("struct.pack %s with %s: %s" % (
-#            repr(args), self.cfg.STRUCT_TO_PERIPHERY_FORMAT, repr(data)
-#        ))
-        self.bus.send(data)
-
     def _bus_read(self, structure, address):
 #         self.cpu.cycles += 1 # ???
-
-        if self.bus is None:
+        if self.use_bus:
+            self.read_bus_request_queue.put(
+                (self.cpu.cycles, self.cpu.last_op_address, structure, address),
+                block=True
+            )
+            self.read_bus_request_queue.join() # Wait for result
+            value = self.read_bus_response_queue.get(block=True)
+            self.read_bus_response_queue.task_done()
+            return value
+        else:
             if structure == self.cfg.BUS_STRUCTURE_WORD:
                 return self.cfg.periphery.read_word(
                     self.cpu.cycles, self.cpu.last_op_address, address
@@ -268,28 +246,15 @@ class Memory(object):
                     self.cpu.cycles, self.cpu.last_op_address, address
                 )
 
-        self._bus_communication(structure, address)
-
-        try:
-            data = self.bus.recv(self.cfg.STRUCT_MEMORY_LEN)
-        except socket.error, err:
-            log.error("Socket error: %s" % err)
-            sys.exit(0)
-
-        if len(data) != self.cfg.STRUCT_MEMORY_LEN:
-            log.critical("Memory bus read $%x error: Get wrong data length back: %s" % (
-                address, repr(data)
-            ))
-            sys.exit(0)
-
-        value = struct.unpack(self.cfg.STRUCT_TO_MEMORY_FORMAT, data)[0]
-#        log.debug("Receive from bus: %s -> $%x" % (repr(data), value))
-
-        return value
-
     def _bus_write(self, structure, address, value):
 #         self.cpu.cycles += 1 # ???
-        if self.bus is None:
+        if self.use_bus:
+            self.write_bus_queue.put(
+                (self.cpu.cycles, self.cpu.last_op_address, structure, address, value),
+                block=True
+            )
+            self.write_bus_queue.join() # Wait to finish
+        else:
             if structure == self.cfg.BUS_STRUCTURE_WORD:
                 self.cfg.periphery.write_word(
                     self.cpu.cycles, self.cpu.last_op_address, address, value
@@ -298,17 +263,10 @@ class Memory(object):
                 self.cfg.periphery.write_byte(
                     self.cpu.cycles, self.cpu.last_op_address, address, value
                 )
-            return
-        self._bus_communication(structure, address, value)
 
     def bus_read_byte(self, address):
 #        log.debug(" **** bus read byte from $%x" % (address))
         value = self._bus_read(self.cfg.BUS_STRUCTURE_BYTE, address)
-#         if address == 0xa001 and value == 0xd: # 0xd == \r
-#             log2 = logging.getLogger("DragonPy")
-#             handler = logging.StreamHandler()
-#             handler.level = logging.DEBUG
-#             log2.handlers = (handler,)
         return value
 
     def bus_read_word(self, address):
