@@ -50,7 +50,10 @@ class BusCommunicationThread(threading.Thread):
         else:
             value = self.periphery.read_byte(cycles, op_address, address)
 #        log.critical("%04x| Bus read from $%04x: result is: $%x", op_address, address, value)
+
+        self.read_bus_request_queue.task_done()
         self.read_bus_response_queue.put(value, block=True)
+        self.read_bus_response_queue.join()
 
     def bus_write_poll(self):
         cycles, op_address, structure, address, value = self.write_bus_queue.get(block=True)
@@ -60,6 +63,8 @@ class BusCommunicationThread(threading.Thread):
             self.periphery.write_word(cycles, op_address, address, value)
         else:
             self.periphery.write_byte(cycles, op_address, address, value)
+
+        self.write_bus_queue.task_done()
 
     def loop(self):
         while self.running:
@@ -86,9 +91,9 @@ def main_process_startup(cfg):
     periphery = cfg.periphery_class(cfg)
 
     # communication channel between processes:
-    read_bus_request_queue = multiprocessing.Queue(maxsize=1)
-    read_bus_response_queue = multiprocessing.Queue(maxsize=1)
-    write_bus_queue = multiprocessing.Queue(maxsize=1)
+    read_bus_request_queue = multiprocessing.JoinableQueue(maxsize=1)
+    read_bus_response_queue = multiprocessing.JoinableQueue(maxsize=1)
+    write_bus_queue = multiprocessing.JoinableQueue(maxsize=1)
 
     # API between processes and local periphery
     log.critical("start BusCommunicationThread()")
@@ -124,9 +129,12 @@ def main_process_startup(cfg):
     else:
         log.critical(" *** CPU process stopped. ***")
 
-    # Quit all threads:
+    log.critical("Set: bus_thread.running = False")
     bus_thread.running = False # Quit the while loop.
-#     periphery.input_thread.running = True
+
+    log.critical("Put None into bus queue.")
+    read_bus_request_queue.put(None)
+    write_bus_queue.put(None)
 
     log.critical("Wait for bus_thread quit.")
     bus_thread.join()
