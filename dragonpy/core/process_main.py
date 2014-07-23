@@ -32,7 +32,7 @@ class BusCommunicationThread(threading.Thread):
     Wait for CPU/Memory bus read: Read from periphery and send result back.
     """
     def __init__ (self, cfg, periphery, read_bus_request_queue, read_bus_response_queue, write_bus_queue):
-        super(BusCommunicationThread, self).__init__()
+        super(BusCommunicationThread, self).__init__(name="BusThread")
         log.critical(" *** BusCommunicationThread init *** ")
         self.cfg = cfg
         self.periphery = periphery
@@ -99,7 +99,9 @@ def main_process_startup(cfg):
     bus_thread.start()
 
     log.critical("Start CPU/Memory as separated process")
-    cpu_process = multiprocessing.Process(target=start_cpu,
+    cpu_process = multiprocessing.Process(
+        name="CPU",
+        target=start_cpu,
         args=(
             cfg_dict,
             read_bus_request_queue, read_bus_response_queue,

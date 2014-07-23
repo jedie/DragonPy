@@ -19,7 +19,7 @@ from dragonpy.utils.logging_utils import log
 
 class CPUThread(threading.Thread):
     def __init__ (self, cfg, cpu):
-        super(CPUThread, self).__init__()
+        super(CPUThread, self).__init__(name="CPU-Thread")
         log.critical(" *** CPUThread init *** ")
         self.cfg = cfg
         self.cpu = cpu

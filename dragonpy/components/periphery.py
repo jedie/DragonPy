@@ -259,10 +259,10 @@ class TkPeripheryBase(PeripheryBase):
 
 class InputPollThread(threading.Thread):
     def __init__ (self, cpu_process, user_input_queue):
+        super(InputPollThread, self).__init__(name="InputThread")
         self.cpu_process = cpu_process
         self.user_input_queue = user_input_queue
         self.check_cpu_interval(cpu_process)
-        super(InputPollThread, self).__init__()
 
     def check_cpu_interval(self, cpu_process):
         """
