@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2
 # encoding:utf-8
 
 """
@@ -11,7 +11,6 @@
 """
 
 import Queue
-import logging
 import sys
 import threading
 import time
@@ -21,22 +20,21 @@ from dragonpy.Simple6809.periphery_simple6809 import Simple6809PeripheryBase
 from dragonpy.utils.logging_utils import setup_logging
 from dragonpy.utils import pager
 from dragonpy.components.cpu6809 import CPU
+from dragonpy.components.memory import Memory
+from dragonpy.utils.logging_utils import log
 
 
-log = logging.getLogger("DragonPy.6809Console")
+CFG_DICT = {
+    "verbosity":None,
+    "display_cycle":False,
+    "trace":None,
+    "bus_socket_host":None,
+    "bus_socket_port":None,
+    "ram":None,
+    "rom":None,
 
-
-class CmdArgs(object):
-    bus_socket_host = None
-    bus_socket_port = None
-    ram = None
-    rom = None
-    verbosity = None
-    max = None
-    trace = False
-
-    # print CPU cycle/sec while running
-    display_cycle = False
+    "use_bus":False,
+}
 
 
 class InputPollThread(threading.Thread):
@@ -63,10 +61,6 @@ class Console6809Periphery(Simple6809PeripheryBase):
         self.last_cycles = 0
         self.last_cycles_update = time.time()
 
-    def new_output_char(self, char):
-        sys.stdout.write(char)
-        sys.stdout.flush()
-
     def update(self, cpu_cycles):
         current_time = time.time()
         duration = current_time - self.last_cycles_update
@@ -77,17 +71,25 @@ class Console6809Periphery(Simple6809PeripheryBase):
         self.last_cycles = cpu_cycles
         self.last_cycles_update = current_time
 
+    def write_acia_data(self, cpu_cycles, op_address, address, value):
+        super(Console6809Periphery, self).write_acia_data(cpu_cycles, op_address, address, value)
+        while not self.output_queue.empty():
+            char = self.output_queue.get(1)
+            sys.stdout.write(char)
+        sys.stdout.flush()
+
 
 class Console6809(object):
     def __init__(self):
-        cmd_args = CmdArgs
-        cfg = Simple6809Cfg(cmd_args)
+        cfg = Simple6809Cfg(CFG_DICT)
 
         self.user_input_queue = Queue.Queue()
         self.periphery = Console6809Periphery(self.user_input_queue, cfg)
         cfg.periphery = self.periphery
 
-        self.cpu = CPU(cfg)
+        memory = Memory(cfg)
+        self.cpu = CPU(memory, cfg)
+        memory.cpu = self.cpu # FIXME
 
     def run(self):
         self.cpu.reset()
@@ -100,16 +102,19 @@ class Console6809(object):
         ]) + "\r\n")
 
         input_thread = InputPollThread(self.user_input_queue)
+        input_thread.deamon = True
         input_thread.start()
 
         self.update_intervall()
 
-        while True:
+        while self.cpu.running == True:
             self.cpu.get_and_call_next_op()
 
     def update_intervall(self):
         self.periphery.update(self.cpu.cycles)
-        threading.Timer(interval=10.0, function=self.update_intervall).start()
+        t = threading.Timer(interval=10.0, function=self.update_intervall)
+        t.deamon = True
+        t.start()
 
 
 if __name__ == '__main__':
@@ -120,8 +125,8 @@ if __name__ == '__main__':
 #        level=10 # DEBUG
 #        level=20 # INFO
 #        level=30 # WARNING
-#         level=40 # ERROR
-        level=50 # CRITICAL/FATAL
+        level=40 # ERROR
+#         level=50 # CRITICAL/FATAL
     )
     c = Console6809()
     c.run()
