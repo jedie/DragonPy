@@ -142,25 +142,33 @@ The current implementation
 
 It looks like this:
 {{{
-+----------+               +----------+              +--------------------+
-| CLI      |  start via    | 6809 CPU |  start in    | CPU control server |
-|----------|-------------->|----------|+------------>|--------------------|
-|          |  subprocess   |          | same process |                    |
-|          |               |          |              |    http server     |
-|periphery |               |          |              |                    |
-|-Screen   |bus communicate|bus Memory|<-------------|   localhost:6809   |
-|-SAM/PIA  |<------------->|   area   |              |                    |
-|-cassette |   via socket  |          |              |                    |
-+----------+               +----------+              +--------------------+
+
+ process_main.py                                     process_sub.py          
++-------------------------+                         +-----------------------+
+|                         |                         |                       |
+| BusCommunicationThread<--->multiprocessing.Queue<--------->Memory         |
+|        +    ^           |                         |        +    ^         |
+|        |    |           |                         |        |    |         |
+|        |    |           |                         |        |    |         |
+|        |    |           |                         |        |    |         |
+|        v    +           |                         |        v    +         |
+|       periphery         |                         |    6809 CPU Thread    |
+|         +  ^            |                         |       +      ^        |
+|         |  |            |                         |       |      |        |
+|         |  |            |                         |       |      |        |
+|         |  |            |                         |       v      +        |
+|         v  +            |                         |  http control server  |
+|     GUI mainloop        |                         |                       |
+|                         |                         |                       |
++-------------------------+                         +-----------------------+
+
 }}}
 
-Problem: socket communication will slowdown the CPU.
 
 == TODO:
 
+# Use bottle for http control server part
 # implement Dragon 32 periphery
-# use Python multiprocessing module
-
 
 unimplemented OPs:
 
