@@ -10,9 +10,6 @@ if NOT exist %python% (
     exit 1
 )
 
-:loop
-    echo on
-    cls
-    %python% concept.py
-    @pause
-goto:loop
+echo on
+%python% DragonPy_CLI.py --verbosity=50 --cfg=sbc09 --display_cycle
+@pause

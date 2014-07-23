@@ -5,16 +5,16 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import os
-import threading
-import multiprocessing
 import importlib
+import os
 import sys
+import thread
+import threading
+import time
 
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
 from dragonpy.utils.logging_utils import log
-import time
 
 
 class CPUThread(threading.Thread):
@@ -24,8 +24,7 @@ class CPUThread(threading.Thread):
         self.cfg = cfg
         self.cpu = cpu
 
-    def run(self):
-        log.critical(" *** CPUThread.run() start *** ")
+    def loop(self):
         cpu = self.cpu
         cpu.reset()
         max_ops = self.cfg.cfg_dict["max_ops"]
@@ -44,6 +43,13 @@ class CPUThread(threading.Thread):
                     log.critical("CPU is running == %s - %s cycles.", cpu.running, cpu.cycles)
                     next_update = time.time() + 1
                 cpu.get_and_call_next_op()
+
+    def run(self):
+        log.critical(" *** CPUThread.run() start *** ")
+        try:
+            self.loop()
+        except KeyboardInterrupt:
+            thread.interrupt_main()
         log.critical(" *** CPUThread.run() stopped. *** ")
 
 
@@ -67,6 +73,7 @@ def start_cpu(cfg_dict, read_bus_request_queue, read_bus_response_queue, write_b
         cpu_thread.join()
     except KeyboardInterrupt:
         log.critical("CPU thread stops by keyboard interrupt.")
+        thread.interrupt_main()
     else:
         log.critical("CPU thread stopped.")
     cpu.running = False

@@ -115,11 +115,11 @@ class CPU(object):
         self.memory = Memory(self)
         self.op_address = 0
         self.cycles = 0
-        self.quit = False
+        self.running = False
 
     def run(self):
         print " *** CPU running, pid:", os.getpid()
-        while not self.quit:
+        while not self.running:
             time.sleep(1)
             self.op_address += 1
             self.get_and_call_next_op()
@@ -135,7 +135,7 @@ class CPU(object):
             repr(user_input), char
         )
         if char == "x":
-            self.quit = True
+            self.running = True
 
         value = ord(char.upper())
         self.memory.write_byte(address=0xe001, value=value)

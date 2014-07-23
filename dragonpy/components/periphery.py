@@ -15,7 +15,7 @@ import time
 import sys
 import httplib
 import threading
-from dragonpy.utils import pager
+import thread
 
 try:
     import Tkinter
@@ -23,6 +23,7 @@ except Exception, err:
     print "Error importing Tkinter: %s" % err
     Tkinter = None
 
+from dragonpy.utils import pager
 from dragonpy.utils.logging_utils import log
 
 
@@ -233,11 +234,14 @@ class TkPeripheryBase(PeripheryBase):
     def cpu_check_interval(self, cpu_process):
         """
         Destroy Tk window (Exit mainloop), if the CPU not running anymore.
-        e.g.: CPU quit per http control server.
+        e.g.: CPU running per http control server.
         """
         if cpu_process.is_alive():
+            self.root.update()
             # Check again, after 500ms
-            self.root.after(500, self.cpu_check_interval, cpu_process)
+#            self.root.after(500, self.cpu_check_interval, cpu_process)
+            t = threading.Timer(1.0, self.cpu_check_interval, args=[cpu_process])
+            t.start()
         else:
             self.exit("CPU process is not alive.")
 
@@ -264,15 +268,19 @@ class InputPollThread(threading.Thread):
         """
         work-a-round for blocking input
         """
-        log.critical("check_cpu_interval()")
-        if not cpu_process.is_alive():
-            log.critical("raise SystemExit, because CPU is not alive.")
-            raise SystemExit("Kill pager.getch()")
-        t = threading.Timer(1.0, self.check_cpu_interval, args=[cpu_process])
-        t.start()
+        try:
+            log.critical("check_cpu_interval()")
+            if not cpu_process.is_alive():
+                log.critical("raise SystemExit, because CPU is not alive.")
+                thread.interrupt_main()
+                raise SystemExit("Kill pager.getch()")
+        except KeyboardInterrupt:
+            thread.interrupt_main()
+        else:
+            t = threading.Timer(1.0, self.check_cpu_interval, args=[cpu_process])
+            t.start()
 
-    def run(self):
-        log.critical("InputPollThread.run() start")
+    def loop(self):
         while self.cpu_process.is_alive():
             char = pager.getch() # Important: It blocks while waiting for a input
             if char == "\n":
@@ -280,6 +288,13 @@ class InputPollThread(threading.Thread):
 
             char = char.upper()
             self.user_input_queue.put(char)
+
+    def run(self):
+        log.critical("InputPollThread.run() start")
+        try:
+            self.loop()
+        except KeyboardInterrupt:
+            thread.interrupt_main()
         log.critical("InputPollThread.run() ends, because CPU not alive anymore.")
 
 

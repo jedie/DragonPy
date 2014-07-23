@@ -9,11 +9,8 @@ if NOT exist %python% (
     pause
     exit 1
 )
-:loop
-    echo on
-    cls
-    REM ~ %python% setup.py test
-    %python% -m unittest discover
-    @echo off
-    pause
-goto:loop
+
+echo on
+REM ~ %python% console_6809_test.py
+%python% console_6809_test_OLD.py
+@pause

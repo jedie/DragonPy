@@ -66,7 +66,7 @@ class CPU(object):
         log.info(" *** CPU init *** ")
         self.op_address = 0
         self.cycles = 0
-        self.quit = False
+        self.running = True
 
     def get_and_call_next_op(self):
         time.sleep(1)
@@ -75,12 +75,16 @@ class CPU(object):
         user_input = self.memory.read_byte(address=0xe001)
         if not user_input:
             return
+
+        if user_input == 3: # Strg-C
+            raise KeyboardInterrupt
+
         char = chr(user_input)
         print "User Input (type 'x' to exit!): %s -> %s" % (
             repr(user_input), char
         )
-        if char == "x":
-            self.quit = True
+        if char in ("x", "X"):
+            self.running = False
 
         value = ord(char.upper())
         self.memory.write_byte(address=0xe001, value=value)
@@ -96,7 +100,7 @@ class CPUThread(threading.Thread):
     def run(self):
         log.info(" *** CPUThread.run() *** ")
         cpu = self.cpu
-        while not cpu.quit:
+        while cpu.running:
             cpu.get_and_call_next_op()
         print "Quit CPU"
 
@@ -111,9 +115,10 @@ def start_cpu(cfg_dict, read_bus_request_queue, read_bus_response_queue, write_b
     cpu.memory = Memory(cpu, read_bus_request_queue, read_bus_response_queue, write_bus_queue)
 
     cpu_thread = CPUThread(cpu)
+    cpu_thread.deamon = True
     cpu_thread.start()
     cpu_thread.join()
 
-    log.info(" +++ start_cpu(): CPU has quit +++ ")
+    log.info(" +++ start_cpu(): CPU has running +++ ")
 
 

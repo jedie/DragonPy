@@ -21,68 +21,61 @@ import multiprocessing
 import os
 import sys
 import threading
+import thread
 
-from dragonpy.utils.simple_debugger import print_exc_plus
 from dragonpy.core.process_sub import start_cpu
-
 from dragonpy.utils.logging_utils import log
 
 
-class BusReadThread(threading.Thread):
+class BusCommunicationThread(threading.Thread):
     """
     Wait for CPU/Memory bus read: Read from periphery and send result back.
     """
-    def __init__ (self, cfg, periphery, read_bus_request_queue, read_bus_response_queue):
-        super(BusReadThread, self).__init__()
-        log.critical(" *** BusReadThread init *** ")
+    def __init__ (self, cfg, periphery, read_bus_request_queue, read_bus_response_queue, write_bus_queue):
+        super(BusCommunicationThread, self).__init__()
+        log.critical(" *** BusCommunicationThread init *** ")
         self.cfg = cfg
         self.periphery = periphery
         self.read_bus_request_queue = read_bus_request_queue
         self.read_bus_response_queue = read_bus_response_queue
-        self.running = True
-
-    def run(self):
-        log.critical(" *** BusReadThread.run() started. *** ")
-        while self.running:
-            try:
-                cycles, op_address, structure, address = self.read_bus_request_queue.get(timeout=0.5)
-            except multiprocessing.queues.Empty:
-                continue
-#             log.critical("%04x| Bus read from $%04x", op_address, address)
-            if structure == self.cfg.BUS_STRUCTURE_WORD:
-                value = self.periphery.read_word(cycles, op_address, address)
-            else:
-                value = self.periphery.read_byte(cycles, op_address, address)
-#             log.critical("%04x| Bus read from $%04x: result is: $%x", op_address, address, value)
-            self.read_bus_response_queue.put(value)
-        log.critical(" *** BusReadThread.run() stopped. *** ")
-
-
-class BusWriteThread(threading.Thread):
-    """
-    Wait for CPU/Memory bus write: Redirect write to periphery
-    """
-    def __init__ (self, cfg, periphery, write_bus_queue):
-        super(BusWriteThread, self).__init__()
-        log.critical(" *** BusWriteThread init *** ")
-        self.cfg = cfg
-        self.periphery = periphery
         self.write_bus_queue = write_bus_queue
         self.running = True
 
-    def run(self):
-        log.critical(" *** BusWriteThread.run() started. *** ")
+    def bus_read_poll(self):
+        cycles, op_address, structure, address = self.read_bus_request_queue.get(block=True)
+
+#        log.critical("%04x| Bus read from $%04x", op_address, address)
+        if structure == self.cfg.BUS_STRUCTURE_WORD:
+            value = self.periphery.read_word(cycles, op_address, address)
+        else:
+            value = self.periphery.read_byte(cycles, op_address, address)
+#        log.critical("%04x| Bus read from $%04x: result is: $%x", op_address, address, value)
+        self.read_bus_response_queue.put(value, block=True)
+
+    def bus_write_poll(self):
+        cycles, op_address, structure, address, value = self.write_bus_queue.get(block=True)
+
+        log.debug("%04x| Bus write $%x to address $%04x", op_address, value, address)
+        if structure == self.cfg.BUS_STRUCTURE_WORD:
+            self.periphery.write_word(cycles, op_address, address, value)
+        else:
+            self.periphery.write_byte(cycles, op_address, address, value)
+
+    def loop(self):
         while self.running:
-            try:
-                cycles, op_address, structure, address, value = self.write_bus_queue.get(timeout=0.5)
-            except multiprocessing.queues.Empty:
-                continue
-            log.debug("%04x| Bus write $%x to address $%04x", op_address, value, address)
-            if structure == self.cfg.BUS_STRUCTURE_WORD:
-                self.periphery.write_word(cycles, op_address, address, value)
-            else:
-                self.periphery.write_byte(cycles, op_address, address, value)
-        log.critical(" *** BusWriteThread.run() stopped. *** ")
+            if not self.read_bus_request_queue.empty():
+                self.bus_read_poll()
+
+            if not self.write_bus_queue.empty():
+                self.bus_write_poll()
+
+    def run(self):
+        log.critical(" *** BusCommunicationThread.run() started. *** ")
+        try:
+            self.loop()
+        except KeyboardInterrupt:
+            thread.interrupt_main()
+        log.critical(" *** BusCommunicationThread.run() stopped. *** ")
 
 
 def main_process_startup(cfg):
@@ -98,14 +91,12 @@ def main_process_startup(cfg):
     write_bus_queue = multiprocessing.Queue(maxsize=1)
 
     # API between processes and local periphery
-    log.critical("start BusReadThread()")
-    bus_read_thread = BusReadThread(cfg, periphery, read_bus_request_queue, read_bus_response_queue)
-    bus_read_thread.deamon = True
-    bus_read_thread.start()
-    log.critical("start BusWriteThread()")
-    bus_write_thread = BusWriteThread(cfg, periphery, write_bus_queue)
-    bus_write_thread.deamon = True
-    bus_write_thread.start()
+    log.critical("start BusCommunicationThread()")
+    bus_thread = BusCommunicationThread(cfg, periphery,
+        read_bus_request_queue, read_bus_response_queue, write_bus_queue
+    )
+    bus_thread.deamon = True
+    bus_thread.start()
 
     log.critical("Start CPU/Memory as separated process")
     cpu_process = multiprocessing.Process(target=start_cpu,
@@ -118,7 +109,10 @@ def main_process_startup(cfg):
     cpu_process.deamon = True
     cpu_process.start()
 
-    periphery.mainloop(cpu_process)
+    try:
+        periphery.mainloop(cpu_process)
+    except KeyboardInterrupt:
+        periphery.exit("Exit from main process.")
 
     log.critical("Wait for CPU quit.")
     try:
@@ -129,17 +123,12 @@ def main_process_startup(cfg):
         log.critical(" *** CPU process stopped. ***")
 
     # Quit all threads:
-    bus_read_thread.running = False # Quit the while loop.
-    bus_write_thread.running = False # Quit the while loop.
+    bus_thread.running = False # Quit the while loop.
 #     periphery.input_thread.running = True
 
-    log.critical("Wait for bus_read_thread quit.")
-    bus_read_thread.join()
-    log.critical("bus_read_thread has stopped.")
-
-    log.critical("Wait for bus_write_thread quit.")
-    bus_write_thread.join()
-    log.critical("write_read_thread has stopped.")
+    log.critical("Wait for bus_thread quit.")
+    bus_thread.join()
+    log.critical("bus_thread has stopped.")
 
 #     log.critical(" *** FIXME: Input one char to real END :(")
 #     periphery.input_thread.join() # Will only end after one input char :(
