@@ -101,7 +101,7 @@ class SBC09PeripheryBase(PeripheryBase):
             char = chr(value)
 #            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
 
-        self.new_output_char(char)
+        self.output_queue.put(char)
 
 
 class SBC09PeripheryTk(SBC09PeripheryBase, TkPeripheryBase):
@@ -140,8 +140,8 @@ class SBC09PeripheryUnittest(SBC09PeripheryBase):
 
 
 # SBC09Periphery = SBC09PeripherySerial
-# SBC09Periphery = SBC09PeripheryTk
-SBC09Periphery = SBC09PeripheryConsole
+SBC09Periphery = SBC09PeripheryTk
+# SBC09Periphery = SBC09PeripheryConsole
 
 
 def test_run():
