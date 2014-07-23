@@ -22,11 +22,8 @@
 import logging
 import os
 import sys
-import socket
-import struct
 
-
-log = logging.getLogger("DragonPy.memory")
+from dragonpy.utils.logging_utils import log
 
 
 class ROM(object):

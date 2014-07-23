@@ -22,7 +22,6 @@
 """
 
 import inspect
-import logging
 import os
 import socket
 import sys
@@ -41,14 +40,11 @@ from dragonpy.cpu_utils.MC6809_registers import (
 from dragonpy.cpu_utils.signed import signed8, signed16, signed5
 from dragonpy.utils.simple_debugger import print_exc_plus
 from dragonpy.cpu_utils.instruction_caller import OpCollection
+from dragonpy.utils.logging_utils import log
 
 
-log = logging.getLogger("DragonPy.cpu6809")
 # HTML_TRACE = True
 HTML_TRACE = False
-
-
-
 
 
 def opcode(*opcodes):
