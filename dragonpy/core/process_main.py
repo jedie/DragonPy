@@ -57,9 +57,7 @@ class BusCommunicationThread(threading.Thread):
             value = self.periphery.read_byte(cycles, op_address, address)
 #        log.critical("%04x| Bus read from $%04x: result is: $%x", op_address, address, value)
 
-        self.read_bus_request_queue.task_done()
         self.read_bus_response_queue.put(value, block=True)
-        self.read_bus_response_queue.join()
 
     def bus_write_poll(self, timeout):
         try:
@@ -74,8 +72,6 @@ class BusCommunicationThread(threading.Thread):
             self.periphery.write_word(cycles, op_address, address, value)
         else:
             self.periphery.write_byte(cycles, op_address, address, value)
-
-        self.write_bus_queue.task_done()
 
     def loop(self):
         timeout = 0.1 # TODO: What's the best value?!? Or use None?
@@ -100,9 +96,9 @@ def main_process_startup(cfg):
     periphery = cfg.periphery_class(cfg)
 
     # communication channel between processes:
-    read_bus_request_queue = multiprocessing.JoinableQueue(maxsize=1)
-    read_bus_response_queue = multiprocessing.JoinableQueue(maxsize=1)
-    write_bus_queue = multiprocessing.JoinableQueue(maxsize=1)
+    read_bus_request_queue = multiprocessing.Queue(maxsize=1)
+    read_bus_response_queue = multiprocessing.Queue(maxsize=1)
+    write_bus_queue = multiprocessing.Queue(maxsize=1)
 
     # API between processes and local periphery
     log.critical("start BusCommunicationThread()")

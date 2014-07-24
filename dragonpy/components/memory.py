@@ -232,9 +232,7 @@ class Memory(object):
                 (self.cpu.cycles, self.cpu.last_op_address, structure, address),
                 block=True
             )
-            self.read_bus_request_queue.join() # Wait for result
             value = self.read_bus_response_queue.get(block=True)
-            self.read_bus_response_queue.task_done()
             return value
         else:
             if structure == self.cfg.BUS_STRUCTURE_WORD:
@@ -253,7 +251,6 @@ class Memory(object):
                 (self.cpu.cycles, self.cpu.last_op_address, structure, address, value),
                 block=True
             )
-            self.write_bus_queue.join() # Wait to finish
         else:
             if structure == self.cfg.BUS_STRUCTURE_WORD:
                 self.cfg.periphery.write_word(
