@@ -22,6 +22,7 @@ import os
 import sys
 import threading
 import thread
+import Queue
 
 from dragonpy.core.process_sub import start_cpu
 from dragonpy.utils.logging_utils import log
@@ -41,8 +42,13 @@ class BusCommunicationThread(threading.Thread):
         self.write_bus_queue = write_bus_queue
         self.running = True
 
-    def bus_read_poll(self):
-        cycles, op_address, structure, address = self.read_bus_request_queue.get(block=True)
+    def bus_read_poll(self, timeout):
+        try:
+            cycles, op_address, structure, address = self.read_bus_request_queue.get(
+                block=False, timeout=timeout
+            )
+        except Queue.Empty:
+            return
 
 #        log.critical("%04x| Bus read from $%04x", op_address, address)
         if structure == self.cfg.BUS_STRUCTURE_WORD:
@@ -55,8 +61,13 @@ class BusCommunicationThread(threading.Thread):
         self.read_bus_response_queue.put(value, block=True)
         self.read_bus_response_queue.join()
 
-    def bus_write_poll(self):
-        cycles, op_address, structure, address, value = self.write_bus_queue.get(block=True)
+    def bus_write_poll(self, timeout):
+        try:
+            cycles, op_address, structure, address, value = self.write_bus_queue.get(
+                block=False, timeout=timeout
+            )
+        except Queue.Empty:
+            return
 
         log.debug("%04x| Bus write $%x to address $%04x", op_address, value, address)
         if structure == self.cfg.BUS_STRUCTURE_WORD:
@@ -67,12 +78,10 @@ class BusCommunicationThread(threading.Thread):
         self.write_bus_queue.task_done()
 
     def loop(self):
+        timeout = 0.1 # TODO: What's the best value?!? Or use None?
         while self.running:
-            if not self.read_bus_request_queue.empty():
-                self.bus_read_poll()
-
-            if not self.write_bus_queue.empty():
-                self.bus_write_poll()
+            self.bus_read_poll(timeout)
+            self.bus_write_poll(timeout)
 
     def run(self):
         log.critical(" *** BusCommunicationThread.run() started. *** ")

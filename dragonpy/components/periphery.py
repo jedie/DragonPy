@@ -240,9 +240,13 @@ class TkPeripheryBase(PeripheryBase):
         if not cpu_process.is_alive():
             self.exit("CPU process is not alive.")
 
-        while not self.output_queue.empty():
-            char = self.output_queue.get(1)
-            self._new_output_char(char)
+        while True:
+            try:
+                char = self.output_queue.get(block=False)
+            except Queue.Empty:
+                break
+            else:
+                self._new_output_char(char)
 
         self.root.after(100, self.add_input_interval, cpu_process)
 
@@ -332,6 +336,11 @@ class PeripheryUnittestBase(object):
 
     def write_acia_data(self, cpu_cycles, op_address, address, value):
         super(PeripheryUnittestBase, self).write_acia_data(cpu_cycles, op_address, address, value)
-        while not self.output_queue.empty():
-            char = self.output_queue.get(1)
-            self._new_output_char(char)
+
+        while True:
+            try:
+                char = self.output_queue.get(block=False)
+            except Queue.Empty:
+                break
+            else:
+                self._new_output_char(char)

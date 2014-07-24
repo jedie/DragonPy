@@ -73,9 +73,13 @@ class Console6809Periphery(Simple6809PeripheryBase):
 
     def write_acia_data(self, cpu_cycles, op_address, address, value):
         super(Console6809Periphery, self).write_acia_data(cpu_cycles, op_address, address, value)
-        while not self.output_queue.empty():
-            char = self.output_queue.get(1)
-            sys.stdout.write(char)
+        while True:
+            try:
+                char = self.output_queue.get(block=False)
+            except Queue.Empty:
+                break
+            else:
+                sys.stdout.write(char)
         sys.stdout.flush()
 
 

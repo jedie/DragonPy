@@ -16,6 +16,7 @@
 
 import sys
 import os
+import Queue
 
 try:
     import Tkinter
@@ -58,10 +59,11 @@ class Multicomp6809PeripheryBase(PeripheryBase):
         return 0x03
 
     def read_acia_data(self, cpu_cycles, op_address, address):
-        if self.user_input_queue.empty():
+        try:
+            char = self.user_input_queue.get(block=False)
+        except Queue.Empty:
             return 0x0
 
-        char = self.user_input_queue.get()
         value = ord(char)
         log.error("%04x| (%i) read from ACIA-data, send back %r $%x",
             op_address, cpu_cycles, char, value
