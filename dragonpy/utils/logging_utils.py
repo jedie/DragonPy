@@ -17,6 +17,10 @@ import multiprocessing
 
 log = multiprocessing.log_to_stderr()
 
+log.critical("Log handlers: %s", repr(log.handlers))
+if len(log.handlers) > 1:# FIXME: tro avoid doublicated output
+    log.handlers = (log.handlers[0],)
+    log.critical("Fixed Log handlers: %s", repr(log.handlers))
 
 def setup_logging(log, level, handler=None):
     """
