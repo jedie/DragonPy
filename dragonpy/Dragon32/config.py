@@ -25,12 +25,12 @@ class Dragon32Cfg(BaseConfig):
      * http://dragon32.info/info/romref.html
     """
     RAM_START = 0x0000
-#     RAM_END = 0x03FF # 1KB
-#     RAM_END = 0x07FF # 2KB
-    RAM_END = 0x0FFF # 4KB
-    # RAM_END = 0x1FFF # 8KB
-    # RAM_END = 0x3FFF # 16KB
-    # RAM_END = 0x7FFF # 32KB
+#    RAM_END = 0x03FF # 1KB
+#    RAM_END = 0x07FF # 2KB
+#    RAM_END = 0x0FFF # 4KB
+#    RAM_END = 0x1FFF # 8KB
+#    RAM_END = 0x3FFF # 16KB
+    RAM_END = 0x7FFF # 32KB
 
     ROM_START = 0x8000
     ROM_END = 0xBFFF
@@ -83,3 +83,4 @@ class Dragon32Cfg(BaseConfig):
         return mem
 
 
+config = Dragon32Cfg

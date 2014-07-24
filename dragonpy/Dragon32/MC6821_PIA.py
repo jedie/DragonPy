@@ -72,7 +72,7 @@ class PIA(object):
         return value
 
     def write_byte(self, address, value):
-        log.error(" *** TODO: PIA write byte $%x to $%x \t| %s" % (
+        log.error(" *** TODO: PIA write byte $%02x to $%x \t| %s" % (
             value, address, self.cfg.mem_info.get_shortest(address)
         ))
 

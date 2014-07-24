@@ -5,15 +5,17 @@
     DragonPy - Dragon 32 emulator in Python
     =======================================
 
-
     Based on:
         ApplePy - an Apple ][ emulator in Python:
         James Tauber / http://jtauber.com/ / https://github.com/jtauber/applepy
         originally written 2001, updated 2011
         origin source code licensed under MIT License
+
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
+    :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import logging
+import os
 try:
     import pygame
 except ImportError:
@@ -24,8 +26,7 @@ from dragonpy.Dragon32.display import Display
 from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.components.periphery import PeripheryBase
-
-log = logging.getLogger("DragonPy.perophery.dragon")
+from dragonpy.utils.logging_utils import log
 
 
 
@@ -43,6 +44,7 @@ class Dragon32Periphery(PeripheryBase):
         self.pia = PIA(cfg)
 
         self.address2func_map = {
+            0xc000: self.no_dos_rom,
             0xfffe: self.reset_vector,
         }
 
@@ -116,7 +118,7 @@ class Dragon32Periphery(PeripheryBase):
 #         else:
 #             pass # print "%04X" % address
 
-        msg = "ERROR: no periphery handler at $%x (cpu_cycles: %s) \t| %s" % (
+        msg = "ERROR: no periphery handler at $%x (cpu_cycles: %i) \t| %s" % (
             address, cpu_cycles,
             self.cfg.mem_info.get_shortest(address)
         )
@@ -137,8 +139,9 @@ class Dragon32Periphery(PeripheryBase):
             return func(address)
 
         raise NotImplementedError(
-            "TODO: Periphery.read_word from $%x (cpu_cycles: %i)" % (
-            address, cpu_cycles
+            "TODO: Periphery.read_word from $%x (cpu_cycles: %i) \t| %s" % (
+            address, cpu_cycles,
+            self.cfg.mem_info.get_shortest(address)
         ))
 
     def write_byte(self, cpu_cycles, op_address, address, value):
@@ -168,36 +171,45 @@ class Dragon32Periphery(PeripheryBase):
         if self.speaker:
             self.speaker.update(cpu_cycles)
 
-    def cycle(self, cpu_cycles, op_address):
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                log.critical("pygame.QUIT: shutdown")
-                self.exit()
-                return False # Quit
-
-            if event.type == pygame.KEYDOWN:
-                key = ord(event.unicode) if event.unicode else 0
-                if event.key == pygame.K_LEFT:
-                    key = 0x08
-                if event.key == pygame.K_RIGHT:
-                    key = 0x15
-                if key:
-                    if key == 0x7F:
-                        key = 0x08
-                    self.periphery.kbd = 0x80 + (key & 0x7F)
-
-        return super(Dragon32Periphery, self).cycle(cpu_cycles, op_address)
+    def no_dos_rom(self, address):
+        log.error("%04x| TODO: DOS ROM requested. Send 0x00 back")
+        return 0x00
 
     def reset_vector(self, address):
         ea = 0xb3b4
-        log.info("%x| %x        [RESET]" % (address, ea))
+        log.info("%04x| %04x        [RESET]" % (address, ea))
         return ea # FIXME: RESET interrupt service routine ???
+
+    def mainloop(self, cpu_process):
+        log.critical("Pygame mainloop started.")
+        while cpu_process.is_alive():
+            for event in pygame.event.get():
+                if event.type == pygame.QUIT:
+                    log.critical("pygame.QUIT: shutdown")
+                    self.exit()
+                    return False # Quit
+
+                if event.type == pygame.KEYDOWN:
+                    key = ord(event.unicode) if event.unicode else 0
+                    if event.key == pygame.K_LEFT:
+                        key = 0x08
+                    if event.key == pygame.K_RIGHT:
+                        key = 0x15
+                    if key:
+                        if key == 0x7F:
+                            key = 0x08
+                        self.periphery.kbd = 0x80 + (key & 0x7F)
+
+        self.exit()
+        log.critical("Pygame mainloop stopped.")
 
 
 def test_run():
     import sys, subprocess
-    cmd_args = [sys.executable,
-        "DragonPy_CLI.py",
+    cmd_args = [
+        sys.executable,
+#         "/usr/bin/pypy",
+        os.path.join("..", "DragonPy_CLI.py"),
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
@@ -209,6 +221,7 @@ def test_run():
 #
         "--cfg=Dragon32",
 #
+        "--dont_open_webbrowser",
         "--display_cycle", # print CPU cycle/sec while running.
 #
 #         "--max=15000",

@@ -70,6 +70,6 @@ class SAM(object):
 #         raise NotImplementedError
 
     def write_byte(self, address, value):
-        log.error(" *** TODO: SAM write byte $%x to $%x \t| %s" % (
+        log.error(" *** TODO: SAM write byte $%02x to $%x \t| %s" % (
             value, address, self.cfg.mem_info.get_shortest(address)
         ))
