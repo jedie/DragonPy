@@ -11,8 +11,6 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import threading
-import logging
 import sys
 import os
 import Queue
@@ -25,11 +23,7 @@ except Exception, err:
 
 from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase, \
     ConsolePeripheryBase, PeripheryUnittestBase
-
-log = logging.getLogger("DragonPy.sbc09Periphery")
-
-
-
+from dragonpy.utils.logging_utils import log
 
 
 class SBC09PeripheryBase(PeripheryBase):

@@ -10,11 +10,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import logging
 import sys
 import os
 import Queue
-import multiprocessing
 
 try:
     import Tkinter
@@ -95,6 +93,7 @@ class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
     TITLE = "DragonPy - Simple 6809"
     GEOMETRY = "+500+300"
     KEYCODE_MAP = {
+        19: 0x03, # Break Key under windows
         127: 0x03, # Break Key
     }
     INITAL_INPUT = "\r\n".join([
@@ -114,16 +113,6 @@ class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
         self.user_input_queue.put("\r")
 #         self.user_input_queue.put("\n")
 
-#     _STOP_AFTER_OK_COUNT = None
-# #     _STOP_AFTER_OK_COUNT = 2
-#     def update(self):
-#         is_empty = self.output_queue.empty()
-#         super(Simple6809PeripheryTk, self).update()
-#         if self._STOP_AFTER_OK_COUNT is not None and not is_empty:
-#             txt = self.text.get(1.0, Tkinter.END)
-#             if txt.count("OK\r\n") >= self._STOP_AFTER_OK_COUNT:
-#                 log.critical("-> exit!")
-#                 self.destroy()
 
 
 # Simple6809Periphery = Simple6809PeripherySerial
