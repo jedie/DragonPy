@@ -24,11 +24,30 @@ class CPUThread(threading.Thread):
         self.cfg = cfg
         self.cpu = cpu
 
+        self.last_update = None
+        self.last_cycles = None
+        if cfg.display_cycle:
+            self.display_cycle_interval()
+
+    def display_cycle_interval(self):
+        if self.last_update is not None: # Skip the first time call.
+            cycles = self.cpu.cycles - self.last_cycles
+            duration = time.time() - self.last_update
+            log.critical(
+                "%i cycles/sec (%i cycles in last %isec)",
+                int(cycles / duration), cycles, duration
+            )
+
+        self.last_cycles = self.cpu.cycles
+        self.last_update = time.time()
+        t = threading.Timer(5.0, self.display_cycle_interval)
+        t.deamon = True
+        t.start()
+
     def loop(self):
         cpu = self.cpu
         cpu.reset()
         max_ops = self.cfg.cfg_dict["max_ops"]
-        next_update = time.time() + 1
         if max_ops:
             log.critical("Running only %i ops!", max_ops)
             for __ in xrange(max_ops):
@@ -39,9 +58,6 @@ class CPUThread(threading.Thread):
             return
         else:
             while cpu.running:
-                if time.time() > next_update:
-                    log.critical("CPU is running == %s - %s cycles.", cpu.running, cpu.cycles)
-                    next_update = time.time() + 1
                 cpu.get_and_call_next_op()
 
     def run(self):
