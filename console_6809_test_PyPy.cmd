@@ -11,6 +11,5 @@ if NOT exist %python% (
 )
 
 echo on
-REM ~ %python% console_6809_test.py
-%python% console_6809_test_OLD.py
+%python% console_6809_test.py
 @pause

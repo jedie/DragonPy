@@ -58,19 +58,6 @@ class Console6809Periphery(Simple6809PeripheryBase):
 
         self.user_input_queue = input_queue # Buffer for input to send back to the CPU
 
-        self.last_cycles = 0
-        self.last_cycles_update = time.time()
-
-    def update(self, cpu_cycles):
-        current_time = time.time()
-        duration = current_time - self.last_cycles_update
-
-        count = cpu_cycles - self.last_cycles
-        log.critical("\n%.2f cycles/sec. (current cycle: %i)", float(count / duration), cpu_cycles)
-
-        self.last_cycles = cpu_cycles
-        self.last_cycles_update = current_time
-
     def write_acia_data(self, cpu_cycles, op_address, address, value):
         super(Console6809Periphery, self).write_acia_data(cpu_cycles, op_address, address, value)
         while True:
@@ -95,6 +82,25 @@ class Console6809(object):
         self.cpu = CPU(memory, cfg)
         memory.cpu = self.cpu # FIXME
 
+        self.last_update = None
+        self.last_cycles = None
+        self.display_cycle_interval()
+
+    def display_cycle_interval(self):
+        if self.last_update is not None: # Skip the first time call.
+            cycles = self.cpu.cycles - self.last_cycles
+            duration = time.time() - self.last_update
+            log.critical(
+                "%i cycles/sec (%i cycles in last %isec)",
+                int(cycles / duration), cycles, duration
+            )
+
+        self.last_cycles = self.cpu.cycles
+        self.last_update = time.time()
+        t = threading.Timer(5.0, self.display_cycle_interval)
+        t.deamon = True
+        t.start()
+
     def run(self):
         self.cpu.reset()
 
@@ -109,16 +115,8 @@ class Console6809(object):
         input_thread.deamon = True
         input_thread.start()
 
-        self.update_intervall()
-
         while self.cpu.running == True:
             self.cpu.get_and_call_next_op()
-
-    def update_intervall(self):
-        self.periphery.update(self.cpu.cycles)
-        t = threading.Timer(interval=10.0, function=self.update_intervall)
-        t.deamon = True
-        t.start()
 
 
 if __name__ == '__main__':
