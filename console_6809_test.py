@@ -97,9 +97,17 @@ class Console6809(object):
 
         self.last_cycles = self.cpu.cycles
         self.last_update = time.time()
-        t = threading.Timer(5.0, self.display_cycle_interval)
-        t.deamon = True
-        t.start()
+        if self.cpu.running:
+            t = threading.Timer(5.0, self.display_cycle_interval)
+            t.deamon = True
+            t.start()
+
+    def update_display(self):
+        self.periphery.update(self.cpu.cpu_cycles)
+        if self.cpu.running:
+            t = threading.Timer(0.25, self.update_display)
+            t.deamon = True
+            t.start()
 
     def run(self):
         self.cpu.reset()

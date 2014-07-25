@@ -11,18 +11,20 @@
         James Tauber / http://jtauber.com/ / https://github.com/jtauber/applepy
         originally written 2001, updated 2011
         origin source code licensed under MIT License
+
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
+    :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 import sys
 import time
-import logging
 try:
     import pygame
 except ImportError:
     # Maybe Dragon would not be emulated ;)
     pygame = None
 
-log = logging.getLogger("DragonPy.Display")
+from dragonpy.utils.logging_utils import log
 
 class Display(object):
 

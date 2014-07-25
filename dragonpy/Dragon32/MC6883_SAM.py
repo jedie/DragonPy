@@ -41,15 +41,13 @@
     FFC0 to FFC5 control 3 VDG Mode bits (V0 to V2).
 
     :created: 2013 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 
     Based on: XRoar emulator by Ciaran Anscomb (GPL license) more info, see README
 """
 
-import logging
-
-log = logging.getLogger("DragonPy.components.MC6883_SAM")
+from dragonpy.utils.logging_utils import log
 
 
 class SAM(object):

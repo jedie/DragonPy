@@ -8,15 +8,13 @@
     http://www.6809.org.uk/dragon/hardware.shtml#pia0
 
     :created: 2013 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 
     Based on: XRoar emulator by Ciaran Anscomb (GPL license) more info, see README
 """
 
-import logging
-
-log = logging.getLogger("DragonPy.components.MC6821_PIA")
+from dragonpy.utils.logging_utils import log
 
 
 class PIA_register(object):
@@ -35,12 +33,9 @@ class PIA_register(object):
 class PIA(object):
     """
     PIA - MC6821 - Peripheral Interface Adaptor
-
-
     """
     def __init__(self, cfg):
         self.cfg = cfg
-        log = logging.getLogger("DragonPy.Periphery.PIA")
 
         self.func_map = {
             0xff00: self.pia_0_A_data,

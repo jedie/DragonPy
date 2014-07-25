@@ -47,6 +47,7 @@ class Dragon32Periphery(PeripheryBase):
             0xc000: self.no_dos_rom,
             0xfffe: self.reset_vector,
         }
+        self.running = True
 
     def read_byte(self, cpu_cycles, op_address, address):
         self.cfg.mem_info(address, "Periphery.read_byte (cpu_cycles: %s) from" % hex(cpu_cycles))
@@ -164,13 +165,6 @@ class Dragon32Periphery(PeripheryBase):
 
     write_word = write_byte # TODO: implement
 
-    def update(self, cpu_cycles):
-        super(Dragon32Periphery, self).update(cpu_cycles)
-        self.display.flash()
-        pygame.display.flip()
-        if self.speaker:
-            self.speaker.update(cpu_cycles)
-
     def no_dos_rom(self, address):
         log.error("%04x| TODO: DOS ROM requested. Send 0x00 back")
         return 0x00
@@ -180,28 +174,47 @@ class Dragon32Periphery(PeripheryBase):
         log.info("%04x| %04x        [RESET]" % (address, ea))
         return ea # FIXME: RESET interrupt service routine ???
 
+    def exit(self):
+        log.critical("exit pygame")
+        super(Dragon32Periphery, self).exit()
+        pygame.display.quit()
+
+    def update(self, cpu_cycles):
+        log.critical("update pygame")
+        if not self.running:
+            return
+        self.display.flash()
+        pygame.display.flip()
+        if self.speaker:
+            self.speaker.update(cpu_cycles)
+
+    def _handle_events(self):
+        log.critical("pygame handle events")
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                log.critical("pygame.QUIT: shutdown")
+                self.exit()
+                return False # Quit
+
+            if event.type == pygame.KEYDOWN:
+                key = ord(event.unicode) if event.unicode else 0
+                if event.key == pygame.K_LEFT:
+                    key = 0x08
+                if event.key == pygame.K_RIGHT:
+                    key = 0x15
+                if key:
+                    if key == 0x7F:
+                        key = 0x08
+                    self.periphery.kbd = 0x80 + (key & 0x7F)
+
     def mainloop(self, cpu_process):
         log.critical("Pygame mainloop started.")
-        while cpu_process.is_alive():
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    log.critical("pygame.QUIT: shutdown")
-                    self.exit()
-                    return False # Quit
-
-                if event.type == pygame.KEYDOWN:
-                    key = ord(event.unicode) if event.unicode else 0
-                    if event.key == pygame.K_LEFT:
-                        key = 0x08
-                    if event.key == pygame.K_RIGHT:
-                        key = 0x15
-                    if key:
-                        if key == 0x7F:
-                            key = 0x08
-                        self.periphery.kbd = 0x80 + (key & 0x7F)
+        while self.running and cpu_process.is_alive():
+            self._handle_events()
 
         self.exit()
         log.critical("Pygame mainloop stopped.")
+
 
 
 def test_run():
