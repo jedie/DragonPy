@@ -57,6 +57,18 @@ class SAM(object):
     def __init__(self, cfg):
         self.cfg = cfg
 
+    def get_write_func_map(self):
+        write_func_map = {
+            # TODO
+        }
+        return write_func_map
+
+    def get_read_func_map(self):
+        read_func_map = {
+            # TODO
+        }
+        return read_func_map
+
     def __call__(self, address):
         msg = "TODO: SAM call at $%x" % address
         log.error(msg)

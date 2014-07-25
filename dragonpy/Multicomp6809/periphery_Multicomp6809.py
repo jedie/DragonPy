@@ -40,12 +40,12 @@ class Multicomp6809PeripheryBase(PeripheryBase):
 #         (0xBFF0, 0xBFFF, "Interrupt vectors"),
 #     )
 
-        self.read_address2func_map = {
+        self.read_byte_func_map = {
             0xFFD0: self.read_acia_status, # Control/status port of ACIA
             0xFFD1: self.read_acia_data, # Data port of ACIA
             0xbffe: self.reset_vector,
         }
-        self.write_address2func_map = {
+        self.write_byte_func_map = {
             0xFFD0: self.write_acia_status, # Control/status port of ACIA
             0xFFD1: self.write_acia_data, # Data port of ACIA
         }

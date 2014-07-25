@@ -43,133 +43,27 @@ class Dragon32Periphery(PeripheryBase):
         self.sam = SAM(cfg)
         self.pia = PIA(cfg)
 
-        self.address2func_map = {
+        self.read_byte_func_map = {
             0xc000: self.no_dos_rom,
             0xfffe: self.reset_vector,
         }
+        self.write_byte_func_map = {}
+
+        # Collect all read/write functions from PIA:
+        pia_read_func_map = self.pia.get_read_func_map()
+        pia_write_func_map = self.pia.get_write_func_map()
+        self.read_byte_func_map.update(pia_read_func_map)
+        self.write_byte_func_map.update(pia_write_func_map)
+
+        # TODO: Collect all read/write functions from SAM!
+
         self.running = True
 
-    def read_byte(self, cpu_cycles, op_address, address):
-        self.cfg.mem_info(address, "Periphery.read_byte (cpu_cycles: %s) from" % hex(cpu_cycles))
-        assert self.cfg.RAM_END <= address <= 0xFFFF, \
-            "cycles: %s - address: %s" % (cpu_cycles, hex(address))
-
-        if address == 0xfffe:
-            raise NotImplementedError("$fffe:ffff    RESET     ($b3b4; D64 64K mode $c000 - never accessed)")
-
-        if 0xc000 <= address <= 0xfeff:
-            # $c000-dfff = DOS ROM area
-            # Available address range to cartridge expansion port 32K mode
-            log.debug("TODO: cartridge expansion ROM")
-            return 0x7E
-
-        if 0xff00 <= address <= 0xff23:
-            # read/write to PIA 0 or PIA 1 - MC6821 Peripheral Interface Adaptor
-            return self.pia(address)
-
-        if 0xffc0 <= address <= 0xffdf:
-            # read/write to SAM (Synchronous Address Multiplexer)
-            return self.sam(address)
-
-
-#         if 0xffc0 <= address <= 0xffdf:
-#             log.debug(" *** TODO: SAM (Synchronous Address Multiplexer) register bits")
-#             return 0x7E
-
-#         if 0xffc0 <= address <= 0xffc5:
-#             # $ffc0/ffc1    SAM VDG Reg V0
-#             # $ffc2/ffc3    SAM VDG Reg V1
-#             # $ffc3/ffc5    SAM VDG Reg V2
-#             return 0x7E
-
-#         if 0xffc6 <= address <= 0xffd3:
-#             log.debug(" *** TODO: SAM Display offset in 512 byte pages F0-F6")
-#             return 0x7E
-
-#         if 0xffdc <= address <= 0xffdd:
-#             log.debug(" *** TODO: SAM Memory Size select bit M1")
-#             return 0x7E
-
-#         if address == 0xC000:
-#             return self.kbd
-#         elif address == 0xC010:
-#             self.kbd = self.kbd & 0x7F
-#         elif address == 0xC030:
-#             if self.speaker:
-#                 self.speaker.toggle(cpu_cycles)
-#         elif address == 0xC050:
-#             self.display.txtclr()
-#         elif address == 0xC051:
-#             self.display.txtset()
-#         elif address == 0xC052:
-#             self.display.mixclr()
-#         elif address == 0xC053:
-#             self.display.mixset()
-#         elif address == 0xC054:
-#             self.display.lowscr()
-#         elif address == 0xC055:
-#             self.display.hiscr()
-#         elif address == 0xC056:
-#             self.display.lores()
-#         elif address == 0xC057:
-#             self.display.hires()
-#         elif address == 0xC060:
-#             if self.cassette:
-#                 return self.cassette.read_byte(cpu_cycles)
-#         else:
-#             pass # print "%04X" % address
-
-        msg = "ERROR: no periphery handler at $%x (cpu_cycles: %i) \t| %s" % (
-            address, cpu_cycles,
-            self.cfg.mem_info.get_shortest(address)
-        )
-        log.error(msg)
-#         raise NotImplementedError(msg)
+    def no_dos_rom(self, cpu_cycles, op_address, address):
+        log.error("%04x| TODO: DOS ROM requested. Send 0x00 back", op_address)
         return 0x00
 
-    def read_word(self, cpu_cycles, op_address, address):
-        log.debug(
-            "Periphery.read_word from $%x (cpu_cycles: %i)" % (
-            address, cpu_cycles
-        ))
-        try:
-            func = self.address2func_map[address]
-        except KeyError, err:
-            log.debug("TODO: $%x" % address)
-        else:
-            return func(address)
-
-        raise NotImplementedError(
-            "TODO: Periphery.read_word from $%x (cpu_cycles: %i) \t| %s" % (
-            address, cpu_cycles,
-            self.cfg.mem_info.get_shortest(address)
-        ))
-
-    def write_byte(self, cpu_cycles, op_address, address, value):
-        log.debug(" *** write to periphery at $%x the value $%x" % (address, value))
-        if 0xff00 <= address <= 0xff23:
-            # read/write to PIA 0 or PIA 1 - MC6821 Peripheral Interface Adaptor
-            return self.pia.write_byte(address, value)
-
-        if 0xffc0 <= address <= 0xffdf:
-            # read/write to SAM (Synchronous Address Multiplexer)
-            return self.sam.write_byte(address, value)
-
-        msg = "ERROR: no periphery handler at $%x (cpu_cycles: %s) \t| %s" % (
-            address, cpu_cycles,
-            self.cfg.mem_info.get_shortest(address)
-        )
-        log.debug(msg)
-#         raise NotImplementedError(msg)
-        return 0x00
-
-    write_word = write_byte # TODO: implement
-
-    def no_dos_rom(self, address):
-        log.error("%04x| TODO: DOS ROM requested. Send 0x00 back")
-        return 0x00
-
-    def reset_vector(self, address):
+    def reset_vector(self, cpu_cycles, op_address, address):
         ea = 0xb3b4
         log.info("%04x| %04x        [RESET]" % (address, ea))
         return ea # FIXME: RESET interrupt service routine ???

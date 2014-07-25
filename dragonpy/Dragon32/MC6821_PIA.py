@@ -36,21 +36,41 @@ class PIA(object):
     """
     def __init__(self, cfg):
         self.cfg = cfg
-
-        self.func_map = {
-            0xff00: self.pia_0_A_data,
-            0xff01: self.pia_0_A_control,
-            0xff02: self.pia_0_B_data,
-            0xff03: self.pia_0_B_control,
-            0xff20: self.pia_1_A_data,
-            0xff21: self.pia_1_A_control,
-            0xff22: self.pia_1_B_data,
-            0xff23: self.pia_1_B_control,
-        }
         self.pia_0_A_registers = PIA_register("PIA0 A")
         self.pia_0_B_registers = PIA_register("PIA0 B")
         self.pia_1_A_registers = PIA_register("PIA1 A")
         self.pia_1_B_registers = PIA_register("PIA1 B")
+
+    def get_write_func_map(self):
+        #
+        # TODO: Collect this information via a decorator simmilar to op codes in CPU!
+        #
+        write_func_map = {
+            0xff00: self.write_PIA0_A_data, #    PIA 0 A side Data reg. PA7
+            0xff01: self.write_PIA0_A_control, # PIA 0 A side Control reg. CA1
+            0xff02: self.write_PIA0_B_data, #    PIA 0 B side Data reg. PB7
+            0xff03: self.write_PIA0_B_control, # PIA 0 B side Control reg. CB1
+
+            0xff20: self.write_PIA1_A_data, #    PIA 1 A side Data reg. PA7
+            0xff21: self.write_PIA1_A_control, # PIA 1 A side Control reg. CA1
+            0xff22: self.write_PIA1_B_data, #    PIA 1 B side Data reg. PB7
+            0xff23: self.write_PIA1_B_control, # PIA 1 B side Control reg. CB1
+        }
+        return write_func_map
+
+    def get_read_func_map(self):
+        read_func_map = {
+            0xff00: self.read_PIA0_A_data, #    PIA 0 A side Data reg. PA7
+            0xff01: self.read_PIA0_A_control, # PIA 0 A side Control reg. CA1
+            0xff02: self.read_PIA0_B_data, #    PIA 0 B side Data reg. PB7
+            0xff03: self.read_PIA0_B_control, # PIA 0 B side Control reg. CB1
+
+            0xff20: self.read_PIA1_A_data, #    PIA 1 A side Data reg. PA7
+            0xff21: self.read_PIA1_A_control, # PIA 1 A side Control reg. CA1
+            0xff22: self.read_PIA1_B_data, #    PIA 1 B side Data reg. PB7
+            0xff23: self.read_PIA1_B_control, # PIA 1 B side Control reg. CB1
+        }
+        return read_func_map
 
     def reset(self):
         self.pia_0_A_registers.reset()
@@ -58,41 +78,80 @@ class PIA(object):
         self.pia_1_A_registers.reset()
         self.pia_1_B_registers.reset()
 
-    def __call__(self, address):
-        func = self.func_map[address]
-        value = func()
-        log.debug(" PIA call at $%x %s returned $%x \t| %s" % (
-            address, func.__name__, value, self.cfg.mem_info.get_shortest(address)
-        ))
-        return value
+    #--------------------------------------------------------------------------
 
-    def write_byte(self, address, value):
-        log.error(" *** TODO: PIA write byte $%02x to $%x \t| %s" % (
-            value, address, self.cfg.mem_info.get_shortest(address)
-        ))
-
-    def pia_0_A_data(self):
-        log.error(" *** TODO: PIA 0 A side data register")
-        return 0x00 # self.kbd
-    def pia_0_A_control(self):
-        log.error(" *** TODO: PIA 0 A side control register")
-        return 0xb3
-    def pia_0_B_data(self):
-        log.error(" *** TODO: PIA 0 B side data register")
+    def read_PIA0_A_data(self, cpu_cycles, op_address, address):
+        """ read to 0xff00 -> PIA 0 A side Data reg. PA7 """
+        log.error("TODO: read to 0xff00 -> PIA 0 A side Data reg. PA7")
         return 0x00
-    def pia_0_B_control(self):
-        log.error(" *** TODO: PIA 0 B side control register")
+
+    def read_PIA0_A_control(self, cpu_cycles, op_address, address):
+        """ read to 0xff01 -> PIA 0 A side Control reg. CA1 """
+        log.error("TODO: read to 0xff01 -> PIA 0 A side Control reg. CA1")
+        return 0xb3
+
+    def read_PIA0_B_data(self, cpu_cycles, op_address, address):
+        """ read to 0xff02 -> PIA 0 B side Data reg. PB7 """
+        log.error("TODO: read to 0xff02 -> PIA 0 B side Data reg. PB7")
+        return 0x00
+
+    def read_PIA0_B_control(self, cpu_cycles, op_address, address):
+        """ read to 0xff03 -> PIA 0 B side Control reg. CB1 """
+        log.error("TODO: read to 0xff03 -> PIA 0 B side Control reg. CB1")
         return 0x35
 
-    def pia_1_A_data(self):
-        log.error(" *** TODO: PIA 1 A side data register")
+    def read_PIA1_A_data(self, cpu_cycles, op_address, address):
+        """ read to 0xff20 -> PIA 1 A side Data reg. PA7 """
+        log.error("TODO: read to 0xff20 -> PIA 1 A side Data reg. PA7")
         return 0x01
-    def pia_1_A_control(self):
-        log.error(" *** TODO: PIA 1 A side control register")
+
+    def read_PIA1_A_control(self, cpu_cycles, op_address, address):
+        """ read to 0xff21 -> PIA 1 A side Control reg. CA1 """
+        log.error("TODO: read to 0xff21 -> PIA 1 A side Control reg. CA1")
         return 0x34
-    def pia_1_B_data(self):
-        log.error(" *** TODO: PIA 1 B side data register")
+
+    def read_PIA1_B_data(self, cpu_cycles, op_address, address):
+        """ read to 0xff22 -> PIA 1 B side Data reg. PB7 """
+        log.error("TODO: read to 0xff22 -> PIA 1 B side Data reg. PB7")
         return 0x00
-    def pia_1_B_control(self):
-        log.error(" *** TODO: PIA 1 B side control register")
+
+    def read_PIA1_B_control(self, cpu_cycles, op_address, address):
+        """ read to 0xff23 -> PIA 1 B side Control reg. CB1 """
+        log.error("TODO: read to 0xff23 -> PIA 1 B side Control reg. CB1")
         return 0x37
+
+    #--------------------------------------------------------------------------
+
+    def write_PIA0_A_data(self, cpu_cycles, op_address, address, value):
+        """ write to 0xff00 -> PIA 0 A side Data reg. PA7 """
+        log.error("TODO: write $%02x to 0xff00 -> PIA 0 A side Data reg. PA7", value)
+
+    def write_PIA0_A_control(self, cpu_cycles, op_address, address, value):
+        """ write to 0xff01 -> PIA 0 A side Control reg. CA1 """
+        log.error("TODO: write $%02x to 0xff01 -> PIA 0 A side Control reg. CA1", value)
+
+    def write_PIA0_B_data(self, cpu_cycles, op_address, address, value):
+        """ write to 0xff02 -> PIA 0 B side Data reg. PB7 """
+        log.error("TODO: write $%02x to 0xff02 -> PIA 0 B side Data reg. PB7", value)
+
+    def write_PIA0_B_control(self, cpu_cycles, op_address, address, value):
+        """ write to 0xff03 -> PIA 0 B side Control reg. CB1 """
+        log.error("TODO: write $%02x to 0xff03 -> PIA 0 B side Control reg. CB1", value)
+
+    def write_PIA1_A_data(self, cpu_cycles, op_address, address, value):
+        """ write to 0xff20 -> PIA 1 A side Data reg. PA7 """
+        log.error("TODO: write $%02x to 0xff20 -> PIA 1 A side Data reg. PA7", value)
+
+    def write_PIA1_A_control(self, cpu_cycles, op_address, address, value):
+        """ write to 0xff21 -> PIA 1 A side Control reg. CA1 """
+        log.error("TODO: write $%02x to 0xff21 -> PIA 1 A side Control reg. CA1", value)
+
+    def write_PIA1_B_data(self, cpu_cycles, op_address, address, value):
+        """ write to 0xff22 -> PIA 1 B side Data reg. PB7 """
+        log.error("TODO: write $%02x to 0xff22 -> PIA 1 B side Data reg. PB7", value)
+
+    def write_PIA1_B_control(self, cpu_cycles, op_address, address, value):
+        """ write to 0xff23 -> PIA 1 B side Control reg. CB1 """
+        log.error("TODO: write $%02x to 0xff23 -> PIA 1 B side Control reg. CB1", value)
+
+

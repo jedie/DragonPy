@@ -41,8 +41,8 @@ class PeripheryBase(object):
         self.last_update = time.time()
 
         # Set by subclass
-        self.read_address2func_map = None
-        self.write_address2func_map = None
+        self.read_byte_func_map = None
+        self.write_byte_func_map = None
 
         if self.INITAL_INPUT is not None:
             self.add_to_input_queue(self.INITAL_INPUT)
@@ -84,7 +84,7 @@ class PeripheryBase(object):
 #            op_address, address, cpu_cycles
 #        )
         try:
-            func = self.read_address2func_map[address]
+            func = self.read_byte_func_map[address]
         except KeyError, err:
             msg = "TODO: read byte from $%x" % address
             log.error(msg)
@@ -102,7 +102,7 @@ class PeripheryBase(object):
             op_address, value, address, cpu_cycles
         )
         try:
-            func = self.write_address2func_map[address]
+            func = self.write_byte_func_map[address]
         except KeyError, err:
             msg = "TODO: read byte from $%x" % address
             log.error(msg)
@@ -274,7 +274,7 @@ class InputPollThread(threading.Thread):
         work-a-round for blocking input
         """
         try:
-            log.critical("check_cpu_interval()")
+#            log.critical("check_cpu_interval()")
             if not cpu_process.is_alive():
                 log.critical("raise SystemExit, because CPU is not alive.")
                 thread.interrupt_main()

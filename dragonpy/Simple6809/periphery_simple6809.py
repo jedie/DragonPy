@@ -36,12 +36,12 @@ from dragonpy.utils.logging_utils import log
 class Simple6809PeripheryBase(PeripheryBase):
     def __init__(self, cfg):
         super(Simple6809PeripheryBase, self).__init__(cfg)
-        self.read_address2func_map = {
+        self.read_byte_func_map = {
             0xa000: self.read_acia_status, # Control/status port of ACIA
             0xa001: self.read_acia_data, # Data port of ACIA
             0xbffe: self.reset_vector,
         }
-        self.write_address2func_map = {
+        self.write_byte_func_map = {
             0xa000: self.write_acia_status, # Control/status port of ACIA
             0xa001: self.write_acia_data, # Data port of ACIA
         }

@@ -54,12 +54,12 @@ class SBC09PeripheryBase(PeripheryBase):
 
     def __init__(self, cfg):
         super(SBC09PeripheryBase, self).__init__(cfg)
-        self.read_address2func_map = {
+        self.read_byte_func_map = {
             0xe000: self.read_acia_status, # Control/status port of ACIA
             0xe001: self.read_acia_data, # Data port of ACIA
             0xfffe: self.reset_vector,
         }
-        self.write_address2func_map = {
+        self.write_byte_func_map = {
             0xe000: self.write_acia_status, # Control/status port of ACIA
             0xe001: self.write_acia_data, # Data port of ACIA
         }
@@ -126,8 +126,8 @@ class SBC09PeripheryUnittest(PeripheryUnittestBase, SBC09PeripheryBase):
 
 
 # SBC09Periphery = SBC09PeripherySerial
-SBC09Periphery = SBC09PeripheryTk
-# SBC09Periphery = SBC09PeripheryConsole
+#SBC09Periphery = SBC09PeripheryTk
+SBC09Periphery = SBC09PeripheryConsole
 
 
 def test_run():
