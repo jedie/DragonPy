@@ -25,9 +25,9 @@ log = logging.getLogger("DragonPy")
 
 
 class Test6809_Program(BaseStackTestCase):
-    def setUp(self):
-        self.UNITTEST_CFG_DICT["trace"] = True
-        super(Test6809_Program, self).setUp()
+#     def setUp(self):
+#         self.UNITTEST_CFG_DICT["trace"] = True
+#         super(Test6809_Program, self).setUp()
 
     def test_clear_loop(self):
         self.cpu_test_run(start=0x0100, end=None, mem=[
@@ -37,12 +37,7 @@ class Test6809_Program(BaseStackTestCase):
             0x26, 0xFA,   #                 bne     L_B3BD
 
         ])
-#     B3BA  8E0401          L_B3BA  ldx     #$0401  ; clear 0 - 3ff
-#     B3BD  6F83            L_B3BD  clr     ,--x
-#     B3BF  3001                    leax    1,x
-#     B3C1  26FA                    bne     L_B3BD
-
-
+        print "TODO: Check result!"
 
     def _crc16(self, data):
         """
