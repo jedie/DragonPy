@@ -79,10 +79,11 @@ class PeripheryBase(object):
         self.request_cpu(url="/quit/")
 
     def read_byte(self, cpu_cycles, op_address, address):
-#        log.debug(
-#            "%04x| Periphery.read_byte from $%x (cpu_cycles: %i)",
-#            op_address, address, cpu_cycles
-#        )
+        log.debug(
+            "%04x| Periphery.read_byte from $%x (cpu_cycles: %i)\t|%s",
+            op_address, address, cpu_cycles,
+            self.cfg.mem_info.get_shortest(op_address)
+        )
         try:
             func = self.read_byte_func_map[address]
         except KeyError, err:
@@ -98,13 +99,14 @@ class PeripheryBase(object):
 
     def write_byte(self, cpu_cycles, op_address, address, value):
         log.debug(
-            "%04x| Periphery.write_byte $%x to $%x (cpu_cycles: %i)",
-            op_address, value, address, cpu_cycles
+            "%04x| Periphery.write_byte $%x to $%x (cpu_cycles: %i)\t|%s",
+            op_address, value, address, cpu_cycles,
+            self.cfg.mem_info.get_shortest(op_address)
         )
         try:
             func = self.write_byte_func_map[address]
         except KeyError, err:
-            msg = "TODO: read byte from $%x" % address
+            msg = "TODO: write byte from $%x" % address
             log.error(msg)
             raise NotImplementedError(msg)
         else:

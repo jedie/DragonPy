@@ -2,7 +2,7 @@
 # encoding:utf-8
 
 """
-    Dragon 32 console
+    Dragon 64 console
     ~~~~~~~~~~~~~~~~~
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
@@ -15,7 +15,7 @@ import sys
 import threading
 import time
 
-from dragonpy.Dragon32.config import Dragon32Cfg
+from dragonpy.Dragon64.config import Dragon64Cfg
 from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
@@ -28,9 +28,10 @@ CFG_DICT = {
     "display_cycle":False,
 
     "trace":None,
-#    "trace":True,
+#     "trace":True,
 
-    "max_ops":2000,
+    "max_ops":None,
+#     "max_ops":5000,
 
     "bus_socket_host":None,
     "bus_socket_port":None,
@@ -44,7 +45,10 @@ CFG_DICT = {
 class Dragon32Periphery2(Dragon32Periphery):
     def update(self, cpu_cycles):
         super(Dragon32Periphery2, self).update(cpu_cycles)
-        self._handle_events()
+        if self.running:
+            self._handle_events()
+        else:
+            self.exit()
 
     def mainloop(self, cpu):
         log.critical("Pygame mainloop started.")
@@ -55,9 +59,9 @@ class Dragon32Periphery2(Dragon32Periphery):
         log.critical("Pygame mainloop stopped.")
 
 
-class Dragon32(object):
+class Dragon64(object):
     def __init__(self):
-        self.cfg = Dragon32Cfg(CFG_DICT)
+        self.cfg = Dragon64Cfg(CFG_DICT)
 
         self.periphery = Dragon32Periphery2(self.cfg)
         self.cfg.periphery = self.periphery
@@ -115,17 +119,17 @@ class Dragon32(object):
 
 
 if __name__ == '__main__':
-    print "Startup Dragon 32 machine..."
-
+    print "Startup Dragon 64 machine..."
     setup_logging(log,
 #        level=1 # hardcore debug ;)
-        level=10 # DEBUG
+#         level=10 # DEBUG
 #        level=20 # INFO
 #        level=30 # WARNING
 #         level=40 # ERROR
 #         level=50 # CRITICAL/FATAL
+        level=60
     )
-    c = Dragon32()
+    c = Dragon64()
     c.run()
 
     print " --- END --- "

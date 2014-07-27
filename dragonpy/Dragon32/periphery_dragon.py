@@ -16,6 +16,7 @@
 """
 
 import os
+import sys
 try:
     import pygame
 except ImportError:
@@ -55,9 +56,38 @@ class Dragon32Periphery(PeripheryBase):
         self.read_byte_func_map.update(pia_read_func_map)
         self.write_byte_func_map.update(pia_write_func_map)
 
-        # TODO: Collect all read/write functions from SAM!
+        # Collect all read/write functions from SAM:
+        sam_read_func_map = self.sam.get_read_func_map()
+        sam_write_func_map = self.sam.get_write_func_map()
+        self.read_byte_func_map.update(sam_read_func_map)
+        self.write_byte_func_map.update(sam_write_func_map)
+
+        self.debug_func_map(self.read_byte_func_map, "read_byte_func_map")
+        self.debug_func_map(self.write_byte_func_map, "write_byte_func_map")
+        
+        self.display_ram = [None] * (0x400 + 0x200)
+        for addr in xrange(0x400, 0x600):
+            self.read_byte_func_map[addr] = self.display_read
+            self.write_byte_func_map[addr] = self.display_write
 
         self.running = True
+
+    def debug_func_map(self, d, txt):
+        log.debug("*** Func map %s:", txt)
+        for addr, func in sorted(d.items()):
+            log.debug("\t$%04x: %s", addr, func.__name__)
+
+    def display_read(self, cpu_cycles, op_address, address):
+        value = self.display_ram[address]
+        log.critical("%04x| TODO: read $%02x display RAM from: $%04x", op_address, value, address)
+        return value
+
+    def display_write(self, cpu_cycles, op_address, address, value):
+        char = chr(value)
+        sys.stdout.write(char)
+        # print repr(char)
+        log.critical("%04x| TODO: write $%02x to display RAM at: $%04x", op_address, value, address)
+        self.display_ram[address] = value
 
     def no_dos_rom(self, cpu_cycles, op_address, address):
         log.error("%04x| TODO: DOS ROM requested. Send 0x00 back", op_address)

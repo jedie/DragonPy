@@ -18,8 +18,7 @@ import logging
 import os
 import sys
 
-from dragonpy.tests.test_base import Test6809_BASIC_simple6809_Base, \
-    UnittestCmdArgs
+from dragonpy.tests.test_base import Test6809_BASIC_simple6809_Base
 from dragonpy.utils.logging_utils import setup_logging
 
 
@@ -53,11 +52,11 @@ def stdout_into_file(filename):
 
 
 class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
-    def __init__(self):
-#         os.remove(self.TEMP_FILE);print "Delete CPU date file!"
-        cmd_args = UnittestCmdArgs
-#         cmd_args.trace = True
-        self.setUpClass(cmd_args)
+#     def __init__(self):
+# #         os.remove(self.TEMP_FILE);print "Delete CPU date file!"
+#         cmd_args = UnittestCmdArgs
+# #         cmd_args.trace = True
+#         self.setUpClass(cmd_args)
 
     def hello_world(self):
         self.setUp() # restore CPU/Periphery state to a fresh startup.

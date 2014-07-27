@@ -21,12 +21,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import logging
-
 from dragonpy.core.memory_info import BaseMemoryInfo
 from dragonpy.utils.humanize import nice_hex
-
-log = logging.getLogger("DragonPy.dragon32.mem_info")
+from dragonpy.utils.logging_utils import log
 
 
 class DragonMemInfo(BaseMemoryInfo):

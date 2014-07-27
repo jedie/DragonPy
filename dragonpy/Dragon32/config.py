@@ -44,12 +44,13 @@ class Dragon32Cfg(BaseConfig):
 
     BUS_ADDR_AREAS = (
         # TODO: Add all devices!
+        (0x0400, 0x05ff, "Alphanumeric Display"),
+        (0xc000, 0xfeff, "DOS ROM / cartridge expansion port"),
         (0xff00, 0xff04, "PIA 0 (Peripheral Interface Adaptor MC6821)"),
         (0xff04, 0xff07, "D64 ACIA serial port"),
         (0xff20, 0xff23, "PIA 1 (Peripheral Interface Adaptor MC6821)"),
         (0xffc0, 0xffdf, "SAM (Synchronous Address Multiplexer MC6883)"),
-        (0xc000, 0xfeff, "DOS ROM / cartridge expansion port"),
-        (0xfff0, 0xffff, "Interrupt vectors"),
+        (0xfff0, 0xfffe, "Interrupt vectors"),
     )
 
     DEFAULT_ROM = os.path.join(

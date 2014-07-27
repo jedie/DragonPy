@@ -12,7 +12,7 @@
     $ffc0-ffc5    SAM VDG Mode registers V0-V2
     $ffc0/ffc1    SAM VDG Reg V0
     $ffc2/ffc3    SAM VDG Reg V1
-    $ffc3/ffc5    SAM VDG Reg V2
+    $ffc4/ffc5    SAM VDG Reg V2
     $ffc6-ffd3    SAM Display offset in 512 byte pages F0-F6
     $ffc6/ffc7    SAM Display Offset bit F0
     $ffc8/ffc9    SAM Display Offset bit F1
@@ -59,27 +59,94 @@ class SAM(object):
 
     def get_write_func_map(self):
         write_func_map = {
-            # TODO
+            0xffc0: self.write_VDG_mode_register_v0,
+            0xffc2: self.write_VDG_mode_register_v1,
+            0xffc4: self.write_VDG_mode_register_v2,
+            0xffc6: self.write_display_offset_F0,
+            0xffc8: self.write_display_offset_F1,
+            0xffc9: self.write_D64_dynamic_memory, # Dragon 64 only
+            0xffca: self.write_display_offset_F2,
+            0xffcc: self.write_display_offset_F3,
+            0xffce: self.write_display_offset_F4,
+            0xffd0: self.write_display_offset_F5,
+            0xffd2: self.write_display_offset_F6,
+            0xffd4: self.write_page_bit,
+            0xffd6: self.write_MPU_rate_bit0,
+            0xffd8: self.write_MPU_rate_bit1,
+            0xffda: self.write_size_select_bit0,
+            0xffdc: self.write_size_select_bit1,
+            0xffde: self.write_map_type,
+            0xffdd: self.write_map0,
         }
         return write_func_map
 
     def get_read_func_map(self):
         read_func_map = {
-            # TODO
+            0xffc2: self.read_VDG_mode_register_v1,
         }
         return read_func_map
 
-    def __call__(self, address):
-        msg = "TODO: SAM call at $%x" % address
-        log.error(msg)
-        value = 0x7e
-        log.debug(" SAM call at $%x returned $%x \t| %s" % (
-            address, value, self.cfg.mem_info.get_shortest(address)
-        ))
-        return value
-#         raise NotImplementedError
+#     def read_VDG_mode_register_v0(self, cpu_cycles, op_address, address):
+#         log.error("TODO: read VDG mode register V0 $%04x", address)
+#         return 0x00
 
-    def write_byte(self, address, value):
-        log.error(" *** TODO: SAM write byte $%02x to $%x \t| %s" % (
-            value, address, self.cfg.mem_info.get_shortest(address)
-        ))
+    def read_VDG_mode_register_v1(self, cpu_cycles, op_address, address):
+        log.error("TODO: read VDG mode register V1 $%04x", address)
+        return 0x00
+
+    #--------------------------------------------------------------------------
+
+    def write_VDG_mode_register_v0(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write VDG mode register V0 $%02x to $%04x", value, address)
+
+    def write_VDG_mode_register_v1(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write VDG mode register V1 $%02x to $%04x", value, address)
+
+    def write_VDG_mode_register_v2(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write VDG mode register V2 $%02x to $%04x", value, address)
+
+    def write_display_offset_F0(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write display_offset_F0 $%02x to $%04x", value, address)
+
+    def write_display_offset_F1(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write display_offset_F1 $%02x to $%04x", value, address)
+
+    def write_display_offset_F2(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write display_offset_F2 $%02x to $%04x", value, address)
+
+    def write_display_offset_F3(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write display_offset_F3 $%02x to $%04x", value, address)
+
+    def write_display_offset_F4(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write display_offset_F4 $%02x to $%04x", value, address)
+
+    def write_display_offset_F5(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write display_offset_F5 $%02x to $%04x", value, address)
+
+    def write_display_offset_F6(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write display_offset_F6 $%02x to $%04x", value, address)
+
+    def write_page_bit(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write page_bit $%02x to $%04x", value, address)
+
+    def write_MPU_rate_bit0(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write MPU_rate_bit0 $%02x to $%04x", value, address)
+
+    def write_MPU_rate_bit1(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write MPU_rate_bit1 $%02x to $%04x", value, address)
+
+    def write_size_select_bit0(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write size_select_bit0 $%02x to $%04x", value, address)
+
+    def write_size_select_bit1(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write size_select_bit1 $%02x to $%04x", value, address)
+
+    def write_map_type(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write map_type $%02x to $%04x", value, address)
+
+    def write_map0(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write map0 $%02x to $%04x", value, address)
+
+    def write_D64_dynamic_memory(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write D64_dynamic_memory $%02x to $%04x", value, address)
+

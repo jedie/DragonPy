@@ -51,6 +51,8 @@ class PIA(object):
             0xff02: self.write_PIA0_B_data, #    PIA 0 B side Data reg. PB7
             0xff03: self.write_PIA0_B_control, # PIA 0 B side Control reg. CB1
 
+            0xff06: self.write_serial_interface, # Only Dragon 64
+
             0xff20: self.write_PIA1_A_data, #    PIA 1 A side Data reg. PA7
             0xff21: self.write_PIA1_A_control, # PIA 1 A side Control reg. CA1
             0xff22: self.write_PIA1_B_data, #    PIA 1 B side Data reg. PB7
@@ -64,6 +66,8 @@ class PIA(object):
             0xff01: self.read_PIA0_A_control, # PIA 0 A side Control reg. CA1
             0xff02: self.read_PIA0_B_data, #    PIA 0 B side Data reg. PB7
             0xff03: self.read_PIA0_B_control, # PIA 0 B side Control reg. CB1
+
+            0xff04: self.read_serial_interface, # Only Dragon 64
 
             0xff20: self.read_PIA1_A_data, #    PIA 1 A side Data reg. PA7
             0xff21: self.read_PIA1_A_control, # PIA 1 A side Control reg. CA1
@@ -153,5 +157,14 @@ class PIA(object):
     def write_PIA1_B_control(self, cpu_cycles, op_address, address, value):
         """ write to 0xff23 -> PIA 1 B side Control reg. CB1 """
         log.error("TODO: write $%02x to 0xff23 -> PIA 1 B side Control reg. CB1", value)
+
+    #--------------------------------------------------------------------------
+
+    def read_serial_interface(self, cpu_cycles, op_address, address):
+        log.error("TODO: read from $%04x (D64 serial interface", address)
+        return 0x00
+
+    def write_serial_interface(self, cpu_cycles, op_address, address, value):
+        log.error("TODO: write $%02x to $%04x (D64 serial interface", value, address)
 
 
