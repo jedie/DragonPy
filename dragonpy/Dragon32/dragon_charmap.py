@@ -11,6 +11,7 @@
     arrows: http://www.pylucid.org/de/contribute/developer-documentation/unicode-test/decode_unicode/arrows/#8593
     blocks: http://www.pylucid.org/de/contribute/developer-documentation/unicode-test/decode_unicode/block-elements/#9600
 """
+import unicodedata
 
 INVERTED = "INVERTED"
 NORMAL = "NORMAL"
@@ -213,5 +214,27 @@ def create_wiki_page():
     print "|}"
 
 
+def create_dict():
+    print "DRAGON_CHAR_MAP={"
+    for no, data in enumerate(DRAGON_CHARS_MAP):
+        item, item_type = data
+        codepoint = ord(item)
+        name = unicodedata.name(item, None)
+
+        # print repr(item)
+        if len(repr(item)) == 4 and item != " ":
+            name = item
+
+        txt = '0x%02x: ("\\x%02x", %s), #' % (
+            no, codepoint, item_type
+        )
+        txt = "    %-29s %s" % (txt, name)
+
+        print txt
+    print "}"
+
+
+
 if __name__ == "__main__":
-    create_wiki_page()
+#     create_wiki_page()
+    create_dict()
