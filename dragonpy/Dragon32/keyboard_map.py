@@ -1,0 +1,127 @@
+#!/usr/bin/env python2
+# encoding:utf-8
+
+"""
+    Dragon Keyboard map:
+
+        | PB0   PB1   PB2   PB3   PB4   PB5   PB6   PB7
+    ----|----------------------------------------------
+    PA0 |   0     1     2     3     4     5     6     7
+    PA1 |   8     9     *     ;     ,     -     .     /
+    PA2 |   @     A     B     C     D     E     F     G
+    PA3 |   H     I     J     K     L     M     N     O
+    PA4 |   P     Q     R     S     T     U     V     W
+    PA5 |   X     Y     Z    Up  Down  Left Right Space
+    PA6 | ENT   CLR   BRK   N/C   N/C   N/C   N/C  SHFT
+
+    e.g.:
+    "U" pressed: col = 5 - row = 4
+"""
+
+
+DRAGON_KEYMAP = {
+    0x30: 0x00, # 0
+    0x31: 0x01, # 1
+    0x32: 0x02, # 2
+    0x33: 0x03, # 3
+    0x34: 0x04, # 4
+    0x35: 0x05, # 5
+    0x36: 0x06, # 6
+    0x37: 0x07, # 7
+
+    0x38: 0x08, # 8
+    0x39: 0x09, # 9
+    0x2a: 0x0a, # *
+    0x3b: 0x0b, # ;
+    0x2c: 0x0c, # ,
+    0x2d: 0x0d, # -
+    0x2e: 0x0e, # .
+    0x2f: 0x0f, # /
+
+    0x40: 0x10, # @
+    0x41: 0x11, # A
+    0x42: 0x12, # B
+    0x43: 0x13, # C
+    0x44: 0x14, # D
+    0x45: 0x15, # E
+    0x46: 0x16, # F
+    0x47: 0x17, # G
+
+    0x48: 0x18, # H
+    0x49: 0x19, # I
+    0x4a: 0x1a, # J
+    0x4b: 0x1b, # K
+    0x4c: 0x1c, # L
+    0x4d: 0x1d, # M
+    0x4e: 0x1e, # N
+    0x4f: 0x1f, # O
+
+    0x50: 0x20, # P
+    0x51: 0x21, # Q
+    0x52: 0x22, # R
+    0x53: 0x23, # S
+    0x54: 0x24, # T
+    0x55: 0x25, # U
+    0x56: 0x26, # V
+    0x57: 0x27, # W
+
+    0x58: 0x28, # X
+    0x59: 0x29, # Y
+    0x5a: 0x2a, # Z
+    0x48: 0x2b, # UP - PyGame scancode!
+    0x50: 0x2c, # DOWN - PyGame scancode!
+    0x4b: 0x2d, # LEFT - PyGame scancode!
+    0x4d: 0x2e, # RIGHT - PyGame scancode!
+    0x20: 0x2f, # " " (Space)
+
+    0x0d: 0x30, # ENTER
+    0x08: 0x31, # CLEAR
+    0x27: 0x32, # BREAK
+
+    0x2a: 0x37, # SHIFT - PyGame scancode!
+}
+
+COL_ROW_MAP = {}
+for i in xrange(56):
+    col = i & 7
+    row = (i >> 3) & 7
+    COL_ROW_MAP[i] = (col, row)
+    #~ print i, col, row, '{0:08b}'.format(col), '{0:08b}'.format(row)
+
+
+def get_dragon_col_row_values(value):
+    dragon_value = DRAGON_KEYMAP[value]
+    col, row = COL_ROW_MAP[dragon_value]
+#    col = ~col & 0xff
+#    row = ~row & 0xff
+    return col, row
+
+
+if __name__ == '__main__':
+    import sys
+    print "Test! input something!"
+    while True:
+        char = sys.stdin.read(1)
+        sys.stdout.write("\n")
+
+        sys.stdout.write("Your input: %i %s" % (ord(char), repr(char)))
+
+        value = ord(char.upper())
+        dragon_value = DRAGON_KEYMAP[value]
+
+        sys.stdout.write(" - Mapped value: $%02x" % dragon_value)
+        col, row = COL_ROW_MAP[dragon_value]
+        sys.stdout.write(" - col: %s - row: %s" % (col, row))
+        col = ~col & 0xff
+        row = ~row & 0xff
+        #~ print col, row
+        sys.stdout.write(" - bits: %s | %s" % (
+            '{0:08b}'.format(col),
+            '{0:08b}'.format(row)
+        ))
+
+        sys.stdout.write("\n")
+        sys.stdout.flush()
+
+        #~ break
+

@@ -127,15 +127,21 @@ class Dragon32Periphery(PeripheryBase):
     def _handle_events(self):
 #        log.critical("pygame handle events")
         for event in pygame.event.get():
-            log.critical("Pygame event: %s", repr(event))
+            log.debug("Pygame event: %s", repr(event))
             if event.type == pygame.QUIT:
                 log.critical("pygame.QUIT: shutdown")
                 self.exit()
                 sys.exit()
 
             if event.type == pygame.KEYDOWN:
-                key = ord(event.unicode) if event.unicode else 0
-                self.pia.key_down(key)
+                log.critical("Pygame keydown event: %s", repr(event))
+                char = event.unicode.upper()
+                try:
+                    value = ord(char)
+                except TypeError:
+                    value = event.scancode
+                    log.error("Error, use PyGame scancode $%02x!", value)
+                self.pia.key_down(value)
 
     def mainloop(self, cpu_process):
         log.critical("Pygame mainloop started.")
@@ -148,7 +154,7 @@ class Dragon32Periphery(PeripheryBase):
 
 
 def test_run():
-    import sys, subprocess
+    import subprocess
     cmd_args = [
         sys.executable,
 #         "/usr/bin/pypy",
@@ -162,11 +168,11 @@ def test_run():
 #
 #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
 #
-        "--cfg=Dragon32",
-#        "--cfg=Dragon64",
+#        "--cfg=Dragon32",
+        "--cfg=Dragon64",
 #
         "--dont_open_webbrowser",
-        "--display_cycle", # print CPU cycle/sec while running.
+#        "--display_cycle", # print CPU cycle/sec while running.
 #
 #         "--max=15000",
 #         "--max=46041",
