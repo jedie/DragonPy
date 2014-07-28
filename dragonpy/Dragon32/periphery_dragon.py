@@ -116,7 +116,7 @@ class Dragon32Periphery(PeripheryBase):
         pygame.display.quit()
 
     def update(self, cpu_cycles):
-        log.critical("update pygame")
+#        log.critical("update pygame")
         if not self.running:
             return
         self.display.flash()
@@ -125,8 +125,9 @@ class Dragon32Periphery(PeripheryBase):
             self.speaker.update(cpu_cycles)
 
     def _handle_events(self):
-        log.critical("pygame handle events")
+#        log.critical("pygame handle events")
         for event in pygame.event.get():
+            log.critical("Pygame event: %s", repr(event))
             if event.type == pygame.QUIT:
                 log.critical("pygame.QUIT: shutdown")
                 self.exit()
@@ -134,14 +135,7 @@ class Dragon32Periphery(PeripheryBase):
 
             if event.type == pygame.KEYDOWN:
                 key = ord(event.unicode) if event.unicode else 0
-                if event.key == pygame.K_LEFT:
-                    key = 0x08
-                if event.key == pygame.K_RIGHT:
-                    key = 0x15
-                if key:
-                    if key == 0x7F:
-                        key = 0x08
-                    self.periphery.kbd = 0x80 + (key & 0x7F)
+                self.pia.key_down(key)
 
     def mainloop(self, cpu_process):
         log.critical("Pygame mainloop started.")
@@ -162,13 +156,14 @@ def test_run():
 #         "--verbosity=5",
 #         "--verbosity=10", # DEBUG
 #         "--verbosity=20", # INFO
-        "--verbosity=30", # WARNING
+#        "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
+        "--verbosity=50", # CRITICAL/FATAL
 #
 #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
 #
         "--cfg=Dragon32",
+#        "--cfg=Dragon64",
 #
         "--dont_open_webbrowser",
         "--display_cycle", # print CPU cycle/sec while running.

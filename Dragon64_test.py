@@ -125,9 +125,9 @@ if __name__ == '__main__':
 #         level=10 # DEBUG
 #        level=20 # INFO
 #        level=30 # WARNING
-#         level=40 # ERROR
-#         level=50 # CRITICAL/FATAL
-        level=60
+#        level=40 # ERROR
+        level=50 # CRITICAL/FATAL
+#        level=60
     )
     c = Dragon64()
     c.run()
