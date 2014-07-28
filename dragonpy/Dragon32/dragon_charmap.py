@@ -234,6 +234,13 @@ def create_dict():
     print "}"
 
 
+def get_charmap_dict():
+    d = {}
+    for no, data in enumerate(DRAGON_CHARS_MAP):
+        item, color = data
+        d[no] = (item, color)
+    return d
+
 
 if __name__ == "__main__":
 #     create_wiki_page()
