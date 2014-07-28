@@ -22,7 +22,7 @@ if len(log.handlers) > 1:# FIXME: tro avoid doublicated output
     log.handlers = (log.handlers[0],)
     log.critical("Fixed Log handlers: %s", repr(log.handlers))
 
-def setup_logging(log, level, handler=None):
+def setup_logging(log, level, handler=None, log_formatter=None):
     """
     levels:
          1 - hardcode DEBUG ;)
@@ -36,13 +36,15 @@ def setup_logging(log, level, handler=None):
     log.setLevel(level)
 
     if handler is None:
-        # log.addHandler(logging.StreamHandler())
-        log.handlers = (logging.StreamHandler(),)
+        handler = logging.StreamHandler()
+
+    if log_formatter is not None:
+        handler.setFormatter(log_formatter)
+
+    if hasattr(handler, "baseFilename"):
+        sys.stderr.write("Log to file: %s (%s)\n" % (
+            handler.baseFilename, repr(handler))
+        )
     else:
-        if hasattr(handler, "baseFilename"):
-            sys.stderr.write("Log to file: %s (%s)\n" % (
-                handler.baseFilename, repr(handler))
-            )
-        else:
-            sys.stderr.write("Log to handler: %s\n" % repr(handler))
-        log.handlers = (handler,)
+        sys.stderr.write("Log to handler: %s\n" % repr(handler))
+    log.handlers = (handler,)

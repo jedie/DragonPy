@@ -14,6 +14,7 @@ import argparse
 import logging
 import os
 import sys
+from dragonpy.utils.logging_utils import log, setup_logging
 
 
 def get_log_levels():
@@ -25,7 +26,6 @@ LOG_LEVELS = get_log_levels()
 
 
 class Base_CLI(object):
-    LOG_NAME = None
     DESCRIPTION = None
     EPOLOG = None
     VERSION = None
@@ -33,8 +33,6 @@ class Base_CLI(object):
 
     def __init__(self):
         self.logfilename = None
-        print "logger name:", self.LOG_NAME
-        self.log = logging.getLogger(self.LOG_NAME)
 
         arg_kwargs = {}
         if self.DESCRIPTION is not None:
@@ -54,13 +52,6 @@ class Base_CLI(object):
             )
         )
         self.parser.add_argument(
-            "--logfile", type=int, choices=LOG_LEVELS, default=logging.INFO,
-            help=(
-                "verbosity level to log file (lower == more output!)"
-                " (default: %s)" % logging.DEBUG
-            )
-        )
-        self.parser.add_argument(
             "--log_formatter", default=self.DEFAULT_LOG_FORMATTER,
             help=(
                 "see: http://docs.python.org/2/library/logging.html#logrecord-attributes"
@@ -77,47 +68,18 @@ class Base_CLI(object):
         args = self.parser.parse_args()
 
 #         for arg, value in sorted(vars(args).items()):
-#             self.log.debug("argument %s: %r", arg, value)
+#             log.debug("argument %s: %r", arg, value)
 #             print "argument %s: %r" % (arg, value)
 
         return args
 
     def setup_logging(self, args):
         self.verbosity = args.verbosity
-        self.logfile = args.logfile
-        self.log_formatter = logging.Formatter(
+        log_formatter = logging.Formatter(
             args.log_formatter or self.DEFAULT_LOG_FORMATTER
         )
 
-        verbosity_level_name = logging.getLevelName(self.verbosity)
-
-        logfile_level_name = logging.getLevelName(self.logfile)
-
-        highest_level = min([self.logfile, self.verbosity])
-        print "set log level to:", highest_level
-        self.log.setLevel(highest_level)
-
-        if self.logfile > 0 and self.logfilename:
-            handler = logging.FileHandler(self.logfilename, mode='w', encoding="utf8")
-#             handler.set_level(self.logfile)
-            handler.level = self.logfile
-            handler.setFormatter(self.log_formatter)
-            self.log.addHandler(handler)
-
-        if self.verbosity > 0:
-            handler = logging.StreamHandler()
-#             handler.set_level(self.verbosity)
-            handler.level = self.verbosity
-            handler.setFormatter(self.log_formatter)
-            self.log.addHandler(handler)
-
-        self.log.debug(" ".join(sys.argv))
-
-        verbosity_level_name = logging.getLevelName(self.verbosity)
-        self.log.info("Verbosity log level: %s" % verbosity_level_name)
-
-        logfile_level_name = logging.getLevelName(self.logfile)
-        self.log.info("logfile log level: %s" % logfile_level_name)
+        setup_logging(log, self.verbosity, log_formatter=log_formatter)
 
 
 if __name__ == "__main__":

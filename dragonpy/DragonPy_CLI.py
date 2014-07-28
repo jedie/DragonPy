@@ -16,15 +16,18 @@ import webbrowser
 import threading
 
 from Dragon32.config import Dragon32Cfg
+from Dragon64.config import Dragon64Cfg
 from dragonpy.Multicomp6809.config import Multicomp6809Cfg
 from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.core.base_cli import Base_CLI
 from dragonpy.core.configs import configs
 from dragonpy.sbc09.config import SBC09Cfg
 from dragonpy.core.process_main import main_process_startup
+from dragonpy.utils.logging_utils import log
 
 
 configs.register("Dragon32", Dragon32Cfg)
+configs.register("Dragon64", Dragon64Cfg)
 configs.register("sbc09", SBC09Cfg)
 configs.register("Simple6809", Simple6809Cfg, default=True)
 configs.register("Multicomp6809", Multicomp6809Cfg)
@@ -48,7 +51,7 @@ class DragonPyCLI(Base_CLI):
     def __init__(self, configs):
         super(DragonPyCLI, self).__init__()
         self.configs = configs
-        self.log.debug("Existing configs: %s" % repr(self.configs))
+        log.debug("Existing configs: %s" % repr(self.configs))
 
         default_cfg = self.configs[configs.DEFAULT] # for default values
 
