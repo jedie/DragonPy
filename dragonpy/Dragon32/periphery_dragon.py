@@ -390,7 +390,7 @@ class Dragon32Periphery(PeripheryBase):
             if event.type == pygame.QUIT:
                 log.critical("pygame.QUIT: shutdown")
                 self.exit()
-                return False # Quit
+                sys.exit()
 
             if event.type == pygame.KEYDOWN:
                 key = ord(event.unicode) if event.unicode else 0
