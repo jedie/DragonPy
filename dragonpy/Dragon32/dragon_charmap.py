@@ -20,33 +20,33 @@ YELLOW = "YELLOW"
 BLUE = "BLUE"
 RED = "RED"
 WHITE = "WHITE"
-CYAN ="CYAN"
+CYAN = "CYAN"
 MAGENTA = "MAGENTA"
-ORANGE ="ORANGE"
+ORANGE = "ORANGE"
 
-COLORS = (GREEN,YELLOW,BLUE,RED,WHITE,CYAN,MAGENTA,ORANGE)
+COLORS = (GREEN, YELLOW, BLUE, RED, WHITE, CYAN, MAGENTA, ORANGE)
 
 COLOR_INFO = {
-    GREEN: (0,255,0), # XRoar: 08ff08
-    YELLOW: (255,255,0), # XRoar: ffff42
-    BLUE: (0,0,180), # XRoar: 2110b5
-    RED: (180,0,0), # XRoar: b50421
-    WHITE: (255,255,255), # XRoar: ffffff
-    CYAN: (0,255,255), # XRoar: 08d773
-    MAGENTA: (255,0,255), # XRoar: ff1cff
-    ORANGE: (255,128,0), # XRoar: ff4108
+    GREEN: (0, 255, 0), # XRoar: 08ff08
+    YELLOW: (255, 255, 0), # XRoar: ffff42
+    BLUE: (0, 0, 180), # XRoar: 2110b5
+    RED: (180, 0, 0), # XRoar: b50421
+    WHITE: (255, 255, 255), # XRoar: ffffff
+    CYAN: (0, 255, 255), # XRoar: 08d773
+    MAGENTA: (255, 0, 255), # XRoar: ff1cff
+    ORANGE: (255, 128, 0), # XRoar: ff4108
 }
 
 def get_rgb_color(color):
     if color == INVERTED:
-        foreground=(0,255,0)
-        background=(0,65,0)
+        foreground = (0, 255, 0)
+        background = (0, 65, 0)
     elif color == NORMAL:
-        foreground=(0,65,0)
-        background=(0,255,0)
+        foreground = (0, 65, 0)
+        background = (0, 255, 0)
     else:
-        foreground=(0,0,0)
-        background=COLOR_INFO[color]
+        foreground = (0, 0, 0)
+        background = COLOR_INFO[color]
     return (foreground, background)
 
 DRAGON_CHARS_MAP = []
@@ -136,7 +136,7 @@ for item_type in (INVERTED, NORMAL):
         )
 
 
-BLOCKS=(
+BLOCKS = (
     u'\N{FULL BLOCK}' # XXX: complete black
     u'\N{QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER LEFT}'
     u'\N{QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER RIGHT}'
@@ -172,7 +172,7 @@ def list_chars():
                 line += DRAGON_CHARS_MAP[index][0]
             except KeyError:
                 break
-            index +=1
+            index += 1
         print line.encode("utf-8")
 
 
@@ -200,11 +200,11 @@ def create_wiki_page():
         codepoint = ord(item)
         print u"|%i" % no
 
-        foreground, background=get_rgb_color(item_type)
-        foreground="#%02x%02x%02x" % foreground
-        background="#%02x%02x%02x" % background
+        foreground, background = get_rgb_color(item_type)
+        foreground = "#%02x%02x%02x" % foreground
+        background = "#%02x%02x%02x" % background
 
-        style="color: #%s;"
+        style = "color: #%s;"
         print '| style="color:%s; background-color:%s;" | &#x%x;' % (
             foreground, background, codepoint
         )
