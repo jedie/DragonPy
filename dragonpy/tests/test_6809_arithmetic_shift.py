@@ -18,6 +18,7 @@ import unittest
 
 from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase
 from dragonpy.utils.logging_utils import setup_logging
+from dragonpy.utils.bits import is_bit_set
 
 
 log = logging.getLogger("DragonPy")
@@ -170,7 +171,7 @@ loop:
             self.assertEqual(self.cpu.cc.V, 0)
 
             # test carry
-            source_bit0 = 0 if src & 2 ** 0 == 0 else 1
+            source_bit0 = is_bit_set(src, bit=0)
             if source_bit0:
                 self.assertEqual(self.cpu.cc.C, 1)
             else:
@@ -210,8 +211,8 @@ class Test6809_Rotate(BaseTestCase):
                 self.assertEqual(self.cpu.cc.Z, 0)
 
             # test overflow
-            source_bit6 = 0 if src & 2 ** 6 == 0 else 1
-            source_bit7 = 0 if src & 2 ** 7 == 0 else 1
+            source_bit6 = is_bit_set(src, bit=6)
+            source_bit7 = is_bit_set(src, bit=7)
             if source_bit6 == source_bit7: # V = bit 6 XOR bit 7
                 self.assertEqual(self.cpu.cc.V, 0)
             else:
@@ -301,7 +302,7 @@ class Test6809_Rotate(BaseTestCase):
                 self.assertEqual(self.cpu.cc.Z, 0)
 
             # test carry
-            source_bit0 = 0 if src & 2 ** 0 == 0 else 1
+            source_bit0 = is_bit_set(src, bit=0)
             if source_bit0: # if bit 0 was set
                 self.assertEqual(self.cpu.cc.C, 1)
             else:
@@ -377,7 +378,7 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-            "Test6809_LogicalShift.test_ASR_inherent",
+#            "Test6809_LogicalShift.test_ASR_inherent",
 #            "Test6809_Rotate",
         ),
         testRunner=TextTestRunner2,
