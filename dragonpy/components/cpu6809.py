@@ -41,6 +41,7 @@ from dragonpy.cpu_utils.signed import signed8, signed16, signed5
 from dragonpy.utils.simple_debugger import print_exc_plus
 from dragonpy.cpu_utils.instruction_caller import OpCollection
 from dragonpy.utils.logging_utils import log
+from dragonpy.utils.bits import is_bit_set, get_bit
 
 
 # HTML_TRACE = True
@@ -397,7 +398,7 @@ class CPU(object):
 #             rr, register_obj.name, register_value
 #         )
 
-        if (postbyte & 0x80) == 0: # bit 7 == 0
+        if not is_bit_set(postbyte, bit=7): # bit 7 == 0
             # EA = n, R - use 5-bit offset from post-byte
             offset = signed5(postbyte & 0x1f)
             ea = register_value + offset
@@ -488,7 +489,7 @@ class CPU(object):
 
         ea = ea & 0xffff
 
-        if postbyte & 0x10 != 0: # bit 4 is 1 -> Indirect
+        if is_bit_set(postbyte, bit=4): # bit 4 is 1 -> Indirect
 #             log.debug("\tIndirect addressing: get new ea from $%x", ea)
             ea = self.memory.read_word(ea)
 #             log.debug("\tIndirect addressing: new ea is $%x", ea)
@@ -763,19 +764,18 @@ class CPU(object):
         C    -    Set if a carry is generated or if the carry bit was set before the operation; cleared otherwise.
         """
         a = self.accu_a.get()
-        cc = self.cc.get()
 
         correction_factor = 0
         a_hi = a & 0xf0 # MSN - Most Significant Nibble
         a_lo = a & 0x0f # LSN - Least Significant Nibble
 
-        if a_lo > 0x09 or cc & 0x20:
+        if a_lo > 0x09 or self.cc.H: # cc & 0x20:
             correction_factor |= 0x06
 
         if a_hi > 0x80 and a_lo > 0x09:
             correction_factor |= 0x60
 
-        if a_hi > 0x90 or cc & 0x01:
+        if a_hi > 0x90 or self.cc.C: # cc & 0x01:
             correction_factor |= 0x60
 
         new_value = correction_factor + a
@@ -2095,7 +2095,7 @@ class CPU(object):
         r = a << 1
         self.cc.clear_NZVC()
         self.cc.update_NZVC_8(a, a, r)
-        return r # XXX: & 0xff
+        return r
 
     @opcode(0x8, 0x68, 0x78) # LSL/ASL (direct, indexed, extended)
     def instruction_LSL_memory(self, opcode, ea, m):
@@ -2134,9 +2134,9 @@ class CPU(object):
         """
         r = a >> 1
         self.cc.clear_NZC()
-        self.cc.C |= (a & 1) # XXX: ok?
+        self.cc.C = get_bit(a, bit=0) # same as: self.cc.C |= (a & 1)
         self.cc.set_Z8(r)
-        return r # XXX: & 0xff
+        return r
 
     @opcode(0x4, 0x64, 0x74) # LSR (direct, indexed, extended)
     def instruction_LSR_memory(self, opcode, ea, m):
@@ -2173,7 +2173,7 @@ class CPU(object):
         """
         r = (a >> 1) | (a & 0x80)
         self.cc.clear_NZC()
-        self.cc.C |= (a & 1)
+        self.cc.C = get_bit(a, bit=0) # same as: self.cc.C |= (a & 1)
         self.cc.update_NZ_8(r)
         return r
 
@@ -2254,8 +2254,8 @@ class CPU(object):
         r = (a >> 1) | (self.cc.C << 7)
         self.cc.clear_NZ()
         self.cc.update_NZ_8(r)
-        self.cc.C = a & 1
-        return r # XXX: & 0xff
+        self.cc.C = get_bit(a, bit=0) # same as: self.cc.C = (a & 1)
+        return r
 
     @opcode(0x6, 0x66, 0x76) # ROR (direct, indexed, extended)
     def instruction_ROR_memory(self, opcode, ea, m):

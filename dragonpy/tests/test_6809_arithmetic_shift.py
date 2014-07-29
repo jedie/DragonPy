@@ -18,7 +18,7 @@ import unittest
 
 from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase
 from dragonpy.utils.logging_utils import setup_logging
-from dragonpy.utils.bits import is_bit_set
+from dragonpy.utils.bits import is_bit_set, get_bit
 
 
 log = logging.getLogger("DragonPy")
@@ -78,7 +78,7 @@ loop:
             self.assertEqual(self.cpu.cc.V, 0)
 
             # test carry
-            source_bit0 = 0 if i & 2 ** 0 == 0 else 1
+            source_bit0 = get_bit(i, bit=0)
             self.assertEqual(self.cpu.cc.C, source_bit0)
 
     def test_LSLA_inherent(self):

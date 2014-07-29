@@ -39,6 +39,26 @@ def is_bit_set(value, bit):
     return False if value & 2 ** bit == 0 else True
 
 
+def get_bit(value, bit):
+    """
+    return 1 or 0 from the bit at the given offset >bit<, e.g.:
+
+    >>> get_bit(0x01, bit=0) # 00000001
+    1
+    >>> get_bit(0xfd, bit=1) # 11111101
+    0
+    >>> get_bit(int('10000000', 2), bit=7)
+    1
+    >>> get_bit(int('01111111', 2), bit=7)
+    0
+    >>> get_bit(int('1111000011110000', 2), bit=11)
+    0
+    >>> get_bit(int('1111000011110000', 2), bit=12)
+    1
+    """
+    return 0 if value & 2 ** bit == 0 else 1
+
+
 def set_bit(value, bit):
     """
     returns an integer with the bit at offset >bit< set to 1.
