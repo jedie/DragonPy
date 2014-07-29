@@ -33,9 +33,16 @@ class PIA_register(object):
         self.interrupt_received = 0x0
         self.irq = 0x0
 
+    def is_pdr_selected(self):
+        return self._pdr_selected
+
     def select_pdr(self):
         log.critical("\t Select 'Peripheral Data Register' in %s", self.name)
         self._pdr_selected = True
+
+    def deselect_pdr(self):
+        log.critical("\t Deselect 'Peripheral Data Register' in %s", self.name)
+        self._pdr_selected = False
 
 
 class PIA(object):
@@ -195,6 +202,8 @@ class PIA(object):
         )
         if not is_bit_set(value, bit=2):
             self.pia_0_A_register.select_pdr()
+        else:
+            self.pia_0_A_register.deselect_pdr()
 
     def read_PIA0_B_data(self, cpu_cycles, op_address, address):
         """ read from 0xff02 -> PIA 0 B side Data reg. """
@@ -242,6 +251,8 @@ class PIA(object):
 
         if not is_bit_set(value, bit=2):
             self.pia_0_B_register.select_pdr()
+        else:
+            self.pia_0_B_register.deselect_pdr()
 
 
 
