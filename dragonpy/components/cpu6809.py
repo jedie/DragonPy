@@ -689,7 +689,6 @@ class CPU(object):
         """
         CC bits "HNZVC": -aa01
         """
-        # value = unsigned8(~value) # the bits of m inverted
         value = ~value # the bits of m inverted
         self.cc.clear_NZ()
         self.cc.update_NZ01_8(value)
