@@ -91,7 +91,8 @@ class Dragon32Periphery(PeripheryBase):
 
         char, color = self.charmap[value]
 #         sys.stdout.write(char)
-        sys.stderr.write(char)
+#        sys.stderr.write(char)
+        sys.stderr.write("***%s***\n" % char)
 
         self.output_count += 1
         if self.output_count >= 32:

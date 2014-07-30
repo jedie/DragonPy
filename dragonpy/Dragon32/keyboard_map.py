@@ -6,13 +6,13 @@
 
         | PB0   PB1   PB2   PB3   PB4   PB5   PB6   PB7
     ----|----------------------------------------------
-    PA0 |   0     1     2     3     4     5     6     7
-    PA1 |   8     9     *     ;     ,     -     .     /
-    PA2 |   @     A     B     C     D     E     F     G
-    PA3 |   H     I     J     K     L     M     N     O
-    PA4 |   P     Q     R     S     T     U     V     W
-    PA5 |   X     Y     Z    Up  Down  Left Right Space
-    PA6 | ENT   CLR   BRK   N/C   N/C   N/C   N/C  SHFT
+    PA0 |   0     1     2     3     4     5     6     7   <- 0x00 - 0x07
+    PA1 |   8     9     *     ;     ,     -     .     /   <- 0x08 - 0x0f
+    PA2 |   @     A     B     C     D     E     F     G   <- 0x10 - 0x17
+    PA3 |   H     I     J     K     L     M     N     O   <- 0x18 - 0x1f
+    PA4 |   P     Q     R     S     T     U     V     W   <- 0x20 - 0x27
+    PA5 |   X     Y     Z    Up  Down  Left Right Space   <- 0x28 - 0x2f
+    PA6 | ENT   CLR   BRK   N/C   N/C   N/C   N/C  SHFT   <- 0x30 - 0x37
 
     e.g.:
     "U" pressed: col = 5 - row = 4
@@ -76,7 +76,7 @@ DRAGON_KEYMAP = {
 
     0x0d: 0x30, # ENTER
     0x08: 0x31, # CLEAR
-    0x27: 0x32, # BREAK
+    0x1b: 0x32, # BREAK
 
     0x2a: 0x37, # SHIFT - PyGame scancode!
 }
@@ -86,7 +86,7 @@ for i in xrange(56):
     col = i & 7
     row = (i >> 3) & 7
     COL_ROW_MAP[i] = (col, row)
-    #~ print i, col, row, '{0:08b}'.format(col), '{0:08b}'.format(row)
+    print i, col, row, '{0:08b}'.format(col), '{0:08b}'.format(row)
 
 
 def get_dragon_col_row_values(value):
@@ -97,9 +97,127 @@ def get_dragon_col_row_values(value):
     return col, row
 
 
+#def get_dragon_rows(value):
+#    """
+#    0x55 U
+#    col: 5 - row: 4
+#    0 $20 00100000
+#    1 $20 00100000
+#    2 $20 00100000
+#    3 $20 00100000
+#    4 $ff 11111111
+#    5 $20 00100000
+#    6 $20 00100000
+#    """
+#    print hex(value), chr(value)
+#
+#    col, row = get_dragon_col_row_values(value)
+#    print "col: %s - row: %s" % (col, row)
+#    values = []
+#    for row_no in xrange(7):
+#        if row_no == row:
+#            values.append(0xff)
+#        else:
+#            values.append(1 << col)
+#
+#        print "%i $%02x %s" % (row_no, values[-1], '{0:08b}'.format(values[-1]))
+#    print
+#    return values
+
+
+#def get_dragon_rows(value):
+#    """
+#    0x55 U
+#    col: 5 - row: 4
+#    0 $00 00000000
+#    1 $00 00000000
+#    2 $00 00000000
+#    3 $00 00000000
+#    4 $20 00100000
+#    5 $00 00000000
+#    6 $00 00000000
+#    """
+#    print hex(value), chr(value)
+#
+#    col, row = get_dragon_col_row_values(value)
+#    print "col: %s - row: %s" % (col, row)
+#    values = []
+#    for row_no in xrange(7):
+#        if row_no == row:
+#            values.append(1 << col)
+#        else:
+#            values.append(0x00)
+#        print "%i $%02x %s" % (row_no, values[-1], '{0:08b}'.format(values[-1]))
+#    print
+#    return values
+
+
+#def get_dragon_rows(value):
+#    """
+#    0x55 U
+#    col: 5 - row: 4
+#    0 $ff 11111111
+#    1 $ff 11111111
+#    2 $ff 11111111
+#    3 $ff 11111111
+#    4 $df 11011111
+#    5 $ff 11111111
+#    6 $ff 11111111
+#    """
+#    print hex(value), chr(value)
+#
+#    col, row = get_dragon_col_row_values(value)
+#    print "col: %s - row: %s" % (col, row)
+#    values = []
+#    for row_no in xrange(7):
+#        if row_no == row:
+#            values.append(0xff & ~(1 << col))
+#        else:
+#            values.append(0xff)
+#        print "%i $%02x %s" % (row_no, values[-1], '{0:08b}'.format(values[-1]))
+#    print
+#    return values
+
+
+def get_dragon_rows(value):
+    """
+    0x55 U
+    col: 5 - row: 4
+    0 $df 11011111
+    1 $df 11011111
+    2 $df 11011111
+    3 $df 11011111
+    4 $00 00000000
+    5 $df 11011111
+    6 $df 11011111
+    """
+    print hex(value), chr(value)
+
+    col, row = get_dragon_col_row_values(value)
+    print "col: %s - row: %s" % (col, row)
+    values = []
+    for row_no in xrange(7):
+        if row_no == row:
+            values.append(0x00)
+        else:
+            values.append(0xff & ~(1 << col))
+        print "%i $%02x %s" % (row_no, values[-1], '{0:08b}'.format(values[-1]))
+    print
+    return values
+
+
 if __name__ == '__main__':
+    import doctest
+    print doctest.testmod(verbose=1)
+
     import sys
-    print "Test! input something!"
+
+    get_dragon_rows(ord("U"))
+    get_dragon_rows(ord("9"))
+    get_dragon_rows(0x0d) # ENTER
+
+    sys.exit()
+    print "Test! input something! (Type 'q' or 'x' for quit)"
     while True:
         char = sys.stdin.read(1)
         sys.stdout.write("\n")
@@ -123,5 +241,7 @@ if __name__ == '__main__':
         sys.stdout.write("\n")
         sys.stdout.flush()
 
-        #~ break
+        if char in ("q", "x"):
+            print "Bye!"
+            break
 

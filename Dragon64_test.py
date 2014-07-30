@@ -21,6 +21,7 @@ from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
 from dragonpy.utils.logging_utils import log
 from dragonpy.utils.logging_utils import setup_logging
+from dragonpy.utils.simple_debugger import print_exc_plus
 
 
 CFG_DICT = {
@@ -30,8 +31,10 @@ CFG_DICT = {
     "trace":None,
 #     "trace":True,
 
-#    "max_ops":None,
-    "max_ops":20000,
+    "max_ops":None,
+#    "max_ops":20000,
+#    "max_ops":100000,
+#    "max_ops":200000,
 
     "bus_socket_host":None,
     "bus_socket_port":None,
@@ -130,6 +133,10 @@ if __name__ == '__main__':
 #        level=60
     )
     c = Dragon64()
-    c.run()
-
+    try:
+        c.run()
+    except SystemExit:
+        pass
+    except:
+        print_exc_plus()
     print " --- END --- "

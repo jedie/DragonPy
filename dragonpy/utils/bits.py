@@ -117,6 +117,21 @@ def toggle_bit(value, bit):
     return value ^ 1 << bit
 
 
+def invert_byte(value):
+    """
+    >>> '{0:08b}'.format(invert_byte(int('00001000',2)))
+    '11110111'
+
+    >>> '{0:08b}'.format(invert_byte(int('10101010',2)))
+    '01010101'
+
+    >>> '{0:08b}'.format(invert_byte(int('00110011',2)))
+    '11001100'
+    """
+    return 2 ** 8 + ~value
+
+
+
 if __name__ == "__main__":
     import doctest
     print doctest.testmod(verbose=0)
