@@ -6,6 +6,7 @@
     =======================================
 
     http://www.6809.org.uk/dragon/hardware.shtml#pia0
+    http://www.onastick.clara.net/sys4.htm
 
     :created: 2013 by Jens Diemer - www.jensdiemer.de
     :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
@@ -55,7 +56,7 @@ class PIA(object):
     """
     def __init__(self, cfg):
         self.cfg = cfg
-        
+
         self.pia_0_A_register = PIA_register("PIA0 A")
         self.pia_0_B_register = PIA_register("PIA0 B")
         self.pia_1_A_register = PIA_register("PIA1 A")
@@ -171,7 +172,18 @@ class PIA(object):
     # Keyboard matrix on PIA0
 
     def read_PIA0_A_data(self, cpu_cycles, op_address, address):
-        """ read from 0xff00 -> PIA 0 A side Data reg. """
+        """
+        read from 0xff00 -> PIA 0 A side Data reg.
+
+        bit 7 | PA7 | joystick comparison input
+        bit 6 | PA6 | keyboard matrix row 7
+        bit 5 | PA5 | keyboard matrix row 6
+        bit 4 | PA4 | keyboard matrix row 5
+        bit 3 | PA3 | keyboard matrix row 4 & left  joystick switch 2
+        bit 2 | PA2 | keyboard matrix row 3 & right joystick switch 2
+        bit 1 | PA1 | keyboard matrix row 2 & left  joystick switch 1
+        bit 0 | PA0 | keyboard matrix row 1 & right joystick switch 1
+        """
         result = 0x00
         log.critical(
             "%04x| read $%04x (PIA 0 A side Data reg.) send $%02x back.\t|%s",
@@ -186,7 +198,9 @@ class PIA(object):
         )
 
     def read_PIA0_A_control(self, cpu_cycles, op_address, address):
-        """ read from 0xff01 -> PIA 0 A side Control reg. """
+        """
+        read from 0xff01 -> PIA 0 A side control register
+        """
         result = 0xb3
         log.critical(
             "%04x| read $%04x (PIA 0 A side Control reg.) send $%02x back.\t|%s",
@@ -195,7 +209,20 @@ class PIA(object):
         return result
 
     def write_PIA0_A_control(self, cpu_cycles, op_address, address, value):
-        """ write to 0xff01 -> PIA 0 A side Control reg. """
+        """
+        write to 0xff01 -> PIA 0 A side control register
+
+        TODO: Handle IRQ
+
+        bit 7 | IRQ 1 (HSYNC) flag
+        bit 6 | IRQ 2 flag(not used)
+        bit 5 | Control line 2 (CA2) is an output = 1
+        bit 4 | Control line 2 (CA2) set by bit 3 = 1
+        bit 3 | select line LSB of analog multiplexor (MUX): 0 = control line 2 LO / 1 = control line 2 HI
+        bit 2 | set data direction: 0 = $FF00 is DDR / 1 = $FF00 is normal data lines
+        bit 1 | control line 1 (CA1): IRQ polarity 0 = IRQ on HI to LO / 1 = IRQ on LO to HI
+        bit 0 | HSYNC IRQ: 0 = disabled IRQ / 1 = enabled IRQ
+        """
         log.critical(
             "%04x| write $%02x to $%04x -> PIA 0 A side Control reg.\t|%s",
             op_address, value, address, self.cfg.mem_info.get_shortest(op_address)
@@ -206,7 +233,20 @@ class PIA(object):
             self.pia_0_A_register.deselect_pdr()
 
     def read_PIA0_B_data(self, cpu_cycles, op_address, address):
-        """ read from 0xff02 -> PIA 0 B side Data reg. """
+        """
+        read from 0xff02 -> PIA 0 B side Data reg.
+
+        bit 7 | PB7 | keyboard matrix column 8
+        bit 6 | PB6 | keyboard matrix column 7 / ram size output
+        bit 5 | PB5 | keyboard matrix column 6
+        bit 4 | PB4 | keyboard matrix column 5
+        bit 3 | PB3 | keyboard matrix column 4
+        bit 2 | PB2 | keyboard matrix column 3
+        bit 1 | PB1 | keyboard matrix column 2
+        bit 0 | PB0 | keyboard matrix column 1
+
+        bits 0-7 also printer data lines
+        """
         self.keyboard_col_send = True
         result = self.keyboard_col
         #self.keyboard_col = 0xff
@@ -229,7 +269,9 @@ class PIA(object):
             self.keyboard_col = ~value & 0xff
 
     def read_PIA0_B_control(self, cpu_cycles, op_address, address):
-        """ read from 0xff03 -> PIA 0 B side Control reg. """
+        """
+        read from 0xff03 -> PIA 0 B side Control reg.
+        """
         self.keyboard_row_send = True
         result = self.keyboard_row
         #self.keyboard_row = 0xff
@@ -242,7 +284,17 @@ class PIA(object):
     def write_PIA0_B_control(self, cpu_cycles, op_address, address, value):
         """
         write to 0xff03 -> PIA 0 B side Control reg.
+
         TODO: Handle IRQ
+
+        bit 7 | IRQ 1 (VSYNC) flag
+        bit 6 | IRQ 2 flag(not used)
+        bit 5 | Control line 2 (CB2) is an output = 1
+        bit 4 | Control line 2 (CB2) set by bit 3 = 1
+        bit 3 | select line MSB of analog multiplexor (MUX): 0 = control line 2 LO / 1 = control line 2 HI
+        bit 2 | set data direction: 0 = $FF02 is DDR / 1 = $FF02 is normal data lines
+        bit 1 | control line 1 (CB1): IRQ polarity 0 = IRQ on HI to LO / 1 = IRQ on LO to HI
+        bit 0 | VSYNC IRQ: 0 = disable IRQ / 1 = enable IRQ
         """
         log.critical(
             "%04x| write $%02x (%s) to $%04x -> PIA 0 B side Control reg.\t|%s",
