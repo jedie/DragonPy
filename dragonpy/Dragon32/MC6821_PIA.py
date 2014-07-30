@@ -8,6 +8,9 @@
     http://www.6809.org.uk/dragon/hardware.shtml#pia0
     http://www.onastick.clara.net/sys4.htm
 
+    http://mamedev.org/source/src/emu/machine/6821pia.c.html
+    http://mamedev.org/source/src/emu/machine/6821pia.h.html
+
     :created: 2013 by Jens Diemer - www.jensdiemer.de
     :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.

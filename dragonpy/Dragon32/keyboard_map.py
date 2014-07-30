@@ -15,7 +15,9 @@
     PA6 | ENT   CLR   BRK   N/C   N/C   N/C   N/C  SHFT   <- 0x30 - 0x37
 
     e.g.:
-    "U" pressed: col = 5 - row = 4
+    "U" pressed: col = 5 - row = 4 => 0xfb => 11111011
+    "A" pressed: col = 1 - row = 2 => 0xbf => 10111111
+
 """
 
 
