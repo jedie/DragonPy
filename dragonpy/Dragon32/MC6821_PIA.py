@@ -22,7 +22,7 @@ from dragonpy.utils.logging_utils import log
 from dragonpy.Dragon32.keyboard_map import get_dragon_col_row_values, \
     get_dragon_rows
 from dragonpy.utils.humanize import byte2bit_string
-from dragonpy.utils.bits import is_bit_set, invert_byte
+from dragonpy.utils.bits import is_bit_set, invert_byte, clear_bit
 import os
 
 
@@ -185,6 +185,7 @@ class PIA(object):
     #--------------------------------------------------------------------------
     # Keyboard matrix on PIA0
 
+    COUNT=0
     def read_PIA0_A_data(self, cpu_cycles, op_address, address):
         """
         read from 0xff00 -> PIA 0 A side Data reg.
@@ -208,23 +209,29 @@ class PIA(object):
             pia0b, '{0:08b}'.format(pia0b),
         )
 
-        if self.keyboard_matrix is None:
-            log.critical("\tNo keyboard matrix.")
-            result = 0xff
-        else:
-            result = self.keyboard_matrix[0]
-            if pia0b == 0xff:
-                self.start_send_matrix = True
-                log.critical("\tstart_send_matrix = True")
-            elif self.start_send_matrix:
-                row_no = invert_byte(pia0b)
-                matrix = self.keyboard_matrix
-                for row in xrange(7):
-                    if is_bit_set(row_no, bit=row):
-                        result = matrix[row]
-                        break
+        result = 0xff
 
-                log.critical("\tSend keyboard row %s", row)
+        if pia0b != 0xff:
+            result = clear_bit(pia0b, bit=2)
+            log.critical("\t Fake %s -> %s", '{0:08b}'.format(pia0b), '{0:08b}'.format(result))
+
+#        if self.keyboard_matrix is None:
+#            log.critical("\tNo keyboard matrix.")
+#            result = 0xff
+#        else:
+#            result = self.keyboard_matrix[0]
+#            if pia0b == 0xff:
+#                self.start_send_matrix = True
+#                log.critical("\tstart_send_matrix = True")
+#            elif self.start_send_matrix:
+#                row_no = invert_byte(pia0b)
+#                matrix = self.keyboard_matrix
+#                for row in xrange(7):
+#                    if is_bit_set(row_no, bit=row):
+#                        result = matrix[row]
+#                        break
+#
+#                log.critical("\tSend keyboard row %s", row)
 
         log.critical(
             "%04x| read $%04x (PIA 0 A side Data reg.) send $%02x %s back.\t|%s",
