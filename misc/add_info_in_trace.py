@@ -15,6 +15,21 @@ import time
 import sys
 import argparse
 
+
+def cc_value2txt(status):
+    """
+    >>> cc_value2txt(0x50)
+    '.F.I....'
+    >>> cc_value2txt(0x54)
+    '.F.I.Z..'
+    >>> cc_value2txt(0x59)
+    '.F.IN..C'
+    """
+    return "".join(
+        ["." if status & x == 0 else char for char, x in zip("EFHINZVC", (128, 64, 32, 16, 8, 4, 2, 1))]
+    )
+
+
 class MemoryInfo(object):
     def __init__(self, rom_info_file):
         self.mem_info = self._get_rom_info(rom_info_file)
@@ -93,9 +108,10 @@ class MemoryInfo(object):
 
 
 class XroarTraceInfo(object):
-    def __init__(self, infile, outfile):
+    def __init__(self, infile, outfile, add_cc):
         self.infile = infile
         self.outfile = outfile
+        self.add_cc = add_cc
 
     def add_info(self, rom_info):
         last_line_no = 0
@@ -118,15 +134,19 @@ class XroarTraceInfo(object):
                 self.outfile.write(line)
                 continue
 
+            line = line.strip()
+            if self.add_cc:
+                cc = int(line[49:51], 16)
+                cc_info = cc_value2txt(cc)
+                line += "| " + cc_info
+
             addr_info = rom_info.get_shortest(addr)
             self.outfile.write(
-                "%s | %s\n" % (line.strip(), addr_info)
+                "%s | %s\n" % (line, addr_info)
             )
 
-
-
 def main(args):
-    xt = XroarTraceInfo(args.infile, args.outfile)
+    xt = XroarTraceInfo(args.infile, args.outfile, args.add_cc)
     rom_info = MemoryInfo(args.infofile)
     xt.add_info(rom_info)
 
@@ -146,6 +166,9 @@ def get_cli_args():
     parser.add_argument("--infofile", metavar="FILENAME",
         type=argparse.FileType("r"),
         help="ROM Info file from: https://github.com/6809/rom-info ;)",
+    )
+    parser.add_argument("--add_cc", action="store_true",
+        help="Add CC info like '.F.IN..C' on every line.",
     )
     args = parser.parse_args()
     return args

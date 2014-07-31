@@ -27,6 +27,7 @@ optional arguments:
                    given count.
 }}}
 
+
 === examples
 
 ==== Live filter
@@ -178,6 +179,24 @@ Create file 'filtered_trace.txt'...
 Add address info on Xroar trace lines.
 Used informationfiles from: https://github.com/6809/rom-info
 
+usage:
+{{{
+$ ./add_info_in_trace.py --help
+usage: add_info_in_trace.py [-h] [--infofile FILENAME] [--add_cc]
+                            [infile] [outfile]
+
+Add info to Xroar traces
+
+positional arguments:
+  infile               Xroar trace file or stdin
+  outfile              If given: write output in a new file else: Display it.
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --infofile FILENAME  ROM Info file from: https://github.com/6809/rom-info ;)
+  --add_cc             Add CC info like '.F.IN..C' on every line.
+}}}
+
 e.g.:
 {{{
 xroar -trace | python add_info_in_trace.py --infofile Dragon32.txt
@@ -204,4 +223,11 @@ bb32| 80d0        SUBA    #$d0                cc=a4 a=00 b=fd dp=00 x=02e2 y=804
 bb34| 39          RTS                         cc=a4 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2e | $bb34: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
 889b| 80ca        SUBA    #$ca                cc=a1 a=36 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2e | $889b: $8000-$9fff -  CoCo - Extended Color BASIC ROM
 889d| 2513        BCS     $88b2               cc=a1 a=36 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2e | $889d: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+}}}
+
+A trace with with **--add_cc** looks like:
+{{{
+93da| 8e0040      LDX     #$0040              cc=a0 a=00 b=05 dp=00 x=0040 y=b39b u=02e1 s=7f28| E.H..... | $93da: $8000-$9fff - CoCo - Extended Color BASIC ROM
+93dd| 8c9e3b      CMPX    #$9e3b              cc=a1 a=00 b=05 dp=00 x=0040 y=b39b u=02e1 s=7f28| E.H....C | $93dd: $8000-$9fff - CoCo - Extended Color BASIC ROM
+93e0| 964f        LDA     <$4f                cc=a5 a=00 b=05 dp=00 x=0040 y=b39b u=02e1 s=7f28| E.H..Z.C | $93e0: $8000-$9fff - CoCo - Extended Color BASIC ROM
 }}}
