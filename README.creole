@@ -19,6 +19,13 @@ All script are copyleft 2013-2014 by Jens Diemer and license unter GNU GPL v3 or
 * Test CC Registers:
 ** https://github.com/jedie/PyDragon32/tree/master/TestCC_Registers
 
+==== Input/Output Tests
+
+[[https://github.com/jedie/PyDragon32/tree/master/InputOutput/keyboard.bas|/InputOutput/keyboard.bas]]
+Display memory Locations $0152 - $0159 (Keyboard matrix state table)
+
+{{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/keyboard01.png}}}
+{{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/keyboard02.png}}}
 
 
 = donation
