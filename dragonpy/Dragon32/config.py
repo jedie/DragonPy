@@ -16,6 +16,7 @@ from dragonpy.core.configs import BaseConfig
 
 from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 from dragonpy.Dragon32.mem_info import get_dragon_meminfo
+from dragonpy.utils.logging_utils import log
 
 
 class Dragon32Cfg(BaseConfig):
@@ -67,6 +68,16 @@ class Dragon32Cfg(BaseConfig):
             self.mem_info = get_dragon_meminfo()
 
         self.periphery_class = Dragon32Periphery
+        self.memory_callbacks = {
+            (0x0152, 0x0159): (None, self.keyboard_matrix_state),
+        }
+
+    def keyboard_matrix_state(self, cpu, addr, value):
+        log.critical("%04x| Set keyboard matrix state $%04x to $%02x\t|%s",
+            cpu.last_op_address, addr, value,
+            self.mem_info.get_shortest(addr)
+        )
+        #cpu.memory.ram.print_dump(0x004f, 0x0054)
 
     def get_initial_RAM(self):
         """
