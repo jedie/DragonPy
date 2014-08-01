@@ -117,14 +117,20 @@ class Memory(object):
         self._write_callbacks = {}
         for addr_range, functions in cfg.memory_callbacks.items():
             start_addr, end_addr = addr_range
-            for addr in xrange(start_addr, end_addr):
+            for addr in xrange(start_addr - 1, end_addr + 1):
                 read_func, write_func = functions
                 if read_func:
                     self._read_callbacks[addr] = read_func
                 if write_func:
                     self._write_callbacks[addr] = write_func
-        log.debug("memory read callbacks: %s", self._read_callbacks)
-        log.debug("memory write callbacks: %s", self._write_callbacks)
+#         log.critical(
+# #         log.debug(
+#             "memory read callbacks: %s", self._read_callbacks
+#         )
+#         log.critical(
+# #         log.debug(
+#             "memory write callbacks: %s", self._write_callbacks
+#         )
 
     def load(self, address, data):
         if address < self.cfg.RAM_END:

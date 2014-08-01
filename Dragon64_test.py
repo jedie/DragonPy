@@ -33,8 +33,8 @@ CFG_DICT = {
 
 #    "max_ops":None,
 #    "max_ops":20000,
-#    "max_ops":100000,
-    "max_ops":200000,
+    "max_ops":100000,
+#     "max_ops":45000,
 
     "bus_socket_host":None,
     "bus_socket_port":None,
