@@ -19,6 +19,7 @@
     "A" pressed: col = 1 - row = 2 => 0xbf => 10111111
 
 """
+from dragonpy.utils.bits import invert_byte
 
 
 DRAGON_KEYMAP = {
@@ -88,7 +89,7 @@ for i in xrange(56):
     col = i & 7
     row = (i >> 3) & 7
     COL_ROW_MAP[i] = (col, row)
-    print i, col, row, '{0:08b}'.format(col), '{0:08b}'.format(row)
+#    print i, col, row, '{0:08b}'.format(col), '{0:08b}'.format(row)
 
 
 def get_dragon_col_row_values(value):
@@ -208,17 +209,78 @@ def get_dragon_rows(value):
     return values
 
 
+def get_dragon_pia_result(keycode, pia0b):
+    """
+    keycode -> the pressed key
+    pia0b -> $ff02 -> PIA 0 B side Data register
+
+    "U" -> row: 4 -> 00000100
+        if pia0b==00000000: result=111111011
+        if pia0b==11111111: result=111111111
+        if pia0b==11111011: result=111111011
+
+    >>> '{0:08b}'.format(get_dragon_pia_result(ord("U"), pia0b=int('00000000', 2)))
+    '11011111'
+
+    >>> '{0:08b}'.format(get_dragon_pia_result(ord("U"), pia0b=int('11111111', 2)))
+    '11111111'
+    >>> '{0:08b}'.format(get_dragon_pia_result(ord("U"), pia0b=int('10111111', 2)))
+    '11111111'
+    >>> '{0:08b}'.format(get_dragon_pia_result(ord("U"), pia0b=int('11101111', 2)))
+    '11111111'
+
+    >>> '{0:08b}'.format(get_dragon_pia_result(ord("U"), pia0b=int('11011111', 2)))
+    '11011111'
+
+    >>> '{0:08b}'.format(get_dragon_pia_result(0x00, pia0b=int('00000000', 2)))
+    '11111111'
+    """
+    if keycode == 0x00:
+        return 0xff
+#    print hex(keycode), chr(keycode)
+
+    col, row = get_dragon_col_row_values(keycode)
+
+#    print "col: %s - row: %s" % (col, row)
+    #print '{0:08b}'.format(col),
+#    print "row:", '{0:08b}'.format(row)
+
+#    print "pia0b:", hex(pia0b), '{0:08b}'.format(pia0b)
+    pia0b_inverted = invert_byte(pia0b)
+#    print "pia0b inverted:", hex(pia0b_inverted), '{0:08b}'.format(pia0b_inverted)
+
+#    result = (1 << col) & pia0b_inverted
+    result = (1 << row) & pia0b_inverted
+    result = invert_byte(result)
+
+#    print "result: AND", '{0:08b}'.format(row & pia0b_inverted)
+#    print "result: XOR", '{0:08b}'.format(row ^ pia0b_inverted)
+
+    return result
+
+
+
+
+
+
 if __name__ == '__main__':
     import doctest
-    print doctest.testmod(verbose=1)
+    print doctest.testmod(
+        #verbose=1
+    )
+
+    print '{0:08b}'.format(get_dragon_pia_result(ord("U"), pia0b=0x00))
+    print '{0:08b}'.format(get_dragon_pia_result(ord("U"), pia0b=0xff))
+    print '{0:08b}'.format(get_dragon_pia_result(ord("U"), pia0b=int('11011111', 2)))
 
     import sys
+    sys.exit()
 
     get_dragon_rows(ord("U"))
     get_dragon_rows(ord("9"))
     get_dragon_rows(0x0d) # ENTER
 
-    sys.exit()
+
     print "Test! input something! (Type 'q' or 'x' for quit)"
     while True:
         char = sys.stdin.read(1)

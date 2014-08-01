@@ -20,7 +20,7 @@
 
 from dragonpy.utils.logging_utils import log
 from dragonpy.Dragon32.keyboard_map import get_dragon_col_row_values, \
-    get_dragon_rows
+    get_dragon_rows, get_dragon_pia_result
 from dragonpy.utils.humanize import byte2bit_string
 from dragonpy.utils.bits import is_bit_set, invert_byte, clear_bit
 import os
@@ -199,21 +199,35 @@ class PIA(object):
         bit 1 | PA1 | keyboard matrix row 2 & left  joystick switch 1
         bit 0 | PA0 | keyboard matrix row 1 & right joystick switch 1
         """
-        pia0a = self.pia_0_A_register.get() # $ff00
-        result = pia0a
-        log.critical("read from 0xff00 -> PIA 0 A side Data reg. pia0a=$%02x %s",
-            pia0a, '{0:08b}'.format(pia0a),
-        )
+#        pia0a = self.pia_0_A_register.get() # $ff00
+#        result = pia0a
+#        log.critical("read from 0xff00 -> PIA 0 A side Data reg. pia0a=$%02x %s",
+#            pia0a, '{0:08b}'.format(pia0a),
+#        )
         pia0b = self.pia_0_B_register.get() # $ff02
-        log.critical("read from 0xff00 -> PIA 0 A side Data reg. pia0b=$%02x %s",
-            pia0b, '{0:08b}'.format(pia0b),
-        )
+#        log.critical("read from 0xff00 -> PIA 0 A side Data reg. pia0b=$%02x %s",
+#            pia0b, '{0:08b}'.format(pia0b),
+#        )
 
-        result = 0xff
+        if self.COUNT <= 15:
+            result = 0xff
+        elif self.COUNT >= 30:
+            result = 0xff
+        else:
+            keycode = ord("U")
+            result = get_dragon_pia_result(keycode, pia0b)
 
-        if pia0b != 0xff:
-            result = clear_bit(pia0b, bit=2)
-            log.critical("\t Fake %s -> %s", '{0:08b}'.format(pia0b), '{0:08b}'.format(result))
+        self.COUNT += 1
+
+        if not is_bit_set(pia0b, bit=7):
+            # bit 7 | PA7 | joystick comparison input
+            result = clear_bit(result, bit=7)
+
+#        result = 0xff
+#
+#        if pia0b != 0xff:
+#            result = clear_bit(pia0b, bit=2)
+#            log.critical("\t Fake %s -> %s", '{0:08b}'.format(pia0b), '{0:08b}'.format(result))
 
 #        if self.keyboard_matrix is None:
 #            log.critical("\tNo keyboard matrix.")
@@ -234,8 +248,8 @@ class PIA(object):
 #                log.critical("\tSend keyboard row %s", row)
 
         log.critical(
-            "%04x| read $%04x (PIA 0 A side Data reg.) send $%02x %s back.\t|%s",
-            op_address, address, result, '{0:08b}'.format(result),
+            "%04x| %i read $%04x (PIA 0 A side Data reg.) send $%02x %s back.\t|%s",
+            op_address, self.COUNT, address, result, '{0:08b}'.format(result),
             self.cfg.mem_info.get_shortest(op_address)
         )
         return result
@@ -308,8 +322,8 @@ class PIA(object):
     def write_PIA0_B_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff02 -> PIA 0 B side Data reg. """
         log.critical(
-            "%04x| write $%02x to $%04x -> PIA 0 B side Data reg.\t|%s",
-            op_address, value, address, self.cfg.mem_info.get_shortest(op_address)
+            "%04x| write $%02x %s to $%04x -> PIA 0 B side Data reg.\t|%s",
+            op_address, value, '{0:08b}'.format(value), address, self.cfg.mem_info.get_shortest(op_address)
         )
         self.pia_0_B_register.set(value)
 

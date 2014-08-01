@@ -17,6 +17,15 @@ from dragonpy.utils.logging_utils import log
 
 class Dragon64MemInfo(BaseMemoryInfo):
     MEM_INFO = (
+        (0x0151, 0x0151, "Keyboard matrix state PB0"),
+        (0x0152, 0x0152, "Keyboard matrix state PB1"),
+        (0x0153, 0x0153, "Keyboard matrix state PB2"),
+        (0x0154, 0x0154, "Keyboard matrix state PB3"),
+        (0x0155, 0x0155, "Keyboard matrix state PB4"),
+        (0x0156, 0x0156, "Keyboard matrix state PB5"),
+        (0x0157, 0x0157, "Keyboard matrix state PB6"),
+        (0x0158, 0x0158, "Keyboard matrix state PB7"),
+        (0x0159, 0x0159, "Keyboard matrix state PB8"),
         (0x8000, 0x8012, "standard JMP vectors"),
         (0x8000, 0x8012, "hardware routines"),
         (0x8000, 0x8000, "reset"),
