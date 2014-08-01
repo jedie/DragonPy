@@ -75,6 +75,7 @@ class PIA(object):
         self.pia_1_A_register = PIA_register("PIA1 A")
         self.pia_1_B_register = PIA_register("PIA1 B")
 
+        self.empty_key_toggle = True
         self.input_queue = Queue.Queue()
         for char in "UYUABCDEFGHI":
             self.input_queue.put(char)
@@ -212,11 +213,21 @@ class PIA(object):
 #        )
 
         if pia0b == 0x00:
-            self.current_input_char = self.input_queue.get()
-            log.critical("\tNew test input char: %s", repr(self.current_input_char))
+            if self.empty_key_toggle:
+                # send first a "not key pressed" and then the next char
+                self.empty_key_toggle = False
+                self.current_input_char = None
+            else:
+                self.empty_key_toggle = True
+                self.current_input_char = self.input_queue.get()
+                log.critical("\tNew test input char: %s", repr(self.current_input_char))
 
-        keycode = ord(self.current_input_char)
-        result = get_dragon_pia_result(keycode, pia0b)
+        if self.current_input_char is None:
+            # no key pressed
+            result = 0xff
+        else:
+            keycode = ord(self.current_input_char)
+            result = get_dragon_pia_result(keycode, pia0b)
 
         if not is_bit_set(pia0b, bit=7):
             # bit 7 | PA7 | joystick comparison input
