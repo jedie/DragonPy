@@ -11,7 +11,9 @@
     arrows: http://www.pylucid.org/de/contribute/developer-documentation/unicode-test/decode_unicode/arrows/#8593
     blocks: http://www.pylucid.org/de/contribute/developer-documentation/unicode-test/decode_unicode/block-elements/#9600
 """
+
 import unicodedata
+
 
 INVERTED = "INVERTED"
 NORMAL = "NORMAL"
@@ -27,14 +29,25 @@ ORANGE = "ORANGE"
 COLORS = (GREEN, YELLOW, BLUE, RED, WHITE, CYAN, MAGENTA, ORANGE)
 
 COLOR_INFO = {
-    GREEN: (0, 255, 0), # XRoar: 08ff08
-    YELLOW: (255, 255, 0), # XRoar: ffff42
-    BLUE: (0, 0, 180), # XRoar: 2110b5
-    RED: (180, 0, 0), # XRoar: b50421
-    WHITE: (255, 255, 255), # XRoar: ffffff
-    CYAN: (0, 255, 255), # XRoar: 08d773
-    MAGENTA: (255, 0, 255), # XRoar: ff1cff
-    ORANGE: (255, 128, 0), # XRoar: ff4108
+    # Ideal colors:
+#     GREEN: (0, 255, 0), # XRoar: 08ff08
+#     YELLOW: (255, 255, 0), # XRoar: ffff42
+#     BLUE: (0, 0, 180), # XRoar: 2110b5
+#     RED: (180, 0, 0), # XRoar: b50421
+#     WHITE: (255, 255, 255), # XRoar: ffffff
+#     CYAN: (0, 255, 255), # XRoar: 08d773
+#     MAGENTA: (255, 0, 255), # XRoar: ff1cff
+#     ORANGE: (255, 128, 0), # XRoar: ff4108
+
+    # XRoar colors:
+    GREEN: (0x08, 0xff, 0x08),
+    YELLOW: (0xff, 0xff, 0x42),
+    BLUE: (0x21, 0x10, 0xb5),
+    RED: (0xb5, 0x04, 0x21),
+    WHITE: (0xff, 0xff, 0xff),
+    CYAN: (0x08, 0xd7, 0x73),
+    MAGENTA: (0xff, 0x1c, 0xff),
+    ORANGE: (0xff, 0x41, 0x08),
 }
 
 def get_rgb_color(color):
