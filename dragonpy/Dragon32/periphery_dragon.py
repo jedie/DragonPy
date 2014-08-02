@@ -23,7 +23,7 @@ except ImportError:
     # Maybe Dragon would not be emulated ;)
     pygame = None
 
-from dragonpy.Dragon32.display import Display
+from dragonpy.Dragon32.display import DragonTextDisplay
 from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.components.periphery import PeripheryBase
@@ -39,7 +39,7 @@ class Dragon32Periphery(PeripheryBase):
         self.charmap = get_charmap_dict()
 
         self.kbd = 0xBF
-        self.display = Display()
+        self.display = DragonTextDisplay()
         self.speaker = None # Speaker()
         self.cassette = None # Cassette()
 
@@ -103,6 +103,7 @@ class Dragon32Periphery(PeripheryBase):
 #             sys.stderr.flush()
 #             self.output_count = 0
 
+        self.display.render_char(char, color, address)
         self.display_ram[address] = value
 
     def no_dos_rom(self, cpu_cycles, op_address, address):
@@ -123,8 +124,7 @@ class Dragon32Periphery(PeripheryBase):
 #        log.critical("update pygame")
         if not self.running:
             return
-        self.display.flash()
-        pygame.display.flip()
+#         pygame.display.flip()
         if self.speaker:
             self.speaker.update(cpu_cycles)
 

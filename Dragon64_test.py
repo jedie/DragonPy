@@ -31,9 +31,9 @@ CFG_DICT = {
     "trace":None,
 #     "trace":True,
 
-#     "max_ops":None,
+    "max_ops":None,
 #    "max_ops":20000,
-    "max_ops":200000,
+#     "max_ops":200000,
 #     "max_ops":45000,
 
     "bus_socket_host":None,
