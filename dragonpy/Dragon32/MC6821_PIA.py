@@ -197,22 +197,33 @@ class PIA(object):
 
         if pia0b == 0x00:
             if self.empty_key_toggle:
-                # send first a "not key pressed" and then the next char
+                # Work-a-round for "poor" dragon keyboard scan routine:
+                # The scan routine in ROM ignores key pressed directly behind
+                # one another if they are in the same row!
+                # See "Inside the Dragon" book, page 203 ;)
+                #
+                # Here with the empty_key_toggle, we always send a "no key pressed"
+                # after every key press back and then we send the next key from
+                # the self.input_queue
+                #
+                # TODO: We can check the row of the previous key press and only
+                # force a 'no key pressed' if the row is the same
                 self.empty_key_toggle = False
                 self.current_input_char = None
+                log.debug("\tForce send 'no key pressed'")
             else:
-                self.empty_key_toggle = True
                 try:
                     self.current_input_char = self.input_queue.get(block=False)
                 except Queue.Empty:
                     self.current_input_char = None
                 else:
-                    log.info("\tNew test input char: %s", repr(self.current_input_char))
-
+                    log.critical("\tNew input char: %s", repr(self.current_input_char))
+                    self.empty_key_toggle = True
 
         if self.current_input_char is None:
-            # no key pressed
+#             log.debug("\tno key pressed")
             result = 0xff
+            self.empty_key_toggle = False
         else:
             result = get_dragon_pia_result(
                 char_or_code=self.current_input_char,
@@ -224,14 +235,14 @@ class PIA(object):
             # bit 7 | PA7 | joystick comparison input
             result = clear_bit(result, bit=7)
 
-        log.info(
-            "%04x| read $%04x ($ff02 is $%02x %s) send $%02x %s back (char: %s)\t|%s",
-            op_address, address,
-            pia0b, '{0:08b}'.format(pia0b),
-            result, '{0:08b}'.format(result),
-            self.current_input_char,
-            self.cfg.mem_info.get_shortest(op_address)
-        )
+#         log.info(
+#             "%04x| read $%04x ($ff02 is $%02x %s) send $%02x %s back (char: %s)\t|%s",
+#             op_address, address,
+#             pia0b, '{0:08b}'.format(pia0b),
+#             result, '{0:08b}'.format(result),
+#             self.current_input_char,
+#             self.cfg.mem_info.get_shortest(op_address)
+#         )
         return result
 
     def write_PIA0_A_data(self, cpu_cycles, op_address, address, value):
