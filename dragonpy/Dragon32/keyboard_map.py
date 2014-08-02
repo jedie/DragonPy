@@ -85,11 +85,15 @@ DRAGON_KEYMAP = {
     " ": ((7, 5),), # " " (Space)
 
     "\r": ((0, 6),), # ENTER - Char: '\r'   - keycode: dez.: 36,  hex: $24
-    "\x08": ((1, 6),), # CLEAR and/or Backspace ?!? Backspace - Char: '\x08' - keycode: dez.: 22,  hex: $16
-    "\x1b": ((2, 6),), # BREAK (Esc) ESC - Char: '\x1b' - keycode: dez.: 9,   hex: $09
+    0x6e: ((1, 6),), # CLEAR - $6e is "Home" / "Pos 1" button
+    "\x1b": ((2, 6),), # BREAK - $09 is "Escape" button
 
     0x32: ((7, 6),), # SHIFT (shift left)
     0x3e: ((7, 6),), # SHIFT (shift right)
+
+    # Additional:
+
+    "\x08": ((5, 5),), # $08 is Backspace mapped to "LEFT"
 
     # Shifted keys:
 
