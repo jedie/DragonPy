@@ -127,6 +127,17 @@ Dragon 32 and 64 ROMs in Text mode:
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/Simple6809_TK_04.PNG}}
 
 
+=== Dragon Keyboard
+
+The keyboard mapping is stored into [[https://github.com/jedie/DragonPy/blob/master/dragonpy/Dragon32/keyboard_map.py|dragonpy/Dragon32/keyboard_map.py]].
+
+Some notes:
+* "CLEAR" is mapped to "Home" / "Pos 1" key
+* "BREAK" is mapped to "Escape" button
+* "LEFT" is mapped to left cursor key and to normal backspace, too.
+
+A "auto shift" mode is implemented. So normal lowercase letters would be automaticly converted to uppercase letters.
+
 
 === performance
 
