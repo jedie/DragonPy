@@ -86,19 +86,22 @@ class Dragon32Periphery(PeripheryBase):
         return value
 
     def display_write(self, cpu_cycles, op_address, address, value):
-        if self.output_count == 0:
-            sys.stderr.write("|")
+#         if self.output_count == 0:
+#             sys.stderr.write("|")
 
         char, color = self.charmap[value]
 #         sys.stdout.write(char)
-#        sys.stderr.write(char)
-        sys.stderr.write("***%s***\n" % char)
+#         sys.stderr.write(char)
+        log.critical(
+            "%04x| *** Display write $%02x ***%s*** %s at $%04x",
+            op_address, value, repr(char), color, address
+        )
 
-        self.output_count += 1
-        if self.output_count >= 32:
-            sys.stderr.write("|\n")
-            sys.stderr.flush()
-            self.output_count = 0
+#         self.output_count += 1
+#         if self.output_count >= 32:
+#             sys.stderr.write("|\n")
+#             sys.stderr.flush()
+#             self.output_count = 0
 
         self.display_ram[address] = value
 
@@ -136,13 +139,8 @@ class Dragon32Periphery(PeripheryBase):
 
             if event.type == pygame.KEYDOWN:
                 log.critical("Pygame keydown event: %s", repr(event))
-                char = event.unicode.upper()
-                try:
-                    value = ord(char)
-                except TypeError:
-                    value = event.scancode
-                    log.error("Error, use PyGame scancode $%02x!", value)
-                self.pia.key_down(value)
+                char_or_code = event.unicode or event.scancode
+                self.pia.key_down(char_or_code)
 
     def mainloop(self, cpu_process):
         log.critical("Pygame mainloop started.")

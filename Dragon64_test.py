@@ -31,9 +31,9 @@ CFG_DICT = {
     "trace":None,
 #     "trace":True,
 
-#    "max_ops":None,
+#     "max_ops":None,
 #    "max_ops":20000,
-    "max_ops":100000,
+    "max_ops":200000,
 #     "max_ops":45000,
 
     "bus_socket_host":None,
@@ -130,7 +130,7 @@ if __name__ == '__main__':
 #        level=30 # WARNING
 #        level=40 # ERROR
         level=50 # CRITICAL/FATAL
-#        level=60
+#         level=60
     )
     c = Dragon64()
     try:

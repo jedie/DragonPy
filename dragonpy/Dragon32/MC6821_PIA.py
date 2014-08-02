@@ -19,8 +19,7 @@
 """
 
 from dragonpy.utils.logging_utils import log
-from dragonpy.Dragon32.keyboard_map import get_dragon_col_row_values, \
-    get_dragon_rows, get_dragon_pia_result
+from dragonpy.Dragon32.keyboard_map import get_dragon_pia_result
 from dragonpy.utils.humanize import byte2bit_string
 from dragonpy.utils.bits import is_bit_set, invert_byte, clear_bit
 import os
@@ -77,13 +76,13 @@ class PIA(object):
 
         self.empty_key_toggle = True
         self.input_queue = Queue.Queue()
-        for char in "UYUABCDEFGHI":
+        for char in "PRINT 5":
             self.input_queue.put(char)
         self.current_input_char = None
 
     def get_write_func_map(self):
         #
-        # TODO: Collect this information via a decorator simmilar to op codes in CPU!
+        # TODO: Collect this information via a decorator similar to op codes in CPU!
         #
         write_func_map = {
             0xff00: self.write_PIA0_A_data, #    PIA 0 A side Data reg.
@@ -124,17 +123,9 @@ class PIA(object):
 
     #--------------------------------------------------------------------------
 
-    def key_down(self, value):
-        log.error("Add user key down %r %r to PIA input queue.", repr(value), chr(value))
-
-        if self.keyboard_matrix == None:
-            self.keyboard_matrix = get_dragon_rows(value)
-            self.current_keyboard_row = 0
-            log.error("\tNew key '%s' $%02x matrix: '%s' for send.",
-                repr(chr(value)), value, repr(self.keyboard_matrix)
-            )
-        else:
-            log.error("\tSkip new input, because last key down not complete send.")
+    def key_down(self, char_or_code):
+        log.error("Add user key down %r to PIA input queue.", repr(char_or_code))
+        self.input_queue.put(char_or_code)
 
     #--------------------------------------------------------------------------
 
@@ -188,7 +179,7 @@ class PIA(object):
     #--------------------------------------------------------------------------
     # Keyboard matrix on PIA0
 
-    COUNT=0
+    COUNT = 0
     def read_PIA0_A_data(self, cpu_cycles, op_address, address):
         """
         read from 0xff00 -> PIA 0 A side Data reg.
@@ -219,15 +210,23 @@ class PIA(object):
                 self.current_input_char = None
             else:
                 self.empty_key_toggle = True
-                self.current_input_char = self.input_queue.get()
-                log.critical("\tNew test input char: %s", repr(self.current_input_char))
+                try:
+                    self.current_input_char = self.input_queue.get(block=False)
+                except Queue.Empty:
+                    self.current_input_char = None
+                else:
+                    log.critical("\tNew test input char: %s", repr(self.current_input_char))
+
 
         if self.current_input_char is None:
             # no key pressed
             result = 0xff
         else:
-            keycode = ord(self.current_input_char)
-            result = get_dragon_pia_result(keycode, pia0b)
+            result = get_dragon_pia_result(
+                char_or_code=self.current_input_char,
+                pia0b=pia0b,
+                auto_shift=True,
+            )
 
         if not is_bit_set(pia0b, bit=7):
             # bit 7 | PA7 | joystick comparison input
