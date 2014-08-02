@@ -33,7 +33,7 @@ class DragonTextDisplay(object):
         self.columns = 16
 
         pygame.font.init()
-        self.font = pygame.font.SysFont("monospace", 20, bold=True)
+        self.font = pygame.font.SysFont("monospace", 26, bold=True)
 
         width, height = self.font.size("X")
         self.row_pixels = width
@@ -48,12 +48,12 @@ class DragonTextDisplay(object):
         # Fill background
         self.background = pygame.Surface(self.screen.get_size())
         self.background = self.background.convert()
-
         foreground, background = get_rgb_color(NORMAL)
         self.background.fill(background)
 
         self.display_offset = 0x400
-        self.display_ram = [None] * (0x400 + 0x200)
+        self.display_ram = [None] * self.display_offset # empty Offset
+        self.display_ram += [0x00] * 0x200
 
     def read_byte(self, cpu_cycles, op_address, address):
         value = self.display_ram[address]
