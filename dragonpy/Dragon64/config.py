@@ -19,11 +19,18 @@ from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 
 class Dragon64Cfg(Dragon32Cfg):
     RAM_START = 0x0000
-#     RAM_END = 0x07FF # 2KB
-#     RAM_END = 0x0FFF # 4KB
-#     RAM_END = 0x1FFF # 8KB
-    RAM_END = 0x3FFF # 16KB
-#     RAM_END = 0x7FFF # 32KB
+
+    # 1KB RAM is not runnable and raise a error
+    # 2-8 KB - BASIC Interpreter will be initialized. But every
+    #          statement will end with a OM ERROR (Out of Memory)
+    # 16 KB - Is usable
+
+#     RAM_END = 0x03FF # 1KB
+#     RAM_END = 0x07FF # 2KB # BASIC will always raise a OM ERROR!
+#     RAM_END = 0x0FFF # 4KB # BASIC will always raise a OM ERROR!
+#     RAM_END = 0x1FFF # 8KB # BASIC will always raise a OM ERROR!
+#     RAM_END = 0x3FFF # 16KB # usable
+    RAM_END = 0x7FFF # 32KB
 
     ROM_START = 0x8000
     ROM_END = 0xFFFF
@@ -61,3 +68,16 @@ class Dragon64Cfg(Dragon32Cfg):
 
 
 config = Dragon64Cfg
+
+
+def test_run():
+    import sys, os, subprocess
+    cmd_args = [
+        sys.executable,
+        os.path.join("..", "Dragon64_test.py"),
+    ]
+    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    subprocess.Popen(cmd_args, cwd="..").wait()
+
+if __name__ == "__main__":
+    test_run()
