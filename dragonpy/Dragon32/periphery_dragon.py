@@ -104,7 +104,7 @@ class Dragon32Periphery(PeripheryBase):
             if event.type == pygame.QUIT:
                 log.critical("pygame.QUIT: shutdown")
                 self.exit()
-                sys.exit()
+                break
 
             if event.type == pygame.KEYDOWN:
                 log.critical("Pygame keydown event: %s", repr(event))
