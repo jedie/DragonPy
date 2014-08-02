@@ -75,9 +75,8 @@ class PIA(object):
         self.pia_1_B_register = PIA_register("PIA1 B")
 
         self.empty_key_toggle = True
-        self.input_queue = Queue.Queue()
-        for char in 'PRINT "HELLO WORLD!"\r':
-            self.input_queue.put(char)
+        self.input_queue = Queue.Queue(maxsize=10)
+#         for char in 'PRINT "HELLO WORLD!"\r':self.input_queue.put(char)
         self.current_input_char = None
 
     def get_write_func_map(self):
@@ -125,7 +124,12 @@ class PIA(object):
 
     def key_down(self, char_or_code):
         log.error("Add user key down %r to PIA input queue.", repr(char_or_code))
-        self.input_queue.put(char_or_code)
+        try:
+            self.input_queue.put(char_or_code, block=False)
+        except Queue.Full:
+            log.log(level=99,
+                msg="Ignore key press %s, because input queue is full!" % repr(char_or_code)
+            )
 
     #--------------------------------------------------------------------------
 
