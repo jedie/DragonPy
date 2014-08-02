@@ -76,7 +76,7 @@ class PIA(object):
 
         self.empty_key_toggle = True
         self.input_queue = Queue.Queue()
-        for char in "PRINT 5":
+        for char in 'PRINT "HELLO WORLD!"\r':
             self.input_queue.put(char)
         self.current_input_char = None
 
@@ -193,15 +193,7 @@ class PIA(object):
         bit 1 | PA1 | keyboard matrix row 2 & left  joystick switch 1
         bit 0 | PA0 | keyboard matrix row 1 & right joystick switch 1
         """
-#        pia0a = self.pia_0_A_register.get() # $ff00
-#        result = pia0a
-#        log.error("read from 0xff00 -> PIA 0 A side Data reg. pia0a=$%02x %s",
-#            pia0a, '{0:08b}'.format(pia0a),
-#        )
         pia0b = self.pia_0_B_register.get() # $ff02
-#        log.error("read from 0xff00 -> PIA 0 A side Data reg. pia0b=$%02x %s",
-#            pia0b, '{0:08b}'.format(pia0b),
-#        )
 
         if pia0b == 0x00:
             if self.empty_key_toggle:
@@ -215,7 +207,7 @@ class PIA(object):
                 except Queue.Empty:
                     self.current_input_char = None
                 else:
-                    log.critical("\tNew test input char: %s", repr(self.current_input_char))
+                    log.info("\tNew test input char: %s", repr(self.current_input_char))
 
 
         if self.current_input_char is None:
@@ -232,7 +224,7 @@ class PIA(object):
             # bit 7 | PA7 | joystick comparison input
             result = clear_bit(result, bit=7)
 
-        log.critical(
+        log.info(
             "%04x| read $%04x ($ff02 is $%02x %s) send $%02x %s back (char: %s)\t|%s",
             op_address, address,
             pia0b, '{0:08b}'.format(pia0b),

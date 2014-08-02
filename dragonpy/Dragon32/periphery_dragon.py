@@ -36,8 +36,6 @@ class Dragon32Periphery(PeripheryBase):
     def __init__(self, cfg):
         super(Dragon32Periphery, self).__init__(cfg)
 
-        self.charmap = get_charmap_dict()
-
         self.kbd = 0xBF
         self.display = DragonTextDisplay()
         self.speaker = None # Speaker()
@@ -67,44 +65,16 @@ class Dragon32Periphery(PeripheryBase):
         self.debug_func_map(self.read_byte_func_map, "read_byte_func_map")
         self.debug_func_map(self.write_byte_func_map, "write_byte_func_map")
 
-        self.display_ram = [None] * (0x400 + 0x200)
         for addr in xrange(0x400, 0x600):
-            self.read_byte_func_map[addr] = self.display_read
-            self.write_byte_func_map[addr] = self.display_write
+            self.read_byte_func_map[addr] = self.display.read_byte
+            self.write_byte_func_map[addr] = self.display.write_byte
 
         self.running = True
-        self.output_count = 0
 
     def debug_func_map(self, d, txt):
         log.debug("*** Func map %s:", txt)
         for addr, func in sorted(d.items()):
             log.debug("\t$%04x: %s", addr, func.__name__)
-
-    def display_read(self, cpu_cycles, op_address, address):
-        value = self.display_ram[address]
-        log.critical("%04x| TODO: read $%02x display RAM from: $%04x", op_address, value, address)
-        return value
-
-    def display_write(self, cpu_cycles, op_address, address, value):
-#         if self.output_count == 0:
-#             sys.stderr.write("|")
-
-        char, color = self.charmap[value]
-#         sys.stdout.write(char)
-#         sys.stderr.write(char)
-        log.critical(
-            "%04x| *** Display write $%02x ***%s*** %s at $%04x",
-            op_address, value, repr(char), color, address
-        )
-
-#         self.output_count += 1
-#         if self.output_count >= 32:
-#             sys.stderr.write("|\n")
-#             sys.stderr.flush()
-#             self.output_count = 0
-
-        self.display.render_char(char, color, address)
-        self.display_ram[address] = value
 
     def no_dos_rom(self, cpu_cycles, op_address, address):
         log.error("%04x| TODO: DOS ROM requested. Send 0x00 back", op_address)
@@ -124,7 +94,6 @@ class Dragon32Periphery(PeripheryBase):
 #        log.critical("update pygame")
         if not self.running:
             return
-#         pygame.display.flip()
         if self.speaker:
             self.speaker.update(cpu_cycles)
 

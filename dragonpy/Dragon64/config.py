@@ -19,10 +19,10 @@ from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 
 class Dragon64Cfg(Dragon32Cfg):
     RAM_START = 0x0000
-    RAM_END = 0x07FF # 2KB
+#     RAM_END = 0x07FF # 2KB
 #     RAM_END = 0x0FFF # 4KB
 #     RAM_END = 0x1FFF # 8KB
-#     RAM_END = 0x3FFF # 16KB
+    RAM_END = 0x3FFF # 16KB
 #     RAM_END = 0x7FFF # 32KB
 
     ROM_START = 0x8000
