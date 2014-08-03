@@ -26,7 +26,7 @@ from dragonpy.utils.logging_utils import log
 
 CFG_DICT = {
     "verbosity":None,
-    "display_cycle":False,
+    "display_cycle":True,
     "trace":None,
     "bus_socket_host":None,
     "bus_socket_port":None,
@@ -81,26 +81,6 @@ class Console6809(object):
         memory = Memory(cfg)
         self.cpu = CPU(memory, cfg)
         memory.cpu = self.cpu # FIXME
-
-        self.last_update = None
-        self.last_cycles = None
-        self.display_cycle_interval()
-
-    def display_cycle_interval(self):
-        if self.last_update is not None: # Skip the first time call.
-            cycles = self.cpu.cycles - self.last_cycles
-            duration = time.time() - self.last_update
-            log.critical(
-                "%i cycles/sec (%i cycles in last %isec)",
-                int(cycles / duration), cycles, duration
-            )
-
-        self.last_cycles = self.cpu.cycles
-        self.last_update = time.time()
-        if self.cpu.running:
-            t = threading.Timer(5.0, self.display_cycle_interval)
-            t.deamon = True
-            t.start()
 
     def update_display(self):
         self.periphery.update(self.cpu.cpu_cycles)

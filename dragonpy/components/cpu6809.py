@@ -26,7 +26,8 @@ import os
 import socket
 import sys
 import warnings
-
+import time
+import threading
 
 from dragonpy.MC6809data.MC6809_data_raw2 import (
     OP_DATA, REG_A, REG_B, REG_CC, REG_D , REG_DP, REG_PC,
@@ -127,6 +128,9 @@ class CPU(object):
 #         for opcode in ILLEGAL_OPS:
 #             self.opcode_dict[opcode] = IllegalInstruction(self, opcode)
 
+        if cfg.display_cycle:
+            self.display_cycle_interval()
+
     def get_state(self):
         """
         used in unittests
@@ -172,6 +176,31 @@ class CPU(object):
         self.memory.ram._mem = state["RAM"][:] # copy of RAM
 
     ####
+
+    def display_cycle_interval(self, last_cycles=None, last_cycle_update=None):
+        if not self.running:
+            log.critical("Exit display_cycle_interval() thread.")
+            return
+
+        if last_cycle_update is not None: # Skip the first time call.
+            cycles = self.cycles - last_cycles
+            if cycles == 0:
+                log.critical("Exit display_cycle_interval() thread, because cycles/sec == 0")
+                return
+            duration = time.time() - last_cycle_update
+            log.critical(
+                "%i cycles/sec (%i cycles in last %isec)",
+                int(cycles / duration), cycles, duration
+            )
+
+        t = threading.Timer(5.0, self.display_cycle_interval,
+            kwargs={
+                "last_cycles":self.cycles,
+                "last_cycle_update":time.time(),
+            }
+        )
+        t.deamon = True
+        t.start()
 
     def reset(self):
 #        log.info("$%x CPU reset:" % self.program_counter)

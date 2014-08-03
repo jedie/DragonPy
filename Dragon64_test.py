@@ -26,7 +26,7 @@ from dragonpy.utils.simple_debugger import print_exc_plus
 
 CFG_DICT = {
     "verbosity":None,
-    "display_cycle":False,
+    "display_cycle":True,
 
     "trace":None,
 #     "trace":True,
@@ -72,26 +72,6 @@ class Dragon64(object):
         memory = Memory(self.cfg)
         self.cpu = CPU(memory, self.cfg)
         memory.cpu = self.cpu # FIXME
-
-        self.last_update = None
-        self.last_cycles = None
-        self.display_cycle_interval()
-
-    def display_cycle_interval(self):
-        if self.last_update is not None: # Skip the first time call.
-            cycles = self.cpu.cycles - self.last_cycles
-            duration = time.time() - self.last_update
-            log.critical(
-                "%i cycles/sec (%i cycles in last %isec)",
-                int(cycles / duration), cycles, duration
-            )
-
-        self.last_cycles = self.cpu.cycles
-        self.last_update = time.time()
-        if self.periphery.running and self.cpu.running:
-            t = threading.Timer(5.0, self.display_cycle_interval)
-            t.deamon = True
-            t.start()
 
     def update_display_interval(self):
         self.periphery.update(self.cpu.cycles)
