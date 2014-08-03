@@ -57,17 +57,32 @@ class DragonTextDisplay(object):
 
     def read_byte(self, cpu_cycles, op_address, address):
         value = self.display_ram[address]
-        # log.critical("%04x| TODO: read $%02x display RAM from: $%04x", op_address, value, address)
+
+        char, color = self.charmap[value]
+#         log.critical(
+#             "%04x| *** Display read $%02x ***%s*** %s from $%04x",
+#             op_address, value, repr(char), color, address
+#         )
+
         return value
+
+    def read_word(self, cpu_cycles, op_address, address):
+        # 6809 is Big-Endian
+        return self.display_ram[address + 1] + (self.display_ram[address] << 8)
 
     def write_byte(self, cpu_cycles, op_address, address, value):
         char, color = self.charmap[value]
-        log.debug(
-            "%04x| *** Display write $%02x ***%s*** %s at $%04x",
-            op_address, value, repr(char), color, address
-        )
+#         log.critical(
+#             "%04x| *** Display write $%02x ***%s*** %s at $%04x",
+#             op_address, value, repr(char), color, address
+#         )
         self.render_char(char, color, address)
         self.display_ram[address] = value
+
+    def write_word(self, cpu_cycles, op_address, address, value):
+        # 6809 is Big-Endian
+        self.write_byte(cpu_cycles, op_address, address, value >> 8)
+        self.write_byte(cpu_cycles, op_address, address + 1, value & 0xff)
 
     def render_char(self, char, color, address):
         foreground, background = get_rgb_color(color)
@@ -82,8 +97,8 @@ class DragonTextDisplay(object):
         )
 
         self.screen.blit(text, position_px)
-        # pygame.display.update()
-        pygame.display.flip()
+        pygame.display.update()
+#         pygame.display.flip()
 
 
 

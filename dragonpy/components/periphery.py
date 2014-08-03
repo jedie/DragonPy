@@ -40,9 +40,10 @@ class PeripheryBase(object):
         self.update_time = 0.1
         self.last_update = time.time()
 
-        # Set by subclass
-        self.read_byte_func_map = None
-        self.write_byte_func_map = None
+        self.read_byte_func_map = {}
+        self.read_word_func_map = {}
+        self.write_byte_func_map = {}
+        self.write_word_func_map = {}
 
         if self.INITAL_INPUT is not None:
             self.add_to_input_queue(self.INITAL_INPUT)
@@ -79,11 +80,11 @@ class PeripheryBase(object):
         self.request_cpu(url="/quit/")
 
     def read_byte(self, cpu_cycles, op_address, address):
-        log.debug(
-            "%04x| Periphery.read_byte from $%x (cpu_cycles: %i)\t|%s",
-            op_address, address, cpu_cycles,
-            self.cfg.mem_info.get_shortest(op_address)
-        )
+#         log.critical(
+#             "%04x| Periphery.read_byte from $%04x (cpu_cycles: %i)\t|%s",
+#             op_address, address, cpu_cycles,
+#             self.cfg.mem_info.get_shortest(op_address)
+#         )
         try:
             func = self.read_byte_func_map[address]
         except KeyError, err:
@@ -91,29 +92,60 @@ class PeripheryBase(object):
             log.error(msg)
             raise NotImplementedError(msg)
         else:
-#            log.debug("func: %s", func.__name__)
+#             log.critical("\tfunc: %s", func.__name__)
             byte = func(cpu_cycles, op_address, address)
-#            log.debug("\tsend byte $%x back" % byte)
+#             log.critical("\tsend byte $%02x back" % byte)
             return byte
-    read_word = read_byte
-
-    def write_byte(self, cpu_cycles, op_address, address, value):
-        log.debug(
-            "%04x| Periphery.write_byte $%x to $%x (cpu_cycles: %i)\t|%s",
-            op_address, value, address, cpu_cycles,
-            self.cfg.mem_info.get_shortest(op_address)
-        )
+        
+    def read_word(self, cpu_cycles, op_address, address):
+#         log.critical(
+#             "%04x| Periphery.read_word from $%04x (cpu_cycles: %i)\t|%s",
+#             op_address, address, cpu_cycles,
+#             self.cfg.mem_info.get_shortest(op_address)
+#         )
         try:
-            func = self.write_byte_func_map[address]
+            func = self.read_word_func_map[address]
         except KeyError, err:
-            msg = "TODO: write byte from $%x" % address
+            msg = "TODO: read word from $%04x" % address
             log.error(msg)
             raise NotImplementedError(msg)
         else:
-            log.debug("func: %s", func.__name__)
+#             log.critical("\tfunc: %s", func.__name__)
+            word = func(cpu_cycles, op_address, address)
+#             log.critical("\tsend word $%04x back" % word)
+            return word
+
+    def write_byte(self, cpu_cycles, op_address, address, value):
+#         log.critical(
+#             "%04x| Periphery.write_byte $%02x to $%04x (cpu_cycles: %i)\t|%s",
+#             op_address, value, address, cpu_cycles,
+#             self.cfg.mem_info.get_shortest(op_address)
+#         )
+        try:
+            func = self.write_byte_func_map[address]
+        except KeyError, err:
+            msg = "TODO: write byte to $%04x" % address
+            log.error(msg)
+            raise NotImplementedError(msg)
+        else:
+#             log.critical("\tfunc: %s", func.__name__)
             func(cpu_cycles, op_address, address, value)
 
-    write_word = write_byte
+    def write_word(self, cpu_cycles, op_address, address, value):
+#         log.critical(
+#             "%04x| Periphery.write_word $%04x to $%04x (cpu_cycles: %i)\t|%s",
+#             op_address, value, address, cpu_cycles,
+#             self.cfg.mem_info.get_shortest(op_address)
+#         )
+        try:
+            func = self.write_word_func_map[address]
+        except KeyError, err:
+            msg = "TODO: write word to $%04x" % address
+            log.error(msg)
+            raise NotImplementedError(msg)
+        else:
+#             log.critical("\tfunc: %s", func.__name__)
+            func(cpu_cycles, op_address, address, value)
 
     def add_output(self, text):
         raise NotImplementedError

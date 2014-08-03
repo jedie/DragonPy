@@ -44,30 +44,27 @@ class Dragon32Periphery(PeripheryBase):
         self.sam = SAM(cfg)
         self.pia = PIA(cfg)
 
-        self.read_byte_func_map = {
+        self.read_word_func_map = {
             0xc000: self.no_dos_rom,
             0xfffe: self.reset_vector,
         }
-        self.write_byte_func_map = {}
 
         # Collect all read/write functions from PIA:
-        pia_read_func_map = self.pia.get_read_func_map()
-        pia_write_func_map = self.pia.get_write_func_map()
-        self.read_byte_func_map.update(pia_read_func_map)
-        self.write_byte_func_map.update(pia_write_func_map)
+        self.pia.add_read_write_callbacks(self)
 
         # Collect all read/write functions from SAM:
-        sam_read_func_map = self.sam.get_read_func_map()
-        sam_write_func_map = self.sam.get_write_func_map()
-        self.read_byte_func_map.update(sam_read_func_map)
-        self.write_byte_func_map.update(sam_write_func_map)
+        self.sam.add_read_write_callbacks(self)
 
         self.debug_func_map(self.read_byte_func_map, "read_byte_func_map")
+        self.debug_func_map(self.read_word_func_map, "read_word_func_map")
         self.debug_func_map(self.write_byte_func_map, "write_byte_func_map")
+        self.debug_func_map(self.write_word_func_map, "write_word_func_map")
 
         for addr in xrange(0x400, 0x600):
             self.read_byte_func_map[addr] = self.display.read_byte
+            self.read_word_func_map[addr] = self.display.read_word
             self.write_byte_func_map[addr] = self.display.write_byte
+            self.write_word_func_map[addr] = self.display.write_word
 
         self.running = True
 
@@ -107,7 +104,7 @@ class Dragon32Periphery(PeripheryBase):
                 break
 
             if event.type == pygame.KEYDOWN:
-                log.critical("Pygame keydown event: %s", repr(event))
+                log.info("Pygame keydown event: %s", repr(event))
                 char_or_code = event.unicode or event.scancode
                 self.pia.key_down(char_or_code)
 
@@ -136,11 +133,11 @@ def test_run():
 #
 #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
 #
-#        "--cfg=Dragon32",
+#         "--cfg=Dragon32",
         "--cfg=Dragon64",
 #
         "--dont_open_webbrowser",
-#        "--display_cycle", # print CPU cycle/sec while running.
+        "--display_cycle", # print CPU cycle/sec while running.
 #
 #         "--max=15000",
 #         "--max=46041",

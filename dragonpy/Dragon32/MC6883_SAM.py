@@ -57,8 +57,14 @@ class SAM(object):
     def __init__(self, cfg):
         self.cfg = cfg
 
-    def get_write_func_map(self):
-        write_func_map = {
+    def add_read_write_callbacks(self, periphery):
+        #
+        # TODO: Collect this information via a decorator similar to op codes in CPU!
+        #
+        periphery.read_byte_func_map.update({
+            0xffc2: self.read_VDG_mode_register_v1,
+        })
+        periphery.write_byte_func_map.update({
             0xffc0: self.write_VDG_mode_register_v0,
             0xffc2: self.write_VDG_mode_register_v1,
             0xffc4: self.write_VDG_mode_register_v2,
@@ -77,14 +83,7 @@ class SAM(object):
             0xffdc: self.write_size_select_bit1,
             0xffde: self.write_map_type,
             0xffdd: self.write_map0,
-        }
-        return write_func_map
-
-    def get_read_func_map(self):
-        read_func_map = {
-            0xffc2: self.read_VDG_mode_register_v1,
-        }
-        return read_func_map
+        })
 
 #     def read_VDG_mode_register_v0(self, cpu_cycles, op_address, address):
 #         log.error("TODO: read VDG mode register V0 $%04x", address)
