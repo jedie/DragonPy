@@ -741,13 +741,13 @@ class TestTkFont(object):
         self.total_width = self.tk_font.width_scaled * self.row_count
         self.total_height = self.tk_font.height_scaled * (len(self.tk_font.chars_dict) / self.row_count)
 
-        print "Window geometry: %spx x %spx" % (self.total_width, self.total_height)
+        print "Window/Canvas geometry: %spx x %spx" % (self.total_width, self.total_height)
         self.root.geometry("+%i+%i" % (self.total_width, self.total_height))
 
         self.canvas = Tkinter.Canvas(self.root,
             width=self.total_width,
             height=self.total_height,
-            bg="#000000"
+            bg="#ff0000"
         )
         self.canvas.pack()
         self.add_chars()
@@ -766,9 +766,9 @@ class TestTkFont(object):
             self.canvas.create_image(x, y,
                 image=img,
                 state="normal",
-                anchor=Tkinter.NW
+                anchor=Tkinter.NW # NW == NorthWest
             )
-            self.root.update()
+            # self.root.update() # Not needed here!
 
     def event_arrow_up(self, event):
         self.color_index += 1
@@ -794,6 +794,7 @@ if __name__ == "__main__":
 #         scale_factor=2
 #         scale_factor=3
         scale_factor=4
+#         scale_factor=8
     )
 
     colors = (NORMAL, INVERTED) + COLORS
