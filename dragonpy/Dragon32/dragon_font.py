@@ -698,21 +698,19 @@ class TkFont(object):
 
         img = Tkinter.PhotoImage(width=self.width_scaled, height=self.height_scaled)
 
-        y = 0
-        for line in char_data:
-            for scaled_line in itertools.repeat(line, self.scale_factor):
-                y += 1
-                x = 0
-                for bit in scaled_line:
-                    for scaled_bit in itertools.repeat(bit, self.scale_factor):
-                        x += 1
-                        if scaled_bit == BACKGROUND_CHAR:
-                            color = background
-                        else:
-                            assert scaled_bit == FOREGROUND_CHAR
-                            color = foreground
+        for y, line in enumerate(char_data):
+            for x, bit in enumerate(line):
+                if bit == BACKGROUND_CHAR:
+                    color = background
+                else:
+                    assert bit == FOREGROUND_CHAR
+                    color = foreground
 
-                        img.put(color, (x, y))
+                img.put(color, (x, y))
+
+        if self.scale_factor > 1:
+            img = img.zoom(self.scale_factor, self.scale_factor)
+
         return img
 
     def get_char(self, char, color):
@@ -747,7 +745,8 @@ class TestTkFont(object):
         self.canvas = Tkinter.Canvas(self.root,
             width=self.total_width,
             height=self.total_height,
-            bg="#ff0000"
+            bd=0, # Border
+            bg="#ff0000",
         )
         self.canvas.pack()
         self.add_chars()
