@@ -170,7 +170,7 @@ def get_dragon_pia_result(char_or_code, pia0b, auto_shift=True):
     return result
 
 
-def test(char_or_code):
+def test(char_or_code, auto_shift):
     """
     e.g.:
 
@@ -194,7 +194,7 @@ def test(char_or_code):
     bit 6 - $ff02 in $bf (10111111) -> $ff00 out $ff (11111111) stored in $0158
     bit 7 - $ff02 in $7f (01111111) -> $ff00 out $ff (11111111) stored in $0159
     """
-    col_row_values = get_dragon_col_row_values(char_or_code, auto_shift=True)
+    col_row_values = get_dragon_col_row_values(char_or_code, auto_shift=auto_shift)
     print "char/keycode: %s -> cols/rows: %s" % (repr(char_or_code), repr(col_row_values))
 
     for i in xrange(8):
@@ -242,7 +242,10 @@ if __name__ == '__main__':
                 repr(char_or_code)
             )
             try:
-                test(char_or_code)
+                test(char_or_code,
+#                     auto_shift=True
+                    auto_shift=False
+                )
             except:
                 self.root.destroy()
                 raise
