@@ -39,6 +39,8 @@ class Simple6809PeripheryBase(PeripheryBase):
         self.read_byte_func_map = {
             0xa000: self.read_acia_status, # Control/status port of ACIA
             0xa001: self.read_acia_data, # Data port of ACIA
+        }
+        self.read_word_func_map = {
             0xbffe: self.reset_vector,
         }
         self.write_byte_func_map = {
