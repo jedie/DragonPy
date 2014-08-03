@@ -28,7 +28,7 @@ from dragonpy.utils.logging_utils import log
 
 
 DRAGON_KEYMAP = {
-    # PyGame event.scancode / Tkinter event.keycode
+    # TODO: Use PyGame event.scancode / Tkinter event.keycode constants
 
     "0": ((0, 0),), # 0
     "1": ((1, 0),), # 1
