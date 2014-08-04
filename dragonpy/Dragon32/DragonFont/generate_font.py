@@ -60,12 +60,20 @@ BACKGROUND_CHAR = "."
 FOREGROUND_CHAR = "X"
 
 def display_dict(all_bits, characters, width):
+    """
+    padding_top=3, padding_bottom=2
+    """
+    padding = '        "%s",' % (BACKGROUND_CHAR * width)
+
     print 'BACKGROUND_CHAR = "%s"' % BACKGROUND_CHAR
     print 'FOREGROUND_CHAR = "%s"' % FOREGROUND_CHAR
     print "CHARS_DICT = {"
     for char in characters:
         name = unicodedata.name(char)
         print '    %s: (# %s' % (repr(char), name)
+        print padding
+        print padding
+        print padding
 
         bits = all_bits[char]
         for g in group(bits, width):
@@ -73,6 +81,8 @@ def display_dict(all_bits, characters, width):
             line = line.replace("0", BACKGROUND_CHAR)
             line = line.replace("1", FOREGROUND_CHAR)
             print '        "%s",' % line
+        print padding
+        print padding
         print '    ),'
     print "}"
 

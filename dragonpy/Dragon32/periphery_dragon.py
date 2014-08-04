@@ -26,6 +26,7 @@ from dragonpy.utils.logging_utils import log
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
 from dragonpy.Dragon32.display_base import DragonTextDisplayBase
 import time
+import traceback
 
 
 class Dragon32PeripheryBase(PeripheryBase):
@@ -96,13 +97,10 @@ class Dragon32TextDisplayTkinter(DragonTextDisplayBase):
 #         scale_factor=3
 #         scale_factor=4
 #         scale_factor=8
-        self.tk_font = TkFont(
-            CHARS_DICT, scale_factor,
-            padding_top=3, padding_bottom=2
-        )
+        self.tk_font = TkFont(CHARS_DICT, scale_factor)
 
         self.total_width = self.tk_font.width_scaled * self.rows
-        self.total_height = self.tk_font.height_padded * self.columns
+        self.total_height = self.tk_font.height_scaled * self.columns
 
         self.canvas = Tkinter.Canvas(root,
             width=self.total_width,
@@ -117,7 +115,7 @@ class Dragon32TextDisplayTkinter(DragonTextDisplayBase):
         position = address - 0x400
         column, row = divmod(position, self.rows)
         x = self.tk_font.width_scaled * row
-        y = self.tk_font.height_padded * column
+        y = self.tk_font.height_scaled * column
 
         self.canvas.create_image(x, y,
             image=img,
@@ -139,6 +137,7 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
         self.root.title("Dragon - Text Display 32 rows x 16 columns")
 
         self.root.bind("<Key>", self.event_key_pressed)
+        self.root.bind("<<Paste>>", self.paste_clipboard)
 
         self.display = Dragon32TextDisplayTkinter(self.root)
 
@@ -151,11 +150,28 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
         self.status_widget = Tkinter.Label(self.root, textvariable=self.status, text="Info:", borderwidth=1)
         self.status_widget.grid(row=1, column=0)
 
+    def paste_clipboard(self, event):
+        """
+        POKE 1024,128
+
+10 CLS
+20 FOR I = 0 TO 255:
+30 POKE 1024+(I*2),I
+40 NEXT I
+50 I$ = INKEY$:IF I$="" THEN 50
+        """
+        log.critical("paste clipboard")
+        clipboard = self.root.clipboard_get()
+        log.critical("Clipboard content: %s", repr(clipboard))
+        clipboard = clipboard.replace("\n", "\r")
+        for char in clipboard:
+            self.pia.key_down(char, block=True)
+
     def event_key_pressed(self, event):
         char_or_code = event.char or event.keycode
         self.pia.key_down(char_or_code)
 
-    def run_cpu_interval(self, cpu, last_cycles=None, last_cycle_update=sys.maxint):
+    def run_cpu_interval(self, cpu, last_cycles=0, last_cycle_update=sys.maxint, loops=0):
 #         max_ops = self.cfg.cfg_dict["max_ops"]
 #         if max_ops:
 #             log.critical("Running only %i ops!", max_ops)
@@ -166,23 +182,32 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
 #             log.critical("Quit CPU after given 'max_ops' %i ops.", max_ops)
 #         else:
 #             while self.periphery.running and self.cpu.running:
-        for _ in xrange(10000):
-            cpu.get_and_call_next_op()
 
+        for _ in xrange(20000):
+            try:
+                cpu.get_and_call_next_op()
+            except:
+                tb = traceback.format_exc()
+                log.log(99, "Error running OP:\n%s" % tb)
+
+        loops += 1
         duration = time.time() - last_cycle_update
         if duration > 1:
             cycles = cpu.cycles - last_cycles
             if cycles == 0:
                 log.critical("Exit display_cycle_interval() thread, because cycles/sec == 0")
                 return
-            msg = "%i cycles/sec (%i cycles in last %isec)" % (
-                int(cycles / duration), cycles, duration
+            msg = "%i cycles/sec (%i cycles in last %isec, loops=%i)" % (
+                int(cycles / duration), cycles, duration, loops
             )
+#             msg = "%d cycles/sec (Dragon 32 == 895.000cycles/sec)" % int(cycles / duration)
             self.status.set(msg)
+            loops = 0
+            last_cycles = cpu.cycles
             last_cycle_update = time.time()
 
         self.root.after(1, self.run_cpu_interval, cpu,
-            cpu.cycles, last_cycle_update
+            last_cycles, last_cycle_update, loops
         )
 
     def mainloop(self, cpu):
@@ -222,6 +247,7 @@ def test_run_direct():
     import sys, os, subprocess
     cmd_args = [
         sys.executable,
+#         "/usr/bin/pypy",
         os.path.join("..", "Dragon64_test.py"),
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
