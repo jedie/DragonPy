@@ -17,13 +17,10 @@
 
 import os
 import sys
-try:
-    import pygame
-except ImportError:
-    # Maybe Dragon would not be emulated ;)
-    pygame = None
+import Tkinter
 
-from dragonpy.Dragon32.display import DragonTextDisplay
+from dragonpy.Dragon32.display_tkinter import DragonTextDisplayTkinter
+from dragonpy.Dragon32.display_pygame import DragonTextDisplay
 from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.components.periphery import PeripheryBase
@@ -31,13 +28,15 @@ from dragonpy.utils.logging_utils import log
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 
 
-class Dragon32Periphery(PeripheryBase):
-
+class Dragon32PeripheryBase(PeripheryBase):
+    """
+    GUI Independed stuff
+    """
     def __init__(self, cfg):
-        super(Dragon32Periphery, self).__init__(cfg)
+        super(Dragon32PeripheryBase, self).__init__(cfg)
 
         self.kbd = 0xBF
-        self.display = DragonTextDisplay()
+        self.display = DragonTextDisplayTkinter()
         self.speaker = None # Speaker()
         self.cassette = None # Cassette()
 
@@ -82,11 +81,6 @@ class Dragon32Periphery(PeripheryBase):
         log.info("%04x| %04x        [RESET]" % (address, ea))
         return ea # FIXME: RESET interrupt service routine ???
 
-    def exit(self):
-        log.critical("exit pygame")
-        super(Dragon32Periphery, self).exit()
-        pygame.display.quit()
-
     def update(self, cpu_cycles):
 #        log.critical("update pygame")
         if not self.running:
@@ -95,18 +89,19 @@ class Dragon32Periphery(PeripheryBase):
             self.speaker.update(cpu_cycles)
 
     def _handle_events(self):
+        
 #        log.critical("pygame handle events")
-        for event in pygame.event.get():
-            log.debug("Pygame event: %s", repr(event))
-            if event.type == pygame.QUIT:
-                log.critical("pygame.QUIT: shutdown")
-                self.exit()
-                break
-
-            if event.type == pygame.KEYDOWN:
-                log.info("Pygame keydown event: %s", repr(event))
-                char_or_code = event.unicode or event.scancode
-                self.pia.key_down(char_or_code)
+#         for event in pygame.event.get():
+#             log.debug("Pygame event: %s", repr(event))
+#             if event.type == pygame.QUIT:
+#                 log.critical("pygame.QUIT: shutdown")
+#                 self.exit()
+#                 break
+# 
+#             if event.type == pygame.KEYDOWN:
+#                 log.info("Pygame keydown event: %s", repr(event))
+#                 char_or_code = event.unicode or event.scancode
+#                 self.pia.key_down(char_or_code)
 
     def mainloop(self, cpu_process):
         log.critical("Pygame mainloop started.")
@@ -116,6 +111,23 @@ class Dragon32Periphery(PeripheryBase):
         self.exit()
         log.critical("Pygame mainloop stopped.")
 
+
+
+class Dragon32PeripheryTkInter(Dragon32PeripheryBase):
+    """
+    GUI Independed stuff
+    """
+    def __init__(self, cfg):
+        super(Dragon32PeripheryBase, self).__init__(cfg)
+        
+        self.root = Tkinter.Tk(className="Dragon")
+        self.root.title("Dragon - Text Display 32 rows x 16 columns")
+
+        self.root.bind("<Key>", self.event_key_pressed)
+
+    def exit(self):
+        log.critical("Dragon32PeripheryBase.exit()")
+        super(Dragon32PeripheryBase, self).exit()
 
 
 def test_run():
