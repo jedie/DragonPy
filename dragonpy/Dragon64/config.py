@@ -14,7 +14,6 @@ import logging
 
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon64.mem_info import get_dragon_meminfo
-from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 
 
 class Dragon64Cfg(Dragon32Cfg):
@@ -49,7 +48,7 @@ class Dragon64Cfg(Dragon32Cfg):
         if self.verbosity <= logging.ERROR:
             self.mem_info = get_dragon_meminfo()
 
-        self.periphery_class = Dragon32Periphery
+        self.periphery_class = None# Dragon32Periphery
 
     def get_initial_RAM(self):
         """

@@ -38,7 +38,7 @@ class PeripheryBase(object):
         self.user_input_queue = Queue.Queue() # Buffer for input to send back to the CPU
 
         self.update_time = 0.1
-        self.last_update = time.time()
+        self.last_cycle_update = time.time()
 
         self.read_byte_func_map = {}
         self.read_word_func_map = {}
@@ -56,28 +56,26 @@ class PeripheryBase(object):
         for char in txt:
             self.user_input_queue.put(char)
 
-    def request_cpu(self, url):
-#         log.critical(
-        log.debug(
-            "request %s:%s%s", self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT, url
-        )
-        conn = httplib.HTTPConnection(
-            host=self.cfg.CPU_CONTROL_ADDR,
-            port=self.cfg.CPU_CONTROL_PORT,
-            timeout=1
-        )
-        try:
-            conn.request("POST", url)
-            response = conn.getresponse()
-        except Exception, err:
-            log.critical("Error request %s: %s", url, err)
-        else:
-            print response.status, response.reason
-
     def exit(self):
         log.critical("Exit called in periphery.")
         self.running = False
-        self.request_cpu(url="/quit/")
+
+    def mainloop(self, cpu):
+        cpu.reset()
+        max_ops = self.cfg.cfg_dict["max_ops"]
+        if max_ops:
+            log.critical("Running only %i ops!", max_ops)
+            for __ in xrange(max_ops):
+                cpu.get_and_call_next_op()
+                if not (self.periphery.running and self.cpu.running):
+                    break
+            log.critical("Quit CPU after given 'max_ops' %i ops.", max_ops)
+        else:
+            while self.periphery.running and self.cpu.running:
+                cpu.get_and_call_next_op()
+
+        cpu.quit()
+        self.periphery.exit()
 
     def read_byte(self, cpu_cycles, op_address, address):
 #         log.critical(

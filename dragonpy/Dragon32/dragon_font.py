@@ -11,10 +11,9 @@
 """
 
 import Tkinter
-import itertools
-from dragonpy.Dragon32.dragon_charmap import NORMAL, get_rgb_color, \
-    get_hex_color, COLORS, INVERTED
 
+from dragonpy.Dragon32.dragon_charmap import NORMAL, get_hex_color, COLORS, INVERTED
+from dragonpy.utils.logging_utils import log
 
 BACKGROUND_CHAR = "."
 FOREGROUND_CHAR = "X"
@@ -670,12 +669,14 @@ class TkFont(object):
     by Python will "remove" the created images in Tkinter.Canvas!
     """
     CACHE = {}
-    def __init__(self, chars_dict, scale_factor):
+    def __init__(self, chars_dict, scale_factor, padding_top, padding_bottom):
         assert isinstance(scale_factor, int)
         assert scale_factor > 0
 
         self.chars_dict = chars_dict
         self.scale_factor = scale_factor
+        self.padding_top = padding_top
+        self.padding_bottom = padding_bottom
 
         temp = chars_dict["X"]
         self.width_real = len(temp[0])
@@ -684,20 +685,33 @@ class TkFont(object):
         self.width_scaled = self.width_real * self.scale_factor
         self.height_scaled = self.height_real * self.scale_factor
 
-        print "Every character is %ipx x %ipx (incl. scale factor: %i)" % (
+        self.height_padded = self.height_scaled + (
+            (self.padding_top + self.padding_bottom) * self.scale_factor
+        )
+
+        log.critical("Every character is %ipx x %ipx (incl. scale factor: %i)",
             self.width_scaled, self.height_scaled,
             self.scale_factor
         )
 
     def _generate_char(self, char, color):
-        print "Generate char", char, color
+        log.critical("Generate char %s %s", repr(char), color)
         char_data = self.chars_dict[char]
         foreground, background = get_hex_color(color)
         foreground = "#%s" % foreground
         background = "#%s" % background
 
-        img = Tkinter.PhotoImage(width=self.width_scaled, height=self.height_scaled)
+        img = Tkinter.PhotoImage(
+            width=self.width_scaled,
+            height=self.height_padded
+        )
 
+        # Fill top padding lines with background color
+        for y in xrange(self.padding_top):
+            for x in xrange(self.width_real):
+                img.put(background, (x, y))
+
+        # Fill the character pixels without padding
         for y, line in enumerate(char_data):
             for x, bit in enumerate(line):
                 if bit == BACKGROUND_CHAR:
@@ -706,8 +720,14 @@ class TkFont(object):
                     assert bit == FOREGROUND_CHAR
                     color = foreground
 
-                img.put(color, (x, y))
+                img.put(color, (x, y + self.padding_top))
 
+        # Fill bottom padding lines with background color
+        for y in xrange(self.padding_top + self.height_real, self.padding_top + self.height_real + self.padding_bottom):
+            for x in xrange(self.width_real):
+                img.put(background, (x, y))
+
+        # resize the character
         if self.scale_factor > 1:
             img = img.zoom(self.scale_factor, self.scale_factor)
 
@@ -737,7 +757,7 @@ class TestTkFont(object):
         self.root.bind('<Up>', self.event_arrow_up)
 
         self.total_width = self.tk_font.width_scaled * self.row_count
-        self.total_height = self.tk_font.height_scaled * (len(self.tk_font.chars_dict) / self.row_count)
+        self.total_height = self.tk_font.height_padded * (len(self.tk_font.chars_dict) / self.row_count)
 
         print "Window/Canvas geometry: %spx x %spx" % (self.total_width, self.total_height)
         self.root.geometry("+%i+%i" % (self.total_width, self.total_height))
@@ -746,7 +766,7 @@ class TestTkFont(object):
             width=self.total_width,
             height=self.total_height,
             bd=0, # Border
-            bg="#ff0000",
+            bg="#000000",
         )
         self.canvas.pack()
         self.add_chars()
@@ -756,7 +776,7 @@ class TestTkFont(object):
         chars_dict = self.tk_font.chars_dict
         for no, char in enumerate(sorted(chars_dict.keys())):
             y, x = divmod(no * self.tk_font.width_scaled, self.total_width)
-            y *= self.tk_font.height_scaled
+            y *= self.tk_font.height_padded
 #             print "add %s color: %s to %i x %i" % (
 #                 repr(char), self.current_color, x, y
 #             )
@@ -788,12 +808,14 @@ class TestTkFont(object):
 
 
 if __name__ == "__main__":
-    tk_font = TkFont(CHARS_DICT,
-#         scale_factor=1
-#         scale_factor=2
-#         scale_factor=3
-        scale_factor=4
-#         scale_factor=8
+#     scale_factor = 1
+#     scale_factor = 2
+#     scale_factor = 3
+    scale_factor = 4
+#     scale_factor = 8
+    tk_font = TkFont(
+        CHARS_DICT, scale_factor,
+        padding_top=3, padding_bottom=2
     )
 
     colors = (NORMAL, INVERTED) + COLORS

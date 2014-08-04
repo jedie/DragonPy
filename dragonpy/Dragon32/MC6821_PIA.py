@@ -78,7 +78,7 @@ class PIA(object):
         self.empty_key_toggle = True
         self.input_queue = Queue.Queue(maxsize=10)
 #         for char in 'PRINT "HELLO WORLD!"\r':self.input_queue.put(char)
-        for char in ("d", 50, "D", "\r", "A", "\r", "B", "\r", "C", "\r"):self.input_queue.put(char)
+#         for char in ("d", 50, "D", "\r", "A", "\r", "B", "\r", "C", "\r"):self.input_queue.put(char)
         self.current_input_char = None
 
     def add_read_write_callbacks(self, periphery):

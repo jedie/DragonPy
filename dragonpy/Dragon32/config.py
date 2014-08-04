@@ -14,7 +14,6 @@ import logging
 
 from dragonpy.core.configs import BaseConfig
 
-from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 from dragonpy.Dragon32.mem_info import get_dragon_meminfo
 from dragonpy.utils.logging_utils import log
 
@@ -67,7 +66,7 @@ class Dragon32Cfg(BaseConfig):
         if self.verbosity <= logging.ERROR:
             self.mem_info = get_dragon_meminfo()
 
-        self.periphery_class = Dragon32Periphery
+        self.periphery_class = None# Dragon32Periphery
         self.memory_callbacks = {
             (0x0152, 0x0159): (None, self.keyboard_matrix_state),
         }
@@ -77,7 +76,7 @@ class Dragon32Cfg(BaseConfig):
             cpu.last_op_address, addr, value, '{0:08b}'.format(value),
             self.mem_info.get_shortest(addr)
         )
-        #cpu.memory.ram.print_dump(0x004f, 0x0054)
+        # cpu.memory.ram.print_dump(0x004f, 0x0054)
 
     def get_initial_RAM(self):
         """

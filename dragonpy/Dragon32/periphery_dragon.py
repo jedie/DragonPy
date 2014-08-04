@@ -19,24 +19,24 @@ import os
 import sys
 import Tkinter
 
-from dragonpy.Dragon32.display_tkinter import DragonTextDisplayTkinter
-from dragonpy.Dragon32.display_pygame import DragonTextDisplay
 from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.components.periphery import PeripheryBase
 from dragonpy.utils.logging_utils import log
-from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
+from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
+from dragonpy.Dragon32.display_base import DragonTextDisplayBase
+import time
 
 
 class Dragon32PeripheryBase(PeripheryBase):
     """
-    GUI Independed stuff
+    GUI independent stuff
     """
     def __init__(self, cfg):
         super(Dragon32PeripheryBase, self).__init__(cfg)
 
         self.kbd = 0xBF
-        self.display = DragonTextDisplayTkinter()
+        self.display = None
         self.speaker = None # Speaker()
         self.cassette = None # Cassette()
 
@@ -58,12 +58,6 @@ class Dragon32PeripheryBase(PeripheryBase):
         self.debug_func_map(self.read_word_func_map, "read_word_func_map")
         self.debug_func_map(self.write_byte_func_map, "write_byte_func_map")
         self.debug_func_map(self.write_word_func_map, "write_word_func_map")
-
-        for addr in xrange(0x400, 0x600):
-            self.read_byte_func_map[addr] = self.display.read_byte
-            self.read_word_func_map[addr] = self.display.read_word
-            self.write_byte_func_map[addr] = self.display.write_byte
-            self.write_word_func_map[addr] = self.display.write_word
 
         self.running = True
 
@@ -88,49 +82,115 @@ class Dragon32PeripheryBase(PeripheryBase):
         if self.speaker:
             self.speaker.update(cpu_cycles)
 
-    def _handle_events(self):
-        
-#        log.critical("pygame handle events")
-#         for event in pygame.event.get():
-#             log.debug("Pygame event: %s", repr(event))
-#             if event.type == pygame.QUIT:
-#                 log.critical("pygame.QUIT: shutdown")
-#                 self.exit()
-#                 break
-# 
-#             if event.type == pygame.KEYDOWN:
-#                 log.info("Pygame keydown event: %s", repr(event))
-#                 char_or_code = event.unicode or event.scancode
-#                 self.pia.key_down(char_or_code)
-
-    def mainloop(self, cpu_process):
-        log.critical("Pygame mainloop started.")
-        while self.running and cpu_process.is_alive():
-            self._handle_events()
-
-        self.exit()
-        log.critical("Pygame mainloop stopped.")
 
 
-
-class Dragon32PeripheryTkInter(Dragon32PeripheryBase):
+class Dragon32TextDisplayTkinter(DragonTextDisplayBase):
     """
-    GUI Independed stuff
+    The GUI stuff
     """
-    def __init__(self, cfg):
-        super(Dragon32PeripheryBase, self).__init__(cfg)
-        
-        self.root = Tkinter.Tk(className="Dragon")
-        self.root.title("Dragon - Text Display 32 rows x 16 columns")
+    def __init__(self, root):
+        super(Dragon32TextDisplayTkinter, self).__init__()
 
-        self.root.bind("<Key>", self.event_key_pressed)
+#         scale_factor=1
+        scale_factor = 2
+#         scale_factor=3
+#         scale_factor=4
+#         scale_factor=8
+        self.tk_font = TkFont(
+            CHARS_DICT, scale_factor,
+            padding_top=3, padding_bottom=2
+        )
+
+        self.total_width = self.tk_font.width_scaled * self.rows
+        self.total_height = self.tk_font.height_padded * self.columns
+
+        self.canvas = Tkinter.Canvas(root,
+            width=self.total_width,
+            height=self.total_height,
+            bd=0, # Border
+            bg="#ff0000",
+        )
+
+    def render_char(self, char, color, address):
+        img = self.tk_font.get_char(char, color)
+
+        position = address - 0x400
+        column, row = divmod(position, self.rows)
+        x = self.tk_font.width_scaled * row
+        y = self.tk_font.height_padded * column
+
+        self.canvas.create_image(x, y,
+            image=img,
+            state="normal",
+            anchor=Tkinter.NW # NW == NorthWest
+        )
 
     def exit(self):
         log.critical("Dragon32PeripheryBase.exit()")
         super(Dragon32PeripheryBase, self).exit()
 
 
-def test_run():
+
+class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
+    def __init__(self, cfg):
+        super(Dragon32PeripheryTkinter, self).__init__(cfg)
+
+        self.root = Tkinter.Tk(className="Dragon")
+        self.root.title("Dragon - Text Display 32 rows x 16 columns")
+
+        self.root.bind("<Key>", self.event_key_pressed)
+
+        self.display = Dragon32TextDisplayTkinter(self.root)
+
+        # Collect all read/write functions from Display:
+        self.display.add_read_write_callbacks(self)
+
+        self.display.canvas.grid(row=0, column=0)# , columnspan=3, rowspan=2)
+
+        self.status = Tkinter.StringVar()
+        self.status_widget = Tkinter.Label(self.root, textvariable=self.status, text="Info:", borderwidth=1)
+        self.status_widget.grid(row=1, column=0)
+
+    def event_key_pressed(self, event):
+        char_or_code = event.char or event.keycode
+        self.pia.key_down(char_or_code)
+
+    def run_cpu_interval(self, cpu, last_cycles=None, last_cycle_update=sys.maxint):
+#         max_ops = self.cfg.cfg_dict["max_ops"]
+#         if max_ops:
+#             log.critical("Running only %i ops!", max_ops)
+#             for __ in xrange(max_ops):
+#                 cpu.get_and_call_next_op()
+#                 if not (self.periphery.running and self.cpu.running):
+#                     break
+#             log.critical("Quit CPU after given 'max_ops' %i ops.", max_ops)
+#         else:
+#             while self.periphery.running and self.cpu.running:
+        for _ in xrange(10000):
+            cpu.get_and_call_next_op()
+
+        duration = time.time() - last_cycle_update
+        if duration > 1:
+            cycles = cpu.cycles - last_cycles
+            if cycles == 0:
+                log.critical("Exit display_cycle_interval() thread, because cycles/sec == 0")
+                return
+            msg = "%i cycles/sec (%i cycles in last %isec)" % (
+                int(cycles / duration), cycles, duration
+            )
+            self.status.set(msg)
+            last_cycle_update = time.time()
+
+        self.root.after(1, self.run_cpu_interval, cpu,
+            cpu.cycles, last_cycle_update
+        )
+
+    def mainloop(self, cpu):
+        self.run_cpu_interval(cpu, last_cycle_update=time.time())
+        self.root.mainloop()
+
+
+def test_run_cli():
     import subprocess
     cmd_args = [
         sys.executable,
@@ -157,5 +217,17 @@ def test_run():
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()
 
+
+def test_run_direct():
+    import sys, os, subprocess
+    cmd_args = [
+        sys.executable,
+        os.path.join("..", "Dragon64_test.py"),
+    ]
+    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    subprocess.Popen(cmd_args, cwd="..").wait()
+
+
 if __name__ == "__main__":
-    test_run()
+#     test_run_cli()
+    test_run_direct()

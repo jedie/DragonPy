@@ -24,22 +24,22 @@ class CPUThread(threading.Thread):
         self.cfg = cfg
         self.cpu = cpu
 
-        self.last_update = None
+        self.last_cycle_update = None
         self.last_cycles = None
         if cfg.display_cycle:
             self.display_cycle_interval()
 
     def display_cycle_interval(self):
-        if self.last_update is not None: # Skip the first time call.
+        if self.last_cycle_update is not None: # Skip the first time call.
             cycles = self.cpu.cycles - self.last_cycles
-            duration = time.time() - self.last_update
+            duration = time.time() - self.last_cycle_update
             log.critical(
                 "%i cycles/sec (%i cycles in last %isec)",
                 int(cycles / duration), cycles, duration
             )
 
         self.last_cycles = self.cpu.cycles
-        self.last_update = time.time()
+        self.last_cycle_update = time.time()
         t = threading.Timer(5.0, self.display_cycle_interval)
         t.deamon = True
         t.start()
