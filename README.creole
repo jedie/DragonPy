@@ -4,7 +4,6 @@ A Open source (GPL v3 or later) emulator for the 30years old homecomputer {{{Dra
 
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon64_01.png|Dragon 64 screenshot}}
 
-It's in a early development state and not usable, yet.
 A usable Dragon / CoCo emulator is [[http://www.6809.org.uk/dragon/xroar.shtml|XRoar]].
 
 DragonPy will not be a second XRoar written in Python.
@@ -12,12 +11,13 @@ This project is primarily to lean and understand.
 
 Current state:
 The Dragon 32 / 64 ROM works in Text mode.
-
 Also the "single board computer" ROMs sbc09, Simple6809 and Multicomp6809 works well.
-
 
 Future goals are:
 * Implement a integrated development environment for BASIC programs
+
+
+=== ROMs
 
 The Dragon ROMs can be downloaded here:
 * http://archive.worldofdragon.org/archive/index.php?dir=Roms/Dragon/
