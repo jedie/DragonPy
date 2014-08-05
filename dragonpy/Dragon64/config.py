@@ -17,6 +17,8 @@ from dragonpy.Dragon64.mem_info import get_dragon_meminfo
 
 
 class Dragon64Cfg(Dragon32Cfg):
+    MACHINE_NAME = "Dragon 64"
+    
     RAM_START = 0x0000
 
     # 1KB RAM is not runnable and raise a error
@@ -28,8 +30,8 @@ class Dragon64Cfg(Dragon32Cfg):
 #     RAM_END = 0x07FF # 2KB # BASIC will always raise a OM ERROR!
 #     RAM_END = 0x0FFF # 4KB # BASIC will always raise a OM ERROR!
 #     RAM_END = 0x1FFF # 8KB # BASIC will always raise a OM ERROR!
-    RAM_END = 0x3FFF # 16KB # usable
-#     RAM_END = 0x7FFF # 32KB
+#     RAM_END = 0x3FFF # 16KB # usable
+    RAM_END = 0x7FFF # 32KB
 
     ROM_START = 0x8000
     ROM_END = 0xFFFF

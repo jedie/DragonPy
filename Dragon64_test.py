@@ -57,22 +57,12 @@ class Dragon64(object):
         self.cpu = CPU(memory, self.cfg)
         memory.cpu = self.cpu # FIXME
 
-#     def update_display_interval(self):
-#         self.periphery.update(self.cpu.cycles)
-#         if self.periphery.running and self.cpu.running:
-#             t = threading.Timer(0.25, self.update_display_interval)
-#             t.deamon = True
-#             t.start()
-
     def run(self):
-#         self.update_display_interval()
+        self.cpu.reset()
 
-        cpu = self.cpu
-        cpu.reset()
+        self.periphery.mainloop(self.cpu)
 
-        self.periphery.mainloop(cpu)
-
-        cpu.quit()
+        self.cpu.quit()
         self.periphery.exit()
 
 
