@@ -10,11 +10,6 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import Queue
-import sys
-import threading
-import time
-
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.periphery_dragon import Dragon32PeripheryTkinter
 from dragonpy.components.cpu6809 import CPU
@@ -25,7 +20,8 @@ from dragonpy.utils.logging_utils import setup_logging
 
 CFG_DICT = {
     "verbosity":None,
-    "display_cycle":True,
+#     "display_cycle":True,
+    "display_cycle":False,
 
     "trace":None,
 #    "trace":True,
