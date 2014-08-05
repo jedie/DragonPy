@@ -75,9 +75,6 @@ Just request http://localhost:6809 from your browser.
 [[https://travis-ci.org/jedie/DragonPy|Travis CI Status]]: {{https://secure.travis-ci.org/jedie/DragonPy.svg?branch=master|DragonPy build status on travis-ci.org}}
 * https://travis-ci.org/jedie/DragonPy
 
-{# [[https://coveralls.io/r/jedie/DragonPy|Coveralls Status]]: {{https://img.shields.io/coveralls/jedie/DragonPy.svg|DragonPy status on coveralls.io}} #}
-{# * https://coveralls.io/r/jedie/DragonPy #}
-
 === run unittests ===
 
 You should use PyPy to run all tests. It's around 10 time faster.
@@ -186,6 +183,7 @@ e.g. The Dragon 32 6809 machine with a 14.31818 MHz crystal runs with:
 
 == TODO:
 
+# Reimplement the CLI
 # Fast save/load BASIC programm listings direct into RAM
 # Support CoCo ROMs
 # Use bottle for http control server part
