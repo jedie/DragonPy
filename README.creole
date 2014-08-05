@@ -2,21 +2,22 @@
 
 A Open source (GPL v3 or later) emulator for the 30years old homecomputer {{{Dragon 32}}}...
 
-It's in a early development state and not usable, yet.
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon64_01.png|Dragon 64 screenshot}}
+
 A usable Dragon / CoCo emulator is [[http://www.6809.org.uk/dragon/xroar.shtml|XRoar]].
 
 DragonPy will not be a second XRoar written in Python.
 This project is primarily to lean and understand.
 
 Current state:
-The Dragon 32 / 64 ROM works in Text mode. But currently there is a bug with
-screen "scolling".
-
+The Dragon 32 / 64 ROM works in Text mode.
 Also the "single board computer" ROMs sbc09, Simple6809 and Multicomp6809 works well.
-
 
 Future goals are:
 * Implement a integrated development environment for BASIC programs
+
+
+=== ROMs
 
 The Dragon ROMs can be downloaded here:
 * http://archive.worldofdragon.org/archive/index.php?dir=Roms/Dragon/
@@ -114,7 +115,7 @@ install [[https://pypi.python.org/pypi/coverage|coverage]] for python 2:
 
 Dragon 32 and 64 ROMs in Text mode:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/DragonPy_DragonROM_01.png}}
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon64_01.png}}
 
 
 "sbc09" ROM in Tkinter window:
@@ -138,6 +139,25 @@ Some notes:
 
 A "auto shift" mode is implemented. So normal lowercase letters would be automaticly converted to uppercase letters.
 
+==== paste clipboard
+
+It is possible to paste the content of the clipboard as user input in the machine.
+Just copy (Ctrl-C) the follow content:
+{{{
+10 CLS
+20 FOR I = 0 TO 255:
+30 POKE 1024+(I*2),I
+40 NEXT I
+50 I$ = INKEY$:IF I$="" THEN 50
+}}}
+Focus the DragonPy window and use Ctrl-V to paste the content.
+
+Looks like:
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon32_Listing.png}}
+
+Then just **RUN** and then it looks like this:
+
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon32_CharMap.png}}
 
 === performance
 
@@ -153,46 +173,12 @@ e.g. The Dragon 32 6809 machine with a 14.31818 MHz crystal runs with:
 0,895MHz (14,31818Mhz/16=0,895MHz) in other words: 895.000 CPU-cycles/sec.
 
 
-=== about implementation
-
-The current implementation 
-
-# CLI starts CPU via subprocess
-# CPU starts a control http server at localhost:6809
-# in the config some memory areas are "marked" as "bus areas"
-# If CPU read/write in a bus memory area:
-## send/receive via socked from the periphery
-## periphery send/receive to components like the screen/SAM/PIA/cassette etc.
-
-It looks like this:
-{{{
-
- process_main.py                                     process_sub.py          
-+-------------------------+                         +-----------------------+
-|                         |                         |                       |
-| BusCommunicationThread<--->multiprocessing.Queue<--------->Memory         |
-|        +    ^           |                         |        +    ^         |
-|        |    |           |                         |        |    |         |
-|        |    |           |                         |        |    |         |
-|        |    |           |                         |        |    |         |
-|        v    +           |                         |        v    +         |
-|       periphery         |                         |    6809 CPU Thread    |
-|         +  ^            |                         |       +      ^        |
-|         |  |            |                         |       |      |        |
-|         |  |            |                         |       |      |        |
-|         |  |            |                         |       v      +        |
-|         v  +            |                         |  http control server  |
-|     GUI mainloop        |                         |                       |
-|                         |                         |                       |
-+-------------------------+                         +-----------------------+
-
-}}}
-
-
 == TODO:
 
+# Fast save/load BASIC programm listings direct into RAM
+# Support CoCo ROMs
 # Use bottle for http control server part
-# implement Dragon 32 periphery
+# implement more Dragon 32 periphery
 
 unimplemented OPs:
 

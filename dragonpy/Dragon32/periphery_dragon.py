@@ -17,57 +17,48 @@
 
 import os
 import sys
-try:
-    import pygame
-except ImportError:
-    # Maybe Dragon would not be emulated ;)
-    pygame = None
+import Tkinter
 
-from dragonpy.Dragon32.display import DragonTextDisplay
 from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.components.periphery import PeripheryBase
 from dragonpy.utils.logging_utils import log
-from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
+from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
+from dragonpy.Dragon32.display_base import DragonTextDisplayBase
+import time
+import traceback
 
 
-class Dragon32Periphery(PeripheryBase):
-
+class Dragon32PeripheryBase(PeripheryBase):
+    """
+    GUI independent stuff
+    """
     def __init__(self, cfg):
-        super(Dragon32Periphery, self).__init__(cfg)
+        super(Dragon32PeripheryBase, self).__init__(cfg)
 
         self.kbd = 0xBF
-        self.display = DragonTextDisplay()
+        self.display = None
         self.speaker = None # Speaker()
         self.cassette = None # Cassette()
 
         self.sam = SAM(cfg)
         self.pia = PIA(cfg)
 
-        self.read_byte_func_map = {
+        self.read_word_func_map = {
             0xc000: self.no_dos_rom,
             0xfffe: self.reset_vector,
         }
-        self.write_byte_func_map = {}
 
         # Collect all read/write functions from PIA:
-        pia_read_func_map = self.pia.get_read_func_map()
-        pia_write_func_map = self.pia.get_write_func_map()
-        self.read_byte_func_map.update(pia_read_func_map)
-        self.write_byte_func_map.update(pia_write_func_map)
+        self.pia.add_read_write_callbacks(self)
 
         # Collect all read/write functions from SAM:
-        sam_read_func_map = self.sam.get_read_func_map()
-        sam_write_func_map = self.sam.get_write_func_map()
-        self.read_byte_func_map.update(sam_read_func_map)
-        self.write_byte_func_map.update(sam_write_func_map)
+        self.sam.add_read_write_callbacks(self)
 
         self.debug_func_map(self.read_byte_func_map, "read_byte_func_map")
+        self.debug_func_map(self.read_word_func_map, "read_word_func_map")
         self.debug_func_map(self.write_byte_func_map, "write_byte_func_map")
-
-        for addr in xrange(0x400, 0x600):
-            self.read_byte_func_map[addr] = self.display.read_byte
-            self.write_byte_func_map[addr] = self.display.write_byte
+        self.debug_func_map(self.write_word_func_map, "write_word_func_map")
 
         self.running = True
 
@@ -85,11 +76,6 @@ class Dragon32Periphery(PeripheryBase):
         log.info("%04x| %04x        [RESET]" % (address, ea))
         return ea # FIXME: RESET interrupt service routine ???
 
-    def exit(self):
-        log.critical("exit pygame")
-        super(Dragon32Periphery, self).exit()
-        pygame.display.quit()
-
     def update(self, cpu_cycles):
 #        log.critical("update pygame")
         if not self.running:
@@ -97,31 +83,147 @@ class Dragon32Periphery(PeripheryBase):
         if self.speaker:
             self.speaker.update(cpu_cycles)
 
-    def _handle_events(self):
-#        log.critical("pygame handle events")
-        for event in pygame.event.get():
-            log.debug("Pygame event: %s", repr(event))
-            if event.type == pygame.QUIT:
-                log.critical("pygame.QUIT: shutdown")
-                self.exit()
-                break
-
-            if event.type == pygame.KEYDOWN:
-                log.critical("Pygame keydown event: %s", repr(event))
-                char_or_code = event.unicode or event.scancode
-                self.pia.key_down(char_or_code)
-
-    def mainloop(self, cpu_process):
-        log.critical("Pygame mainloop started.")
-        while self.running and cpu_process.is_alive():
-            self._handle_events()
-
-        self.exit()
-        log.critical("Pygame mainloop stopped.")
 
 
+class Dragon32TextDisplayTkinter(DragonTextDisplayBase):
+    """
+    The GUI stuff
+    """
+    def __init__(self, root):
+        super(Dragon32TextDisplayTkinter, self).__init__()
 
-def test_run():
+#         scale_factor=1
+        scale_factor = 2
+#         scale_factor=3
+#         scale_factor=4
+#         scale_factor=8
+        self.tk_font = TkFont(CHARS_DICT, scale_factor)
+
+        self.total_width = self.tk_font.width_scaled * self.rows
+        self.total_height = self.tk_font.height_scaled * self.columns
+
+        self.canvas = Tkinter.Canvas(root,
+            width=self.total_width,
+            height=self.total_height,
+            bd=0, # Border
+            bg="#ff0000",
+        )
+
+    def render_char(self, char, color, address):
+        img = self.tk_font.get_char(char, color)
+
+        position = address - 0x400
+        column, row = divmod(position, self.rows)
+        x = self.tk_font.width_scaled * row
+        y = self.tk_font.height_scaled * column
+
+        self.canvas.create_image(x, y,
+            image=img,
+            state="normal",
+            anchor=Tkinter.NW # NW == NorthWest
+        )
+
+    def exit(self):
+        log.critical("Dragon32PeripheryBase.exit()")
+        super(Dragon32PeripheryBase, self).exit()
+
+
+
+class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
+    def __init__(self, cfg):
+        super(Dragon32PeripheryTkinter, self).__init__(cfg)
+
+        self.cpu_burst_loops=0
+
+        self.root = Tkinter.Tk(className="Dragon")
+        machine_name = self.cfg.MACHINE_NAME
+        self.root.title("%s - Text Display 32 columns x 16 rows" % machine_name)
+
+        self.root.bind("<Key>", self.event_key_pressed)
+        self.root.bind("<<Paste>>", self.paste_clipboard)
+
+        self.display = Dragon32TextDisplayTkinter(self.root)
+
+        # Collect all read/write functions from Display:
+        self.display.add_read_write_callbacks(self)
+
+        self.display.canvas.grid(row=0, column=0)# , columnspan=3, rowspan=2)
+
+        self.status = Tkinter.StringVar()
+        self.status_widget = Tkinter.Label(self.root, textvariable=self.status, text="Info:", borderwidth=1)
+        self.status_widget.grid(row=1, column=0)
+
+    def paste_clipboard(self, event):
+        """
+        Send the clipboard content as user input to the CPU.
+        """
+        log.critical("paste clipboard")
+        clipboard = self.root.clipboard_get()
+        for line in clipboard.splitlines():
+            log.critical("paste line: %s", repr(line))
+            for char in line:
+                self.pia.key_down(char, block=True)
+            self.pia.key_down("\r", block=True)
+
+    def event_key_pressed(self, event):
+        char_or_code = event.char or event.keycode
+        self.pia.key_down(char_or_code)
+
+    def run_cpu_interval(self, cpu, burst_count):
+#         max_ops = self.cfg.cfg_dict["max_ops"]
+#         if max_ops:
+#             log.critical("Running only %i ops!", max_ops)
+#             for __ in xrange(max_ops):
+#                 cpu.get_and_call_next_op()
+#                 if not (self.periphery.running and self.cpu.running):
+#                     break
+#             log.critical("Quit CPU after given 'max_ops' %i ops.", max_ops)
+#         else:
+#             while self.periphery.running and self.cpu.running:
+
+        for _ in xrange(burst_count):
+            try:
+                cpu.get_and_call_next_op()
+            except:
+                tb = traceback.format_exc()
+                log.log(99, "Error running OP:\n%s" % tb)
+
+        self.cpu_burst_loops += 1
+        self.root.after(1, self.run_cpu_interval, cpu, burst_count)
+    
+    def update_status_interval(self, cpu, last_update=None, last_cycles=0):
+        if last_update is not None:
+            duration = time.time() - last_update
+            cycles = cpu.cycles - last_cycles
+            if cycles == 0:
+                log.critical("Exit display_cycle_interval() thread, because cycles/sec == 0")
+                return
+            msg = "%i cycles/sec (%i cycles in last %isec, cpu_burst_loops=%i)" % (
+                int(cycles / duration), cycles, duration, self.cpu_burst_loops
+            )
+    #             msg = "%d cycles/sec (Dragon 32 == 895.000cycles/sec)" % int(cycles / duration)
+            self.status.set(msg)
+            self.cpu_burst_loops=0
+
+        last_cycles = cpu.cycles
+        last_update = time.time()
+        
+        self.root.after(1000, self.update_status_interval, cpu,
+            last_update, last_cycles
+        )
+    
+#     def update_gui_interval(self, cpu, interval_ms):
+#         self.root.update()  
+#         self.root.after(interval_ms, self.update_gui_interval, cpu, interval_ms)
+
+    def mainloop(self, cpu):
+#         self.update_gui_interval(cpu, interval_ms=100)
+        self.update_status_interval(cpu)
+        self.run_cpu_interval(cpu,burst_count=5000)
+        self.root.mainloop()
+
+
+def test_run_cli():
     import subprocess
     cmd_args = [
         sys.executable,
@@ -136,11 +238,11 @@ def test_run():
 #
 #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
 #
-#        "--cfg=Dragon32",
+#         "--cfg=Dragon32",
         "--cfg=Dragon64",
 #
         "--dont_open_webbrowser",
-#        "--display_cycle", # print CPU cycle/sec while running.
+        "--display_cycle", # print CPU cycle/sec while running.
 #
 #         "--max=15000",
 #         "--max=46041",
@@ -148,5 +250,18 @@ def test_run():
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()
 
+
+def test_run_direct():
+    import sys, os, subprocess
+    cmd_args = [
+        sys.executable,
+#         "/usr/bin/pypy",
+        os.path.join("..", "Dragon64_test.py"),
+    ]
+    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    subprocess.Popen(cmd_args, cwd="..").wait()
+
+
 if __name__ == "__main__":
-    test_run()
+#     test_run_cli()
+    test_run_direct()

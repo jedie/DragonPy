@@ -14,7 +14,6 @@ import logging
 
 from dragonpy.core.configs import BaseConfig
 
-from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 from dragonpy.Dragon32.mem_info import get_dragon_meminfo
 from dragonpy.utils.logging_utils import log
 
@@ -25,12 +24,20 @@ class Dragon32Cfg(BaseConfig):
      * http://dragon32.info/info/memmap.html
      * http://dragon32.info/info/romref.html
     """
+    MACHINE_NAME = "Dragon 32"
+    
     RAM_START = 0x0000
-#    RAM_END = 0x03FF # 1KB
-#    RAM_END = 0x07FF # 2KB
-#    RAM_END = 0x0FFF # 4KB
-#    RAM_END = 0x1FFF # 8KB
-#    RAM_END = 0x3FFF # 16KB
+    
+    # 1KB RAM is not runnable and raise a error
+    # 2-8 KB - BASIC Interpreter will be initialized. But every
+    #          statement will end with a OM ERROR (Out of Memory)
+    # 16 KB - Is usable
+
+#     RAM_END = 0x03FF # 1KB
+#     RAM_END = 0x07FF # 2KB # BASIC will always raise a OM ERROR!
+#     RAM_END = 0x0FFF # 4KB # BASIC will always raise a OM ERROR!
+#     RAM_END = 0x1FFF # 8KB # BASIC will always raise a OM ERROR!
+#     RAM_END = 0x3FFF # 16KB # usable
     RAM_END = 0x7FFF # 32KB
 
     ROM_START = 0x8000
@@ -67,7 +74,7 @@ class Dragon32Cfg(BaseConfig):
         if self.verbosity <= logging.ERROR:
             self.mem_info = get_dragon_meminfo()
 
-        self.periphery_class = Dragon32Periphery
+        self.periphery_class = None# Dragon32Periphery
         self.memory_callbacks = {
             (0x0152, 0x0159): (None, self.keyboard_matrix_state),
         }
@@ -77,7 +84,7 @@ class Dragon32Cfg(BaseConfig):
             cpu.last_op_address, addr, value, '{0:08b}'.format(value),
             self.mem_info.get_shortest(addr)
         )
-        #cpu.memory.ram.print_dump(0x004f, 0x0054)
+        # cpu.memory.ram.print_dump(0x004f, 0x0054)
 
     def get_initial_RAM(self):
         """

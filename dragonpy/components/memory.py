@@ -149,12 +149,13 @@ class Memory(object):
             self._read_callbacks[address](self.cpu, address)
 
         if address in self.cfg.bus_addr_areas:
-            info = self.cfg.bus_addr_areas[address]
-            byte = self.bus_read_byte(address)
-#            log.log(5, "%04x| (%i) read byte $%x from address $%x from bus: %s",
-#                self.cpu.last_op_address, self.cpu.cycles,
-#                byte, address, info
-#            )
+            byte = self.cfg.periphery.read_byte(
+                self.cpu.cycles, self.cpu.last_op_address, address
+            )
+#             log.critical("%04x| (%i) read byte $%x from address $%x from periphery: %s",
+#                 self.cpu.last_op_address, self.cpu.cycles,
+#                 byte, address, self.cfg.bus_addr_areas[address]
+#             )
             return byte
 
         if address < self.cfg.RAM_END:
@@ -173,18 +174,18 @@ class Memory(object):
 #            self.cpu.last_op_address, self.cpu.cycles,
 #            byte, address
 #        )
-#         if 32 <= byte <= 126:
-#         if 65 <= byte <= 90:
-#            log.info("%04x| (%i) read char %r ($%x) from $%x",
-#                self.cpu.last_op_address, self.cpu.cycles, chr(byte), byte, address
-#            )
         return byte
 
     def read_word(self, address):
         if address in self.cfg.bus_addr_areas:
-            info = self.cfg.bus_addr_areas[address]
-#            log.log(5, "\tread word at $%x from bus: %s", address, info)
-            return self.bus_read_word(address)
+            word = self.cfg.periphery.read_word(
+                self.cpu.cycles, self.cpu.last_op_address, address
+            )
+#             log.critical("%04x| read word $%04x from address $%x from periphery: %s",
+#                 self.cpu.last_op_address,
+#                 word, address, self.cfg.bus_addr_areas[address]
+#             )
+            return word
 
         # 6809 is Big-Endian
         return self.read_byte(address + 1) + (self.read_byte(address) << 8)
@@ -200,9 +201,14 @@ class Memory(object):
 #             log.error(" ^^^^ wrap around to $%x", value)
 
         if address in self.cfg.bus_addr_areas:
-            info = self.cfg.bus_addr_areas[address]
-#            log.log(5, "\twrite byte at $%x to bus: %s" % (address, info))
-            return self.bus_write_byte(address, value)
+            self.cfg.periphery.write_byte(
+                self.cpu.cycles, self.cpu.last_op_address, address, value
+            )
+#             log.critical(
+#                 "\twrite byte at $%x to bus: %s",
+#                 address, self.cfg.bus_addr_areas[address]
+#             )
+            return
 
         if address < self.cfg.RAM_END:
             self.ram.write_byte(address, value)
@@ -220,9 +226,14 @@ class Memory(object):
 
     def write_word(self, address, value):
         if address in self.cfg.bus_addr_areas:
-            info = self.cfg.bus_addr_areas[address]
-#            log.log(5, "\twrite word at $%x to bus: %s" % (address, info))
-            return self.bus_write_word(address, value)
+            self.cfg.periphery.write_word(
+                self.cpu.cycles, self.cpu.last_op_address, address, value
+            )
+#             log.critical(
+#                 "\twrite word $%04x at $%x to bus: %s",
+#                 value, address, self.cfg.bus_addr_areas[address]
+#             )
+            return
 
         assert value >= 0, "Write negative word hex:%04x dez:%i to $%04x" % (value, value, address)
         assert value <= 0xffff, "Write out of range word hex:%04x dez:%i to $%04x" % (value, value, address)
@@ -230,59 +241,6 @@ class Memory(object):
         # 6809 is Big-Endian
         self.write_byte(address, value >> 8)
         self.write_byte(address + 1, value & 0xff)
-
-    def _bus_read(self, structure, address):
-#         self.cpu.cycles += 1 # ???
-        if self.use_bus:
-            self.read_bus_request_queue.put(
-                (self.cpu.cycles, self.cpu.last_op_address, structure, address),
-                block=True
-            )
-            value = self.read_bus_response_queue.get(block=True)
-            return value
-        else:
-            if structure == self.cfg.BUS_STRUCTURE_WORD:
-                return self.cfg.periphery.read_word(
-                    self.cpu.cycles, self.cpu.last_op_address, address
-                )
-            else:
-                return self.cfg.periphery.read_byte(
-                    self.cpu.cycles, self.cpu.last_op_address, address
-                )
-
-    def _bus_write(self, structure, address, value):
-#         self.cpu.cycles += 1 # ???
-        if self.use_bus:
-            self.write_bus_queue.put(
-                (self.cpu.cycles, self.cpu.last_op_address, structure, address, value),
-                block=True
-            )
-        else:
-            if structure == self.cfg.BUS_STRUCTURE_WORD:
-                self.cfg.periphery.write_word(
-                    self.cpu.cycles, self.cpu.last_op_address, address, value
-                )
-            else:
-                self.cfg.periphery.write_byte(
-                    self.cpu.cycles, self.cpu.last_op_address, address, value
-                )
-
-    def bus_read_byte(self, address):
-#        log.debug(" **** bus read byte from $%x" % (address))
-        value = self._bus_read(self.cfg.BUS_STRUCTURE_BYTE, address)
-        return value
-
-    def bus_read_word(self, address):
-#        log.debug(" **** bus read word from $%x" % (address))
-        return self._bus_read(self.cfg.BUS_STRUCTURE_WORD, address)
-
-    def bus_write_byte(self, address, value):
-#        log.debug(" **** bus write byte $%x to $%x" % (value, address))
-        return self._bus_write(self.cfg.BUS_STRUCTURE_BYTE, address, value)
-
-    def bus_write_word(self, address, value):
-#        log.debug(" **** bus write word $%x to $%x" % (value, address))
-        return self._bus_write(self.cfg.BUS_STRUCTURE_WORD, address, value)
 
     def iter_bytes(self, start, end):
         for addr in xrange(start, end):

@@ -51,6 +51,13 @@ COLOR_INFO = {
 }
 
 def get_rgb_color(color):
+    """
+    >>> get_rgb_color(BLUE)
+    ((0, 0, 0), (33, 16, 181))
+
+    >>> get_rgb_color(NORMAL)
+    ((0, 65, 0), (0, 255, 0))
+    """
     if color == INVERTED:
         foreground = (0, 255, 0)
         background = (0, 65, 0)
@@ -61,6 +68,21 @@ def get_rgb_color(color):
         foreground = (0, 0, 0)
         background = COLOR_INFO[color]
     return (foreground, background)
+
+def get_hex_color(color):
+    """
+    >>> get_hex_color(BLUE)
+    ('000000', '2110b5')
+
+    >>> get_hex_color(NORMAL)
+    ('004100', '00ff00')
+    """
+    foreground, background = get_rgb_color(color)
+    return (
+        "%02x%02x%02x" % foreground,
+        "%02x%02x%02x" % background,
+    )
+
 
 DRAGON_CHARS_MAP = []
 
@@ -256,5 +278,10 @@ def get_charmap_dict():
 
 
 if __name__ == "__main__":
+    import doctest
+    print doctest.testmod(
+        # verbose=1
+    )
+
 #     create_wiki_page()
-    create_dict()
+#     create_dict()

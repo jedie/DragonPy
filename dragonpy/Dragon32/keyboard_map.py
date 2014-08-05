@@ -149,9 +149,12 @@ DRAGON_KEYMAP = {
 def get_dragon_col_row_values(char_or_code, auto_shift=True):
     if auto_shift and isinstance(char_or_code, basestring):
         if char_or_code in string.ascii_lowercase:
+#             log.critical("auto shift lowercase char %s to UPPERCASE", repr(char_or_code))
             char_or_code = char_or_code.upper()
         elif char_or_code in string.ascii_uppercase:
+#             log.critical("auto shift UPPERCASE char %s to lowercase", repr(char_or_code))
             char_or_code = char_or_code.lower()
+
     try:
         col_row_values = DRAGON_KEYMAP[char_or_code]
     except KeyError:

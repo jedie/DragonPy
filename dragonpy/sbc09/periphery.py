@@ -57,6 +57,9 @@ class SBC09PeripheryBase(PeripheryBase):
         self.read_byte_func_map = {
             0xe000: self.read_acia_status, # Control/status port of ACIA
             0xe001: self.read_acia_data, # Data port of ACIA
+
+        }
+        self.read_word_func_map = {
             0xfffe: self.reset_vector,
         }
         self.write_byte_func_map = {

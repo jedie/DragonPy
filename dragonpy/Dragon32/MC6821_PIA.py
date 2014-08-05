@@ -19,7 +19,8 @@
 """
 
 from dragonpy.utils.logging_utils import log
-from dragonpy.Dragon32.keyboard_map import get_dragon_pia_result
+from dragonpy.Dragon32.keyboard_map import get_dragon_pia_result, \
+    get_dragon_col_row_values
 from dragonpy.utils.humanize import byte2bit_string
 from dragonpy.utils.bits import is_bit_set, invert_byte, clear_bit
 import os
@@ -41,7 +42,7 @@ class PIA_register(object):
         self.irq = 0x0
 
     def set(self, value):
-        log.error("\t set %s to $%02x", self.name, value)
+        log.debug("\t set %s to $%02x", self.name, value)
         self.value = value
     def get(self):
         return self.value
@@ -75,31 +76,16 @@ class PIA(object):
         self.pia_1_B_register = PIA_register("PIA1 B")
 
         self.empty_key_toggle = True
-        self.input_queue = Queue.Queue(maxsize=10)
+        self.input_queue = Queue.Queue()# maxsize=10)
 #         for char in 'PRINT "HELLO WORLD!"\r':self.input_queue.put(char)
+#         for char in ("d", 50, "D", "\r", "A", "\r", "B", "\r", "C", "\r"):self.input_queue.put(char)
         self.current_input_char = None
 
-    def get_write_func_map(self):
+    def add_read_write_callbacks(self, periphery):
         #
         # TODO: Collect this information via a decorator similar to op codes in CPU!
         #
-        write_func_map = {
-            0xff00: self.write_PIA0_A_data, #    PIA 0 A side Data reg.
-            0xff01: self.write_PIA0_A_control, # PIA 0 A side Control reg.
-            0xff02: self.write_PIA0_B_data, #    PIA 0 B side Data reg.
-            0xff03: self.write_PIA0_B_control, # PIA 0 B side Control reg.
-
-            0xff06: self.write_serial_interface, # Only Dragon 64
-
-            0xff20: self.write_PIA1_A_data, #    PIA 1 A side Data reg.
-            0xff21: self.write_PIA1_A_control, # PIA 1 A side Control reg.
-            0xff22: self.write_PIA1_B_data, #    PIA 1 B side Data reg.
-            0xff23: self.write_PIA1_B_control, # PIA 1 B side Control reg.
-        }
-        return write_func_map
-
-    def get_read_func_map(self):
-        read_func_map = {
+        periphery.read_byte_func_map.update({
             0xff00: self.read_PIA0_A_data, #    PIA 0 A side Data reg.
             0xff01: self.read_PIA0_A_control, # PIA 0 A side Control reg.
             0xff02: self.read_PIA0_B_data, #    PIA 0 B side Data reg.
@@ -111,8 +97,23 @@ class PIA(object):
             0xff21: self.read_PIA1_A_control, # PIA 1 A side Control reg.
             0xff22: self.read_PIA1_B_data, #    PIA 1 B side Data reg.
             0xff23: self.read_PIA1_B_control, # PIA 1 B side Control reg.
-        }
-        return read_func_map
+        })
+        periphery.read_word_func_map.update({
+        })
+        periphery.write_byte_func_map.update({
+            0xff00: self.write_PIA0_A_data, #    PIA 0 A side Data reg.
+            0xff01: self.write_PIA0_A_control, # PIA 0 A side Control reg.
+            0xff02: self.write_PIA0_B_data, #    PIA 0 B side Data reg.
+            0xff03: self.write_PIA0_B_control, # PIA 0 B side Control reg.
+
+            0xff20: self.write_PIA1_A_data, #    PIA 1 A side Data reg.
+            0xff21: self.write_PIA1_A_control, # PIA 1 A side Control reg.
+            0xff22: self.write_PIA1_B_data, #    PIA 1 B side Data reg.
+            0xff23: self.write_PIA1_B_control, # PIA 1 B side Control reg.
+        })
+        periphery.write_word_func_map.update({
+            0xff06: self.write_serial_interface, # Only Dragon 64
+        })
 
     def reset(self):
         self.pia_0_A_register.reset()
@@ -122,14 +123,15 @@ class PIA(object):
 
     #--------------------------------------------------------------------------
 
-    def key_down(self, char_or_code):
+    def key_down(self, char_or_code, block=False):
         log.error("Add user key down %r to PIA input queue.", repr(char_or_code))
-        try:
-            self.input_queue.put(char_or_code, block=False)
-        except Queue.Full:
-            log.log(level=99,
-                msg="Ignore key press %s, because input queue is full!" % repr(char_or_code)
-            )
+        self.input_queue.put(char_or_code, block=False)
+#         try:
+#             self.input_queue.put(char_or_code, block=block)
+#         except Queue.Full:
+#             log.log(level=99,
+#                 msg="Ignore key press %s, because input queue is full!" % repr(char_or_code)
+#             )
 
     #--------------------------------------------------------------------------
 
@@ -221,7 +223,13 @@ class PIA(object):
                 except Queue.Empty:
                     self.current_input_char = None
                 else:
-                    log.critical("\tNew input char: %s", repr(self.current_input_char))
+                    col_row_values = get_dragon_col_row_values(self.current_input_char)
+#                     log.critical(
+                    log.debug(
+                        "\tNew input char: %s col/row values: %s",
+                        repr(self.current_input_char),
+                        repr(col_row_values),
+                    )
                     self.empty_key_toggle = True
 
         if self.current_input_char is None:
@@ -235,18 +243,19 @@ class PIA(object):
                 auto_shift=True,
             )
 
-        if not is_bit_set(pia0b, bit=7):
-            # bit 7 | PA7 | joystick comparison input
-            result = clear_bit(result, bit=7)
+#         if not is_bit_set(pia0b, bit=7):
+#             # bit 7 | PA7 | joystick comparison input
+#             result = clear_bit(result, bit=7)
 
-#         log.info(
-#             "%04x| read $%04x ($ff02 is $%02x %s) send $%02x %s back (char: %s)\t|%s",
-#             op_address, address,
-#             pia0b, '{0:08b}'.format(pia0b),
-#             result, '{0:08b}'.format(result),
-#             self.current_input_char,
-#             self.cfg.mem_info.get_shortest(op_address)
-#         )
+        if self.current_input_char is not None:
+            log.info(
+#             log.critical(
+                "%04x| read $%04x ($ff02 is $%02x %s) send $%02x %s back\t|%s",
+                op_address, address,
+                pia0b, '{0:08b}'.format(pia0b),
+                result, '{0:08b}'.format(result),
+                self.cfg.mem_info.get_shortest(op_address)
+            )
         return result
 
     def write_PIA0_A_data(self, cpu_cycles, op_address, address, value):
@@ -316,7 +325,8 @@ class PIA(object):
 
     def write_PIA0_B_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff02 -> PIA 0 B side Data reg. """
-        log.error(
+#         log.critical(
+        log.info(
             "%04x| write $%02x %s to $%04x -> PIA 0 B side Data reg.\t|%s",
             op_address, value, '{0:08b}'.format(value), address, self.cfg.mem_info.get_shortest(op_address)
         )

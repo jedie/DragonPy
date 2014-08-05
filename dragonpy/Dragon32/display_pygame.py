@@ -16,31 +16,29 @@ except ImportError:
     # Maybe Dragon would not be emulated ;)
     pygame = None
 
+from dragonpy.Dragon32.display_base import DragonTextDisplayBase
 from dragonpy.Dragon32.dragon_charmap import get_rgb_color, NORMAL, \
     get_charmap_dict
 from dragonpy.utils.logging_utils import log
 
 
-class DragonTextDisplay(object):
+class DragonTextDisplay(DragonTextDisplayBase):
     """
     Text mode:
     32 rows x 16 columns
     """
     def __init__(self):
-        self.charmap = get_charmap_dict()
-
-        self.rows = 32
-        self.columns = 16
+        super(DragonTextDisplay, self).__init__()
 
         pygame.font.init()
         self.font = pygame.font.SysFont("monospace", 26, bold=True)
 
         width, height = self.font.size("X")
-        self.row_pixels = width
-        self.column_pixels = height
+        self.char_width = width
+        self.char_height = height
 
-        screen_width = self.row_pixels * self.rows
-        screen_height = self.column_pixels * self.columns
+        screen_width = self.char_width * self.rows
+        screen_height = self.char_height * self.columns
         self.screen = pygame.display.set_mode([screen_width, screen_height])
 
         pygame.display.set_caption("Dragon - Text Display 32 rows x 16 columns")
@@ -55,26 +53,12 @@ class DragonTextDisplay(object):
         self.display_ram = [None] * self.display_offset # empty Offset
         self.display_ram += [0x00] * 0x200
 
-    def read_byte(self, cpu_cycles, op_address, address):
-        value = self.display_ram[address]
-        # log.critical("%04x| TODO: read $%02x display RAM from: $%04x", op_address, value, address)
-        return value
-
-    def write_byte(self, cpu_cycles, op_address, address, value):
-        char, color = self.charmap[value]
-        log.debug(
-            "%04x| *** Display write $%02x ***%s*** %s at $%04x",
-            op_address, value, repr(char), color, address
-        )
-        self.render_char(char, color, address)
-        self.display_ram[address] = value
-
     def render_char(self, char, color, address):
         foreground, background = get_rgb_color(color)
 
         position = address - 0x400
         column, row = divmod(position, self.rows)
-        position_px = (self.row_pixels * row, self.column_pixels * column)
+        position_px = (self.char_width * row, self.char_height * column)
 
         text = self.font.render(char,
             True, # antialias
@@ -82,8 +66,8 @@ class DragonTextDisplay(object):
         )
 
         self.screen.blit(text, position_px)
-        # pygame.display.update()
-        pygame.display.flip()
+        pygame.display.update()
+#         pygame.display.flip()
 
 
 
