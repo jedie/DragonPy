@@ -173,7 +173,7 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
         char_or_code = event.char or event.keycode
         self.pia.key_down(char_or_code)
 
-    def run_cpu_interval(self, cpu, last_cycles=0, last_cycle_update=sys.maxint, loops=0):
+    def run_cpu_interval(self, cpu, burst_count):
 #         max_ops = self.cfg.cfg_dict["max_ops"]
 #         if max_ops:
 #             log.critical("Running only %i ops!", max_ops)
@@ -185,35 +185,45 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
 #         else:
 #             while self.periphery.running and self.cpu.running:
 
-        for _ in xrange(20000):
+        for _ in xrange(burst_count):
             try:
                 cpu.get_and_call_next_op()
             except:
                 tb = traceback.format_exc()
                 log.log(99, "Error running OP:\n%s" % tb)
 
-        loops += 1
-        duration = time.time() - last_cycle_update
-        if duration > 1:
+        self.cpu_burst_loops += 1
+        self.root.after(1, self.run_cpu_interval, cpu, burst_count)
+    
+    def update_status_interval(self, cpu, last_update=None, last_cycles=0):
+        if last_update is not None:
+            duration = time.time() - last_update
             cycles = cpu.cycles - last_cycles
             if cycles == 0:
                 log.critical("Exit display_cycle_interval() thread, because cycles/sec == 0")
                 return
-            msg = "%i cycles/sec (%i cycles in last %isec, loops=%i)" % (
-                int(cycles / duration), cycles, duration, loops
+            msg = "%i cycles/sec (%i cycles in last %isec, cpu_burst_loops=%i)" % (
+                int(cycles / duration), cycles, duration, self.cpu_burst_loops
             )
-#             msg = "%d cycles/sec (Dragon 32 == 895.000cycles/sec)" % int(cycles / duration)
+    #             msg = "%d cycles/sec (Dragon 32 == 895.000cycles/sec)" % int(cycles / duration)
             self.status.set(msg)
-            loops = 0
-            last_cycles = cpu.cycles
-            last_cycle_update = time.time()
+            self.cpu_burst_loops=0
 
-        self.root.after(1, self.run_cpu_interval, cpu,
-            last_cycles, last_cycle_update, loops
+        last_cycles = cpu.cycles
+        last_update = time.time()
+        
+        self.root.after(1000, self.update_status_interval, cpu,
+            last_update, last_cycles
         )
+    
+#     def update_gui_interval(self, cpu, interval_ms):
+#         self.root.update()  
+#         self.root.after(interval_ms, self.update_gui_interval, cpu, interval_ms)
 
     def mainloop(self, cpu):
-        self.run_cpu_interval(cpu, last_cycle_update=time.time())
+#         self.update_gui_interval(cpu, interval_ms=100)
+        self.update_status_interval(cpu)
+        self.run_cpu_interval(cpu,burst_count=5000)
         self.root.mainloop()
 
 
