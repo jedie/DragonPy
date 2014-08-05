@@ -133,8 +133,10 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
     def __init__(self, cfg):
         super(Dragon32PeripheryTkinter, self).__init__(cfg)
 
+        self.cpu_burst_loops=0
+
         self.root = Tkinter.Tk(className="Dragon")
-        self.root.title("Dragon - Text Display 32 rows x 16 columns")
+        self.root.title("Dragon - Text Display 32 columns x 16 rows")
 
         self.root.bind("<Key>", self.event_key_pressed)
         self.root.bind("<<Paste>>", self.paste_clipboard)
