@@ -40,6 +40,17 @@ It's the Simple6809 BASIC ROM running on console.
 
 == example
 
+**Note:** Currently the CLI is broken! Until it is fix, use only this:
+{{{
+...path/to/DragonPy$ python2 ./Dragon32_test.py
+}}}
+or:
+{{{
+...path/to/DragonPy$ python2 ./Dragon64_test.py
+}}}
+
+----
+
 Start sbc09:
 {{{
 ...path/to/DragonPy$ ./DragonPy_CLI.py --cfg sbc09 --display_cycle
