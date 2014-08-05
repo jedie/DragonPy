@@ -164,10 +164,12 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
         """
         log.critical("paste clipboard")
         clipboard = self.root.clipboard_get()
-        log.critical("Clipboard content: %s", repr(clipboard))
-        clipboard = clipboard.replace("\n", "\r")
-        for char in clipboard:
-            self.pia.key_down(char, block=True)
+        for line in clipboard.splitlines():
+            log.critical("paste line: %s", repr(line))
+            for char in line:
+                self.pia.key_down(char, block=True)
+            self.pia.key_down("\r", block=True)
+                
 
     def event_key_pressed(self, event):
         char_or_code = event.char or event.keycode
