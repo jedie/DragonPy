@@ -155,13 +155,7 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
 
     def paste_clipboard(self, event):
         """
-        POKE 1024,128
-
-10 CLS
-20 FOR I = 0 TO 255:
-30 POKE 1024+(I*2),I
-40 NEXT I
-50 I$ = INKEY$:IF I$="" THEN 50
+        Send the clipboard content as user input to the CPU.
         """
         log.critical("paste clipboard")
         clipboard = self.root.clipboard_get()
@@ -170,7 +164,6 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
             for char in line:
                 self.pia.key_down(char, block=True)
             self.pia.key_down("\r", block=True)
-                
 
     def event_key_pressed(self, event):
         char_or_code = event.char or event.keycode
