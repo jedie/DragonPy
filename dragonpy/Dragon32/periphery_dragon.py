@@ -18,6 +18,8 @@
 import os
 import sys
 import Tkinter
+import time
+import traceback
 
 from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.MC6821_PIA import PIA
@@ -25,8 +27,6 @@ from dragonpy.components.periphery import PeripheryBase
 from dragonpy.utils.logging_utils import log
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
 from dragonpy.Dragon32.display_base import DragonTextDisplayBase
-import time
-import traceback
 
 
 class Dragon32PeripheryBase(PeripheryBase):
@@ -84,7 +84,6 @@ class Dragon32PeripheryBase(PeripheryBase):
             self.speaker.update(cpu_cycles)
 
 
-
 class Dragon32TextDisplayTkinter(DragonTextDisplayBase):
     """
     The GUI stuff
@@ -133,9 +132,10 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
     def __init__(self, cfg):
         super(Dragon32PeripheryTkinter, self).__init__(cfg)
 
+        self.approximated_ops=0
         self.cpu_burst_loops=0
 
-        self.root = Tkinter.Tk(className="Dragon")
+        self.root = Tkinter.Tk(className="DragonPy")
         machine_name = self.cfg.MACHINE_NAME
         self.root.title("%s - Text Display 32 columns x 16 rows" % machine_name)
 
@@ -152,6 +152,14 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
         self.status = Tkinter.StringVar()
         self.status_widget = Tkinter.Label(self.root, textvariable=self.status, text="Info:", borderwidth=1)
         self.status_widget.grid(row=1, column=0)
+
+    def exit(self):
+        log.critical("Dragon32PeripheryTkinter.exit()")
+        try:
+            self.root.destroy()
+        except:
+            pass
+        super(Dragon32PeripheryTkinter, self).exit()
 
     def paste_clipboard(self, event):
         """
@@ -170,7 +178,7 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
         self.pia.key_down(char_or_code)
 
     def run_cpu_interval(self, cpu, burst_count):
-#         max_ops = self.cfg.cfg_dict["max_ops"]
+#         
 #         if max_ops:
 #             log.critical("Running only %i ops!", max_ops)
 #             for __ in xrange(max_ops):
@@ -185,8 +193,17 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
             try:
                 cpu.get_and_call_next_op()
             except:
+#                 raise
                 tb = traceback.format_exc()
                 log.log(99, "Error running OP:\n%s" % tb)
+
+        max_ops = self.cfg.cfg_dict["max_ops"]
+        if max_ops:
+            self.approximated_ops += burst_count
+            if self.approximated_ops>max_ops:
+                log.critical("'max_ops' Quit after %i ops", self.approximated_ops)
+                self.exit()
+                return
 
         self.cpu_burst_loops += 1
         self.root.after(1, self.run_cpu_interval, cpu, burst_count)
@@ -221,6 +238,11 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
         self.update_status_interval(cpu)
         self.run_cpu_interval(cpu,burst_count=5000)
         self.root.mainloop()
+
+
+
+#------------------------------------------------------------------------------
+
 
 
 def test_run_cli():

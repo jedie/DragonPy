@@ -9,12 +9,15 @@ A usable Dragon / CoCo emulator is [[http://www.6809.org.uk/dragon/xroar.shtml|X
 DragonPy will not be a second XRoar written in Python.
 This project is primarily to lean and understand.
 
-Current state:
+Future goals are:
+* Implement a integrated development environment for BASIC programs
+
+
+=== Current state
 The Dragon 32 / 64 ROM works in Text mode.
 Also the "single board computer" ROMs sbc09, Simple6809 and Multicomp6809 works well.
 
-Future goals are:
-* Implement a integrated development environment for BASIC programs
+CoCo Color BASIC v1.3 boots up and colored cursor is alive. Input doesn't work, yet.
 
 
 === ROMs
@@ -47,6 +50,10 @@ It's the Simple6809 BASIC ROM running on console.
 or:
 {{{
 ...path/to/DragonPy$ python2 ./Dragon64_test.py
+}}}
+or:
+{{{
+...path/to/DragonPy$ python2 ./CoCo_test.py
 }}}
 
 ----
@@ -123,17 +130,22 @@ install [[https://pypi.python.org/pypi/coverage|coverage]] for python 2:
 
 Dragon 32 and 64 ROMs in Text mode:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon64_01.png}}
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon64_01.png|screenshot Dragon 64}}
+
+
+CoCo Color Basic v1.3 in Text mode:
+
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_CoCo_ColorBasic.png|screenshot CoCo BASIC}}
 
 
 "sbc09" ROM in Tkinter window:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/DragonPy_sbc09_01.png}}
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/DragonPy_sbc09_01.png|screenshot sbc09}}
 
 
 "Simple6809" ROM in Tkinter window:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/Simple6809_TK_04.PNG}}
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/Simple6809_TK_04.PNG|screenshot simple6809}}
 
 
 === Dragon Keyboard
@@ -161,11 +173,14 @@ Just copy (Ctrl-C) the follow content:
 Focus the DragonPy window and use Ctrl-V to paste the content.
 
 Looks like:
+
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon32_Listing.png}}
+
 
 Then just **RUN** and then it looks like this:
 
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon32_CharMap.png}}
+
 
 === performance
 
