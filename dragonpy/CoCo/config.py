@@ -14,6 +14,7 @@ import logging
 
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.CoCo.mem_info import get_coco_meminfo
+from dragonpy.utils.logging_utils import log
 
 
 class CoCoCfg(Dragon32Cfg):
@@ -51,6 +52,20 @@ class CoCoCfg(Dragon32Cfg):
             self.mem_info = get_coco_meminfo()
 
         self.periphery_class = None# Dragon32Periphery
+
+        self.memory_byte_middlewares = {
+            # (start_addr, end_addr): (read_func, write_func)
+#             (0x0152, 0x0159): (None, self.keyboard_matrix_state),
+            (0x0115,0x0119): (self.rnd_seed_read, self.rnd_seed_write)
+        }
+
+    def rnd_seed_read(self, cycles, last_op_address, address, byte):
+        log.critical("%04x| read $%02x RND() seed from: $%04x", last_op_address, byte, address)
+        return byte
+        
+    def rnd_seed_write(self, cycles, last_op_address, address, byte):
+        log.critical("%04x| write $%02x RND() seed to: $%04x", last_op_address, byte, address)
+        return byte
 
     def get_initial_RAM(self):
         """
