@@ -127,14 +127,10 @@ class Memory(object):
             read_func, write_func = functions
             
             if read_func:
-                self.add_read_byte_middleware(self._read_byte_middleware,
-                    start_addr, end_addr,read_func
-                )
+                self.add_read_byte_middleware(read_func,start_addr, end_addr)
                 
             if write_func:
-                self.add_write_byte_middleware(self._write_byte_middleware,
-                    start_addr, end_addr,write_func
-                )
+                self.add_write_byte_middleware(write_func,start_addr, end_addr)
 
 #         log.critical(
 # #         log.debug(
@@ -206,7 +202,7 @@ class Memory(object):
 
         if address in self._read_byte_middleware:
             byte = self._read_byte_middleware[address](
-                self.cpu.cycles, self.cpu.last_op_address, address
+                self.cpu.cycles, self.cpu.last_op_address, address, byte
             )
 
 #        log.log(5, "%04x| (%i) read byte $%x from $%x",
