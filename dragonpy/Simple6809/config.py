@@ -59,7 +59,7 @@ class Simple6809Cfg(BaseConfig):
 
         self.periphery_class = Simple6809Periphery
 
-        self.memory_middlewares = {
+        self.memory_byte_middlewares = {
 #            (0x004f, 0x0054): (None, self.float_accu_write0),
 #            (0x005c, 0x0061): (None, self.float_accu_write1),
         }

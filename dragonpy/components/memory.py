@@ -26,7 +26,6 @@ import sys
 from dragonpy.utils.logging_utils import log
 
 
-
 class ROM(object):
 
     def __init__(self, cfg, memory, start, size):
@@ -114,18 +113,29 @@ class Memory(object):
         if cfg and cfg.ram:
             self.ram.load_file(cfg.RAM_START, cfg.ram)
 
+        self._read_byte_callbacks = {}
+        self._read_word_callbacks = {}
+        self._write_byte_callbacks = {}
+        self._write_word_callbacks = {}
+
         # Memory middlewares are function that called on memory read or write
         # the function can change the value that is read/write
         self._read_byte_middleware = {}
         self._write_byte_middleware = {}
-        for addr_range, functions in cfg.memory_middlewares.items():
+        for addr_range, functions in cfg.memory_byte_middlewares.items():
             start_addr, end_addr = addr_range
-            for addr in xrange(start_addr - 1, end_addr + 1):
-                read_func, write_func = functions
-                if read_func:
-                    self._read_byte_middleware[addr] = read_func
-                if write_func:
-                    self._write_byte_middleware[addr] = write_func
+            read_func, write_func = functions
+            
+            if read_func:
+                self._map_address_range(self._read_byte_middleware,
+                    start_addr, end_addr,read_func
+                )
+                
+            if write_func:
+                self._map_address_range(self._write_byte_middleware,
+                    start_addr, end_addr,write_func
+                )
+
 #         log.critical(
 # #         log.debug(
 #             "memory read middlewares: %s", self._read_byte_middleware
@@ -134,6 +144,29 @@ class Memory(object):
 # #         log.debug(
 #             "memory write middlewares: %s", self._write_byte_middleware
 #         )
+
+    #---------------------------------------------------------------------------
+
+    def _map_address_range(self, callbacks_dict, callback_func, start_addr, end_addr=None):
+        if end_addr is None:
+            callbacks_dict[start_addr] = callback_func
+        else:
+            for addr in xrange(start_addr, end_addr + 1):
+                callbacks_dict[addr] = callback_func
+ 
+    def add_read_byte_callback(self, callback_func, start_addr, end_addr=None):
+        self._map_address_range(self._read_byte_callbacks, callback_func, start_addr, end_addr)
+        
+    def add_read_word_callback(self, callback_func, start_addr, end_addr=None):
+        self._map_address_range(self._read_word_callbacks, callback_func, start_addr, end_addr)
+        
+    def add_write_byte_callback(self, callback_func, start_addr, end_addr=None):
+        self._map_address_range(self._write_byte_callbacks, callback_func, start_addr, end_addr)
+        
+    def add_write_word_callback(self, callback_func, start_addr, end_addr=None):
+        self._map_address_range(self._write_word_callbacks, callback_func, start_addr, end_addr)
+
+    #---------------------------------------------------------------------------
 
     def load(self, address, data):
         if address < self.cfg.RAM_END:
@@ -148,15 +181,10 @@ class Memory(object):
     def read_byte(self, address):
         self.cpu.cycles += 1
 
-        if address in self.cfg.bus_addr_areas:
-            byte = self.cfg.periphery.read_byte(
+        if address in self._read_byte_callbacks:
+            return self._read_byte_callbacks[address](
                 self.cpu.cycles, self.cpu.last_op_address, address
             )
-#             log.critical("%04x| (%i) read byte $%x from address $%x from periphery: %s",
-#                 self.cpu.last_op_address, self.cpu.cycles,
-#                 byte, address, self.cfg.bus_addr_areas[address]
-#             )
-            return byte
 
         if address < self.cfg.RAM_END:
             byte = self.ram.read_byte(address)
@@ -180,15 +208,10 @@ class Memory(object):
         return byte
 
     def read_word(self, address):
-        if address in self.cfg.bus_addr_areas:
-            word = self.cfg.periphery.read_word(
+        if address in self._read_word_callbacks:
+            return self._read_word_callbacks[address](
                 self.cpu.cycles, self.cpu.last_op_address, address
             )
-#             log.critical("%04x| read word $%04x from address $%x from periphery: %s",
-#                 self.cpu.last_op_address,
-#                 word, address, self.cfg.bus_addr_areas[address]
-#             )
-            return word
 
         # 6809 is Big-Endian
         return self.read_byte(address + 1) + (self.read_byte(address) << 8)
@@ -206,15 +229,10 @@ class Memory(object):
         if address in self._write_byte_middleware:
             value = self._write_byte_middleware[address](self.cpu, address, value)
 
-        if address in self.cfg.bus_addr_areas:
-            self.cfg.periphery.write_byte(
+        if address in self._write_byte_callbacks:
+            return self._write_byte_callbacks[address](
                 self.cpu.cycles, self.cpu.last_op_address, address, value
             )
-#             log.critical(
-#                 "\twrite byte at $%x to bus: %s",
-#                 address, self.cfg.bus_addr_areas[address]
-#             )
-            return
 
         if address < self.cfg.RAM_END:
             self.ram.write_byte(address, value)
@@ -228,18 +246,13 @@ class Memory(object):
 #             raise RuntimeError(msg2)
 
     def write_word(self, address, value):
-        if address in self.cfg.bus_addr_areas:
-            self.cfg.periphery.write_word(
-                self.cpu.cycles, self.cpu.last_op_address, address, value
-            )
-#             log.critical(
-#                 "\twrite word $%04x at $%x to bus: %s",
-#                 value, address, self.cfg.bus_addr_areas[address]
-#             )
-            return
-
         assert value >= 0, "Write negative word hex:%04x dez:%i to $%04x" % (value, value, address)
         assert value <= 0xffff, "Write out of range word hex:%04x dez:%i to $%04x" % (value, value, address)
+        
+        if address in self._write_word_callbacks:
+            return self._write_word_callbacks[address](
+                self.cpu.cycles, self.cpu.last_op_address, address, value
+            )
 
         # 6809 is Big-Endian
         self.write_byte(address, value >> 8)

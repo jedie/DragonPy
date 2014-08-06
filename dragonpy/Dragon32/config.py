@@ -76,7 +76,7 @@ class Dragon32Cfg(BaseConfig):
 
         self.periphery_class = None# Dragon32Periphery
         
-        self.memory_middlewares = {
+        self.memory_byte_middlewares = {
 #             (0x0152, 0x0159): (None, self.keyboard_matrix_state),
         }
 

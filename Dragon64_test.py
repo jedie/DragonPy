@@ -50,10 +50,11 @@ class Dragon64(object):
     def __init__(self):
         self.cfg = Dragon64Cfg(CFG_DICT)
 
-        self.periphery = Dragon32PeripheryTkinter(self.cfg)
+        memory = Memory(self.cfg)
+
+        self.periphery = Dragon32PeripheryTkinter(self.cfg, memory)
         self.cfg.periphery = self.periphery
 
-        memory = Memory(self.cfg)
         self.cpu = CPU(memory, self.cfg)
         memory.cpu = self.cpu # FIXME
 
@@ -69,7 +70,7 @@ class Dragon64(object):
 if __name__ == '__main__':
     print "Startup Dragon 64 machine..."
     setup_logging(log,
-#        level=1 # hardcore debug ;)
+#         level=1 # hardcore debug ;)
 #         level=10 # DEBUG
 #        level=20 # INFO
 #        level=30 # WARNING

@@ -183,10 +183,11 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
 
         cfg = Simple6809Cfg(cls.UNITTEST_CFG_DICT)
 
-        cls.periphery = Simple6809TestPeriphery(cfg)
+        memory = Memory(cfg)
+
+        cls.periphery = Simple6809TestPeriphery(cfg, memory)
         cfg.periphery = cls.periphery
 
-        memory = Memory(cfg)
         cpu = CPU(memory, cfg)
         memory.cpu = cpu # FIXME
         cpu.reset()
@@ -276,11 +277,12 @@ class Test6809_sbc09_Base(BaseTestCase):
 #         os.remove(cls.TEMP_FILE);print "Delete CPU date file!"
 
         cfg = SBC09Cfg(cls.UNITTEST_CFG_DICT)
-
-        cls.periphery = SBC09PeripheryUnittest(cfg)
-        cfg.periphery = cls.periphery
-
+        
         memory = Memory(cfg)
+
+        cls.periphery = SBC09PeripheryUnittest(cfg, memory)
+        cfg.periphery = cls.periphery
+        
         cpu = CPU(memory, cfg)
         memory.cpu = cpu # FIXME
         cpu.reset()

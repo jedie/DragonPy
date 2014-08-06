@@ -30,8 +30,9 @@ from dragonpy.utils.logging_utils import log
 class PeripheryBase(object):
     INITAL_INPUT = None # For quick test
 
-    def __init__(self, cfg):
+    def __init__(self, cfg, memory):
         self.cfg = cfg
+        self.memory = memory
         self.running = True
 
         self.output_queue = Queue.Queue() # Buffer for output from CPU
@@ -39,11 +40,6 @@ class PeripheryBase(object):
 
         self.update_time = 0.1
         self.last_cycle_update = time.time()
-
-        self.read_byte_func_map = {}
-        self.read_word_func_map = {}
-        self.write_byte_func_map = {}
-        self.write_word_func_map = {}
 
         if self.INITAL_INPUT is not None:
             self.add_to_input_queue(self.INITAL_INPUT)
@@ -76,74 +72,6 @@ class PeripheryBase(object):
 
         cpu.quit()
         self.periphery.exit()
-
-    def read_byte(self, cpu_cycles, op_address, address):
-#         log.critical(
-#             "%04x| Periphery.read_byte from $%04x (cpu_cycles: %i)\t|%s",
-#             op_address, address, cpu_cycles,
-#             self.cfg.mem_info.get_shortest(op_address)
-#         )
-        try:
-            func = self.read_byte_func_map[address]
-        except KeyError, err:
-            msg = "TODO: read byte from $%x" % address
-            log.error(msg)
-            raise NotImplementedError(msg)
-        else:
-#             log.critical("\tfunc: %s", func.__name__)
-            byte = func(cpu_cycles, op_address, address)
-#             log.critical("\tsend byte $%02x back" % byte)
-            return byte
-        
-    def read_word(self, cpu_cycles, op_address, address):
-#         log.critical(
-#             "%04x| Periphery.read_word from $%04x (cpu_cycles: %i)\t|%s",
-#             op_address, address, cpu_cycles,
-#             self.cfg.mem_info.get_shortest(op_address)
-#         )
-        try:
-            func = self.read_word_func_map[address]
-        except KeyError, err:
-            msg = "TODO: read word from $%04x" % address
-            log.error(msg)
-            raise NotImplementedError(msg)
-        else:
-#             log.critical("\tfunc: %s", func.__name__)
-            word = func(cpu_cycles, op_address, address)
-#             log.critical("\tsend word $%04x back" % word)
-            return word
-
-    def write_byte(self, cpu_cycles, op_address, address, value):
-#         log.critical(
-#             "%04x| Periphery.write_byte $%02x to $%04x (cpu_cycles: %i)\t|%s",
-#             op_address, value, address, cpu_cycles,
-#             self.cfg.mem_info.get_shortest(op_address)
-#         )
-        try:
-            func = self.write_byte_func_map[address]
-        except KeyError, err:
-            msg = "TODO: write byte to $%04x" % address
-            log.error(msg)
-            raise NotImplementedError(msg)
-        else:
-#             log.critical("\tfunc: %s", func.__name__)
-            func(cpu_cycles, op_address, address, value)
-
-    def write_word(self, cpu_cycles, op_address, address, value):
-#         log.critical(
-#             "%04x| Periphery.write_word $%04x to $%04x (cpu_cycles: %i)\t|%s",
-#             op_address, value, address, cpu_cycles,
-#             self.cfg.mem_info.get_shortest(op_address)
-#         )
-        try:
-            func = self.write_word_func_map[address]
-        except KeyError, err:
-            msg = "TODO: write word to $%04x" % address
-            log.error(msg)
-            raise NotImplementedError(msg)
-        else:
-#             log.critical("\tfunc: %s", func.__name__)
-            func(cpu_cycles, op_address, address, value)
 
     def add_output(self, text):
         raise NotImplementedError

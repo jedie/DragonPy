@@ -11,7 +11,7 @@
 """
 
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
-
+from dragonpy.utils.logging_utils import log
 
 class DragonTextDisplayBase(object):
     """
@@ -20,21 +20,21 @@ class DragonTextDisplayBase(object):
     Text mode:
     32 rows x 16 columns
     """
-    def __init__(self):
+    def __init__(self, memory):
+        self.memory = memory
+        
         self.charmap = get_charmap_dict()
         self.rows = 32
         self.columns = 16
 
-        self.display_offset = 0x400
+        self.display_offset = 0x0400
         self.display_ram = [None] * self.display_offset # empty Offset
-        self.display_ram += [0x00] * 0x200
-
-    def add_read_write_callbacks(self, periphery):
-        for addr in xrange(0x400, 0x600):
-            periphery.read_byte_func_map[addr] = self.read_byte
-            periphery.read_word_func_map[addr] = self.read_word
-            periphery.write_byte_func_map[addr] = self.write_byte
-            periphery.write_word_func_map[addr] = self.write_word
+        self.display_ram += [0x00] * (0x200+1)
+        
+        self.memory.add_read_byte_callback(self.read_byte, 0x0400, 0x0600)
+        self.memory.add_read_word_callback(self.read_word, 0x0400, 0x0600)
+        self.memory.add_write_byte_callback(self.write_byte, 0x0400, 0x0600)
+        self.memory.add_write_word_callback(self.write_word, 0x0400, 0x0600)
 
     def read_byte(self, cpu_cycles, op_address, address):
         value = self.display_ram[address]

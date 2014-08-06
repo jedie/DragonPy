@@ -48,3 +48,18 @@ def setup_logging(log, level, handler=None, log_formatter=None):
     else:
         sys.stderr.write("Log to handler: %s\n" % repr(handler))
     log.handlers = (handler,)
+
+       
+def log_memory_dump(memory, start, end, mem_info, level=99):
+    log.log(level, "Memory dump from $%04x to $%04x:", start, end)
+    
+    for addr in xrange(start, end+1):
+        value = memory[addr]
+        if isinstance(value, int):
+            msg = "$%04x: $%02x (dez: %i)" % (addr, value, value)
+        else:
+            msg = "$%04x: %s (is type: %s)" % (addr, repr(value), type(value))
+        msg = "%-25s| %s" % (
+            msg, mem_info.get_shortest(addr)
+        )
+        log.log(level, "\t%s", msg)

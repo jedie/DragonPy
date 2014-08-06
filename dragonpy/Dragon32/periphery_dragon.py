@@ -33,39 +33,41 @@ class Dragon32PeripheryBase(PeripheryBase):
     """
     GUI independent stuff
     """
-    def __init__(self, cfg):
-        super(Dragon32PeripheryBase, self).__init__(cfg)
+    def __init__(self, cfg, memory):
+        super(Dragon32PeripheryBase, self).__init__(cfg, memory)
 
         self.kbd = 0xBF
         self.display = None
         self.speaker = None # Speaker()
         self.cassette = None # Cassette()
 
-        self.sam = SAM(cfg)
-        self.pia = PIA(cfg)
+        self.sam = SAM(cfg, memory)
+        self.pia = PIA(cfg, memory)
 
-        self.read_word_func_map = {
-            0xc000: self.no_dos_rom,
-            0xfffe: self.reset_vector,
-        }
+#         map_address_range(
+#             self.read_byte_func_map,
+#             # $c000-$feff ; Available address range to cartridge expansion port 32K mode
+#             start_addr=0xC000, end_addr=0xfeff,
+#             callback_func=self.no_dos_rom
+#         )
 
-        # Collect all read/write functions from PIA:
-        self.pia.add_read_write_callbacks(self)
 
-        # Collect all read/write functions from SAM:
-        self.sam.add_read_write_callbacks(self)
+        self.memory.add_read_byte_callback(self.no_dos_rom, 0xC000)
+        self.memory.add_read_byte_callback(self.reset_vector, 0xfffe)
 
-        self.debug_func_map(self.read_byte_func_map, "read_byte_func_map")
-        self.debug_func_map(self.read_word_func_map, "read_word_func_map")
-        self.debug_func_map(self.write_byte_func_map, "write_byte_func_map")
-        self.debug_func_map(self.write_word_func_map, "write_word_func_map")
+        self.memory.add_read_word_callback(self.no_dos_rom, 0xC000)
+        self.memory.add_read_word_callback(self.reset_vector, 0xfffe)
+
+#         self.read_byte_func_map.update({
+#             0xc000: self.no_dos_rom,
+#             0xfffe: ,
+#         })
+#         self.read_word_func_map.update({
+#             0xc000: self.no_dos_rom,
+#             0xfffe: self.reset_vector,
+#         })
 
         self.running = True
-
-    def debug_func_map(self, d, txt):
-        log.debug("*** Func map %s:", txt)
-        for addr, func in sorted(d.items()):
-            log.debug("\t$%04x: %s", addr, func.__name__)
 
     def no_dos_rom(self, cpu_cycles, op_address, address):
         log.error("%04x| TODO: DOS ROM requested. Send 0x00 back", op_address)
@@ -88,8 +90,8 @@ class Dragon32TextDisplayTkinter(DragonTextDisplayBase):
     """
     The GUI stuff
     """
-    def __init__(self, root):
-        super(Dragon32TextDisplayTkinter, self).__init__()
+    def __init__(self, root, memory):
+        super(Dragon32TextDisplayTkinter, self).__init__(memory)
 
 #         scale_factor=1
         scale_factor = 2
@@ -129,8 +131,8 @@ class Dragon32TextDisplayTkinter(DragonTextDisplayBase):
 
 
 class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
-    def __init__(self, cfg):
-        super(Dragon32PeripheryTkinter, self).__init__(cfg)
+    def __init__(self, cfg, memory):
+        super(Dragon32PeripheryTkinter, self).__init__(cfg, memory)
 
         self.approximated_ops=0
         self.cpu_burst_loops=0
@@ -142,10 +144,7 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
         self.root.bind("<Key>", self.event_key_pressed)
         self.root.bind("<<Paste>>", self.paste_clipboard)
 
-        self.display = Dragon32TextDisplayTkinter(self.root)
-
-        # Collect all read/write functions from Display:
-        self.display.add_read_write_callbacks(self)
+        self.display = Dragon32TextDisplayTkinter(self.root, self.memory)
 
         self.display.canvas.grid(row=0, column=0)# , columnspan=3, rowspan=2)
 
@@ -193,7 +192,7 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
             try:
                 cpu.get_and_call_next_op()
             except:
-#                 raise
+                raise
                 tb = traceback.format_exc()
                 log.log(99, "Error running OP:\n%s" % tb)
 
@@ -224,17 +223,13 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
 
         last_cycles = cpu.cycles
         last_update = time.time()
-        
+
+        self.root.update()        
         self.root.after(1000, self.update_status_interval, cpu,
             last_update, last_cycles
         )
-    
-#     def update_gui_interval(self, cpu, interval_ms):
-#         self.root.update()  
-#         self.root.after(interval_ms, self.update_gui_interval, cpu, interval_ms)
 
     def mainloop(self, cpu):
-#         self.update_gui_interval(cpu, interval_ms=100)
         self.update_status_interval(cpu)
         self.run_cpu_interval(cpu,burst_count=5000)
         self.root.mainloop()
@@ -278,7 +273,10 @@ def test_run_direct():
     cmd_args = [
         sys.executable,
 #         "/usr/bin/pypy",
-        os.path.join("..", "Dragon64_test.py"),
+        os.path.join("..",
+            "Dragon32_test.py"
+#             "Dragon64_test.py"
+        ),
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()

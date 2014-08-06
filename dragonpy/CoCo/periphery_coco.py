@@ -26,18 +26,14 @@ class CoCoPeripheryTkinter(Dragon32PeripheryTkinter):
     http://sourceforge.net/p/toolshed/code/ci/default/tree/cocoroms/bas.asm
     http://www.lomont.org/Software/Misc/CoCo/Lomont_CoCoHardware_2.pdf
     """
-    def __init__(self, cfg):
-        super(CoCoPeripheryTkinter, self).__init__(cfg)
+    def __init__(self, cfg, memory):
+        super(CoCoPeripheryTkinter, self).__init__(cfg, memory)
 #         self.read_byte_func_map.update({
 #             0xc000: self.no_dos_rom,
 #         })
-        self.read_word_func_map.update({
-            0xfffc: self.read_NMI,
-        })
-        self.write_word_func_map.update({
-            0xfffc: self.write_word_info,
-            0xfffe: self.write_word_info,
-        })
+        self.memory.add_read_word_callback(self.read_NMI,0xfffc)
+        self.memory.add_write_word_callback(self.write_word_info,0xfffc)
+        self.memory.add_write_word_callback(self.write_word_info,0xfffe)
         
     def read_NMI(self, cpu_cycles, op_address, address):
         log.critical("%04x| TODO: read NMI" % op_address)

@@ -67,8 +67,9 @@ class PIA(object):
     PIA1 - Printer, Cassette, 6-Bit DAC, Sound Mux
 
     """
-    def __init__(self, cfg):
+    def __init__(self, cfg, memory):
         self.cfg = cfg
+        self.memory = memory
 
         self.pia_0_A_register = PIA_register("PIA0 A")
         self.pia_0_B_register = PIA_register("PIA0 B")
@@ -80,40 +81,35 @@ class PIA(object):
 #         for char in 'PRINT "HELLO WORLD!"\r':self.input_queue.put(char)
 #         for char in ("d", 50, "D", "\r", "A", "\r", "B", "\r", "C", "\r"):self.input_queue.put(char)
         self.current_input_char = None
-
-    def add_read_write_callbacks(self, periphery):
+        
+        
         #
         # TODO: Collect this information via a decorator similar to op codes in CPU!
         #
-        periphery.read_byte_func_map.update({
-            0xff00: self.read_PIA0_A_data, #    PIA 0 A side Data reg.
-            0xff01: self.read_PIA0_A_control, # PIA 0 A side Control reg.
-            0xff02: self.read_PIA0_B_data, #    PIA 0 B side Data reg.
-            0xff03: self.read_PIA0_B_control, # PIA 0 B side Control reg.
+        # Register memory read Byte callbacks:
+        self.memory.add_read_byte_callback(self.read_PIA0_A_data, 0xff00) #     PIA 0 A side Data reg.
+        self.memory.add_read_byte_callback(self.read_PIA0_A_control, 0xff01) #  PIA 0 A side Control reg.
+        self.memory.add_read_byte_callback(self.read_PIA0_B_data, 0xff02) #     PIA 0 B side Data reg.
+        self.memory.add_read_byte_callback(self.read_PIA0_B_control, 0xff03) #  PIA 0 B side Control reg.
+        self.memory.add_read_byte_callback(self.read_PIA1_A_data, 0xff20) #     PIA 1 A side Data reg.
+        self.memory.add_read_byte_callback(self.read_PIA1_A_control, 0xff21) #  PIA 1 A side Control reg.
+        self.memory.add_read_byte_callback(self.read_PIA1_B_data, 0xff22) #     PIA 1 B side Data reg.
+        self.memory.add_read_byte_callback(self.read_PIA1_B_control, 0xff23) #  PIA 1 B side Control reg.
 
-            0xff04: self.read_serial_interface, # Only Dragon 64
 
-            0xff20: self.read_PIA1_A_data, #    PIA 1 A side Data reg.
-            0xff21: self.read_PIA1_A_control, # PIA 1 A side Control reg.
-            0xff22: self.read_PIA1_B_data, #    PIA 1 B side Data reg.
-            0xff23: self.read_PIA1_B_control, # PIA 1 B side Control reg.
-        })
-        periphery.read_word_func_map.update({
-        })
-        periphery.write_byte_func_map.update({
-            0xff00: self.write_PIA0_A_data, #    PIA 0 A side Data reg.
-            0xff01: self.write_PIA0_A_control, # PIA 0 A side Control reg.
-            0xff02: self.write_PIA0_B_data, #    PIA 0 B side Data reg.
-            0xff03: self.write_PIA0_B_control, # PIA 0 B side Control reg.
-
-            0xff20: self.write_PIA1_A_data, #    PIA 1 A side Data reg.
-            0xff21: self.write_PIA1_A_control, # PIA 1 A side Control reg.
-            0xff22: self.write_PIA1_B_data, #    PIA 1 B side Data reg.
-            0xff23: self.write_PIA1_B_control, # PIA 1 B side Control reg.
-        })
-        periphery.write_word_func_map.update({
-            0xff06: self.write_serial_interface, # Only Dragon 64
-        })
+        # Register memory write Byte callbacks:
+        self.memory.add_write_byte_callback(self.write_PIA0_A_data, 0xff00) #     PIA 0 A side Data reg.
+        self.memory.add_write_byte_callback(self.write_PIA0_A_control, 0xff01) #  PIA 0 A side Control reg.
+        self.memory.add_write_byte_callback(self.write_PIA0_B_data, 0xff02) #     PIA 0 B side Data reg.
+        self.memory.add_write_byte_callback(self.write_PIA0_B_control, 0xff03) #  PIA 0 B side Control reg.
+        self.memory.add_write_byte_callback(self.write_PIA1_A_data, 0xff20) #     PIA 1 A side Data reg.
+        self.memory.add_write_byte_callback(self.write_PIA1_A_control, 0xff21) #  PIA 1 A side Control reg.
+        self.memory.add_write_byte_callback(self.write_PIA1_B_data, 0xff22) #     PIA 1 B side Data reg.
+        self.memory.add_write_byte_callback(self.write_PIA1_B_control, 0xff23) #  PIA 1 B side Control reg.
+        
+        # Only Dragon 64:
+        self.memory.add_read_byte_callback(self.read_serial_interface, 0xff04)
+        self.memory.add_write_word_callback(self.write_serial_interface, 0xff06)
 
     def reset(self):
         self.pia_0_A_register.reset()
@@ -376,7 +372,10 @@ def test_run():
     import sys, os, subprocess
     cmd_args = [
         sys.executable,
-        os.path.join("..", "Dragon64_test.py"),
+        os.path.join("..",
+            "Dragon32_test.py"
+#             "Dragon64_test.py"
+        ),
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()

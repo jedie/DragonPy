@@ -52,20 +52,16 @@ class SBC09PeripheryBase(PeripheryBase):
 #         "ubasic\r\n"
     )
 
-    def __init__(self, cfg):
-        super(SBC09PeripheryBase, self).__init__(cfg)
-        self.read_byte_func_map = {
-            0xe000: self.read_acia_status, # Control/status port of ACIA
-            0xe001: self.read_acia_data, # Data port of ACIA
-
-        }
-        self.read_word_func_map = {
-            0xfffe: self.reset_vector,
-        }
-        self.write_byte_func_map = {
-            0xe000: self.write_acia_status, # Control/status port of ACIA
-            0xe001: self.write_acia_data, # Data port of ACIA
-        }
+    def __init__(self, cfg, memory):
+        super(SBC09PeripheryBase, self).__init__(cfg, memory)
+        
+        self.memory.add_read_byte_callback(self.read_acia_status, 0xe000) #  Control/status port of ACIA
+        self.memory.add_read_byte_callback(self.read_acia_data, 0xe001) #  Data port of ACIA
+        
+        self.memory.add_read_word_callback(self.reset_vector, 0xfffe)
+        
+        self.memory.add_write_byte_callback(self.write_acia_status, 0xe000) #  Control/status port of ACIA
+        self.memory.add_write_byte_callback(self.write_acia_data, 0xe001) #  Data port of ACIA
 
     def write_acia_status(self, cpu_cycles, op_address, address, value):
         return 0xff

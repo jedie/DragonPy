@@ -43,10 +43,11 @@ class Dragon32(object):
     def __init__(self):
         self.cfg = CoCoCfg(CFG_DICT)
 
-        self.periphery = CoCoPeripheryTkinter(self.cfg)
+        memory = Memory(self.cfg)
+
+        self.periphery = CoCoPeripheryTkinter(self.cfg, memory)
         self.cfg.periphery = self.periphery
 
-        memory = Memory(self.cfg)
         self.cpu = CPU(memory, self.cfg)
         memory.cpu = self.cpu # FIXME
 

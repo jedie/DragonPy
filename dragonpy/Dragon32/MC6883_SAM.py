@@ -54,36 +54,35 @@ class SAM(object):
     """
     MC6883 (74LS783) Synchronous Address Multiplexer (SAM)
     """
-    def __init__(self, cfg):
+    def __init__(self, cfg, memory):
         self.cfg = cfg
-
-    def add_read_write_callbacks(self, periphery):
+        self.memory = memory
+        
         #
         # TODO: Collect this information via a decorator similar to op codes in CPU!
         #
-        periphery.read_byte_func_map.update({
-            0xffc2: self.read_VDG_mode_register_v1,
-        })
-        periphery.write_byte_func_map.update({
-            0xffc0: self.write_VDG_mode_register_v0,
-            0xffc2: self.write_VDG_mode_register_v1,
-            0xffc4: self.write_VDG_mode_register_v2,
-            0xffc6: self.write_display_offset_F0,
-            0xffc8: self.write_display_offset_F1,
-            0xffc9: self.write_D64_dynamic_memory, # Dragon 64 only
-            0xffca: self.write_display_offset_F2,
-            0xffcc: self.write_display_offset_F3,
-            0xffce: self.write_display_offset_F4,
-            0xffd0: self.write_display_offset_F5,
-            0xffd2: self.write_display_offset_F6,
-            0xffd4: self.write_page_bit,
-            0xffd6: self.write_MPU_rate_bit0,
-            0xffd8: self.write_MPU_rate_bit1,
-            0xffda: self.write_size_select_bit0,
-            0xffdc: self.write_size_select_bit1,
-            0xffde: self.write_map_type,
-            0xffdd: self.write_map0,
-        })
+        self.memory.add_read_byte_callback(self.read_VDG_mode_register_v1, 0xffc2)
+        
+        self.memory.add_write_byte_callback(self.write_VDG_mode_register_v0, 0xffc0)
+        self.memory.add_write_byte_callback(self.write_VDG_mode_register_v1, 0xffc2)
+        self.memory.add_write_byte_callback(self.write_VDG_mode_register_v2, 0xffc4)
+        self.memory.add_write_byte_callback(self.write_display_offset_F0, 0xffc6)
+        self.memory.add_write_byte_callback(self.write_display_offset_F1, 0xffc8)
+        self.memory.add_write_byte_callback(self.write_display_offset_F2, 0xffca)
+        self.memory.add_write_byte_callback(self.write_display_offset_F3, 0xffcc)
+        self.memory.add_write_byte_callback(self.write_display_offset_F4, 0xffce)
+        self.memory.add_write_byte_callback(self.write_display_offset_F5, 0xffd0)
+        self.memory.add_write_byte_callback(self.write_display_offset_F6, 0xffd2)
+        self.memory.add_write_byte_callback(self.write_page_bit, 0xffd4)
+        self.memory.add_write_byte_callback(self.write_MPU_rate_bit0, 0xffd6)
+        self.memory.add_write_byte_callback(self.write_MPU_rate_bit1, 0xffd8)
+        self.memory.add_write_byte_callback(self.write_size_select_bit0, 0xffda)
+        self.memory.add_write_byte_callback(self.write_size_select_bit1, 0xffdc)
+        self.memory.add_write_byte_callback(self.write_map_type, 0xffde)
+        self.memory.add_write_byte_callback(self.write_map0, 0xffdd)
+
+        #  Dragon 64 only:
+        self.memory.add_write_byte_callback(self.write_D64_dynamic_memory, 0xffc9)
 
 #     def read_VDG_mode_register_v0(self, cpu_cycles, op_address, address):
 #         log.error("TODO: read VDG mode register V0 $%04x", address)

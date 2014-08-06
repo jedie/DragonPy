@@ -24,7 +24,7 @@ CFG_DICT = {
     "display_cycle":False,
 
     "trace":None,
-#    "trace":True,
+#     "trace":True,
 
     "max_ops":None,
 #     "max_ops":2000,
@@ -43,10 +43,11 @@ class Dragon32(object):
     def __init__(self):
         self.cfg = Dragon32Cfg(CFG_DICT)
 
-        self.periphery = Dragon32PeripheryTkinter(self.cfg)
+        memory = Memory(self.cfg)
+
+        self.periphery = Dragon32PeripheryTkinter(self.cfg, memory)
         self.cfg.periphery = self.periphery
 
-        memory = Memory(self.cfg)
         self.cpu = CPU(memory, self.cfg)
         memory.cpu = self.cpu # FIXME
 
@@ -63,7 +64,7 @@ if __name__ == '__main__':
     print "Startup Dragon 32 machine..."
 
     setup_logging(log,
-#        level=1 # hardcore debug ;)
+#         level=1 # hardcore debug ;)
 #        level=10 # DEBUG
 #        level=20 # INFO
 #        level=30 # WARNING

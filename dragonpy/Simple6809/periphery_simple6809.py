@@ -34,19 +34,16 @@ from dragonpy.utils.logging_utils import log
 
 
 class Simple6809PeripheryBase(PeripheryBase):
-    def __init__(self, cfg):
-        super(Simple6809PeripheryBase, self).__init__(cfg)
-        self.read_byte_func_map = {
-            0xa000: self.read_acia_status, # Control/status port of ACIA
-            0xa001: self.read_acia_data, # Data port of ACIA
-        }
-        self.read_word_func_map = {
-            0xbffe: self.reset_vector,
-        }
-        self.write_byte_func_map = {
-            0xa000: self.write_acia_status, # Control/status port of ACIA
-            0xa001: self.write_acia_data, # Data port of ACIA
-        }
+    def __init__(self, cfg, memory):
+        super(Simple6809PeripheryBase, self).__init__(cfg, memory)
+        
+        self.memory.add_read_byte_callback(self.read_acia_status, 0xa000) #  Control/status port of ACIA
+        self.memory.add_read_byte_callback(self.read_acia_data, 0xa001) #  Data port of ACIA
+        
+        self.memory.add_read_word_callback(self.reset_vector, 0xbffe)
+        
+        self.memory.add_write_byte_callback(self.write_acia_status, 0xa000) #  Control/status port of ACIA
+        self.memory.add_write_byte_callback(self.write_acia_data, 0xa001) #  Data port of ACIA
 
     def write_acia_status(self, cpu_cycles, op_address, address, value):
         return 0xff
