@@ -4,21 +4,39 @@
 """
     Dragon Keyboard map:
 
-        | PB0   PB1   PB2   PB3   PB4   PB5   PB6   PB7
+          LSB              $FF02                    MSB
+        | PB0   PB1   PB2   PB3   PB4   PB5   PB6   PB7 <- column
     ----|----------------------------------------------
-    PA0 |   0     1     2     3     4     5     6     7
-    PA1 |   8     9     :     ;     ,     -     .     /
-    PA2 |   @     A     B     C     D     E     F     G
-    PA3 |   H     I     J     K     L     M     N     O
-    PA4 |   P     Q     R     S     T     U     V     W
-    PA5 |   X     Y     Z    Up  Down  Left Right Space
+    PA0 |   0     1     2     3     4     5     6     7    LSB
+    PA1 |   8     9     :     ;     ,     -     .     /     $
+    PA2 |   @     A     B     C     D     E     F     G     F
+    PA3 |   H     I     J     K     L     M     N     O     F
+    PA4 |   P     Q     R     S     T     U     V     W     0
+    PA5 |   X     Y     Z    Up  Down  Left Right Space     0
     PA6 | ENT   CLR   BRK   N/C   N/C   N/C   N/C  SHFT
+    PA7 - Comparator input                                 MSB
+     ^
+     |
+    row
 
     e.g.:
-        'U' $55 -> col: 5 - row: 4
-        'Y' $59 -> col: 1 - row: 5
+        'U' $55 -> column: PB5 - row: PA4
+        'Y' $59 -> column: PB1 - row: PA5
 
     http://archive.worldofdragon.org/index.php?title=File:Dragon32Keyboard4.JPG
+
+
+    CoCo keyboard map:
+
+        | PB0   PB1   PB2   PB3   PB4   PB5   PB6   PB7
+    ----|----------------------------------------------
+    PA0 |   @     A     B     C     D     E     F     G
+    PA1 |   H     I     J     K     L     M     N     O
+    PA2 |   P     Q     R     S     T     U     V     W
+    PA3 |   X     Y     Z    Up  Down  Left Right Space
+    PA4 |   0     1     2     3     4     5     6     7
+    PA5 |   8     9     :     ;     ,     -     .     /
+    PA6 | ENT   CLR   BRK   N/C   N/C   N/C   N/C  SHFT
 """
 
 import string
@@ -26,10 +44,10 @@ import string
 from dragonpy.utils.bits import invert_byte, is_bit_set, clear_bit
 from dragonpy.utils.logging_utils import log
 
-
 DRAGON_KEYMAP = {
     # TODO: Use PyGame event.scancode / Tkinter event.keycode constants
 
+    # Key: ((column, row),(column2, row2))
     "0": ((0, 0),), # 0
     "1": ((1, 0),), # 1
     "2": ((2, 0),), # 2
@@ -145,8 +163,28 @@ DRAGON_KEYMAP = {
     "z":  ((7, 6), (2, 5)), # Shift + "Z"
 }
 
+COCO_ROW_MAP = {
+    0:4,
+    1:5,
+    2:0,
+    3:1,
+    4:2,
+    5:3,
+    6:6,
+}
 
-def get_dragon_col_row_values(char_or_code, auto_shift=True):
+# Use the Dragon map and just swap the rows
+COCO_KEYMAP = {}
+for key, coordinates in DRAGON_KEYMAP.items():
+    coco_coordinates = []
+    for column, row in coordinates:
+        new_row = COCO_ROW_MAP[row]
+        coco_coordinates.append((column, new_row))
+    COCO_KEYMAP[key] = tuple(coco_coordinates)
+
+
+
+def _get_col_row_values(char_or_code, keymap, auto_shift=True):
     if auto_shift and isinstance(char_or_code, basestring):
         if char_or_code in string.ascii_lowercase:
 #             log.critical("auto shift lowercase char %s to UPPERCASE", repr(char_or_code))
@@ -156,16 +194,14 @@ def get_dragon_col_row_values(char_or_code, auto_shift=True):
             char_or_code = char_or_code.lower()
 
     try:
-        col_row_values = DRAGON_KEYMAP[char_or_code]
+        col_row_values = keymap[char_or_code]
     except KeyError:
         col_row_values = ()
         log.critical("Key %s not supported or unknown.", repr(char_or_code))
     return col_row_values
 
 
-def get_dragon_pia_result(char_or_code, pia0b, auto_shift=True):
-    col_row_values = get_dragon_col_row_values(char_or_code, auto_shift=auto_shift)
-
+def _set_bits(pia0b, col_row_values):
     result = 0xff
     for col, row in col_row_values:
         if not is_bit_set(pia0b, bit=col):
@@ -173,36 +209,63 @@ def get_dragon_pia_result(char_or_code, pia0b, auto_shift=True):
     return result
 
 
-def test(char_or_code, auto_shift):
-    """
-    e.g.:
+def get_dragon_keymatrix_pia_result(char_or_code, pia0b, auto_shift=True):
+    col_row_values = _get_col_row_values(char_or_code, DRAGON_KEYMAP, auto_shift=auto_shift)
+    result = _set_bits(pia0b, col_row_values)
+    return result
 
-    input char is: 'U' $55 -> col: 5 - row: 4
-    bit 0 - $ff02 in $fe (11111110) -> $ff00 out $ff (11111111) stored in $0152
-    bit 1 - $ff02 in $fd (11111101) -> $ff00 out $ff (11111111) stored in $0153
-    bit 2 - $ff02 in $fb (11111011) -> $ff00 out $ff (11111111) stored in $0154
-    bit 3 - $ff02 in $f7 (11110111) -> $ff00 out $ff (11111111) stored in $0155
-    bit 4 - $ff02 in $ef (11101111) -> $ff00 out $ff (11111111) stored in $0156
-    bit 5 - $ff02 in $df (11011111) -> $ff00 out $ef (11101111) stored in $0157
-    bit 6 - $ff02 in $bf (10111111) -> $ff00 out $ff (11111111) stored in $0158
-    bit 7 - $ff02 in $7f (01111111) -> $ff00 out $ff (11111111) stored in $0159
 
-    input char is: 'Y' $59 -> col: 1 - row: 5
-    bit 0 - $ff02 in $fe (11111110) -> $ff00 out $ff (11111111) stored in $0152
-    bit 1 - $ff02 in $fd (11111101) -> $ff00 out $df (11011111) stored in $0153
-    bit 2 - $ff02 in $fb (11111011) -> $ff00 out $ff (11111111) stored in $0154
-    bit 3 - $ff02 in $f7 (11110111) -> $ff00 out $ff (11111111) stored in $0155
-    bit 4 - $ff02 in $ef (11101111) -> $ff00 out $ff (11111111) stored in $0156
-    bit 5 - $ff02 in $df (11011111) -> $ff00 out $ff (11111111) stored in $0157
-    bit 6 - $ff02 in $bf (10111111) -> $ff00 out $ff (11111111) stored in $0158
-    bit 7 - $ff02 in $7f (01111111) -> $ff00 out $ff (11111111) stored in $0159
+def get_coco_keymatrix_pia_result(char_or_code, pia0b, auto_shift=True):
+    col_row_values = _get_col_row_values(char_or_code, COCO_KEYMAP, auto_shift=auto_shift)
+    result = _set_bits(pia0b, col_row_values)
+    return result
+
+
+def test(char_or_code, matrix_name, auto_shift=False):
     """
-    col_row_values = get_dragon_col_row_values(char_or_code, auto_shift=auto_shift)
+    >>> test("P", "dragon")
+    char/keycode: 'P' -> cols/rows: ((0, 2),)
+    PB0 - $ff02 in $fe (11111110) -> $ff00 out $ef (11101111) stored in $0152
+    PB1 - $ff02 in $fd (11111101) -> $ff00 out $ff (11111111) stored in $0153
+    PB2 - $ff02 in $fb (11111011) -> $ff00 out $ff (11111111) stored in $0154
+    PB3 - $ff02 in $f7 (11110111) -> $ff00 out $ff (11111111) stored in $0155
+    PB4 - $ff02 in $ef (11101111) -> $ff00 out $ff (11111111) stored in $0156
+    PB5 - $ff02 in $df (11011111) -> $ff00 out $ff (11111111) stored in $0157
+    PB6 - $ff02 in $bf (10111111) -> $ff00 out $ff (11111111) stored in $0158
+    PB7 - $ff02 in $7f (01111111) -> $ff00 out $bf (11111111) stored in $0159
+      ^                 ^^^^^^^^                     ^^^^^^^
+      |                 ||||||||                     |||||||
+    col            col: 76543210              row -> 6543210
+
+    >>> test("P", "coco")
+    char/keycode: 'P' -> cols/rows: ((0, 2),)
+    PB0 - $ff02 in $fe (11111110) -> $ff00 out $fb (11111011) stored in $0152
+    PB1 - $ff02 in $fd (11111101) -> $ff00 out $ff (11111111) stored in $0153
+    PB2 - $ff02 in $fb (11111011) -> $ff00 out $ff (11111111) stored in $0154
+    PB3 - $ff02 in $f7 (11110111) -> $ff00 out $ff (11111111) stored in $0155
+    PB4 - $ff02 in $ef (11101111) -> $ff00 out $ff (11111111) stored in $0156
+    PB5 - $ff02 in $df (11011111) -> $ff00 out $ff (11111111) stored in $0157
+    PB6 - $ff02 in $bf (10111111) -> $ff00 out $ff (11111111) stored in $0158
+    PB7 - $ff02 in $7f (01111111) -> $ff00 out $bf (10111111) stored in $0159
+      ^                 ^^^^^^^^                     ^^^^^^^
+      |                 ||||||||                     |||||||
+    col            col: 76543210              row -> 6543210
+    """
+    if matrix_name == "dragon":
+        col_row_values = _get_col_row_values(char_or_code, DRAGON_KEYMAP, auto_shift=auto_shift)
+    elif matrix_name == "coco":
+        col_row_values = _get_col_row_values(char_or_code, COCO_KEYMAP, auto_shift=auto_shift)
+    else:
+        raise RuntimeError
+
     print "char/keycode: %s -> cols/rows: %s" % (repr(char_or_code), repr(col_row_values))
 
     for i in xrange(8):
         pia0b = invert_byte(2 ** i) # written into $ff02
-        result = get_dragon_pia_result(char_or_code, pia0b) # read from $ff00
+        if matrix_name == "dragon":
+            result = get_dragon_keymatrix_pia_result(char_or_code, pia0b, auto_shift=auto_shift) # read from $ff00
+        else:
+            result = get_coco_keymatrix_pia_result(char_or_code, pia0b, auto_shift=auto_shift) # read from $ff00
         addr = 0x152 + i
         print "PB%i - $ff02 in $%02x (%s) -> $ff00 out $%02x (%s) stored in $%04x" % (
             i, pia0b, '{0:08b}'.format(pia0b),
@@ -212,17 +275,21 @@ def test(char_or_code, auto_shift):
     print "  ^                 ^^^^^^^^                     ^^^^^^^"
     print "  |                 ||||||||                     |||||||"
     print "col            col: 76543210              row -> 6543210"
-    print
 
 
 if __name__ == '__main__':
-#    import doctest
-#    print doctest.testmod(
-#        #verbose=1
-#    )
+    import doctest
+    print doctest.testmod(
+        # verbose=1
+    )
 
-    import sys
+#     import sys
+#     sys.exit()
+
     import Tkinter
+
+    import pprint
+    pprint.pprint(COCO_KEYMAP)
 
 
     def verbose_value(value):

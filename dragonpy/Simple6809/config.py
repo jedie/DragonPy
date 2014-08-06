@@ -11,7 +11,7 @@
 
 import os
 
-from dragonpy.core.configs import BaseConfig
+from dragonpy.core.configs import BaseConfig, SIMPLE6809
 from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809Periphery
 
@@ -21,6 +21,8 @@ class Simple6809Cfg(BaseConfig):
     DragonPy config for Grant Searle's Simple 6809 design
     More info read ./Simple6809/README.creole
     """
+    CONFIG_NAME = SIMPLE6809
+
     RAM_START = 0x0000
     RAM_END = 0x03FF # 1KB
     # RAM_END = 0x07FF # 2KB

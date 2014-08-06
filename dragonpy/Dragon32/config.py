@@ -12,10 +12,11 @@
 import os
 import logging
 
-from dragonpy.core.configs import BaseConfig
+from dragonpy.core.configs import BaseConfig, DRAGON32
 
 from dragonpy.Dragon32.mem_info import get_dragon_meminfo
 from dragonpy.utils.logging_utils import log
+from dragonpy.Dragon32.keyboard_map import get_dragon_keymatrix_pia_result
 
 
 class Dragon32Cfg(BaseConfig):
@@ -24,13 +25,14 @@ class Dragon32Cfg(BaseConfig):
      * http://dragon32.info/info/memmap.html
      * http://dragon32.info/info/romref.html
     """
+    CONFIG_NAME = DRAGON32
     MACHINE_NAME = "Dragon 32"
-    
+
     # How does the keyboard polling routine starts with?
     PIA0B_KEYBOARD_START = 0x00
 
     RAM_START = 0x0000
-    
+
     # 1KB RAM is not runnable and raise a error
     # 2-8 KB - BASIC Interpreter will be initialized. But every
     #          statement will end with a OM ERROR (Out of Memory)
@@ -61,11 +63,11 @@ class Dragon32Cfg(BaseConfig):
             self.mem_info = get_dragon_meminfo()
 
         self.periphery_class = None# Dragon32Periphery
-        
+
         self.memory_byte_middlewares = {
             # (start_addr, end_addr): (read_func, write_func)
 #             (0x0152, 0x0159): (None, self.keyboard_matrix_state),
-            (0x0115,0x0119): (self.rnd_seed_read, self.rnd_seed_write)
+            (0x0115, 0x0119): (self.rnd_seed_read, self.rnd_seed_write)
         }
 
     def keyboard_matrix_state(self, cpu, addr, value):
@@ -80,7 +82,7 @@ class Dragon32Cfg(BaseConfig):
     def rnd_seed_read(self, cycles, last_op_address, address, byte):
         log.critical("%04x| read $%02x RND() seed from: $%04x", last_op_address, byte, address)
         return byte
-        
+
     def rnd_seed_write(self, cycles, last_op_address, address, byte):
         log.critical("%04x| write $%02x RND() seed to: $%04x", last_op_address, byte, address)
         return byte
@@ -100,5 +102,7 @@ class Dragon32Cfg(BaseConfig):
 
         return mem
 
+    def pia_keymatrix_result(self, char_or_code, pia0b):
+        return get_dragon_keymatrix_pia_result(char_or_code, pia0b, auto_shift=True)
 
 config = Dragon32Cfg

@@ -11,7 +11,7 @@
 
 import os
 
-from dragonpy.core.configs import BaseConfig
+from dragonpy.core.configs import BaseConfig, MULTICOMP6809
 # from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
 from dragonpy.Multicomp6809.periphery_Multicomp6809 import Multicomp6809Periphery
 
@@ -22,6 +22,8 @@ class Multicomp6809Cfg(BaseConfig):
     DragonPy config for Grant Searle's Multicomp FPGA project
     http://searle.hostei.com/grant/Multicomp/
     """
+    CONFIG_NAME = MULTICOMP6809
+
     RAM_START = 0x0000
     RAM_END = 0x03FF # 1KB
     # RAM_END = 0x07FF # 2KB

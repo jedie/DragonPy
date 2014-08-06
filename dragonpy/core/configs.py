@@ -17,6 +17,14 @@ import multiprocessing
 from dragonpy.utils.logging_utils import log
 
 
+DRAGON32 = "Dragon32"
+DRAGON64 = "Dragon64"
+COCO = "COCO"
+SBC09 = "sbc09"
+SIMPLE6809 = "Simple6809"
+MULTICOMP6809 = "Multicomp6809"
+
+
 class ConfigDict(dict):
     DEFAULT = None
     def register(self, name, cls, default=False):

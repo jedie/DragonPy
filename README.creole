@@ -14,10 +14,8 @@ Future goals are:
 
 
 === Current state
-The Dragon 32 / 64 ROM works in Text mode.
+The Dragon 32 / 64 and CoCo ROMs works in Text mode.
 Also the "single board computer" ROMs sbc09, Simple6809 and Multicomp6809 works well.
-
-CoCo Color BASIC v1.3 boots up and colored cursor is alive. Input doesn't work, yet.
 
 
 === ROMs
@@ -200,7 +198,6 @@ e.g. The Dragon 32 6809 machine with a 14.31818 MHz crystal runs with:
 
 # Reimplement the CLI
 # Fast save/load BASIC programm listings direct into RAM
-# Support CoCo ROMs
 # Use bottle for http control server part
 # implement more Dragon 32 periphery
 

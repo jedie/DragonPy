@@ -15,9 +15,12 @@ import logging
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.CoCo.mem_info import get_coco_meminfo
 from dragonpy.utils.logging_utils import log
+from dragonpy.core.configs import COCO
+from dragonpy.Dragon32.keyboard_map import get_coco_keymatrix_pia_result
 
 
 class CoCoCfg(Dragon32Cfg):
+    CONFIG_NAME = COCO
     MACHINE_NAME = "CoCo"
     
     # How does the keyboard polling routine starts with?
@@ -43,7 +46,9 @@ class CoCoCfg(Dragon32Cfg):
 
     DEFAULT_ROM = os.path.join(
         os.path.abspath(os.path.dirname(__file__)),
+#         "Color Basic v1.2 (1982)(Tandy).rom"
         "Color Basic v1.3 (1982)(Tandy).rom"
+#         "ExtendedColorBasic1.1.rom"
     )
 
     def __init__(self, cmd_args):
@@ -84,6 +89,9 @@ class CoCoCfg(Dragon32Cfg):
             mem += mem_00
 
         return mem
+
+    def pia_keymatrix_result(self, char_or_code, pia0b):
+        return get_coco_keymatrix_pia_result(char_or_code, pia0b, auto_shift=True)
 
 
 config = CoCoCfg

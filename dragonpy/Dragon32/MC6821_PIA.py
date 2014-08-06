@@ -19,12 +19,11 @@
 """
 
 from dragonpy.utils.logging_utils import log
-from dragonpy.Dragon32.keyboard_map import get_dragon_pia_result, \
-    get_dragon_col_row_values
 from dragonpy.utils.humanize import byte2bit_string
 from dragonpy.utils.bits import is_bit_set, invert_byte, clear_bit
 import os
 import Queue
+from dragonpy.core.configs import COCO
 
 
 class PIA_register(object):
@@ -78,11 +77,13 @@ class PIA(object):
 
         self.empty_key_toggle = True
         self.input_queue = Queue.Queue()# maxsize=10)
+#         for char in 'AAABBBCCC111222':self.input_queue.put(char)
+#         for char in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':self.input_queue.put(char)
 #         for char in 'PRINT "HELLO WORLD!"\r':self.input_queue.put(char)
-#         for char in ("d", 50, "D", "\r", "A", "\r", "B", "\r", "C", "\r"):self.input_queue.put(char)
         self.current_input_char = None
-        
-        
+
+        self.input_repead = 0
+
         #
         # TODO: Collect this information via a decorator similar to op codes in CPU!
         #
@@ -106,7 +107,7 @@ class PIA(object):
         self.memory.add_write_byte_callback(self.write_PIA1_A_control, 0xff21) #  PIA 1 A side Control reg.
         self.memory.add_write_byte_callback(self.write_PIA1_B_data, 0xff22) #     PIA 1 B side Data reg.
         self.memory.add_write_byte_callback(self.write_PIA1_B_control, 0xff23) #  PIA 1 B side Control reg.
-        
+
         # Only Dragon 64:
         self.memory.add_read_byte_callback(self.read_serial_interface, 0xff04)
         self.memory.add_write_word_callback(self.write_serial_interface, 0xff06)
@@ -181,7 +182,6 @@ class PIA(object):
     #--------------------------------------------------------------------------
     # Keyboard matrix on PIA0
 
-    COUNT = 0
     def read_PIA0_A_data(self, cpu_cycles, op_address, address):
         """
         read from 0xff00 -> PIA 0 A side Data reg.
@@ -197,61 +197,70 @@ class PIA(object):
         """
         pia0b = self.pia_0_B_register.get() # $ff02
 
-        if pia0b == self.cfg.PIA0B_KEYBOARD_START: # FIXME
-            if self.empty_key_toggle:
-                # Work-a-round for "poor" dragon keyboard scan routine:
-                # The scan routine in ROM ignores key pressed directly behind
-                # one another if they are in the same row!
-                # See "Inside the Dragon" book, page 203 ;)
-                #
-                # Here with the empty_key_toggle, we always send a "no key pressed"
-                # after every key press back and then we send the next key from
-                # the self.input_queue
-                #
-                # TODO: We can check the row of the previous key press and only
-                # force a 'no key pressed' if the row is the same
-                self.empty_key_toggle = False
-                self.current_input_char = None
-                log.debug("\tForce send 'no key pressed'")
-            else:
+        # FIXME: Find a way to handle CoCo and Dragon in the same way!
+        if self.cfg.CONFIG_NAME == COCO:
+#             log.critical("\t count: %i", self.input_repead)
+            if self.input_repead == 7:
                 try:
                     self.current_input_char = self.input_queue.get(block=False)
                 except Queue.Empty:
                     self.current_input_char = None
                 else:
-                    col_row_values = get_dragon_col_row_values(self.current_input_char)
-#                     log.critical(
-                    log.debug(
-                        "\tNew input char: %s col/row values: %s",
-                        repr(self.current_input_char),
-                        repr(col_row_values),
-                    )
-                    self.empty_key_toggle = True
+                    log.critical("\tget new key from queue: %s", repr(self.current_input_char))
+            elif self.input_repead == 18:
+#                 log.critical("\tForce send 'no key pressed'")
+                self.current_input_char = None
+            elif self.input_repead > 20:
+                self.input_repead = 0
+
+            self.input_repead += 1
+        else: # Dragon
+            if pia0b == self.cfg.PIA0B_KEYBOARD_START: # FIXME
+                if self.empty_key_toggle:
+                    # Work-a-round for "poor" dragon keyboard scan routine:
+                    # The scan routine in ROM ignores key pressed directly behind
+                    # one another if they are in the same row!
+                    # See "Inside the Dragon" book, page 203 ;)
+                    #
+                    # Here with the empty_key_toggle, we always send a "no key pressed"
+                    # after every key press back and then we send the next key from
+                    # the self.input_queue
+                    #
+                    # TODO: We can check the row of the previous key press and only
+                    # force a 'no key pressed' if the row is the same
+                    self.empty_key_toggle = False
+                    self.current_input_char = None
+#                     log.critical("\tForce send 'no key pressed'")
+                else:
+                    try:
+                        self.current_input_char = self.input_queue.get(block=False)
+                    except Queue.Empty:
+    #                     log.critical("\tinput_queue is empty")
+                        self.current_input_char = None
+                    else:
+#                         log.critical("\tget new key from queue: %s", repr(self.current_input_char))
+                        self.empty_key_toggle = True
 
         if self.current_input_char is None:
-#             log.debug("\tno key pressed")
+#             log.critical("\tno key pressed")
             result = 0xff
             self.empty_key_toggle = False
         else:
-            result = get_dragon_pia_result(
-                char_or_code=self.current_input_char,
-                pia0b=pia0b,
-                auto_shift=True,
-            )
+#             log.critical("\tsend %s", repr(self.current_input_char))
+            result = self.cfg.pia_keymatrix_result(self.current_input_char, pia0b)
 
 #         if not is_bit_set(pia0b, bit=7):
 #             # bit 7 | PA7 | joystick comparison input
 #             result = clear_bit(result, bit=7)
 
-        if self.current_input_char is not None:
-            log.info(
+#         if self.current_input_char is not None:
 #             log.critical(
-                "%04x| read $%04x ($ff02 is $%02x %s) send $%02x %s back\t|%s",
-                op_address, address,
-                pia0b, '{0:08b}'.format(pia0b),
-                result, '{0:08b}'.format(result),
-                self.cfg.mem_info.get_shortest(op_address)
-            )
+#                 "%04x| read $%04x ($ff02 is $%02x %s) send $%02x %s back\t|%s",
+#                 op_address, address,
+#                 pia0b, '{0:08b}'.format(pia0b),
+#                 result, '{0:08b}'.format(result),
+#                 self.cfg.mem_info.get_shortest(op_address)
+#             )
         return result
 
     def write_PIA0_A_data(self, cpu_cycles, op_address, address, value):
@@ -373,7 +382,8 @@ def test_run():
     cmd_args = [
         sys.executable,
         os.path.join("..",
-            "Dragon32_test.py"
+            "CoCo_test.py"
+#             "Dragon32_test.py"
 #             "Dragon64_test.py"
         ),
     ]

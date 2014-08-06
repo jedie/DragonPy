@@ -11,7 +11,7 @@
 
 import os
 
-from dragonpy.core.configs import BaseConfig
+from dragonpy.core.configs import BaseConfig, SBC09
 
 from dragonpy.sbc09.mem_info import get_sbc09_meminfo
 from dragonpy.sbc09.periphery import SBC09Periphery
@@ -25,6 +25,8 @@ class SBC09Cfg(BaseConfig):
 
     More info read ./sbc09/README.creole
     """
+    CONFIG_NAME = SBC09
+
     RAM_START = 0x0000
     RAM_END = 0x7FFF
     RAM_SIZE = 0x8000 # 32768 Bytes
