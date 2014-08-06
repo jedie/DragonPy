@@ -197,7 +197,7 @@ class PIA(object):
         """
         pia0b = self.pia_0_B_register.get() # $ff02
 
-        if pia0b == 0x00:
+        if pia0b == self.cfg.PIA0B_KEYBOARD_START: # FIXME
             if self.empty_key_toggle:
                 # Work-a-round for "poor" dragon keyboard scan routine:
                 # The scan routine in ROM ignores key pressed directly behind

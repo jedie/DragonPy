@@ -20,6 +20,9 @@ from dragonpy.utils.logging_utils import log
 class CoCoCfg(Dragon32Cfg):
     MACHINE_NAME = "CoCo"
     
+    # How does the keyboard polling routine starts with?
+    PIA0B_KEYBOARD_START = 0xfe
+
     RAM_START = 0x0000
 
     # 1KB RAM is not runnable and raise a error

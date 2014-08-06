@@ -26,6 +26,9 @@ class Dragon32Cfg(BaseConfig):
     """
     MACHINE_NAME = "Dragon 32"
     
+    # How does the keyboard polling routine starts with?
+    PIA0B_KEYBOARD_START = 0x00
+
     RAM_START = 0x0000
     
     # 1KB RAM is not runnable and raise a error
