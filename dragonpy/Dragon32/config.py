@@ -77,11 +77,12 @@ class Dragon32Cfg(BaseConfig):
         self.periphery_class = None# Dragon32Periphery
         
         self.memory_middlewares = {
-            (0x0152, 0x0159): (None, self.keyboard_matrix_state),
+#             (0x0152, 0x0159): (None, self.keyboard_matrix_state),
         }
 
     def keyboard_matrix_state(self, cpu, addr, value):
-        log.debug("%04x|      Set keyboard matrix state $%04x to $%02x %s\t\t\t|%s",
+        log.critical(
+            "%04x|      Set keyboard matrix state $%04x to $%02x %s\t\t\t|%s",
             cpu.last_op_address, addr, value, '{0:08b}'.format(value),
             self.mem_info.get_shortest(addr)
         )
