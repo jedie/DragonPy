@@ -26,6 +26,7 @@ import sys
 from dragonpy.utils.logging_utils import log
 
 
+
 class ROM(object):
 
     def __init__(self, cfg, memory, start, size):
@@ -113,23 +114,25 @@ class Memory(object):
         if cfg and cfg.ram:
             self.ram.load_file(cfg.RAM_START, cfg.ram)
 
-        self._read_callbacks = {}
-        self._write_callbacks = {}
-        for addr_range, functions in cfg.memory_callbacks.items():
+        # Memory middlewares are function that called on memory read or write
+        # the function can change the value that is read/write
+        self._read_byte_middleware = {}
+        self._write_byte_middleware = {}
+        for addr_range, functions in cfg.memory_middlewares.items():
             start_addr, end_addr = addr_range
             for addr in xrange(start_addr - 1, end_addr + 1):
                 read_func, write_func = functions
                 if read_func:
-                    self._read_callbacks[addr] = read_func
+                    self._read_byte_middleware[addr] = read_func
                 if write_func:
-                    self._write_callbacks[addr] = write_func
+                    self._write_byte_middleware[addr] = write_func
 #         log.critical(
 # #         log.debug(
-#             "memory read callbacks: %s", self._read_callbacks
+#             "memory read middlewares: %s", self._read_byte_middleware
 #         )
 #         log.critical(
 # #         log.debug(
-#             "memory write callbacks: %s", self._write_callbacks
+#             "memory write middlewares: %s", self._write_byte_middleware
 #         )
 
     def load(self, address, data):
@@ -144,9 +147,6 @@ class Memory(object):
 
     def read_byte(self, address):
         self.cpu.cycles += 1
-
-        if address in self._read_callbacks:
-            self._read_callbacks[address](self.cpu, address)
 
         if address in self.cfg.bus_addr_areas:
             byte = self.cfg.periphery.read_byte(
@@ -169,6 +169,9 @@ class Memory(object):
             log.warn(msg2)
             # raise RuntimeError(msg2)
             byte = 0x0
+
+        if address in self._read_byte_middleware:
+            byte = self._read_byte_middleware[address](self.cpu, address, byte)
 
 #        log.log(5, "%04x| (%i) read byte $%x from $%x",
 #            self.cpu.last_op_address, self.cpu.cycles,
@@ -200,6 +203,9 @@ class Memory(object):
 #             value = value & 0xff
 #             log.error(" ^^^^ wrap around to $%x", value)
 
+        if address in self._write_byte_middleware:
+            value = self._write_byte_middleware[address](self.cpu, address, value)
+
         if address in self.cfg.bus_addr_areas:
             self.cfg.periphery.write_byte(
                 self.cpu.cycles, self.cpu.last_op_address, address, value
@@ -220,9 +226,6 @@ class Memory(object):
             msg2 = "%s: $%x" % (msg, address)
             log.warn(msg2)
 #             raise RuntimeError(msg2)
-
-        if address in self._write_callbacks:
-            self._write_callbacks[address](self.cpu, address, value)
 
     def write_word(self, address, value):
         if address in self.cfg.bus_addr_areas:

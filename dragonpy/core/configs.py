@@ -123,7 +123,7 @@ class BaseConfig(object):
         self.verbosity = cfg_dict["verbosity"]
 
         self.mem_info = DummyMemInfo()
-        self.memory_callbacks = {}
+        self.memory_middlewares = {}
 
     def _get_initial_Memory(self, size):
         return [0x00] * size

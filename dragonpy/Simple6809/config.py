@@ -59,7 +59,7 @@ class Simple6809Cfg(BaseConfig):
 
         self.periphery_class = Simple6809Periphery
 
-        self.memory_callbacks = {
+        self.memory_middlewares = {
 #            (0x004f, 0x0054): (None, self.float_accu_write0),
 #            (0x005c, 0x0061): (None, self.float_accu_write1),
         }
@@ -70,6 +70,7 @@ class Simple6809Cfg(BaseConfig):
             self.mem_info.get_shortest(addr)
         )
         cpu.memory.ram.print_dump(0x004f, 0x0054)
+        return value
 
     def float_accu_write1(self, cpu, addr, value):
         print "%04x| Write float accu 1 $%x to $%x %s" % (
@@ -77,6 +78,7 @@ class Simple6809Cfg(BaseConfig):
             self.mem_info.get_shortest(addr)
         )
         cpu.memory.ram.print_dump(0x005c, 0x0061)
+        return value
 
 
 config = Simple6809Cfg

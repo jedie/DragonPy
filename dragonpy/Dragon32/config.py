@@ -75,7 +75,8 @@ class Dragon32Cfg(BaseConfig):
             self.mem_info = get_dragon_meminfo()
 
         self.periphery_class = None# Dragon32Periphery
-        self.memory_callbacks = {
+        
+        self.memory_middlewares = {
             (0x0152, 0x0159): (None, self.keyboard_matrix_state),
         }
 
@@ -85,6 +86,7 @@ class Dragon32Cfg(BaseConfig):
             self.mem_info.get_shortest(addr)
         )
         # cpu.memory.ram.print_dump(0x004f, 0x0054)
+        return value
 
     def get_initial_RAM(self):
         """
