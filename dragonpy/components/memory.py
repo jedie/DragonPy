@@ -222,7 +222,7 @@ class Memory(object):
             )
 
         # 6809 is Big-Endian
-        return self.read_byte(address + 1) + (self.read_byte(address) << 8)
+        return (self.read_byte(address) << 8) + self.read_byte(address + 1)
 
     def write_byte(self, address, value):
         self.cpu.cycles += 1
