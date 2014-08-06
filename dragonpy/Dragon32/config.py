@@ -60,7 +60,9 @@ class Dragon32Cfg(BaseConfig):
         self.periphery_class = None# Dragon32Periphery
         
         self.memory_byte_middlewares = {
+            # (start_addr, end_addr): (read_func, write_func)
 #             (0x0152, 0x0159): (None, self.keyboard_matrix_state),
+            (0x0115,0x0119): (self.rnd_seed_read, self.rnd_seed_write)
         }
 
     def keyboard_matrix_state(self, cpu, addr, value):
@@ -71,6 +73,14 @@ class Dragon32Cfg(BaseConfig):
         )
         # cpu.memory.ram.print_dump(0x004f, 0x0054)
         return value
+
+    def rnd_seed_read(self, cycles, last_op_address, address, byte):
+        log.critical("%04x| read $%02x RND() seed from: $%04x", last_op_address, byte, address)
+        return byte
+        
+    def rnd_seed_write(self, cycles, last_op_address, address, byte):
+        log.critical("%04x| write $%02x RND() seed to: $%04x", last_op_address, byte, address)
+        return byte
 
     def get_initial_RAM(self):
         """
