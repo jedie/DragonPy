@@ -127,12 +127,12 @@ class Memory(object):
             read_func, write_func = functions
             
             if read_func:
-                self._map_address_range(self._read_byte_middleware,
+                self.add_read_byte_middleware(self._read_byte_middleware,
                     start_addr, end_addr,read_func
                 )
                 
             if write_func:
-                self._map_address_range(self._write_byte_middleware,
+                self.add_write_byte_middleware(self._write_byte_middleware,
                     start_addr, end_addr,write_func
                 )
 
@@ -165,6 +165,12 @@ class Memory(object):
         
     def add_write_word_callback(self, callback_func, start_addr, end_addr=None):
         self._map_address_range(self._write_word_callbacks, callback_func, start_addr, end_addr)
+
+    def add_read_byte_middleware(self, callback_func, start_addr, end_addr=None):
+        self._map_address_range(self._read_byte_middleware, callback_func, start_addr, end_addr)
+
+    def add_write_byte_middleware(self, callback_func, start_addr, end_addr=None):
+        self._map_address_range(self._write_byte_middleware, callback_func, start_addr, end_addr)
 
     #---------------------------------------------------------------------------
 
@@ -199,7 +205,9 @@ class Memory(object):
             byte = 0x0
 
         if address in self._read_byte_middleware:
-            byte = self._read_byte_middleware[address](self.cpu, address, byte)
+            byte = self._read_byte_middleware[address](
+                self.cpu.cycles, self.cpu.last_op_address, address
+            )
 
 #        log.log(5, "%04x| (%i) read byte $%x from $%x",
 #            self.cpu.last_op_address, self.cpu.cycles,
@@ -227,7 +235,9 @@ class Memory(object):
 #             log.error(" ^^^^ wrap around to $%x", value)
 
         if address in self._write_byte_middleware:
-            value = self._write_byte_middleware[address](self.cpu, address, value)
+            value = self._write_byte_middleware[address](
+                self.cpu.cycles, self.cpu.last_op_address, address, value
+            )
 
         if address in self._write_byte_callbacks:
             return self._write_byte_callbacks[address](
