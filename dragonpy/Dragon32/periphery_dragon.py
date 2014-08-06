@@ -44,39 +44,14 @@ class Dragon32PeripheryBase(PeripheryBase):
         self.sam = SAM(cfg, memory)
         self.pia = PIA(cfg, memory)
 
-#         map_address_range(
-#             self.read_byte_func_map,
-#             # $c000-$feff ; Available address range to cartridge expansion port 32K mode
-#             start_addr=0xC000, end_addr=0xfeff,
-#             callback_func=self.no_dos_rom
-#         )
-
-
         self.memory.add_read_byte_callback(self.no_dos_rom, 0xC000)
-        self.memory.add_read_byte_callback(self.reset_vector, 0xfffe)
-
         self.memory.add_read_word_callback(self.no_dos_rom, 0xC000)
-        self.memory.add_read_word_callback(self.reset_vector, 0xfffe)
-
-#         self.read_byte_func_map.update({
-#             0xc000: self.no_dos_rom,
-#             0xfffe: ,
-#         })
-#         self.read_word_func_map.update({
-#             0xc000: self.no_dos_rom,
-#             0xfffe: self.reset_vector,
-#         })
 
         self.running = True
 
     def no_dos_rom(self, cpu_cycles, op_address, address):
         log.error("%04x| TODO: DOS ROM requested. Send 0x00 back", op_address)
         return 0x00
-
-    def reset_vector(self, cpu_cycles, op_address, address):
-        ea = 0xb3b4
-        log.info("%04x| %04x        [RESET]" % (address, ea))
-        return ea # FIXME: RESET interrupt service routine ???
 
     def update(self, cpu_cycles):
 #        log.critical("update pygame")

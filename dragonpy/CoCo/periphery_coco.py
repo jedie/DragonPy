@@ -43,13 +43,6 @@ class CoCoPeripheryTkinter(Dragon32PeripheryTkinter):
         log.critical("%04x| write word $%04x to $%04x ?!?!" % (
             op_address, value, address
         ))
-        
-    def reset_vector(self, cpu_cycles, op_address, address):
-#         ea = 0x8C1B
-        ea = 0xA027
-#         ea = 0xC000
-        log.info("%04x| %04x        [RESET]" % (address, ea))
-        return ea # FIXME: RESET interrupt service routine ???
 
 
 def test_run_direct():

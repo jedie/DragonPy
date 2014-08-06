@@ -11,23 +11,21 @@
 """
 
 import unittest
-import logging
 
+from dragonpy.utils.logging_utils import setup_logging, log
 from dragonpy.tests.test_base import TextTestRunner2
 
 
-if __name__ == '__main__':
-    log = logging.getLogger("DragonPy")
-    log.setLevel(
-#         1
-#         10 # DEBUG
-#         20 # INFO
-#         30 # WARNING
-#         40 # ERROR
-        50 # CRITICAL/FATAL
+if __name__ == '__main__':   
+    setup_logging(log,
+#         level=1 # hardcore debug ;)
+#         level=10 # DEBUG
+#         level=20 # INFO
+#         level=30 # WARNING
+#         level=40 # ERROR
+#         level=50 # CRITICAL/FATAL
+        level=99
     )
-    log.addHandler(logging.StreamHandler())
-
 
     loader = unittest.TestLoader()
     tests = loader.discover('.')

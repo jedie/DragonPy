@@ -64,7 +64,8 @@ undefined_reg = UndefinedRegister()
 
 
 class CPU(object):
-
+    RESET_VECTOR = 0xfffe
+    
     def __init__(self, memory, cfg):
         self.memory = memory
         self.cfg = cfg
@@ -84,7 +85,7 @@ class CPU(object):
         self.system_stack_pointer = ValueStorage16Bit(REG_S, 0)
 
         # PC - 16 bit program counter register
-        self.program_counter = ValueStorage16Bit(REG_PC, self.cfg.RESET_VECTOR)
+        self.program_counter = ValueStorage16Bit(REG_PC, 0)
 
         self.accu_a = ValueStorage8Bit(REG_A, 0) # A - 8 bit accumulator
         self.accu_b = ValueStorage8Bit(REG_B, 0) # B - 8 bit accumulator
@@ -228,7 +229,7 @@ class CPU(object):
 #         self.program_counter = self.cfg.RESET_VECTOR
 
 #        log.info("\tread word from $%x" % self.cfg.RESET_VECTOR)
-        ea = self.memory.read_word(self.cfg.RESET_VECTOR)
+        ea = self.memory.read_word(self.RESET_VECTOR)
 #        log.info("\tset PC to $%x" % (ea))
         self.program_counter.set(ea)
 

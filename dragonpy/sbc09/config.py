@@ -33,9 +33,6 @@ class SBC09Cfg(BaseConfig):
     ROM_END = 0xFFFF
     ROM_SIZE = 0x4000 # 16384 Bytes
 
-    RESET_VECTOR = 0xFFFE
-    RESET_VECTOR_VALUE = 0xe400
-
     BUS_ADDR_AREAS = (
         (0xe000, 0xe001, "RS232 interface"), # emulated serial port (ACIA)
         (0xFFF2, 0xFFFE, "Interrupt vectors"),

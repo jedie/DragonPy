@@ -39,8 +39,6 @@ class Multicomp6809Cfg(BaseConfig):
 #     ROM_END = 0xBFFF
 #     ROM_SIZE = 0x2000 # 8192 Bytes
 
-    RESET_VECTOR = 0xBFFE
-
     BUS_ADDR_AREAS = (
         (0xFFD8, 0xFFDF, "SD Card"),
         (0xFFD2, 0xFFD3, "Interface 2"),

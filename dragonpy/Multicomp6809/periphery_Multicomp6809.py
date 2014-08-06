@@ -39,19 +39,11 @@ class Multicomp6809PeripheryBase(PeripheryBase):
 #         (0xFFD0, 0xFFD1, "Interface 1 (serial interface or TV/Keyboard)"),
 #         (0xBFF0, 0xBFFF, "Interrupt vectors"),
 #     )
-
-        self.read_byte_func_map = {
-            0xFFD0: self.read_acia_status, # Control/status port of ACIA
-            0xFFD1: self.read_acia_data, # Data port of ACIA
-            0xbffe: self.reset_vector,
-        }
-        self.write_byte_func_map = {
-            0xFFD0: self.write_acia_status, # Control/status port of ACIA
-            0xFFD1: self.write_acia_data, # Data port of ACIA
-        }
-
-    def reset_vector(self, cpu_cycles, op_address, address):
-        return self.cfg.ROM_START + 0x0046
+        self.memory.add_read_byte_callback(self.read_acia_status, 0xffd0) #  Control/status port of ACIA
+        self.memory.add_read_byte_callback(self.read_acia_data, 0xffd1) #  Data port of ACIA
+        
+        self.memory.add_write_byte_callback(self.write_acia_status, 0xffd0) #  Control/status port of ACIA
+        self.memory.add_write_byte_callback(self.write_acia_data, 0xffd1) #  Data port of ACIA
 
     def write_acia_status(self, cpu_cycles, op_address, address, value):
         return 0xff

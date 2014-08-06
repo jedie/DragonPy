@@ -92,8 +92,6 @@ class BaseConfig(object):
 
         log.debug("cfg_dict: %s", repr(cfg_dict))
 
-        self.bus_addr_areas = AddressAreas(self.BUS_ADDR_AREAS)
-
         # print CPU cycle/sec while running
         self.display_cycle = cfg_dict["display_cycle"]
 

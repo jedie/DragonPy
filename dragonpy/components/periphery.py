@@ -44,9 +44,6 @@ class PeripheryBase(object):
         if self.INITAL_INPUT is not None:
             self.add_to_input_queue(self.INITAL_INPUT)
 
-    def reset_vector(self, cpu_cycles, op_address, address):
-        return self.cfg.RESET_VECTOR_VALUE
-
     def add_to_input_queue(self, txt):
         log.debug("Add %s to input queue.", repr(txt))
         for char in txt:

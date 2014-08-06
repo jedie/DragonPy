@@ -40,8 +40,6 @@ class Simple6809PeripheryBase(PeripheryBase):
         self.memory.add_read_byte_callback(self.read_acia_status, 0xa000) #  Control/status port of ACIA
         self.memory.add_read_byte_callback(self.read_acia_data, 0xa001) #  Data port of ACIA
         
-        self.memory.add_read_word_callback(self.reset_vector, 0xbffe)
-        
         self.memory.add_write_byte_callback(self.write_acia_status, 0xa000) #  Control/status port of ACIA
         self.memory.add_write_byte_callback(self.write_acia_data, 0xa001) #  Data port of ACIA
 

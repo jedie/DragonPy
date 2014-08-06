@@ -84,6 +84,16 @@ class SAM(object):
         #  Dragon 64 only:
         self.memory.add_write_byte_callback(self.write_D64_dynamic_memory, 0xffc9)
 
+        self.memory.add_read_byte_callback(self.interrupt_vectors, 0xfff0, 0xffff)
+        
+    def interrupt_vectors(self, cpu_cycles, op_address, address):
+        new_address = address-0x4000
+        value = self.memory.read_byte(new_address)
+        log.critical("read interrupt vector $%04x redirect in SAM to $%04x use value $%02x",
+            address, new_address, value
+        )
+        return value
+
 #     def read_VDG_mode_register_v0(self, cpu_cycles, op_address, address):
 #         log.error("TODO: read VDG mode register V0 $%04x", address)
 #         return 0x00
