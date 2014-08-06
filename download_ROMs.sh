@@ -66,3 +66,41 @@ fi
     set -x
     sha1sum -c "Color Basic v1.3 (1982)(Tandy).rom.sha1"
 )
+
+echo "========================================================================"
+
+if [ ! -f "dragonpy/CoCo/Color Basic v1.2 (1982)(Tandy).rom" ]; then
+(
+    set -x
+    cd dragonpy/CoCo/
+    wget -nv http://archive.worldofdragon.org/archive/index.php?dir=Roms/CoCo/\&file=Color%20Basic%20v1.2%20%281982%29%28Tandy%29.zip -O ColorBasic1.2.zip
+    unzip -o "ColorBasic1.2.zip"
+    rm "ColorBasic1.2.zip"
+)
+fi
+(
+    cd dragonpy/CoCo/
+    set -x
+    sha1sum -c "Color Basic v1.2 (1982)(Tandy).rom.sha1"
+)
+
+echo "========================================================================"
+
+if [ ! -f "dragonpy/CoCo/ExtendedColorBasic1.1.rom" ]; then
+(
+    set -x
+    cd dragonpy/CoCo/
+    wget -nv http://archive.worldofdragon.org/archive/index.php?dir=Roms/CoCo/\&file=Extended%20Color%20Basic%20v1.1%20%281982%29%28Tandy%29.zip -O ExtendedColorBasic1.1.zip
+    unzip -o "ExtendedColorBasic1.1.zip"
+    rm "ExtendedColorBasic1.1.zip"
+    mv "COCO.ROM" "ExtendedColorBasic1.1.rom"
+)
+fi
+(
+    cd dragonpy/CoCo/
+    set -x
+    sha1sum -c "ExtendedColorBasic1.1.rom.sha1"
+)
+
+
+
