@@ -24,14 +24,13 @@ from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
 from dragonpy.components.periphery import PeripheryBase
 from dragonpy.utils.logging_utils import log
+import time
 
 
 class Dragon32TextDisplayTkinter(object):
-
     """
     The GUI stuff
     """
-
     def __init__(self, root):
         self.rows = 32
         self.columns = 16
@@ -61,10 +60,7 @@ class Dragon32TextDisplayTkinter(object):
 #             "%04x| *** Display write $%02x ***%s*** %s at $%04x",
 #             op_address, value, repr(char), color, address
 #         )
-        self.render_char(char, color, address)
-        return value
 
-    def render_char(self, char, color, address):
         img = self.tk_font.get_char(char, color)
 
         position = address - 0x400
@@ -81,9 +77,8 @@ class Dragon32TextDisplayTkinter(object):
 
 class DragonTkinterGUI(object):
 
-    def __init__(self, cfg, machine, display_queue, key_input_queue, cpu_status_queue):
+    def __init__(self, cfg, display_queue, key_input_queue, cpu_status_queue):
         self.cfg = cfg
-        self.machine = machine  # needed here?
         self.display_queue = display_queue
         self.key_input_queue = key_input_queue
         self.cpu_status_queue = cpu_status_queue
@@ -178,10 +173,10 @@ class DragonTkinterGUI(object):
         try:
             cycles_per_second = self.cpu_status_queue.get_nowait()
         except Queue.Empty:
-            log.debug("no new cpu_status_queue entry")
+            log.critical("no new cpu_status_queue entry")
             pass
         else:
-            log.debug("new cpu_status_queue: %s", repr(cycles_per_second))
+            log.critical("new cpu_status_queue: %s", repr(cycles_per_second))
             msg = "%d cycles/sec (Dragon 32 == 895.000cycles/sec)" % cycles_per_second
             self.status.set(msg)
             self.root.update()
@@ -191,18 +186,32 @@ class DragonTkinterGUI(object):
         """
         consume all exiting "display RAM write" queue items and render them.
         """
+        max_time = time.time() + 0.25
         while True:
             try:
                 cpu_cycles, op_address, address, value = self.display_queue.get_nowait()
             except Queue.Empty:
+#                 log.critical("display_queue empty -> exit loop")
                 break
-            else:
-                self.display.write_byte(cpu_cycles, op_address, address, value)
+#                 log.critical(
+#                     "call display.write_byte() (display_queue._qsize(): %i)",
+#                     self.display_queue._qsize()
+#                 )
+            self.display.write_byte(cpu_cycles, op_address, address, value)
+            if time.time() > max_time:
+                log.critical("Abort display_queue_interval() loop.")
+                self.root.update()
+                break
+
+#         log.critical(
+#             "exit display_queue_interval (display_queue._qsize(): %i)",
+#             self.display_queue._qsize()
+#         )
         self.root.after(interval, self.display_queue_interval, interval)
 
     def mainloop(self):
         log.critical("Start display_queue_interval()")
-        self.display_queue_interval(interval=100)
+        self.display_queue_interval(interval=50)
 
         log.critical("Start display_cpu_status_interval()")
         self.display_cpu_status_interval(interval=500)

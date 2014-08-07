@@ -28,6 +28,8 @@ import sys
 import threading
 import time
 import warnings
+import Queue
+import thread
 
 from dragonpy.MC6809data.MC6809_data_raw2 import (
     OP_DATA, REG_A, REG_B, REG_CC, REG_D, REG_DP, REG_PC,
@@ -43,6 +45,8 @@ from dragonpy.cpu_utils.signed import signed8, signed16, signed5
 from dragonpy.utils.bits import is_bit_set, get_bit
 from dragonpy.utils.logging_utils import log
 from dragonpy.utils.simple_debugger import print_exc_plus
+
+
 # HTML_TRACE = True
 HTML_TRACE = False
 
@@ -63,8 +67,8 @@ undefined_reg = UndefinedRegister()
 
 class CPUStatusThread(threading.Thread):
     """
-    Send cycles/sec information via cpu_status_queue
-    to display them in the GUI
+    Send cycles/sec information via cpu_status_queue to the GUi main thread.
+    Just ignore if the cpu_status_queue is full.
     """
     def __init__(self, cpu, cpu_status_queue):
         super(CPUStatusThread, self).__init__(name="CPU-Status-Thread")
@@ -74,7 +78,7 @@ class CPUStatusThread(threading.Thread):
         self.last_cycles = None
         self.last_cycle_update=time.time()
 
-    def run(self):
+    def _run(self):
         while self.cpu.running:
             if self.last_cycles is not None: # Exclude first loop
                 cycles = self.cpu.cycles - self.last_cycles
@@ -88,11 +92,22 @@ class CPUStatusThread(threading.Thread):
                     "%i cycles/sec (%i cycles in last %isec)",
                     cycles_per_second, cycles, duration
                 )
-                self.cpu_status_queue.put_nowait(cycles_per_second)
+                try:
+                    self.cpu_status_queue.put(cycles_per_second, block=False)
+                except Queue.Full:
+                    log.critical("Can't put CPU status: Queue is full.")
             self.last_cycles = self.cpu.cycles
             self.last_cycle_update=time.time()
             
             time.sleep(1)
+
+    def run(self):
+        try:
+            self._run()
+        except:
+            self.cpu.running = False
+            thread.interrupt_main()
+            raise
 
 
 class CPU(object):

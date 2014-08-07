@@ -17,18 +17,11 @@
 
 import os
 import sys
-import Tkinter
-import tkMessageBox
-import threading
-import thread
 
 from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.components.periphery import PeripheryBase
 from dragonpy.utils.logging_utils import log
-from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
-from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
-import Queue
 
 
 class Dragon32Periphery(PeripheryBase):
@@ -37,7 +30,7 @@ class Dragon32Periphery(PeripheryBase):
     GUI independent stuff
     """
 
-    def __init__(self, cfg, memory, key_input_queue):
+    def __init__(self, cfg, memory, display_queue, key_input_queue):
         super(Dragon32Periphery, self).__init__(cfg, memory)
 
         self.kbd = 0xBF
@@ -51,35 +44,46 @@ class Dragon32Periphery(PeripheryBase):
         self.memory.add_read_byte_callback(self.no_dos_rom, 0xC000)
         self.memory.add_read_word_callback(self.no_dos_rom, 0xC000)
 
+        # redirect writes to display RAM area 0x0400-0x0600 into display_queue:
+        DragonDisplayOutputHandler(display_queue, memory)
+
         self.running = True
 
     def no_dos_rom(self, cpu_cycles, op_address, address):
         log.error("%04x| TODO: DOS ROM requested. Send 0x00 back", op_address)
         return 0x00
 
-    def update(self, cpu_cycles):
-        #        log.critical("update pygame")
-        if not self.running:
-            return
-        if self.speaker:
-            self.speaker.update(cpu_cycles)
+#     def update(self, cpu_cycles):
+#         #        log.critical("update pygame")
+#         if not self.running:
+#             return
+#         if self.speaker:
+#             self.speaker.update(cpu_cycles)
 
 
 class DragonDisplayOutputHandler(object):
-
     """
     redirect writes to display RAM area 0x0400-0x0600 into display_queue.
     """
-
     def __init__(self, display_queue, memory):
         self.display_queue = display_queue
         self.memory = memory
+
+        # Add a hook in the display RAM:
         self.memory.add_write_byte_middleware(
-            self.to_display_queue, 0x0400, 0x0600)
+            self.to_display_queue, 0x0400, 0x0600
+        )
 
     def to_display_queue(self, cpu_cycles, op_address, address, value):
+        """
+        Send a "write to Display RAM" information to GUI main thread.
+        So the GUI can display it.
+
+        Block until a free slot is available in display_queue buffer.
+        """
         self.display_queue.put(
-            (cpu_cycles, op_address, address, value)
+            (cpu_cycles, op_address, address, value),
+            block=True
         )
         return value
 

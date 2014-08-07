@@ -18,6 +18,7 @@ from dragonpy.Dragon32.periphery_dragon import DragonDisplayOutputHandler
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
 from dragonpy.utils.logging_utils import log
+from dragonpy.utils.simple_debugger import print_exc_plus
 
 
 class Machine(object):
@@ -34,11 +35,9 @@ class Machine(object):
     def run(self):
         memory = Memory(self.cfg)
 
-        # redirect writes to display RAM area 0x0400-0x0600 into display_queue:
-        DragonDisplayOutputHandler(self.display_queue, memory)
-
         periphery = self.periphery_class(
-            self.cfg, memory, self.key_input_queue)
+            self.cfg, memory, self.display_queue, self.key_input_queue
+        )
         self.cfg.periphery = periphery  # Needed?!?
 
         self.cpu = CPU(memory, self.cfg, self.cpu_status_queue)
@@ -109,20 +108,29 @@ def run_machine(ConfigClass, cfg_dict, PeripheryClass, GUI_Class):
     cfg = ConfigClass(cfg_dict)
     log.log(99, "Startup '%s' machine...", cfg.MACHINE_NAME)
 
-    cpu_status_queue = Queue.Queue()  # CPU cyltes/sec information
-    key_input_queue = Queue.Queue()  # User keyboard input
-    display_queue = Queue.Queue()  # Display RAM write outputs
+    # Use a LifoQueue to get the most recently added status first.
+    cpu_status_queue = Queue.LifoQueue(maxsize=1)  # CPU cyltes/sec information
 
-    # start CPU+Memory+Periphery in a seperate thread
+    key_input_queue = Queue.Queue(maxsize=1024)  # User keyboard input
+    display_queue = Queue.Queue(maxsize=64)  # Display RAM write outputs
+
+    log.critical("init GUI")
+    # e.g. TkInter GUI
+    gui = GUI_Class(
+        cfg, display_queue, key_input_queue, cpu_status_queue,
+    )
+
+    log.critical("init machine")
+    # start CPU+Memory+Periphery in a separate thread
     machine = ThreadedMachine(
         cfg, PeripheryClass, display_queue, key_input_queue, cpu_status_queue
     )
 
-    # e.g. TkInter GUI
-    gui = GUI_Class(
-        cfg, machine, display_queue, key_input_queue, cpu_status_queue,
-    )
-    gui.mainloop()
+    try:
+        gui.mainloop()
+    except Exception, err:
+        log.critical("GUI exception: %s", err)
+        print_exc_plus()
     machine.quit()
 
     log.log(99, " --- END ---")
