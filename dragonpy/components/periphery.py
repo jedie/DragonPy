@@ -39,7 +39,7 @@ class PeripheryBase(object):
         self.user_input_queue = Queue.Queue() # Buffer for input to send back to the CPU
 
         self.update_time = 0.1
-        self.last_cycle_update = time.time()
+        self.last_cpu_cycle_update = time.time()
 
         if self.INITAL_INPUT is not None:
             self.add_to_input_queue(self.INITAL_INPUT)

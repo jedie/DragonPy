@@ -83,8 +83,8 @@ class DragonTkinterGUI(object):
         self.key_input_queue = key_input_queue
         self.cpu_status_queue = cpu_status_queue
 
-        self.approximated_ops = 0
-        self.cpu_burst_loops = 0
+        self.last_cpu_cycles = 0
+        self.last_cpu_cycle_update = time.time()
 
         self.root = Tkinter.Tk(className="DragonPy")
         machine_name = self.cfg.MACHINE_NAME
@@ -171,15 +171,25 @@ class DragonTkinterGUI(object):
         Update the 'cycles/sec' in the GUI
         """
         try:
-            cycles_per_second = self.cpu_status_queue.get_nowait()
+            cycles = self.cpu_status_queue.get(block=False)
         except Queue.Empty:
             log.critical("no new cpu_status_queue entry")
             pass
         else:
-            log.critical("new cpu_status_queue: %s", repr(cycles_per_second))
+            new_cycles = cycles - self.last_cpu_cycles
+            duration = time.time() - self.last_cpu_cycle_update
+            self.last_cpu_cycles = cycles
+            self.last_cpu_cycle_update = time.time()
+            cycles_per_second = int(new_cycles / duration)
+
+#             msg = "%i cycles/sec - Dragon ~895.000cycles/s (%i cycles in last %0.1fs)" % (
+#                 cycles_per_second, new_cycles, duration
+#             )
             msg = "%d cycles/sec (Dragon 32 == 895.000cycles/sec)" % cycles_per_second
+#             log.critical(msg)
             self.status.set(msg)
             self.root.update()
+
         self.root.after(interval, self.display_cpu_status_interval, interval)
 
     def display_queue_interval(self, interval):
@@ -200,8 +210,10 @@ class DragonTkinterGUI(object):
             self.display.write_byte(cpu_cycles, op_address, address, value)
             if time.time() > max_time:
                 log.critical("Abort display_queue_interval() loop.")
-                self.root.update()
                 break
+#                 self.root.update()
+#                 self.root.after_idle(self.display_queue_interval, interval)
+#                 return
 
 #         log.critical(
 #             "exit display_queue_interval (display_queue._qsize(): %i)",
@@ -214,7 +226,7 @@ class DragonTkinterGUI(object):
         self.display_queue_interval(interval=50)
 
         log.critical("Start display_cpu_status_interval()")
-        self.display_cpu_status_interval(interval=500)
+        self.display_cpu_status_interval(interval=1000)
 
         log.critical("Start root.mainloop()")
         self.root.mainloop()

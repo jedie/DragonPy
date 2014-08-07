@@ -27,8 +27,8 @@ class CoCoPeriphery(Dragon32Periphery):
     http://sourceforge.net/p/toolshed/code/ci/default/tree/cocoroms/bas.asm
     http://www.lomont.org/Software/Misc/CoCo/Lomont_CoCoHardware_2.pdf
     """
-    def __init__(self, cfg, memory, key_input_queue):
-        super(CoCoPeriphery, self).__init__(cfg, memory, key_input_queue)
+    def __init__(self, cfg, memory, display_queue, key_input_queue):
+        super(CoCoPeriphery, self).__init__(cfg, memory, display_queue, key_input_queue)
 #         self.read_byte_func_map.update({
 #             0xc000: self.no_dos_rom,
 #         })

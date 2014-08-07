@@ -73,33 +73,19 @@ class CPUStatusThread(threading.Thread):
     def __init__(self, cpu, cpu_status_queue):
         super(CPUStatusThread, self).__init__(name="CPU-Status-Thread")
         self.cpu = cpu
-        self.cpu_status_queue=cpu_status_queue
-        
-        self.last_cycles = None
-        self.last_cycle_update=time.time()
+        self.cpu_status_queue = cpu_status_queue
+
+        self.last_cpu_cycles = None
+        self.last_cpu_cycle_update = time.time()
 
     def _run(self):
         while self.cpu.running:
-            if self.last_cycles is not None: # Exclude first loop
-                cycles = self.cpu.cycles - self.last_cycles
-                if cycles == 0:
-                    log.critical("Exit CPUStatusThread() thread, because cycles/sec == 0")
-                    break
-                
-                duration = time.time() - self.last_cycle_update
-                cycles_per_second = int(cycles / duration)
-                log.critical(
-                    "%i cycles/sec (%i cycles in last %isec)",
-                    cycles_per_second, cycles, duration
-                )
-                try:
-                    self.cpu_status_queue.put(cycles_per_second, block=False)
-                except Queue.Full:
-                    log.critical("Can't put CPU status: Queue is full.")
-            self.last_cycles = self.cpu.cycles
-            self.last_cycle_update=time.time()
-            
-            time.sleep(1)
+            try:
+                self.cpu_status_queue.put(self.cpu.cycles, block=False)
+            except Queue.Full:
+#                 log.critical("Can't put CPU status: Queue is full.")
+                pass
+            time.sleep(0.5)
 
     def run(self):
         try:
@@ -112,17 +98,17 @@ class CPUStatusThread(threading.Thread):
 
 class CPU(object):
     RESET_VECTOR = 0xfffe
-    
+
     def __init__(self, memory, cfg, cpu_status_queue=None):
         self.memory = memory
         self.cfg = cfg
-        
+
         self.running = True
         self.cycles = 0
         self.last_op_address = 0 # Store the current run opcode memory address
-        
+
         if cpu_status_queue is not None:
-            status_thread = CPUStatusThread(self,cpu_status_queue)
+            status_thread = CPUStatusThread(self, cpu_status_queue)
             status_thread.deamon = True
             status_thread.start()
 
