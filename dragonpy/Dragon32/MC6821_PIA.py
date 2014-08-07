@@ -27,13 +27,14 @@ from dragonpy.core.configs import COCO
 
 
 class PIA_register(object):
+
     def __init__(self, name):
         self.name = name
         self.reset()
         self.value = None
 
     def reset(self):
-        self._pdr_selected = False # pdr = Peripheral Data Register
+        self._pdr_selected = False  # pdr = Peripheral Data Register
         self.control_register = 0x0
         self.direction_register = 0x0
         self.output_register = 0x0
@@ -43,6 +44,7 @@ class PIA_register(object):
     def set(self, value):
         log.debug("\t set %s to $%02x", self.name, value)
         self.value = value
+
     def get(self):
         return self.value
 
@@ -59,16 +61,18 @@ class PIA_register(object):
 
 
 class PIA(object):
+
     """
     PIA - MC6821 - Peripheral Interface Adaptor
 
     PIA0 - Keyboard, Joystick
     PIA1 - Printer, Cassette, 6-Bit DAC, Sound Mux
-
     """
-    def __init__(self, cfg, memory):
+
+    def __init__(self, cfg, memory, key_input_queue):
         self.cfg = cfg
         self.memory = memory
+        self.key_input_queue = key_input_queue
 
         self.pia_0_A_register = PIA_register("PIA0 A")
         self.pia_0_B_register = PIA_register("PIA0 B")
@@ -76,10 +80,9 @@ class PIA(object):
         self.pia_1_B_register = PIA_register("PIA1 B")
 
         self.empty_key_toggle = True
-        self.input_queue = Queue.Queue()# maxsize=10)
-#         for char in 'AAABBBCCC111222':self.input_queue.put(char)
-#         for char in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':self.input_queue.put(char)
-#         for char in 'PRINT "HELLO WORLD!"\r':self.input_queue.put(char)
+#         for char in 'AAABBBCCC111222':self.key_input_queue.put(char)
+#         for char in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':self.key_input_queue.put(char)
+#         for char in 'PRINT "HELLO WORLD!"\r':self.key_input_queue.put(char)
         self.current_input_char = None
 
         self.input_repead = 0
@@ -88,29 +91,45 @@ class PIA(object):
         # TODO: Collect this information via a decorator similar to op codes in CPU!
         #
         # Register memory read Byte callbacks:
-        self.memory.add_read_byte_callback(self.read_PIA0_A_data, 0xff00) #     PIA 0 A side Data reg.
-        self.memory.add_read_byte_callback(self.read_PIA0_A_control, 0xff01) #  PIA 0 A side Control reg.
-        self.memory.add_read_byte_callback(self.read_PIA0_B_data, 0xff02) #     PIA 0 B side Data reg.
-        self.memory.add_read_byte_callback(self.read_PIA0_B_control, 0xff03) #  PIA 0 B side Control reg.
-        self.memory.add_read_byte_callback(self.read_PIA1_A_data, 0xff20) #     PIA 1 A side Data reg.
-        self.memory.add_read_byte_callback(self.read_PIA1_A_control, 0xff21) #  PIA 1 A side Control reg.
-        self.memory.add_read_byte_callback(self.read_PIA1_B_data, 0xff22) #     PIA 1 B side Data reg.
-        self.memory.add_read_byte_callback(self.read_PIA1_B_control, 0xff23) #  PIA 1 B side Control reg.
-
+        # PIA 0 A side Data reg.
+        self.memory.add_read_byte_callback(self.read_PIA0_A_data, 0xff00)
+        # PIA 0 A side Control reg.
+        self.memory.add_read_byte_callback(self.read_PIA0_A_control, 0xff01)
+        # PIA 0 B side Data reg.
+        self.memory.add_read_byte_callback(self.read_PIA0_B_data, 0xff02)
+        # PIA 0 B side Control reg.
+        self.memory.add_read_byte_callback(self.read_PIA0_B_control, 0xff03)
+        # PIA 1 A side Data reg.
+        self.memory.add_read_byte_callback(self.read_PIA1_A_data, 0xff20)
+        # PIA 1 A side Control reg.
+        self.memory.add_read_byte_callback(self.read_PIA1_A_control, 0xff21)
+        # PIA 1 B side Data reg.
+        self.memory.add_read_byte_callback(self.read_PIA1_B_data, 0xff22)
+        # PIA 1 B side Control reg.
+        self.memory.add_read_byte_callback(self.read_PIA1_B_control, 0xff23)
 
         # Register memory write Byte callbacks:
-        self.memory.add_write_byte_callback(self.write_PIA0_A_data, 0xff00) #     PIA 0 A side Data reg.
-        self.memory.add_write_byte_callback(self.write_PIA0_A_control, 0xff01) #  PIA 0 A side Control reg.
-        self.memory.add_write_byte_callback(self.write_PIA0_B_data, 0xff02) #     PIA 0 B side Data reg.
-        self.memory.add_write_byte_callback(self.write_PIA0_B_control, 0xff03) #  PIA 0 B side Control reg.
-        self.memory.add_write_byte_callback(self.write_PIA1_A_data, 0xff20) #     PIA 1 A side Data reg.
-        self.memory.add_write_byte_callback(self.write_PIA1_A_control, 0xff21) #  PIA 1 A side Control reg.
-        self.memory.add_write_byte_callback(self.write_PIA1_B_data, 0xff22) #     PIA 1 B side Data reg.
-        self.memory.add_write_byte_callback(self.write_PIA1_B_control, 0xff23) #  PIA 1 B side Control reg.
+        # PIA 0 A side Data reg.
+        self.memory.add_write_byte_callback(self.write_PIA0_A_data, 0xff00)
+        # PIA 0 A side Control reg.
+        self.memory.add_write_byte_callback(self.write_PIA0_A_control, 0xff01)
+        # PIA 0 B side Data reg.
+        self.memory.add_write_byte_callback(self.write_PIA0_B_data, 0xff02)
+        # PIA 0 B side Control reg.
+        self.memory.add_write_byte_callback(self.write_PIA0_B_control, 0xff03)
+        # PIA 1 A side Data reg.
+        self.memory.add_write_byte_callback(self.write_PIA1_A_data, 0xff20)
+        # PIA 1 A side Control reg.
+        self.memory.add_write_byte_callback(self.write_PIA1_A_control, 0xff21)
+        # PIA 1 B side Data reg.
+        self.memory.add_write_byte_callback(self.write_PIA1_B_data, 0xff22)
+        # PIA 1 B side Control reg.
+        self.memory.add_write_byte_callback(self.write_PIA1_B_control, 0xff23)
 
         # Only Dragon 64:
         self.memory.add_read_byte_callback(self.read_serial_interface, 0xff04)
-        self.memory.add_write_word_callback(self.write_serial_interface, 0xff06)
+        self.memory.add_write_word_callback(
+            self.write_serial_interface, 0xff06)
 
     def reset(self):
         self.pia_0_A_register.reset()
@@ -121,10 +140,11 @@ class PIA(object):
     #--------------------------------------------------------------------------
 
     def key_down(self, char_or_code, block=False):
-        log.error("Add user key down %r to PIA input queue.", repr(char_or_code))
-        self.input_queue.put(char_or_code, block=False)
+        log.error(
+            "Add user key down %r to PIA input queue.", repr(char_or_code))
+        self.key_input_queue.put(char_or_code, block=False)
 #         try:
-#             self.input_queue.put(char_or_code, block=block)
+#             self.key_input_queue.put(char_or_code, block=block)
 #         except Queue.Full:
 #             log.log(level=99,
 #                 msg="Ignore key press %s, because input queue is full!" % repr(char_or_code)
@@ -156,19 +176,23 @@ class PIA(object):
 
     def write_PIA1_A_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff20 -> PIA 1 A side Data reg. """
-        log.error("TODO: write $%02x to 0xff20 -> PIA 1 A side Data reg.", value)
+        log.error(
+            "TODO: write $%02x to 0xff20 -> PIA 1 A side Data reg.", value)
 
     def write_PIA1_A_control(self, cpu_cycles, op_address, address, value):
         """ write to 0xff21 -> PIA 1 A side Control reg. """
-        log.error("TODO: write $%02x to 0xff21 -> PIA 1 A side Control reg.", value)
+        log.error(
+            "TODO: write $%02x to 0xff21 -> PIA 1 A side Control reg.", value)
 
     def write_PIA1_B_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff22 -> PIA 1 B side Data reg. """
-        log.error("TODO: write $%02x to 0xff22 -> PIA 1 B side Data reg.", value)
+        log.error(
+            "TODO: write $%02x to 0xff22 -> PIA 1 B side Data reg.", value)
 
     def write_PIA1_B_control(self, cpu_cycles, op_address, address, value):
         """ write to 0xff23 -> PIA 1 B side Control reg. """
-        log.error("TODO: write $%02x to 0xff23 -> PIA 1 B side Control reg.", value)
+        log.error(
+            "TODO: write $%02x to 0xff23 -> PIA 1 B side Control reg.", value)
 
     #--------------------------------------------------------------------------
 
@@ -177,7 +201,8 @@ class PIA(object):
         return 0x00
 
     def write_serial_interface(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write $%02x to $%04x (D64 serial interface", value, address)
+        log.error(
+            "TODO: write $%02x to $%04x (D64 serial interface", value, address)
 
     #--------------------------------------------------------------------------
     # Keyboard matrix on PIA0
@@ -195,27 +220,29 @@ class PIA(object):
         bit 1 | PA1 | keyboard matrix row 2 & left  joystick switch 1
         bit 0 | PA0 | keyboard matrix row 1 & right joystick switch 1
         """
-        pia0b = self.pia_0_B_register.get() # $ff02
+        pia0b = self.pia_0_B_register.get()  # $ff02
 
         # FIXME: Find a way to handle CoCo and Dragon in the same way!
         if self.cfg.CONFIG_NAME == COCO:
-#             log.critical("\t count: %i", self.input_repead)
+            #             log.critical("\t count: %i", self.input_repead)
             if self.input_repead == 7:
                 try:
-                    self.current_input_char = self.input_queue.get(block=False)
+                    self.current_input_char = self.key_input_queue.get(
+                        block=False)
                 except Queue.Empty:
                     self.current_input_char = None
                 else:
-                    log.critical("\tget new key from queue: %s", repr(self.current_input_char))
+                    log.critical(
+                        "\tget new key from queue: %s", repr(self.current_input_char))
             elif self.input_repead == 18:
-#                 log.critical("\tForce send 'no key pressed'")
+                #                 log.critical("\tForce send 'no key pressed'")
                 self.current_input_char = None
             elif self.input_repead > 20:
                 self.input_repead = 0
 
             self.input_repead += 1
-        else: # Dragon
-            if pia0b == self.cfg.PIA0B_KEYBOARD_START: # FIXME
+        else:  # Dragon
+            if pia0b == self.cfg.PIA0B_KEYBOARD_START:  # FIXME
                 if self.empty_key_toggle:
                     # Work-a-round for "poor" dragon keyboard scan routine:
                     # The scan routine in ROM ignores key pressed directly behind
@@ -224,7 +251,7 @@ class PIA(object):
                     #
                     # Here with the empty_key_toggle, we always send a "no key pressed"
                     # after every key press back and then we send the next key from
-                    # the self.input_queue
+                    # the self.key_input_queue
                     #
                     # TODO: We can check the row of the previous key press and only
                     # force a 'no key pressed' if the row is the same
@@ -233,24 +260,26 @@ class PIA(object):
 #                     log.critical("\tForce send 'no key pressed'")
                 else:
                     try:
-                        self.current_input_char = self.input_queue.get(block=False)
+                        self.current_input_char = self.key_input_queue.get(
+                            block=False)
                     except Queue.Empty:
-    #                     log.critical("\tinput_queue is empty")
+                        #                     log.critical("\tinput_queue is empty")
                         self.current_input_char = None
                     else:
-#                         log.critical("\tget new key from queue: %s", repr(self.current_input_char))
+                        #                         log.critical("\tget new key from queue: %s", repr(self.current_input_char))
                         self.empty_key_toggle = True
 
         if self.current_input_char is None:
-#             log.critical("\tno key pressed")
+            #             log.critical("\tno key pressed")
             result = 0xff
             self.empty_key_toggle = False
         else:
-#             log.critical("\tsend %s", repr(self.current_input_char))
-            result = self.cfg.pia_keymatrix_result(self.current_input_char, pia0b)
+            #             log.critical("\tsend %s", repr(self.current_input_char))
+            result = self.cfg.pia_keymatrix_result(
+                self.current_input_char, pia0b)
 
 #         if not is_bit_set(pia0b, bit=7):
-#             # bit 7 | PA7 | joystick comparison input
+# bit 7 | PA7 | joystick comparison input
 #             result = clear_bit(result, bit=7)
 
 #         if self.current_input_char is not None:
@@ -266,8 +295,9 @@ class PIA(object):
     def write_PIA0_A_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff00 -> PIA 0 A side Data reg. """
         log.error("%04x| write $%02x to $%04x -> PIA 0 A side Data reg.\t|%s",
-            op_address, value, address, self.cfg.mem_info.get_shortest(op_address)
-        )
+                  op_address, value, address, self.cfg.mem_info.get_shortest(
+                      op_address)
+                  )
         self.pia_0_A_register.set(value)
 
     def read_PIA0_A_control(self, cpu_cycles, op_address, address):
@@ -277,7 +307,8 @@ class PIA(object):
         result = 0xb3
         log.error(
             "%04x| read $%04x (PIA 0 A side Control reg.) send $%02x back.\t|%s",
-            op_address, address, result, self.cfg.mem_info.get_shortest(op_address)
+            op_address, address, result, self.cfg.mem_info.get_shortest(
+                op_address)
         )
         return result
 
@@ -298,7 +329,8 @@ class PIA(object):
         """
         log.error(
             "%04x| write $%02x to $%04x -> PIA 0 A side Control reg.\t|%s",
-            op_address, value, address, self.cfg.mem_info.get_shortest(op_address)
+            op_address, value, address, self.cfg.mem_info.get_shortest(
+                op_address)
         )
         if not is_bit_set(value, bit=2):
             self.pia_0_A_register.select_pdr()
@@ -320,11 +352,12 @@ class PIA(object):
 
         bits 0-7 also printer data lines
         """
-        pia0b = self.pia_0_B_register.get() # $ff02
+        pia0b = self.pia_0_B_register.get()  # $ff02
         result = pia0b
         log.error(
             "%04x| read $%04x (PIA 0 B side Data reg.) send $%02x back.\t|%s",
-            op_address, address, result, self.cfg.mem_info.get_shortest(op_address)
+            op_address, address, result, self.cfg.mem_info.get_shortest(
+                op_address)
         )
         return result
 
@@ -333,7 +366,8 @@ class PIA(object):
 #         log.critical(
         log.info(
             "%04x| write $%02x %s to $%04x -> PIA 0 B side Data reg.\t|%s",
-            op_address, value, '{0:08b}'.format(value), address, self.cfg.mem_info.get_shortest(op_address)
+            op_address, value, '{0:08b}'.format(
+                value), address, self.cfg.mem_info.get_shortest(op_address)
         )
         self.pia_0_B_register.set(value)
 
@@ -344,7 +378,8 @@ class PIA(object):
         result = self.pia_0_B_register.get()
         log.error(
             "%04x| read $%04x (PIA 0 B side Control reg.) send $%02x back.\t|%s",
-            op_address, address, result, self.cfg.mem_info.get_shortest(op_address)
+            op_address, address, result, self.cfg.mem_info.get_shortest(
+                op_address)
         )
         return result
 
@@ -365,10 +400,10 @@ class PIA(object):
         """
         log.error(
             "%04x| write $%02x (%s) to $%04x -> PIA 0 B side Control reg.\t|%s",
-            op_address, value, byte2bit_string(value), address, self.cfg.mem_info.get_shortest(op_address)
+            op_address, value, byte2bit_string(
+                value), address, self.cfg.mem_info.get_shortest(op_address)
         )
         self.pia_0_B_register.set(value)
-
 
         if not is_bit_set(value, bit=2):
             self.pia_0_B_register.select_pdr()
@@ -376,16 +411,17 @@ class PIA(object):
             self.pia_0_B_register.deselect_pdr()
 
 
-
 def test_run():
-    import sys, os, subprocess
+    import sys
+    import os
+    import subprocess
     cmd_args = [
         sys.executable,
         os.path.join("..",
-            "CoCo_test.py"
-#             "Dragon32_test.py"
-#             "Dragon64_test.py"
-        ),
+                     "CoCo_test.py"
+                     #             "Dragon32_test.py"
+                     #             "Dragon64_test.py"
+                     ),
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()

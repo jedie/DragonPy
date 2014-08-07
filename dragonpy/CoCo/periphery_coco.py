@@ -16,9 +16,9 @@
 """
 
 from dragonpy.utils.logging_utils import log
-from dragonpy.Dragon32.periphery_dragon import Dragon32PeripheryTkinter
+from dragonpy.Dragon32.periphery_dragon import DragonTkinterGUI
 
-class CoCoPeripheryTkinter(Dragon32PeripheryTkinter):
+class CoCoPeripheryTkinter(DragonTkinterGUI):
     """
     Some documentation links:
     

@@ -242,7 +242,7 @@ class InputPollThread(threading.Thread):
             t = threading.Timer(1.0, self.check_cpu_interval, args=[cpu_process])
             t.start()
 
-    def loop(self):
+    def _run(self):
         while self.cpu_process.is_alive():
             char = pager.getch() # Important: It blocks while waiting for a input
             if char == "\n":
@@ -254,7 +254,7 @@ class InputPollThread(threading.Thread):
     def run(self):
         log.critical("InputPollThread.run() start")
         try:
-            self.loop()
+            self._run()
         except KeyboardInterrupt:
             thread.interrupt_main()
         log.critical("InputPollThread.run() ends, because CPU not alive anymore.")

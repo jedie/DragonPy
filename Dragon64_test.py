@@ -16,7 +16,7 @@ import threading
 import time
 
 from dragonpy.Dragon64.config import Dragon64Cfg
-from dragonpy.Dragon32.periphery_dragon import Dragon32PeripheryTkinter
+from dragonpy.Dragon32.periphery_dragon import DragonTkinterGUI
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
 from dragonpy.utils.logging_utils import log
@@ -52,7 +52,7 @@ class Dragon64(object):
 
         memory = Memory(self.cfg)
 
-        self.periphery = Dragon32PeripheryTkinter(self.cfg, memory)
+        self.periphery = DragonTkinterGUI(self.cfg, memory)
         self.cfg.periphery = self.periphery
 
         self.cpu = CPU(memory, self.cfg)
