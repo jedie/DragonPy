@@ -103,6 +103,8 @@ class CPU(object):
         self.cfg = cfg
         
         self.running = True
+        self.cycles = 0
+        self.last_op_address = 0 # Store the current run opcode memory address
         
         if cpu_status_queue is not None:
             status_thread = CPUStatusThread(self,cpu_status_queue)
@@ -154,9 +156,6 @@ class CPU(object):
 
             undefined_reg.name: undefined_reg, # for TFR, EXG
         }
-
-        self.cycles = 0
-        self.last_op_address = 0 # Store the current run opcode memory address
 
 #         log.debug("Add opcode functions:")
         self.opcode_dict = OpCollection(self).get_opcode_dict()
