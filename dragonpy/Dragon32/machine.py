@@ -24,11 +24,12 @@ class Machine(object):
     """
     Non-Threaded Machine.
     """
-    def __init__(self, cfg, periphery_class, display_queue, key_input_queue):
+    def __init__(self, cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue):
         self.cfg = cfg
         self.periphery_class = periphery_class
         self.display_queue = display_queue
         self.key_input_queue = key_input_queue
+        self.cpu_status_queue = cpu_status_queue
 
     def run(self):
         memory = Memory(self.cfg)
@@ -40,9 +41,8 @@ class Machine(object):
             self.cfg, memory, self.key_input_queue)
         self.cfg.periphery = periphery  # Needed?!?
 
-        self.cpu = CPU(memory, self.cfg)
+        self.cpu = CPU(memory, self.cfg, self.cpu_status_queue)
         cpu = self.cpu
-        cpu.log_cpu_cycle_interval()  # turn on manually
         memory.cpu = cpu  # FIXME
 
         cpu.reset()
@@ -67,17 +67,18 @@ class MachineThread(threading.Thread):
     """
     run machine in a seperated thread.
     """
-    def __init__(self, cfg, periphery_class, display_queue, key_input_queue):
+    def __init__(self, cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue):
         super(MachineThread, self).__init__(name="CPU-Thread")
         log.critical(" *** MachineThread init *** ")
-        self.machine = Machine(cfg, periphery_class, display_queue, key_input_queue)
+        self.machine = Machine(cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue)
 
     def run(self):
         log.critical(" *** MachineThread.run() start *** ")
         try:
             self.machine.run()
-        except KeyboardInterrupt:
+        except:
             thread.interrupt_main()
+            raise
         log.critical(" *** MachineThread.run() stopped. *** ")
 
     def quit(self):
@@ -85,9 +86,9 @@ class MachineThread(threading.Thread):
 
 
 class ThreadedMachine(object):
-    def __init__(self, cfg, periphery_class, display_queue, key_input_queue):
+    def __init__(self, cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue):
         self.cpu_thread = MachineThread(
-            cfg, periphery_class, display_queue, key_input_queue)
+            cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue)
         self.cpu_thread.deamon = True
         self.cpu_thread.start()
 #         log.critical("Wait for CPU thread stop.")
@@ -108,19 +109,41 @@ def run_machine(ConfigClass, cfg_dict, PeripheryClass, GUI_Class):
     cfg = ConfigClass(cfg_dict)
     log.log(99, "Startup '%s' machine...", cfg.MACHINE_NAME)
 
-    key_input_queue = Queue.Queue()
-    display_queue = Queue.Queue()
+    cpu_status_queue = Queue.Queue()  # CPU cyltes/sec information
+    key_input_queue = Queue.Queue()  # User keyboard input
+    display_queue = Queue.Queue()  # Display RAM write outputs
 
     # start CPU+Memory+Periphery in a seperate thread
     machine = ThreadedMachine(
-        cfg, PeripheryClass, display_queue, key_input_queue
+        cfg, PeripheryClass, display_queue, key_input_queue, cpu_status_queue
     )
 
     # e.g. TkInter GUI
     gui = GUI_Class(
-        cfg, machine, display_queue, key_input_queue
+        cfg, machine, display_queue, key_input_queue, cpu_status_queue,
     )
     gui.mainloop()
     machine.quit()
 
     log.log(99, " --- END ---")
+
+
+def test_run_direct():
+    import subprocess
+    import sys
+    import os
+    cmd_args = [
+        sys.executable,
+        #         "/usr/bin/pypy",
+        os.path.join("..",
+            "Dragon32_test.py"
+#             "Dragon64_test.py"
+        ),
+    ]
+    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    subprocess.Popen(cmd_args, cwd="..").wait()
+
+
+if __name__ == "__main__":
+    #     test_run_cli()
+    test_run_direct()

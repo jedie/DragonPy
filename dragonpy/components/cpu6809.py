@@ -25,12 +25,12 @@ import inspect
 import os
 import socket
 import sys
-import warnings
-import time
 import threading
+import time
+import warnings
 
 from dragonpy.MC6809data.MC6809_data_raw2 import (
-    OP_DATA, REG_A, REG_B, REG_CC, REG_D , REG_DP, REG_PC,
+    OP_DATA, REG_A, REG_B, REG_CC, REG_D, REG_DP, REG_PC,
     REG_S, REG_U, REG_X, REG_Y
 )
 from dragonpy.core.cpu_control_server import start_http_control_server
@@ -38,13 +38,11 @@ from dragonpy.cpu_utils.MC6809_registers import (
     ValueStorage8Bit, ConcatenatedAccumulator,
     ValueStorage16Bit, ConditionCodeRegister, UndefinedRegister
 )
-from dragonpy.cpu_utils.signed import signed8, signed16, signed5
-from dragonpy.utils.simple_debugger import print_exc_plus
 from dragonpy.cpu_utils.instruction_caller import OpCollection
-from dragonpy.utils.logging_utils import log
+from dragonpy.cpu_utils.signed import signed8, signed16, signed5
 from dragonpy.utils.bits import is_bit_set, get_bit
-
-
+from dragonpy.utils.logging_utils import log
+from dragonpy.utils.simple_debugger import print_exc_plus
 # HTML_TRACE = True
 HTML_TRACE = False
 
@@ -63,14 +61,53 @@ def opcode(*opcodes):
 undefined_reg = UndefinedRegister()
 
 
+class CPUStatusThread(threading.Thread):
+    """
+    Send cycles/sec information via cpu_status_queue
+    to display them in the GUI
+    """
+    def __init__(self, cpu, cpu_status_queue):
+        super(CPUStatusThread, self).__init__(name="CPU-Status-Thread")
+        self.cpu = cpu
+        self.cpu_status_queue=cpu_status_queue
+        
+        self.last_cycles = None
+        self.last_cycle_update=time.time()
+
+    def run(self):
+        while self.cpu.running:
+            if self.last_cycles is not None: # Exclude first loop
+                cycles = self.cpu.cycles - self.last_cycles
+                if cycles == 0:
+                    log.critical("Exit CPUStatusThread() thread, because cycles/sec == 0")
+                    break
+                
+                duration = time.time() - self.last_cycle_update
+                cycles_per_second = int(cycles / duration)
+                log.critical(
+                    "%i cycles/sec (%i cycles in last %isec)",
+                    cycles_per_second, cycles, duration
+                )
+                self.cpu_status_queue.put_nowait(cycles_per_second)
+            self.last_cycles = self.cpu.cycles
+            self.last_cycle_update=time.time()
+            
+            time.sleep(1)
+
+
 class CPU(object):
     RESET_VECTOR = 0xfffe
     
-    def __init__(self, memory, cfg):
+    def __init__(self, memory, cfg, cpu_status_queue=None):
         self.memory = memory
         self.cfg = cfg
-
+        
         self.running = True
+        
+        if cpu_status_queue is not None:
+            status_thread = CPUStatusThread(self,cpu_status_queue)
+            status_thread.deamon = True
+            status_thread.start()
 
         start_http_control_server(self, cfg)
 
@@ -129,9 +166,6 @@ class CPU(object):
 #         for opcode in ILLEGAL_OPS:
 #             self.opcode_dict[opcode] = IllegalInstruction(self, opcode)
 
-        if cfg.display_cycle:
-            self.log_cpu_cycle_interval()
-
     def get_state(self):
         """
         used in unittests
@@ -177,31 +211,6 @@ class CPU(object):
         self.memory.ram._mem = state["RAM"][:] # copy of RAM
 
     ####
-
-    def log_cpu_cycle_interval(self, last_cycles=None, last_cycle_update=None):
-        if not self.running:
-            log.critical("Exit log_cpu_cycle_interval() thread.")
-            return
-
-        if last_cycle_update is not None: # Skip the first time call.
-            cycles = self.cycles - last_cycles
-            if cycles == 0:
-                log.critical("Exit log_cpu_cycle_interval() thread, because cycles/sec == 0")
-                return
-            duration = time.time() - last_cycle_update
-            log.critical(
-                "%i cycles/sec (%i cycles in last %isec)",
-                int(cycles / duration), cycles, duration
-            )
-
-        t = threading.Timer(2, self.log_cpu_cycle_interval,
-            kwargs={
-                "last_cycles":self.cycles,
-                "last_cycle_update":time.time(),
-            }
-        )
-        t.deamon = True
-        t.start()
 
     def reset(self):
 #        log.info("$%x CPU reset:" % self.program_counter)

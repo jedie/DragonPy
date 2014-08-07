@@ -10,20 +10,20 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+import Queue
+import Tkinter
 import os
 import sys
-import Tkinter
-import tkMessageBox
-import threading
 import thread
+import threading
+import tkMessageBox
 
-from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.MC6821_PIA import PIA
+from dragonpy.Dragon32.MC6883_SAM import SAM
+from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
+from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
 from dragonpy.components.periphery import PeripheryBase
 from dragonpy.utils.logging_utils import log
-from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
-from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
-import Queue
 
 
 class Dragon32TextDisplayTkinter(object):
@@ -81,11 +81,12 @@ class Dragon32TextDisplayTkinter(object):
 
 class DragonTkinterGUI(object):
 
-    def __init__(self, cfg, machine, display_queue, key_input_queue):
+    def __init__(self, cfg, machine, display_queue, key_input_queue, cpu_status_queue):
         self.cfg = cfg
         self.machine = machine  # needed here?
         self.display_queue = display_queue
         self.key_input_queue = key_input_queue
+        self.cpu_status_queue = cpu_status_queue
 
         self.approximated_ops = 0
         self.cpu_burst_loops = 0
@@ -126,8 +127,6 @@ class DragonTkinterGUI(object):
 
         # display the menu
         self.root.config(menu=menubar)
-
-        self.cpu_cycle_info_queue = Queue.Queue()
 
     def dump(self):
         tkMessageBox.showinfo("TODO", "TODO: dump!")
@@ -171,32 +170,49 @@ class DragonTkinterGUI(object):
         char_or_code = event.char or event.keycode
         self.key_input_queue.put_nowait(char_or_code)
 
-    def display_queue_interval(self, interval):
+    def display_cpu_status_interval(self, interval):
+        """
+        Update the 'cycles/sec' in the GUI
+        """
         try:
-            cpu_cycles, op_address, address, value = self.display_queue.get(
-                block=False)
+            cycles_per_second = self.cpu_status_queue.get_nowait()
         except Queue.Empty:
+            log.debug("no new cpu_status_queue entry")
             pass
         else:
-            self.display.write_byte(cpu_cycles, op_address, address, value)
+            log.debug("new cpu_status_queue: %s", repr(cycles_per_second))
+            msg = "%d cycles/sec (Dragon 32 == 895.000cycles/sec)" % cycles_per_second
+            self.status.set(msg)
+        self.root.after(interval, self.display_cpu_status_interval, interval)
+
+    def display_queue_interval(self, interval):
+        """
+        consume all exiting "display RAM write" queue items and render them.
+        """
+        while True:
+            try:
+                cpu_cycles, op_address, address, value = self.display_queue.get_nowait()
+            except Queue.Empty:
+                break
+            else:
+                self.display.write_byte(cpu_cycles, op_address, address, value)
         self.root.after(interval, self.display_queue_interval, interval)
 
     def mainloop(self):
-        self.display_queue_interval(interval=1)
+        self.display_cpu_status_interval(interval=500)
+        self.display_queue_interval(interval=10)
         self.root.mainloop()
 
 
 def test_run_direct():
-    import sys
-    import os
     import subprocess
     cmd_args = [
         sys.executable,
         #         "/usr/bin/pypy",
         os.path.join("..",
-                     "Dragon32_test.py"
-                     #             "Dragon64_test.py"
-                     ),
+            "Dragon32_test.py"
+#             "Dragon64_test.py"
+        ),
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()

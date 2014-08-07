@@ -18,14 +18,13 @@
     Based on: XRoar emulator by Ciaran Anscomb (GPL license) more info, see README
 """
 
-from dragonpy.utils.logging_utils import log
-from dragonpy.utils.humanize import byte2bit_string
-from dragonpy.utils.bits import is_bit_set, invert_byte, clear_bit
-import os
 import Queue
+import os
+
 from dragonpy.core.configs import COCO
-
-
+from dragonpy.utils.bits import is_bit_set, invert_byte, clear_bit
+from dragonpy.utils.humanize import byte2bit_string
+from dragonpy.utils.logging_utils import log
 class PIA_register(object):
 
     def __init__(self, name):
@@ -225,8 +224,7 @@ class PIA(object):
             #             log.critical("\t count: %i", self.input_repead)
             if self.input_repead == 7:
                 try:
-                    self.current_input_char = self.key_input_queue.get(
-                        block=False)
+                    self.current_input_char = self.key_input_queue.get_nowait()
                 except Queue.Empty:
                     self.current_input_char = None
                 else:
@@ -258,8 +256,7 @@ class PIA(object):
 #                     log.critical("\tForce send 'no key pressed'")
                 else:
                     try:
-                        self.current_input_char = self.key_input_queue.get(
-                            block=False)
+                        self.current_input_char = self.key_input_queue.get_nowait()
                     except Queue.Empty:
                         #                     log.critical("\tinput_queue is empty")
                         self.current_input_char = None
