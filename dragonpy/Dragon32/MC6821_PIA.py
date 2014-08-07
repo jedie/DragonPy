@@ -61,14 +61,12 @@ class PIA_register(object):
 
 
 class PIA(object):
-
     """
     PIA - MC6821 - Peripheral Interface Adaptor
 
     PIA0 - Keyboard, Joystick
     PIA1 - Printer, Cassette, 6-Bit DAC, Sound Mux
     """
-
     def __init__(self, cfg, memory, key_input_queue):
         self.cfg = cfg
         self.memory = memory
@@ -295,9 +293,8 @@ class PIA(object):
     def write_PIA0_A_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff00 -> PIA 0 A side Data reg. """
         log.error("%04x| write $%02x to $%04x -> PIA 0 A side Data reg.\t|%s",
-                  op_address, value, address, self.cfg.mem_info.get_shortest(
-                      op_address)
-                  )
+            op_address, value, address, self.cfg.mem_info.get_shortest(op_address)
+        )
         self.pia_0_A_register.set(value)
 
     def read_PIA0_A_control(self, cpu_cycles, op_address, address):
@@ -307,8 +304,7 @@ class PIA(object):
         result = 0xb3
         log.error(
             "%04x| read $%04x (PIA 0 A side Control reg.) send $%02x back.\t|%s",
-            op_address, address, result, self.cfg.mem_info.get_shortest(
-                op_address)
+            op_address, address, result, self.cfg.mem_info.get_shortest(op_address)
         )
         return result
 
@@ -329,8 +325,7 @@ class PIA(object):
         """
         log.error(
             "%04x| write $%02x to $%04x -> PIA 0 A side Control reg.\t|%s",
-            op_address, value, address, self.cfg.mem_info.get_shortest(
-                op_address)
+            op_address, value, address, self.cfg.mem_info.get_shortest(op_address)
         )
         if not is_bit_set(value, bit=2):
             self.pia_0_A_register.select_pdr()
@@ -356,8 +351,7 @@ class PIA(object):
         result = pia0b
         log.error(
             "%04x| read $%04x (PIA 0 B side Data reg.) send $%02x back.\t|%s",
-            op_address, address, result, self.cfg.mem_info.get_shortest(
-                op_address)
+            op_address, address, result, self.cfg.mem_info.get_shortest(op_address)
         )
         return result
 
@@ -366,8 +360,8 @@ class PIA(object):
 #         log.critical(
         log.info(
             "%04x| write $%02x %s to $%04x -> PIA 0 B side Data reg.\t|%s",
-            op_address, value, '{0:08b}'.format(
-                value), address, self.cfg.mem_info.get_shortest(op_address)
+            op_address, value, '{0:08b}'.format(value),
+            address, self.cfg.mem_info.get_shortest(op_address)
         )
         self.pia_0_B_register.set(value)
 
@@ -378,8 +372,7 @@ class PIA(object):
         result = self.pia_0_B_register.get()
         log.error(
             "%04x| read $%04x (PIA 0 B side Control reg.) send $%02x back.\t|%s",
-            op_address, address, result, self.cfg.mem_info.get_shortest(
-                op_address)
+            op_address, address, result, self.cfg.mem_info.get_shortest(op_address)
         )
         return result
 
@@ -400,8 +393,8 @@ class PIA(object):
         """
         log.error(
             "%04x| write $%02x (%s) to $%04x -> PIA 0 B side Control reg.\t|%s",
-            op_address, value, byte2bit_string(
-                value), address, self.cfg.mem_info.get_shortest(op_address)
+            op_address, value, byte2bit_string(value),
+            address, self.cfg.mem_info.get_shortest(op_address)
         )
         self.pia_0_B_register.set(value)
 
@@ -418,10 +411,10 @@ def test_run():
     cmd_args = [
         sys.executable,
         os.path.join("..",
-                     "CoCo_test.py"
-                     #             "Dragon32_test.py"
-                     #             "Dragon64_test.py"
-                     ),
+            "CoCo_test.py"
+            #             "Dragon32_test.py"
+            #             "Dragon64_test.py"
+        ),
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()

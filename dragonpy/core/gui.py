@@ -47,11 +47,11 @@ class Dragon32TextDisplayTkinter(object):
         self.total_height = self.tk_font.height_scaled * self.columns
 
         self.canvas = Tkinter.Canvas(root,
-                                     width=self.total_width,
-                                     height=self.total_height,
-                                     bd=0,  # Border
-                                     bg="#ff0000",
-                                     )
+            width=self.total_width,
+            height=self.total_height,
+            bd=0,  # Border
+            bg="#ff0000",
+        )
 
         self.charmap = get_charmap_dict()
 
@@ -73,10 +73,10 @@ class Dragon32TextDisplayTkinter(object):
         y = self.tk_font.height_scaled * column
 
         self.canvas.create_image(x, y,
-                                 image=img,
-                                 state="normal",
-                                 anchor=Tkinter.NW  # NW == NorthWest
-                                 )
+            image=img,
+            state="normal",
+            anchor=Tkinter.NW  # NW == NorthWest
+        )
 
 
 class DragonTkinterGUI(object):
@@ -137,15 +137,15 @@ class DragonTkinterGUI(object):
 
     def menu_event_about(self):
         tkMessageBox.showinfo("DragonPy",
-                              "DragonPy the OpenSource emulator written in python.\n"
-                              "more info: https://github.com/jedie/DragonPy"
-                              )
+            "DragonPy the OpenSource emulator written in python.\n"
+            "more info: https://github.com/jedie/DragonPy"
+        )
 
     def menu_event_help(self):
         tkMessageBox.showinfo("Help",
-                              "Please read the README:"
-                              "https://github.com/jedie/DragonPy#readme"
-                              )
+            "Please read the README:"
+            "https://github.com/jedie/DragonPy#readme"
+        )
 
     def exit(self):
         log.critical("DragonTkinterGUI.exit()")
