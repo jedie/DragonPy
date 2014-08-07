@@ -18,15 +18,16 @@
 import os
 import sys
 import Tkinter
-import time
-import traceback
+import tkMessageBox
+import threading
+import thread
 
 from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.components.periphery import PeripheryBase
 from dragonpy.utils.logging_utils import log
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
-from dragonpy.Dragon32.display_base import DragonTextDisplayBase
+from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 
 
 class Dragon32PeripheryBase(PeripheryBase):
@@ -59,6 +60,32 @@ class Dragon32PeripheryBase(PeripheryBase):
             return
         if self.speaker:
             self.speaker.update(cpu_cycles)
+
+
+class DragonTextDisplayBase(object):
+    """
+    Every stuff with is GUI independent.
+
+    Text mode:
+    32 rows x 16 columns
+    """
+    def __init__(self, memory):
+        self.memory = memory
+        
+        self.charmap = get_charmap_dict()
+        self.rows = 32
+        self.columns = 16
+        
+        self.memory.add_write_byte_middleware(self.write_byte, 0x0400, 0x0600)
+
+    def write_byte(self, cpu_cycles, op_address, address, value):
+        char, color = self.charmap[value]
+#         log.critical(
+#             "%04x| *** Display write $%02x ***%s*** %s at $%04x",
+#             op_address, value, repr(char), color, address
+#         )
+        self.render_char(char, color, address)
+        return value
 
 
 class Dragon32TextDisplayTkinter(DragonTextDisplayBase):
@@ -104,6 +131,41 @@ class Dragon32TextDisplayTkinter(DragonTextDisplayBase):
         super(Dragon32PeripheryBase, self).exit()
 
 
+class CPUThread(threading.Thread):
+    def __init__ (self, cfg, cpu):
+        super(CPUThread, self).__init__(name="CPU-Thread")
+        log.critical(" *** CPUThread init *** ")
+        self.cfg = cfg
+        self.cpu = cpu
+        
+        self.cpu.log_cpu_cycle_interval() # turn on manually
+        
+    def loop(self):
+        cpu = self.cpu
+        cpu.reset()
+        max_ops = self.cfg.cfg_dict["max_ops"]
+        if max_ops:
+            log.critical("Running only %i ops!", max_ops)
+            for __ in xrange(max_ops):
+                cpu.get_and_call_next_op()
+                if not cpu.running:
+                    break
+            log.critical("Quit CPU after given 'max_ops' %i ops.", max_ops)
+            return
+        else:
+            while cpu.running:
+                cpu.get_and_call_next_op()
+
+    def run(self):
+        log.critical(" *** CPUThread.run() start *** ")
+        try:
+            self.loop()
+        except KeyboardInterrupt:
+            thread.interrupt_main()
+        log.critical(" *** CPUThread.run() stopped. *** ")
+
+
+
 
 class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
     def __init__(self, cfg, memory):
@@ -121,11 +183,49 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
 
         self.display = Dragon32TextDisplayTkinter(self.root, self.memory)
 
-        self.display.canvas.grid(row=0, column=0)# , columnspan=3, rowspan=2)
+        self.display.canvas.grid(row=0, column=0, columnspan=2)# , rowspan=2)
 
         self.status = Tkinter.StringVar()
         self.status_widget = Tkinter.Label(self.root, textvariable=self.status, text="Info:", borderwidth=1)
-        self.status_widget.grid(row=1, column=0)
+        self.status_widget.grid(row=1, column=0, columnspan=2)
+        
+        menubar = Tkinter.Menu(self.root)
+        
+        filemenu = Tkinter.Menu(menubar, tearoff=0)
+        filemenu.add_command(label="Exit", command=self.root.quit)
+        menubar.add_cascade(label="File", menu=filemenu)
+        
+        editmenu = Tkinter.Menu(menubar, tearoff=0)
+        editmenu.add_command(label="load", command=self.load)
+        editmenu.add_command(label="dump", command=self.dump)
+        menubar.add_cascade(label="edit", menu=editmenu)
+        
+        # help menu
+        helpmenu = Tkinter.Menu(menubar, tearoff=0)
+        helpmenu.add_command(label="help", command=self.menu_event_help)
+        helpmenu.add_command(label="about", command=self.menu_event_about)
+        menubar.add_cascade(label="help", menu=helpmenu)
+        
+        # display the menu
+        self.root.config(menu=menubar)
+
+    def dump(self):
+        tkMessageBox.showinfo("TODO", "TODO: dump!")
+
+    def load(self):
+        tkMessageBox.showinfo("TODO", "TODO: load!")
+        
+    def menu_event_about(self):
+        tkMessageBox.showinfo("DragonPy",
+            "DragonPy the OpenSource emulator written in python.\n"
+            "more info: https://github.com/jedie/DragonPy"
+        )
+        
+    def menu_event_help(self):
+        tkMessageBox.showinfo("Help",
+            "Please read the README:"
+            "https://github.com/jedie/DragonPy#readme"
+        )
 
     def exit(self):
         log.critical("Dragon32PeripheryTkinter.exit()")
@@ -151,62 +251,20 @@ class Dragon32PeripheryTkinter(Dragon32PeripheryBase):
         char_or_code = event.char or event.keycode
         self.pia.key_down(char_or_code)
 
-    def run_cpu_interval(self, cpu, burst_count):
-#         
-#         if max_ops:
-#             log.critical("Running only %i ops!", max_ops)
-#             for __ in xrange(max_ops):
-#                 cpu.get_and_call_next_op()
-#                 if not (self.periphery.running and self.cpu.running):
-#                     break
-#             log.critical("Quit CPU after given 'max_ops' %i ops.", max_ops)
+    def mainloop(self, cpu):      
+        cpu_thread = CPUThread(self.cfg, cpu)
+        cpu_thread.deamon = True
+        cpu_thread.start()
+#         log.critical("Wait for CPU thread stop.")
+#         try:
+#             cpu_thread.join()
+#         except KeyboardInterrupt:
+#             log.critical("CPU thread stops by keyboard interrupt.")
+#             thread.interrupt_main()
 #         else:
-#             while self.periphery.running and self.cpu.running:
+#             log.critical("CPU thread stopped.")
+#         cpu.running = False
 
-        for _ in xrange(burst_count):
-            try:
-                cpu.get_and_call_next_op()
-            except:
-                raise
-                tb = traceback.format_exc()
-                log.log(99, "Error running OP:\n%s" % tb)
-
-        max_ops = self.cfg.cfg_dict["max_ops"]
-        if max_ops:
-            self.approximated_ops += burst_count
-            if self.approximated_ops>max_ops:
-                log.critical("'max_ops' Quit after %i ops", self.approximated_ops)
-                self.exit()
-                return
-
-        self.cpu_burst_loops += 1
-        self.root.after(1, self.run_cpu_interval, cpu, burst_count)
-    
-    def update_status_interval(self, cpu, last_update=None, last_cycles=0):
-        if last_update is not None:
-            duration = time.time() - last_update
-            cycles = cpu.cycles - last_cycles
-            if cycles == 0:
-                log.critical("Exit display_cycle_interval() thread, because cycles/sec == 0")
-                return
-            msg = "%i cycles/sec (%i cycles in last %isec, cpu_burst_loops=%i)" % (
-                int(cycles / duration), cycles, duration, self.cpu_burst_loops
-            )
-    #             msg = "%d cycles/sec (Dragon 32 == 895.000cycles/sec)" % int(cycles / duration)
-            self.status.set(msg)
-            self.cpu_burst_loops=0
-
-        last_cycles = cpu.cycles
-        last_update = time.time()
-
-        self.root.update()        
-        self.root.after(1000, self.update_status_interval, cpu,
-            last_update, last_cycles
-        )
-
-    def mainloop(self, cpu):
-        self.update_status_interval(cpu)
-        self.run_cpu_interval(cpu,burst_count=5000)
         self.root.mainloop()
 
 

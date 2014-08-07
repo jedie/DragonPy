@@ -130,7 +130,7 @@ class CPU(object):
 #             self.opcode_dict[opcode] = IllegalInstruction(self, opcode)
 
         if cfg.display_cycle:
-            self.display_cycle_interval()
+            self.log_cpu_cycle_interval()
 
     def get_state(self):
         """
@@ -178,15 +178,15 @@ class CPU(object):
 
     ####
 
-    def display_cycle_interval(self, last_cycles=None, last_cycle_update=None):
+    def log_cpu_cycle_interval(self, last_cycles=None, last_cycle_update=None):
         if not self.running:
-            log.critical("Exit display_cycle_interval() thread.")
+            log.critical("Exit log_cpu_cycle_interval() thread.")
             return
 
         if last_cycle_update is not None: # Skip the first time call.
             cycles = self.cycles - last_cycles
             if cycles == 0:
-                log.critical("Exit display_cycle_interval() thread, because cycles/sec == 0")
+                log.critical("Exit log_cpu_cycle_interval() thread, because cycles/sec == 0")
                 return
             duration = time.time() - last_cycle_update
             log.critical(
@@ -194,7 +194,7 @@ class CPU(object):
                 int(cycles / duration), cycles, duration
             )
 
-        t = threading.Timer(5.0, self.display_cycle_interval,
+        t = threading.Timer(2, self.log_cpu_cycle_interval,
             kwargs={
                 "last_cycles":self.cycles,
                 "last_cycle_update":time.time(),

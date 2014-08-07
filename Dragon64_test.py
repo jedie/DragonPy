@@ -59,10 +59,7 @@ class Dragon64(object):
         memory.cpu = self.cpu # FIXME
 
     def run(self):
-        self.cpu.reset()
-
         self.periphery.mainloop(self.cpu)
-
         self.cpu.quit()
         self.periphery.exit()
 
