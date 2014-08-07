@@ -179,6 +179,39 @@ Then just **RUN** and then it looks like this:
 
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon32_CharMap.png}}
 
+=== DragonPy schematic
+
+The main thread with GUI starts the sub thread with CPU+Memory+Periphery.
+It looks like this:
+
+{{{
+    Main Thread                                     Sub Thread      
++------------------+                         +---------------------+
+|                  |                         |                     |
+| +-------------+  |  CPU cycles/sec queue   |                     |
+| |            <------------------------------------+6809 CPU      |
+| |             |  |                         |       +     ^       |
+| |     GUI     |  |                         |       |     |       |
+| |             |  | Display RAM write queue |    +--v-----+--+    |
+| |  .--------------------------------------------+   Memory  |    |
+| |  |          |  |                         |    +--+-----^--+    |
+| |  |          |  |                         |       |     |       |
+| |  |          |  |                         | +-----v-----+-----+ |
+| |  |          |  |                         | |    Periphery    | |
+| |  |          |  |     Keyboard queue      | |   MC6883 SAM    | |
+| |  |          +--------------------------------->MC6821 PIA    | |
+| |  |          |  |                         | |                 | |
+| +--+-----^----+  |                         | |                 | |
+|    |     |       |                         | +-----------------+ |
+|    |     |       |                         |                     |
+| +--v-----+----+  |                         |                     |
+| |             |  |                         |                     |
+| |   Display   |  |                         |                     |
+| |             |  |                         |                     |
+| +-------------+  |                         |                     |
++------------------+                         +---------------------+
+
+}}}
 
 === performance
 
