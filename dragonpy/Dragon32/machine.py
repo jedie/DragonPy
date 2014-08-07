@@ -10,36 +10,27 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import os
-import sys
-import Tkinter
-import tkMessageBox
-import threading
-import thread
 import Queue
+import thread
+import threading
 
-from dragonpy.Dragon32.MC6883_SAM import SAM
-from dragonpy.Dragon32.MC6821_PIA import PIA
-from dragonpy.components.periphery import PeripheryBase
-from dragonpy.utils.logging_utils import log
-from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
-from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
-from dragonpy.components.memory import Memory
-from dragonpy.components.cpu6809 import CPU
 from dragonpy.Dragon32.periphery_dragon import DragonDisplayOutputHandler
+from dragonpy.components.cpu6809 import CPU
+from dragonpy.components.memory import Memory
+from dragonpy.utils.logging_utils import log
 
 
-class MachineThread(threading.Thread):
-
+class Machine(object):
+    """
+    Non-Threaded Machine.
+    """
     def __init__(self, cfg, periphery_class, display_queue, key_input_queue):
-        super(MachineThread, self).__init__(name="CPU-Thread")
-        log.critical(" *** MachineThread init *** ")
         self.cfg = cfg
         self.periphery_class = periphery_class
         self.display_queue = display_queue
         self.key_input_queue = key_input_queue
 
-    def _run(self):
+    def run(self):
         memory = Memory(self.cfg)
 
         # redirect writes to display RAM area 0x0400-0x0600 into display_queue:
@@ -68,17 +59,32 @@ class MachineThread(threading.Thread):
             while cpu.running:
                 cpu.get_and_call_next_op()
 
+    def quit(self):
+        self.cpu.running = False
+
+
+class MachineThread(threading.Thread):
+    """
+    run machine in a seperated thread.
+    """
+    def __init__(self, cfg, periphery_class, display_queue, key_input_queue):
+        super(MachineThread, self).__init__(name="CPU-Thread")
+        log.critical(" *** MachineThread init *** ")
+        self.machine = Machine(cfg, periphery_class, display_queue, key_input_queue)
+
     def run(self):
         log.critical(" *** MachineThread.run() start *** ")
         try:
-            self._run()
+            self.machine.run()
         except KeyboardInterrupt:
             thread.interrupt_main()
         log.critical(" *** MachineThread.run() stopped. *** ")
 
+    def quit(self):
+        self.machine.quit()
 
-class Machine(object):
 
+class ThreadedMachine(object):
     def __init__(self, cfg, periphery_class, display_queue, key_input_queue):
         self.cpu_thread = MachineThread(
             cfg, periphery_class, display_queue, key_input_queue)
@@ -95,4 +101,26 @@ class Machine(object):
 #         cpu.running = False
 
     def quit(self):
-        self.cpu_thread.cpu.running = False
+        self.cpu_thread.quit()
+
+
+def run_machine(ConfigClass, cfg_dict, PeripheryClass, GUI_Class):
+    cfg = ConfigClass(cfg_dict)
+    log.log(99, "Startup '%s' machine...", cfg.MACHINE_NAME)
+
+    key_input_queue = Queue.Queue()
+    display_queue = Queue.Queue()
+
+    # start CPU+Memory+Periphery in a seperate thread
+    machine = ThreadedMachine(
+        cfg, PeripheryClass, display_queue, key_input_queue
+    )
+
+    # e.g. TkInter GUI
+    gui = GUI_Class(
+        cfg, machine, display_queue, key_input_queue
+    )
+    gui.mainloop()
+    machine.quit()
+
+    log.log(99, " --- END ---")

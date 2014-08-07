@@ -10,14 +10,12 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import Queue
-
 from dragonpy.Dragon32.config import Dragon32Cfg
+from dragonpy.Dragon32.machine import run_machine
 from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
+from dragonpy.core.gui import DragonTkinterGUI
 from dragonpy.utils.logging_utils import log
 from dragonpy.utils.logging_utils import setup_logging
-from dragonpy.Dragon32.machine import Machine
-from dragonpy.core.gui import DragonTkinterGUI
 
 
 CFG_DICT = {
@@ -41,39 +39,19 @@ CFG_DICT = {
 }
 
 
-class Dragon32(object):
-
-    def __init__(self):
-        self.cfg = Dragon32Cfg(CFG_DICT)
-
-        key_input_queue = Queue.Queue()
-        display_queue = Queue.Queue()
-
-        # machine == CPU+Memory+Periphery
-        self.machine = Machine(
-            self.cfg, Dragon32Periphery, display_queue, key_input_queue)
-
-        # gui == TkInter GUI
-        self.gui = DragonTkinterGUI(
-            self.cfg, self.machine, display_queue, key_input_queue)
-
-    def run(self):
-        self.gui.mainloop()
-        self.machine.quit()
-
-
 if __name__ == '__main__':
-    print "Startup Dragon 32 machine..."
-
     setup_logging(log,
-                  # level=1 # hardcore debug ;)
-                  # level=10 # DEBUG
-                  # level=20 # INFO
-                  # level=30 # WARNING
-                  # level=40 # ERROR
-                  level=50  # CRITICAL/FATAL
-                  )
-    c = Dragon32()
-    c.run()
+#         level=1 # hardcore debug ;)
+#         level=10 # DEBUG
+#         level=20 # INFO
+#         level=30 # WARNING
+#         level=40 # ERROR
+        level=50  # CRITICAL/FATAL
+    )
 
-    print " --- END --- "
+    run_machine(
+        ConfigClass=Dragon32Cfg,
+        cfg_dict=CFG_DICT,
+        PeripheryClass=Dragon32Periphery,
+        GUI_Class=DragonTkinterGUI,
+    )

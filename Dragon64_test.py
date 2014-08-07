@@ -10,18 +10,12 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import Queue
-import sys
-import threading
-import time
-
+from dragonpy.Dragon32.machine import run_machine
+from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 from dragonpy.Dragon64.config import Dragon64Cfg
-from dragonpy.Dragon32.periphery_dragon import DragonTkinterGUI
-from dragonpy.components.cpu6809 import CPU
-from dragonpy.components.memory import Memory
+from dragonpy.core.gui import DragonTkinterGUI
 from dragonpy.utils.logging_utils import log
 from dragonpy.utils.logging_utils import setup_logging
-from dragonpy.utils.simple_debugger import print_exc_plus
 
 
 CFG_DICT = {
@@ -46,40 +40,19 @@ CFG_DICT = {
 }
 
 
-class Dragon64(object):
-    def __init__(self):
-        self.cfg = Dragon64Cfg(CFG_DICT)
-
-        memory = Memory(self.cfg)
-
-        self.periphery = DragonTkinterGUI(self.cfg, memory)
-        self.cfg.periphery = self.periphery
-
-        self.cpu = CPU(memory, self.cfg)
-        memory.cpu = self.cpu # FIXME
-
-    def run(self):
-        self.periphery.mainloop(self.cpu)
-        self.cpu.quit()
-        self.periphery.exit()
-
-
 if __name__ == '__main__':
-    print "Startup Dragon 64 machine..."
     setup_logging(log,
 #         level=1 # hardcore debug ;)
 #         level=10 # DEBUG
-#        level=20 # INFO
-#        level=30 # WARNING
-#        level=40 # ERROR
-        level=50 # CRITICAL/FATAL
-#         level=60
+#         level=20 # INFO
+#         level=30 # WARNING
+#         level=40 # ERROR
+        level=50  # CRITICAL/FATAL
     )
-    c = Dragon64()
-    try:
-        c.run()
-    except SystemExit:
-        pass
-    except:
-        print_exc_plus()
-    print " --- END --- "
+
+    run_machine(
+        ConfigClass=Dragon64Cfg,
+        cfg_dict=CFG_DICT,
+        PeripheryClass=Dragon32Periphery,
+        GUI_Class=DragonTkinterGUI,
+    )

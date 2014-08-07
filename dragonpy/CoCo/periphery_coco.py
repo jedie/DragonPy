@@ -15,30 +15,31 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 from dragonpy.utils.logging_utils import log
-from dragonpy.Dragon32.periphery_dragon import DragonTkinterGUI
 
-class CoCoPeripheryTkinter(DragonTkinterGUI):
+
+class CoCoPeriphery(Dragon32Periphery):
     """
     Some documentation links:
-    
+
     http://www.cs.unc.edu/~yakowenk/coco/text/history.html
     http://sourceforge.net/p/toolshed/code/ci/default/tree/cocoroms/bas.asm
     http://www.lomont.org/Software/Misc/CoCo/Lomont_CoCoHardware_2.pdf
     """
-    def __init__(self, cfg, memory):
-        super(CoCoPeripheryTkinter, self).__init__(cfg, memory)
+    def __init__(self, cfg, memory, key_input_queue):
+        super(CoCoPeriphery, self).__init__(cfg, memory, key_input_queue)
 #         self.read_byte_func_map.update({
 #             0xc000: self.no_dos_rom,
 #         })
-        self.memory.add_read_word_callback(self.read_NMI,0xfffc)
-        self.memory.add_write_word_callback(self.write_word_info,0xfffc)
-        self.memory.add_write_word_callback(self.write_word_info,0xfffe)
-        
+        self.memory.add_read_word_callback(self.read_NMI, 0xfffc)
+        self.memory.add_write_word_callback(self.write_word_info, 0xfffc)
+        self.memory.add_write_word_callback(self.write_word_info, 0xfffe)
+
     def read_NMI(self, cpu_cycles, op_address, address):
         log.critical("%04x| TODO: read NMI" % op_address)
         return 0x0000
-        
+
     def write_word_info(self, cpu_cycles, op_address, address, value):
         log.critical("%04x| write word $%04x to $%04x ?!?!" % (
             op_address, value, address
@@ -46,10 +47,12 @@ class CoCoPeripheryTkinter(DragonTkinterGUI):
 
 
 def test_run_direct():
-    import sys, os, subprocess
+    import sys
+    import os
+    import subprocess
     cmd_args = [
         sys.executable,
-#         "/usr/bin/pypy",
+        #         "/usr/bin/pypy",
         os.path.join("..", "CoCo_test.py"),
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])

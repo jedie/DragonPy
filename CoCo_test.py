@@ -10,12 +10,12 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from dragonpy.components.cpu6809 import CPU
-from dragonpy.components.memory import Memory
+from dragonpy.CoCo.config import CoCoCfg
+from dragonpy.CoCo.periphery_coco import CoCoPeriphery
+from dragonpy.Dragon32.machine import run_machine
+from dragonpy.core.gui import DragonTkinterGUI
 from dragonpy.utils.logging_utils import log
 from dragonpy.utils.logging_utils import setup_logging
-from dragonpy.CoCo.config import CoCoCfg
-from dragonpy.CoCo.periphery_coco import CoCoPeripheryTkinter
 
 
 CFG_DICT = {
@@ -39,37 +39,19 @@ CFG_DICT = {
 }
 
 
-class Dragon32(object):
-    def __init__(self):
-        self.cfg = CoCoCfg(CFG_DICT)
-
-        memory = Memory(self.cfg)
-
-        self.periphery = CoCoPeripheryTkinter(self.cfg, memory)
-        self.cfg.periphery = self.periphery
-
-        self.cpu = CPU(memory, self.cfg)
-        memory.cpu = self.cpu # FIXME
-
-    def run(self):
-        self.periphery.mainloop(self.cpu)
-        self.cpu.quit()
-        self.periphery.exit()
-
-
 if __name__ == '__main__':
-    print "Startup CoCo machine..."
-
     setup_logging(log,
-#        level=1 # hardcore debug ;)
+#         level=1 # hardcore debug ;)
 #         level=10 # DEBUG
-#        level=20 # INFO
-#        level=30 # WARNING
+#         level=20 # INFO
+#         level=30 # WARNING
 #         level=40 # ERROR
-        level=50 # CRITICAL/FATAL
-#         level=60
+        level=50  # CRITICAL/FATAL
     )
-    c = Dragon32()
-    c.run()
 
-    print " --- END --- "
+    run_machine(
+        ConfigClass=CoCoCfg,
+        cfg_dict=CFG_DICT,
+        PeripheryClass=CoCoPeriphery,
+        GUI_Class=DragonTkinterGUI,
+    )
