@@ -127,6 +127,7 @@ class DragonTkinterGUI(object):
 
         # display the menu
         self.root.config(menu=menubar)
+        self.root.update()
 
     def dump(self):
         tkMessageBox.showinfo("TODO", "TODO: dump!")
@@ -183,6 +184,7 @@ class DragonTkinterGUI(object):
             log.debug("new cpu_status_queue: %s", repr(cycles_per_second))
             msg = "%d cycles/sec (Dragon 32 == 895.000cycles/sec)" % cycles_per_second
             self.status.set(msg)
+            self.root.update()
         self.root.after(interval, self.display_cpu_status_interval, interval)
 
     def display_queue_interval(self, interval):
@@ -199,9 +201,15 @@ class DragonTkinterGUI(object):
         self.root.after(interval, self.display_queue_interval, interval)
 
     def mainloop(self):
+        log.critical("Start display_queue_interval()")
+        self.display_queue_interval(interval=100)
+
+        log.critical("Start display_cpu_status_interval()")
         self.display_cpu_status_interval(interval=500)
-        self.display_queue_interval(interval=10)
+
+        log.critical("Start root.mainloop()")
         self.root.mainloop()
+        log.critical("root.mainloop() has quit!")
 
 
 def test_run_direct():
