@@ -164,12 +164,12 @@ class DragonTkinterGUI(object):
         for line in clipboard.splitlines():
             log.critical("paste line: %s", repr(line))
             for char in line:
-                self.key_input_queue.put_nowait(char)
-            self.key_input_queue.put_nowait("\r")
+                self.key_input_queue.put(char)
+            self.key_input_queue.put("\r")
 
     def event_key_pressed(self, event):
         char_or_code = event.char or event.keycode
-        self.key_input_queue.put_nowait(char_or_code)
+        self.key_input_queue.put(char_or_code)
 
     def display_cpu_status_interval(self, interval):
         """

@@ -78,7 +78,7 @@ class DragonDisplayOutputHandler(object):
             self.to_display_queue, 0x0400, 0x0600)
 
     def to_display_queue(self, cpu_cycles, op_address, address, value):
-        self.display_queue.put_nowait(
+        self.display_queue.put(
             (cpu_cycles, op_address, address, value)
         )
         return value
