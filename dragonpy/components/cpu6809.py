@@ -1069,7 +1069,7 @@ class CPU(object):
             register_obj = self.register_str2object[register_str]
             data = register_obj.get()
 
-            log.debug("\tpush %s with data $%x", register_obj.name, data)
+#             log.debug("\tpush %s with data $%x", register_obj.name, data)
 
             if register_obj.WIDTH == 8:
                 self.push_byte(register, data)
