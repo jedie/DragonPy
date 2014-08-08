@@ -23,7 +23,7 @@ from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
 from dragonpy.utils.logging_utils import log
 
 
-class DragonTextDisplayCanvas(object):
+class MC6847_TextModeCanvas(object):
     """
     MC6847 Video Display Generator (VDG) in Alphanumeric Mode.
     This display mode consumes 512 bytes of memory and is a 32 character wide screen with 16 lines.
@@ -106,7 +106,7 @@ class DragonTkinterGUI(object):
         self.cfg = cfg
 
         # Queue which contains "write into Display RAM" information
-        # for render them in DragonTextDisplayCanvas():
+        # for render them in MC6847_TextModeCanvas():
         self.display_queue = display_queue
 
         # Queue to send keyboard inputs to CPU Thread:
@@ -126,7 +126,7 @@ class DragonTkinterGUI(object):
         self.root.bind("<Key>", self.event_key_pressed)
         self.root.bind("<<Paste>>", self.paste_clipboard)
 
-        self.display = DragonTextDisplayCanvas(self.root)
+        self.display = MC6847_TextModeCanvas(self.root)
         self.display.canvas.grid(row=0, column=0, columnspan=2)  # , rowspan=2)
 
         self.status = Tkinter.StringVar()
