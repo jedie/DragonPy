@@ -14,34 +14,32 @@ import Queue
 import Tkinter
 import os
 import sys
-import thread
-import threading
 import time
 import tkMessageBox
 
 from dragonpy.Dragon32 import dragon_charmap
-from dragonpy.Dragon32.MC6821_PIA import PIA
-from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
-from dragonpy.components.periphery import PeripheryBase
 from dragonpy.utils.logging_utils import log
 
 
-class Dragon32TextDisplayTkinter(object):
+class DragonTextDisplayCanvas(object):
     """
-    The GUI stuff
+    MC6847 Video Display Generator (VDG) in Alphanumeric Mode.
+    This display mode consumes 512 bytes of memory and is a 32 character wide screen with 16 lines.
+
+    Here we only get the "write into Display RAM" information from the CPU-Thread
+    from display_queue.
+
+    The Display Tkinter.Canvas() which will be filled with Tkinter.PhotoImage() instances.
+    Every displayed character is a Tkinter.PhotoImage()
     """
     def __init__(self, root):
         self.rows = 32
         self.columns = 16
 
-        #         scale_factor=1
-        scale_factor = 2
-#         scale_factor=3
-#         scale_factor=4
-#         scale_factor=8
-        self.tk_font = TkFont(CHARS_DICT, scale_factor)
+        scale_factor = 2  # scale the complete Display/Characters
+        self.tk_font = TkFont(CHARS_DICT, scale_factor)  # to generate PhotoImage()
 
         self.total_width = self.tk_font.width_scaled * self.rows
         self.total_height = self.tk_font.height_scaled * self.columns
@@ -52,11 +50,17 @@ class Dragon32TextDisplayTkinter(object):
             bd=0,  # Border
             bg="#ff0000",
         )
+
+        # Contains the map from Display RAM value to char/color:
         self.charmap = get_charmap_dict()
+
+        # Cache for the generated Tkinter.PhotoImage() in evry char/color combination:
         self.image_cache = {}
+
+        # Tkinter.PhotoImage() IDs for image replace with canvas.itemconfigure():
         self.images_map = {}
 
-        # Fill the complete Display with images and use them later to replace them
+        # Create all charachter images on the display and fill self.images_map:
         self.init_img = self.tk_font.get_char(char="?", color=dragon_charmap.INVERTED)
         for row in xrange(self.rows + 1):
             for column in xrange(self.columns + 1):
@@ -71,15 +75,16 @@ class Dragon32TextDisplayTkinter(object):
                 self.images_map[(x, y)] = image_id
 
     def write_byte(self, cpu_cycles, op_address, address, value):
+        #         log.critical(
+        #             "%04x| *** Display write $%02x ***%s*** %s at $%04x",
+        #             op_address, value, repr(char), color, address
+        #         )
+
         try:
             image = self.image_cache[value]
         except KeyError:
+            # Generate a Tkinter.PhotoImage() for the requested char/color
             char, color = self.charmap[value]
-    #         log.critical(
-    #             "%04x| *** Display write $%02x ***%s*** %s at $%04x",
-    #             op_address, value, repr(char), color, address
-    #         )
-
             image = self.tk_font.get_char(char, color)
             self.image_cache[value] = image
 
@@ -94,11 +99,20 @@ class Dragon32TextDisplayTkinter(object):
 
 
 class DragonTkinterGUI(object):
-
+    """
+    The complete Tkinter GUI window
+    """
     def __init__(self, cfg, display_queue, key_input_queue, cpu_status_queue):
         self.cfg = cfg
+
+        # Queue which contains "write into Display RAM" information
+        # for render them in DragonTextDisplayCanvas():
         self.display_queue = display_queue
+
+        # Queue to send keyboard inputs to CPU Thread:
         self.key_input_queue = key_input_queue
+
+        # LifoQueue filles in CPU Thread with CPU-Cycles information:
         self.cpu_status_queue = cpu_status_queue
 
         self.last_cpu_cycles = 0
@@ -112,7 +126,7 @@ class DragonTkinterGUI(object):
         self.root.bind("<Key>", self.event_key_pressed)
         self.root.bind("<<Paste>>", self.paste_clipboard)
 
-        self.display = Dragon32TextDisplayTkinter(self.root)
+        self.display = DragonTextDisplayCanvas(self.root)
         self.display.canvas.grid(row=0, column=0, columnspan=2)  # , rowspan=2)
 
         self.status = Tkinter.StringVar()

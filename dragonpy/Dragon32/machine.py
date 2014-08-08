@@ -14,7 +14,6 @@ import Queue
 import thread
 import threading
 
-from dragonpy.Dragon32.periphery_dragon import DragonDisplayOutputHandler
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
 from dragonpy.utils.logging_utils import log
@@ -28,8 +27,15 @@ class Machine(object):
     def __init__(self, cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue):
         self.cfg = cfg
         self.periphery_class = periphery_class
+
+        # Queue which contains "write into Display RAM" information
+        # for render them in DragonTextDisplayCanvas():
         self.display_queue = display_queue
+
+        # Queue to send keyboard inputs to CPU Thread:
         self.key_input_queue = key_input_queue
+
+        # LifoQueue filles in CPU Thread with CPU-Cycles information:
         self.cpu_status_queue = cpu_status_queue
 
     def run(self):
@@ -108,11 +114,16 @@ def run_machine(ConfigClass, cfg_dict, PeripheryClass, GUI_Class):
     cfg = ConfigClass(cfg_dict)
     log.log(99, "Startup '%s' machine...", cfg.MACHINE_NAME)
 
+    # LifoQueue filles in CPU Thread with CPU-Cycles information:
     # Use a LifoQueue to get the most recently added status first.
     cpu_status_queue = Queue.LifoQueue(maxsize=1)  # CPU cyltes/sec information
 
-    key_input_queue = Queue.Queue(maxsize=1024)  # User keyboard input
-    display_queue = Queue.Queue(maxsize=64)  # Display RAM write outputs
+    # Queue to send keyboard inputs from GUI to CPU Thread:
+    key_input_queue = Queue.Queue(maxsize=1024)
+
+    # Queue which contains "write into Display RAM" information
+    # for render them in DragonTextDisplayCanvas():
+    display_queue = Queue.Queue(maxsize=64)
 
     log.critical("init GUI")
     # e.g. TkInter GUI
@@ -128,7 +139,7 @@ def run_machine(ConfigClass, cfg_dict, PeripheryClass, GUI_Class):
 
     try:
         gui.mainloop()
-    except Exception, err:
+    except Exception as err:
         log.critical("GUI exception: %s", err)
         print_exc_plus()
     machine.quit()
