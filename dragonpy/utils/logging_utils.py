@@ -11,16 +11,18 @@
 """
 
 import logging
-import sys
 import multiprocessing
+import sys
 
 
 log = multiprocessing.log_to_stderr()
 
-log.critical("Log handlers: %s", repr(log.handlers))
-if len(log.handlers) > 1:# FIXME: tro avoid doublicated output
+
+# log.critical("Log handlers: %s", repr(log.handlers))
+if len(log.handlers) > 1:  # FIXME: tro avoid doublicated output
     log.handlers = (log.handlers[0],)
-    log.critical("Fixed Log handlers: %s", repr(log.handlers))
+#     log.critical("Fixed Log handlers: %s", repr(log.handlers))
+
 
 def setup_logging(log, level, handler=None, log_formatter=None):
     """
@@ -38,8 +40,10 @@ def setup_logging(log, level, handler=None, log_formatter=None):
     if handler is None:
         handler = logging.StreamHandler()
 
-    if log_formatter is not None:
-        handler.setFormatter(log_formatter)
+    if log_formatter is None:
+        log_formatter = "[%(processName)s %(threadName)s] %(message)s"
+    formatter = logging.Formatter(log_formatter)
+    handler.setFormatter(formatter)
 
     if hasattr(handler, "baseFilename"):
         sys.stderr.write("Log to file: %s (%s)\n" % (
@@ -49,11 +53,11 @@ def setup_logging(log, level, handler=None, log_formatter=None):
         sys.stderr.write("Log to handler: %s\n" % repr(handler))
     log.handlers = (handler,)
 
-       
+
 def log_memory_dump(memory, start, end, mem_info, level=99):
     log.log(level, "Memory dump from $%04x to $%04x:", start, end)
-    
-    for addr in xrange(start, end+1):
+
+    for addr in xrange(start, end + 1):
         value = memory[addr]
         if isinstance(value, int):
             msg = "$%04x: $%02x (dez: %i)" % (addr, value, value)
