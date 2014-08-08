@@ -21,15 +21,15 @@
     more info, see README
 """
 
+import Queue
 import inspect
 import os
 import socket
 import sys
+import thread
 import threading
 import time
 import warnings
-import Queue
-import thread
 
 from dragonpy.MC6809data.MC6809_data_raw2 import (
     OP_DATA, REG_A, REG_B, REG_CC, REG_D, REG_DP, REG_PC,
@@ -45,8 +45,6 @@ from dragonpy.cpu_utils.signed import signed8, signed16, signed5
 from dragonpy.utils.bits import is_bit_set, get_bit
 from dragonpy.utils.logging_utils import log
 from dragonpy.utils.simple_debugger import print_exc_plus
-
-
 # HTML_TRACE = True
 HTML_TRACE = False
 
@@ -71,6 +69,7 @@ class CPUStatusThread(threading.Thread):
     Just ignore if the cpu_status_queue is full.
     """
     def __init__(self, cpu, cpu_status_queue):
+        log.critical("init CPUStatusThread")
         super(CPUStatusThread, self).__init__(name="CPU-Status-Thread")
         self.cpu = cpu
         self.cpu_status_queue = cpu_status_queue
@@ -88,18 +87,21 @@ class CPUStatusThread(threading.Thread):
             time.sleep(0.5)
 
     def run(self):
+        log.critical("run CPUStatusThread")
         try:
             self._run()
         except:
             self.cpu.running = False
             thread.interrupt_main()
             raise
+        log.critical("quit CPUStatusThread")
 
 
 class CPU(object):
     RESET_VECTOR = 0xfffe
 
     def __init__(self, memory, cfg, cpu_status_queue=None):
+        log.critical("init CPU")
         self.memory = memory
         self.cfg = cfg
 

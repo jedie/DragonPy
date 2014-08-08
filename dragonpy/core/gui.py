@@ -16,15 +16,83 @@ import os
 import sys
 import thread
 import threading
+import time
 import tkMessageBox
 
-from dragonpy.Dragon32.MC6821_PIA import PIA
-from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
-from dragonpy.components.periphery import PeripheryBase
 from dragonpy.utils.logging_utils import log
-import time
+
+
+class TkImgThread(threading.Thread):
+    """
+    consume display_queue and generate a Tkinter.PhotoImage() from it.
+    Put the PhotoImage into img_queue for display it in the main thread.
+
+    Important is that CACHE is used. Without cache the garbage-collection
+    by Python will "remove" the created images in Tkinter.Canvas!
+    """
+    CACHE = {}
+    def __init__(self, display_queue, img_queue):
+        log.critical("init TkImgThread")
+        super(TkImgThread, self).__init__(name="TkImgThread")
+        self.display_queue = display_queue
+        self.img_queue = img_queue
+
+        self.rows = 32
+        self.columns = 16
+
+        #         scale_factor=1
+        scale_factor = 2
+#         scale_factor=3
+#         scale_factor=4
+#         scale_factor=8
+        self.tk_font = TkFont(CHARS_DICT, scale_factor)
+
+        self.total_width = self.tk_font.width_scaled * self.rows
+        self.total_height = self.tk_font.height_scaled * self.columns
+
+        self.charmap = get_charmap_dict()
+
+    def generate_image(self, cpu_cycles, op_address, address, value):
+        try:
+            img = self.CACHE[value]
+        except KeyError:
+            char, color = self.charmap[value]
+            log.critical("Genrate PhotoImage for $%02x: %r %s", value, char, color)
+    #         log.critical(
+    #             "%04x| *** Display write $%02x ***%s*** %s at $%04x",
+    #             op_address, value, repr(char), color, address
+    #         )
+
+            img = self.tk_font.get_char(char, color)
+            self.CACHE[value] = img
+
+        position = address - 0x400
+        column, row = divmod(position, self.rows)
+        x = self.tk_font.width_scaled * row
+        y = self.tk_font.height_scaled * column
+
+        return x, y, img
+
+    def _run(self):
+        while True:
+            cpu_cycles, op_address, address, value = self.display_queue.get(block=True)
+#             log.critical("TkImgThread")
+            x, y, img = self.generate_image(cpu_cycles, op_address, address, value)
+            self.img_queue.put(
+                (x, y, img),
+                block=True
+            )
+
+    def run(self):
+        log.critical("start TkImgThread.run()")
+        try:
+            self._run()
+        except:
+            thread.interrupt_main()
+            raise
+        log.critical("end TkImgThread.run()")
 
 
 class Dragon32TextDisplayTkinter(object):
@@ -45,13 +113,6 @@ class Dragon32TextDisplayTkinter(object):
         self.total_width = self.tk_font.width_scaled * self.rows
         self.total_height = self.tk_font.height_scaled * self.columns
 
-        self.canvas = Tkinter.Canvas(root,
-            width=self.total_width,
-            height=self.total_height,
-            bd=0,  # Border
-            bg="#ff0000",
-        )
-
         self.charmap = get_charmap_dict()
 
     def write_byte(self, cpu_cycles, op_address, address, value):
@@ -67,12 +128,6 @@ class Dragon32TextDisplayTkinter(object):
         column, row = divmod(position, self.rows)
         x = self.tk_font.width_scaled * row
         y = self.tk_font.height_scaled * column
-
-        self.canvas.create_image(x, y,
-            image=img,
-            state="normal",
-            anchor=Tkinter.NW  # NW == NorthWest
-        )
 
 
 class DragonTkinterGUI(object):
@@ -94,9 +149,20 @@ class DragonTkinterGUI(object):
         self.root.bind("<Key>", self.event_key_pressed)
         self.root.bind("<<Paste>>", self.paste_clipboard)
 
-        self.display = Dragon32TextDisplayTkinter(self.root)
+        # Start display_queue to img_queue converter thread
+        self.img_queue = Queue.Queue(maxsize=64)
+        self.display_write2image_thread = TkImgThread(self.display_queue, self.img_queue)
+        self.display_write2image_thread.deamon = True
+        self.display_write2image_thread.start()
 
-        self.display.canvas.grid(row=0, column=0, columnspan=2)  # , rowspan=2)
+        # Display the generated img_queue output
+        self.display_canvas = Tkinter.Canvas(self.root,
+            width=self.display_write2image_thread.total_width,
+            height=self.display_write2image_thread.total_height,
+            bd=0,  # Border
+            bg="#ff0000",
+        )
+        self.display_canvas.grid(row=0, column=0, columnspan=2)  # , rowspan=2)
 
         self.status = Tkinter.StringVar()
         self.status_widget = Tkinter.Label(
@@ -194,22 +260,27 @@ class DragonTkinterGUI(object):
 
     def display_queue_interval(self, interval):
         """
-        consume all exiting "display RAM write" queue items and render them.
+        Consume img_queue generated in TkImgThread.
+        Display all generated PhotoImage on the display_canvas.
         """
         max_time = time.time() + 0.25
         while True:
             try:
-                cpu_cycles, op_address, address, value = self.display_queue.get_nowait()
+                x, y, img = self.img_queue.get_nowait()
             except Queue.Empty:
-#                 log.critical("display_queue empty -> exit loop")
                 break
-#                 log.critical(
-#                     "call display.write_byte() (display_queue._qsize(): %i)",
-#                     self.display_queue._qsize()
-#                 )
-            self.display.write_byte(cpu_cycles, op_address, address, value)
+
+            log.critical("Add new PhotoImage to %i x %i", x, y)
+            self.display_canvas.create_image(x, y,
+                image=img,
+                state="normal",
+                anchor=Tkinter.NW  # NW == NorthWest
+            )
             if time.time() > max_time:
-                log.critical("Abort display_queue_interval() loop.")
+                log.critical(
+                    "Abort display_queue_interval() loop. (display_queue._qsize(): %i)",
+                    self.display_queue._qsize()
+                )
                 break
 #                 self.root.update()
 #                 self.root.after_idle(self.display_queue_interval, interval)

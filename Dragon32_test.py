@@ -42,11 +42,11 @@ CFG_DICT = {
 if __name__ == '__main__':
     setup_logging(log,
 #         level=1 # hardcore debug ;)
-#         level=10 # DEBUG
+        level=10  # DEBUG
 #         level=20 # INFO
 #         level=30 # WARNING
 #         level=40 # ERROR
-        level=50  # CRITICAL/FATAL
+#         level=50  # CRITICAL/FATAL
     )
 
     run_machine(
