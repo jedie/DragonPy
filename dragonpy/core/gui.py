@@ -16,15 +16,16 @@ import os
 import sys
 import thread
 import threading
+import time
 import tkMessageBox
 
+from dragonpy.Dragon32 import dragon_charmap
 from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
 from dragonpy.components.periphery import PeripheryBase
 from dragonpy.utils.logging_utils import log
-import time
 
 
 class Dragon32TextDisplayTkinter(object):
@@ -51,28 +52,45 @@ class Dragon32TextDisplayTkinter(object):
             bd=0,  # Border
             bg="#ff0000",
         )
-
         self.charmap = get_charmap_dict()
+        self.image_cache = {}
+        self.images_map = {}
+
+        # Fill the complete Display with images and use them later to replace them
+        self.init_img = self.tk_font.get_char(char="?", color=dragon_charmap.INVERTED)
+        for row in xrange(self.rows + 1):
+            for column in xrange(self.columns + 1):
+                x = self.tk_font.width_scaled * row
+                y = self.tk_font.height_scaled * column
+                image_id = self.canvas.create_image(x, y,
+                    image=self.init_img,
+                    state="normal",
+                    anchor=Tkinter.NW  # NW == NorthWest
+                )
+#                 log.critical("Image ID: %s at %i x %i", image_id, x, y)
+                self.images_map[(x, y)] = image_id
 
     def write_byte(self, cpu_cycles, op_address, address, value):
-        char, color = self.charmap[value]
-#         log.critical(
-#             "%04x| *** Display write $%02x ***%s*** %s at $%04x",
-#             op_address, value, repr(char), color, address
-#         )
+        try:
+            image = self.image_cache[value]
+        except KeyError:
+            char, color = self.charmap[value]
+    #         log.critical(
+    #             "%04x| *** Display write $%02x ***%s*** %s at $%04x",
+    #             op_address, value, repr(char), color, address
+    #         )
 
-        img = self.tk_font.get_char(char, color)
+            image = self.tk_font.get_char(char, color)
+            self.image_cache[value] = image
 
         position = address - 0x400
         column, row = divmod(position, self.rows)
         x = self.tk_font.width_scaled * row
         y = self.tk_font.height_scaled * column
 
-        self.canvas.create_image(x, y,
-            image=img,
-            state="normal",
-            anchor=Tkinter.NW  # NW == NorthWest
-        )
+#         log.critical("replace image %s at %i x %i", image, x, y)
+        image_id = self.images_map[(x, y)]
+        self.canvas.itemconfigure(image_id, image=image)
 
 
 class DragonTkinterGUI(object):
@@ -95,7 +113,6 @@ class DragonTkinterGUI(object):
         self.root.bind("<<Paste>>", self.paste_clipboard)
 
         self.display = Dragon32TextDisplayTkinter(self.root)
-
         self.display.canvas.grid(row=0, column=0, columnspan=2)  # , rowspan=2)
 
         self.status = Tkinter.StringVar()
@@ -201,7 +218,7 @@ class DragonTkinterGUI(object):
             try:
                 cpu_cycles, op_address, address, value = self.display_queue.get_nowait()
             except Queue.Empty:
-#                 log.critical("display_queue empty -> exit loop")
+                #                 log.critical("display_queue empty -> exit loop")
                 break
 #                 log.critical(
 #                     "call display.write_byte() (display_queue._qsize(): %i)",

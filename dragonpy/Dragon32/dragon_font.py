@@ -11,10 +11,10 @@
 """
 
 import Tkinter
+import math
 
 from dragonpy.Dragon32.dragon_charmap import NORMAL, get_hex_color, COLORS, INVERTED
 from dragonpy.utils.logging_utils import log
-import math
 
 BACKGROUND_CHAR = "."
 FOREGROUND_CHAR = "X"
@@ -1211,10 +1211,9 @@ CHARS_DICT = {
 
 class TkFont(object):
     """
-    Important is that CACHE is used. Without cache the garbage-collection
-    by Python will "remove" the created images in Tkinter.Canvas!
+    Important is that image must be bind to a object, without:
+    the garbage-collection by Python will "remove" the created images in Tkinter.Canvas!
     """
-    CACHE = {}
     def __init__(self, chars_dict, scale_factor):
         assert isinstance(scale_factor, int)
         assert scale_factor > 0
@@ -1234,7 +1233,7 @@ class TkFont(object):
             self.scale_factor
         )
 
-    def _generate_char(self, char, color):
+    def get_char(self, char, color):
         log.critical("Generate char %s %s", repr(char), color)
         try:
             char_data = self.chars_dict[char]
@@ -1269,14 +1268,6 @@ class TkFont(object):
 
         return img
 
-    def get_char(self, char, color):
-        try:
-            return self.CACHE[(char, color)]
-        except KeyError:
-            img = self._generate_char(char, color)
-            self.CACHE[(char, color)] = img
-            return img
-
 
 class TestTkFont(object):
     def __init__(self, row_count, tk_font, colors):
@@ -1305,7 +1296,7 @@ class TestTkFont(object):
         self.canvas = Tkinter.Canvas(self.root,
             width=self.total_width,
             height=self.total_height,
-            bd=0, # Border
+            bd=0,  # Border
             bg="#000000",
         )
         self.canvas.pack()
@@ -1325,7 +1316,7 @@ class TestTkFont(object):
             self.canvas.create_image(x, y,
                 image=img,
                 state="normal",
-                anchor=Tkinter.NW # NW == NorthWest
+                anchor=Tkinter.NW  # NW == NorthWest
             )
             # self.root.update() # Not needed here!
 
