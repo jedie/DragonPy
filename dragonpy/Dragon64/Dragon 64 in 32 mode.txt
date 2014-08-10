@@ -1,0 +1,4234 @@
+###############################################################################
+# Information about Dragon 64 ROM - 32K mode
+#
+# Collected from:
+#     http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4370&start=10#p11378
+# AUTHOR: Stewart Orchard alias sorchard
+#
+# copyleft: 2014 by the 6809 team, see AUTHORS for more details.
+# license: GNU GPL v3 or above, see LICENSE for more details.
+#
+###############################################################################
+
+$8000-$8012 ; * standard JMP vectors
+$8000-$8012 ; * hardware routines
+$8000       ; reset
+$8003       ; set up $8f - $9b
+$8006       ; scan keyboard (A)
+$8009       ; blink cursor
+$800c       ; write to VDU (A)
+$800f       ; write to printer (A)
+$8012       ; update joysticks
+
+$8015-$8027 ; * tape routines
+$8015       ; motoron
+$8018       ; motoroff
+$801b       ; write leader
+$801e       ; byte out (A)
+$8021       ; read leader
+$8024       ; byte in (A)
+$8027       ; bit in (C)
+
+$802a-$8030 ; * serial routines
+$802a       ; read serial (A)
+$802d       ; write serial (A)
+$8030       ; baud rate select
+
+$8033-$814f ; * command table : last byte of each string has MSB set
+$8033-$814f ; * (token in final column)
+$8033       ; FOR     80
+$8036       ; GO      81
+$8038       ; REM     82
+$803b       ; '       83
+$803c       ; ELSE    84
+$8040       ; IF      85
+$8042       ; DATA    86
+$8046       ; PRINT   87
+$804b       ; ON      88
+$804d       ; INPUT   89
+$8052       ; END     8A
+$8055       ; NEXT    8B
+$8059       ; DIM     8C
+$805c       ; READ    8D
+$8060       ; LET     8E
+$8063       ; RUN     8F
+$8066       ; RESTORE 90
+$806d       ; RETURN  91
+$8073       ; STOP    92
+$8077       ; POKE    93
+$807b       ; CONT    94
+$807f       ; LIST    95
+$8083       ; CLEAR   96
+$8088       ; NEW     97
+$808b       ; DEF     98
+$808e       ; CLOAD   99
+$8093       ; CSAVE   9A
+$8098       ; OPEN    9B
+$809c       ; CLOSE   9C
+$80a1       ; LLIST   9D
+$80a6       ; SET     9E
+$80a9       ; RESET   9F
+$80ae       ; CLS     A0
+$80b1       ; MOTOR   A1
+$80b6       ; SOUND   A2
+$80bb       ; AUDIO   A3
+$80c0       ; EXEC    A4
+$80c4       ; SKIPF   A5
+$80c9       ; DEL     A6
+$80cc       ; EDIT    A7
+$80d0       ; TRON    A8
+$80d4       ; TROFF   A9
+$80d9       ; LINE    AA
+$80dd       ; PCLS    AB
+$80e1       ; PSET    AC
+$80e5       ; PRESET  AD
+$80eb       ; SCREEN  AE
+$80f1       ; PCLEAR  AF
+$80f7       ; COLOR   B0
+$80fc       ; CIRCLE  B1
+$8102       ; PAINT   B2
+$8107       ; GET     B3
+$810a       ; PUT     B4
+$810d       ; DRAW    B5
+$8111       ; PCOPY   B6
+$8116       ; PMODE   B7
+$811b       ; PLAY    B8
+$811f       ; DLOAD   B9
+$8124       ; RENUM   BA
+$8129       ; TAB(    BB
+$812d       ; TO      BC
+$812f       ; SUB     BD
+$8132       ; FN      BE
+$8134       ; THEN    BF
+$8138       ; NOT     C0
+$813b       ; STEP    C1
+$813f       ; OFF     C2
+$8142       ; +       C3
+$8143       ; -       C4
+$8144       ; *       C5
+$8145       ; /       C6
+$8146       ; ^       C7
+$8147       ; AND     C8
+$814a       ; OR      C9
+$814c       ; >       CA
+$814d       ; =       CB
+$814e       ; <       CC
+$814f       ; USING   CD
+
+$8154-$81c4 ; * command vectors
+$8154       ; for go rem '
+$815c       ; else if data print
+$8164       ; on input end next
+$816c       ; dim read let run
+$8174       ; restore return stop poke
+$817c       ; cont list clear new
+$8184       ; def cload csave open
+$818c       ; close llist set reset
+$8194       ; cls motor sound audio
+$819c       ; exec skipf del edit
+$81a4       ; tron troff line pcls
+$81ac       ; pset preset screen pclear
+$81b4       ; color circle paint get
+$81bc       ; put draw pcopy pmode
+$81c4       ; play dload renum
+
+$81ca-$824d ; * function table : last byte of each string has MSB set
+$81ca-$824d ; * (token in final column)
+$81ca       ; SGN     FF80
+$81cd       ; INT     FF81
+$81d0       ; ABS     FF82
+$81d3       ; POS     FF83
+$81d6       ; RND     FF84
+$81d9       ; SQR     FF85
+$81dc       ; LOG     FF86
+$81df       ; EXP     FF87
+$81e2       ; SIN     FF88
+$81e5       ; COS     FF89
+$81e8       ; TAN     FF8A
+$81eb       ; ATN     FF8B
+$81ee       ; PEEK    FF8C
+$81f2       ; LEN     FF8D
+$81f5       ; STR$    FF8E
+$81f9       ; VAL     FF8F
+$81fc       ; ASC     FF90
+$81ff       ; CHR$    FF91
+$8203       ; EOF     FF92
+$8206       ; JOYSTK  FF93
+$820c       ; FIX     FF94
+$820f       ; HEX$    FF95
+$8213       ; LEFT$   FF96
+$8218       ; RIGHT$  FF97
+$821e       ; MID$    FF98
+$8222       ; POINT   FF99
+$8227       ; INKEY$  FF9A
+$822d       ; MEM     FF9B
+$8230       ; VARPTR  FF9C
+$8236       ; INSTR   FF9D
+$823b       ; TIMER   FF9E
+$8240       ; PPOINT  FF9F
+$8246       ; STRING$ FFA0
+$824d       ; USR     FFA1
+
+$8250-$8290 ; * function vectors
+$8250       ; sgn int abs pos
+$8258       ; rnd sqr log exp
+$8260       ; sin cos tan atn
+$8268       ; peek len str$ val
+$8270       ; asc chr$ eof joystk
+$8278       ; fix hex$ left$ right$
+$8280       ; mid$ point inkey$ mem
+$8288       ; varptr instr timer ppoint
+$8290       ; string$ usr
+
+$8294-$82a6 ; * binary operator table used during expression evaluation
+$8294-$82a6 ; * (1st byte is precedence level followed by address of handler)
+$8294       ;  +
+$8297       ;  -
+$829a       ;  *
+$829d       ;  /
+$82a0       ;  ^
+$82a3       ;  AND
+$82a6       ;  OR
+
+$82a9-$82dd ; * error code strings
+
+$82df-$82f0 ; * misc strings
+$82df       ; /ERROR /
+$82e6       ; / IN /
+$82eb       ; CR/OK/CR
+$82f0       ; CR/BREAK/
+
+$82f7-$831b ; * examine BASIC stack (maintained 'under' machine return addresses)
+$82f7-$831b ; * $3b = varptr of FOR control variable to search for (zero if none)
+$82f7-$831b ; * set $3b to #$ff to skip all FOR entries
+$82f7-$831b ; * returns X = $0f = pointer to matching entry for FOR / NEXT
+$82f7-$831b ; * $3b = varptr of control variable for unspecified NEXT
+$82f7-$831b ; * Z = 0 if matching FOR entry not found
+$82f7       ; point X past 2 return addresses
+$82f9       ; size of FOR stack entry
+$82fb       ; $0f = this entry
+$8301       ; not a FOR entry
+$8305       ; varptr of control variable
+$8309       ; we were called by NEXT with no variable
+$830d       ; found a matching entry
+$8311       ; point X to next stack entry
+$8312       ; examine next entry
+$8314       ; set $3b up with varptr of control variable
+$8316       ; for unspecified NEXT
+
+$831c-$8330 ; * move memory contents up
+$831c-$8330 ; * start address   - $47
+$831c-$8330 ; * end address     - $43
+$831c-$8330 ; * new end address - $41 (D = new end address for memory check)
+$831c-$8330 ; * returns $45 = U = start of relocated block
+$831c       ; memory check
+
+$8331-$8342 ; * check if there are B free words of storage left
+$8333       ; end of BASIC storage
+$8338       ; ?OM ERROR
+$8340       ; RTS
+$8342       ; ?OM ERROR
+
+$8344-$836e ; * ?xx ERROR - error code in B
+$8344       ; user error trap
+$8347       ; system error trap
+$834a       ; cassette relay off
+$834d       ; disable audio
+$8350       ; reset stack & bits & pieces
+$8353       ; DEVN
+$8355       ; initialise virtual DEVN device & new line
+$8358       ; print '?' to DEVN
+$835b       ; error string table
+$835f       ; output to DEVN from ,X+
+$8361       ; output to DEVN from ,X+
+$8363       ; 'ERROR'
+$8366       ; print string to DEVN
+$8369       ; current line number
+$836c       ; command mode
+$836e       ; print 'IN xxxx' (current line number)
+
+$8371-$839b ; * command mode
+$8371       ; initialise virtual DEVN device & new line
+$8377       ; print 'OK'
+$837a       ; line input from DEVN
+$8380       ; current line number
+$8382       ; command mode without 'OK'
+$8384       ; eof flag
+$8386       ; close file & return to command mode
+$838a       ; BASIC source pointer
+$838c       ; get next character from BASIC source
+$838e       ; command mode without 'OK'
+$8390       ; enter BASIC line
+$8392       ; ?DS ERROR
+$8394       ; DEVN
+$8396       ; cause error
+$8398       ; tokenize BASIC line
+$839b       ; enter interpreter loop
+
+$839e-$83a0 ; * used by error routine to print error code
+$83a0       ; output character to DEVN
+
+$83a3-$83eb ; * enter a BASIC line
+$83a3       ; read line number & store in $2b
+$83ab       ; tokenize BASIC line
+$83ae       ; line length
+$83b0       ; search program for line number in <$2b
+$83b2       ; line number doesn't exist
+$83b4       ; address where line needs to go
+$83b6       ; subtract next line pointer (-ve result)
+$83b8       ; start of simple variables
+$83ba       ; new end of program
+$83be       ; move program down, erasing existing line
+$83c2       ; start of simple variables
+$83c9       ; new line is empty
+$83cb       ; start of simple variables
+$83cf       ; new line length
+$83d5       ; move memory contents up
+$83dd       ; copy new line into space just created
+$83e5       ; new end of program
+$83e7       ; clear variables and reset stack & cmd ptr
+$83e9       ; set up next line pointers in BASIC program
+$83eb       ; command mode without 'OK'
+
+$83ed-$83fd ; * set up next line pointers in BASIC program
+$83ed       ; start of BASIC program
+$83f1       ; RTS
+
+$83ff-$8401 ; * search program for line number in <$2b
+$8401       ; start of BASIC program
+
+$8403-$8414 ; * scan ahead for line in D & store address in $47
+$8403-$8414 ; * (first line after if it doesn't exist - carry clear if found)
+$8405       ;  end of program
+$8407       ;  scan program until line no. is greater
+$840a       ;  than D
+$840c       ;  next line
+
+$8415-$8446 ; * NEW
+$8417       ; start of BASIC program
+$841d       ; start of simple variables
+$841f       ; start of BASIC program
+$8421       ; subtract 1 from X & store in $a6
+$8424       ; PATCH - reset BASIC memory
+$8427       ; top of BASIC RAM
+$8429       ; top of free string space
+$842b       ; RESTORE
+$842e       ; start of simple variables
+$8430       ; start of array variables
+$8432       ; end of BASIC storage
+$843b       ; stack root / string storage start
+$8440       ; CONT source address
+
+$8448-$849d ; * FOR
+$8448-$849d ; * creates following 18 byte stack entry:
+$8448-$849d ; * ,S   #$80
+$8448-$849d ; * 1,S   varptr of control variable
+$8448-$849d ; * 3,S   STEP value (unsigned FP)
+$8448-$849d ; * 8,S   sign of STEP value (-1, 0 ,1)
+$8448-$849d ; * 9,S   TO value (signed FP)
+$8448-$849d ; * 14,S   line number of FOR statement
+$8448-$849d ; * 16,S   address of statement after FOR
+$844a       ; array illegal flag
+$844c       ; LET
+$844f       ; examine BASIC stack
+$8452       ; lose return address
+$8454       ; no FOR with same control variable already
+$8458       ; overwrite duplicate FOR entry
+$845c       ; memory check
+$845f       ; find end of statement
+$8462       ; current line number
+$8464       ; push next statement ptr & current line no.
+$8466       ; token TO
+$8468       ; skip character in B
+$846b       ; validate numeric expression
+$846e       ; read numeric expression into FPA1
+$8473       ; convert FPA1 back to standard variable
+$847d       ; push FPA1 onto stack & JMP ,Y
+$8480       ; FP constant 1
+$8483       ; load variable into FPA1 (X is varptr)
+$8486       ; get current character from BASIC source
+$8488       ; token STEP
+$848a       ; no STEP value specified
+$848c       ; get next character from BASIC source
+$848e       ; read numeric expression into FPA1
+$8491       ; sets B to -1, 0 or 1 as per sign of FPA1
+$8494       ; push B then FPA1 onto stack
+$8497       ; varptr of control variable
+$849b       ; FOR signature on stack
+
+$849f-$84da ; * interpreter loop
+$849f       ; PATCH - get command
+$84a2       ; unmask interrupts
+$84a4       ; scan for BREAK / pause
+$84a6       ; BASIC source pointer
+$84a8       ; address of current BASIC statement
+$84ac       ; end of line
+$84b2       ; ?SN ERROR
+$84b7       ; this will be zero when end reached
+$84b9       ; end of program
+$84bf       ; current line number
+$84c1       ; BASIC source pointer
+$84c3       ; trace flag
+$84c5       ; trace off
+$84c9       ; output character to DEVN
+$84cc       ; current line number
+$84ce       ; print unsigned number in D
+$84d3       ; output character to DEVN
+$84d6       ; get next character from BASIC source
+$84d8       ; interpret statement
+$84da       ; interpreter loop
+
+$84dc-$8512 ; * interpret statement
+$84dc       ; RTS
+$84de       ; PATCH - interpreter
+$84e2       ; variable on LHS (LET)
+$84e8       ; not a BASIC command
+$84ea       ; command JMP table
+$84f1       ; get next character from BASIC source
+$84f7       ; function
+$84fb       ; ?SN ERROR
+$84fd       ; must be disk command
+$8501       ; get next character from BASIC source
+$8505       ; MID$ on LHS
+$850b       ; TIMER on LHS
+$850f       ; PATCH - CLS GET PUT ???
+$8512       ; ?SN ERROR
+
+$8514-$851a ; * RESTORE
+$8514       ; start of BASIC program
+$8518       ; READ pointer
+
+$851b-$8530 ; * scan keyboard for break & pause
+$851b       ; scan keyboard
+$8522       ; BREAK
+$8526       ; SHIFT + @
+$852b       ; scan keyboard
+
+$8532-$8537 ; * END
+$8532       ; close cassette stream
+$8535       ; get current character from BASIC source
+
+$8539-$855d ; * STOP
+$853b       ; RTS
+$853d       ; BASIC source pointer
+$853f       ; address of current BASIC statement
+$8541       ; make -ve for STOP
+$8543       ; lose return address
+$8545       ; current line number
+$854a       ; already in command mode
+$854c       ; CONT line number
+$854e       ; address of current BASIC statement
+$8550       ; CONT source address
+$8552       ; DEVN
+$8554       ; /BREAK/
+$8559       ; command mode
+$855d       ; print BREAK message
+
+$8560-$8570 ; * CONT
+$8560       ; RTS
+$8562       ; ?CN ERROR
+$8564       ; CONT source address
+$8566       ; cause error
+$856a       ; BASIC source pointer
+$856c       ; CONT line number
+$856e       ; current line number
+
+$8571-$85a2 ; * CLEAR
+$8571       ; clear variables & reset stack
+$8573       ; read unsigned number into $52 & D
+$8578       ; top of BASIC RAM
+$857a       ; get current character from BASIC source
+$857e       ; skip comma
+$8581       ; read 16 bit number into X
+$8586       ; top of RAM
+$8588       ; ?OM ERROR
+$858e       ; ?OM ERROR
+$8595       ; ?OM ERROR
+$8597       ; start of simple variables
+$8599       ; ?OM ERROR
+$859b       ; new stack address
+$859d       ; new top of BASIC RAM
+$859f       ; clear variables & reset stack
+$85a2       ; ?OM ERROR
+
+$85a5-$85b7 ; * RUN
+$85a5       ; PATCH - run
+$85a8       ; set up sound & graphics variables
+$85ab       ; close cassette stream
+$85ae       ; get current character from BASIC source
+$85b0       ; clear variables and reset stack & cmd ptr
+$85b4       ; clear variables & reset stack
+$85b7       ; perform GOTO
+
+$85b9-$85d4 ; * GO  (TO/SUB)
+$85b9-$85d4 ; * GOSUB creates following 5 byte stack entry:
+$85b9-$85d4 ; * ,S     #$BD
+$85b9-$85d4 ; * 1,S     line number of GOSUB statement
+$85b9-$85d4 ; * 3,S     address of GOSUB statement (points to SUB token)
+$85bb       ; get next character from BASIC source
+$85bd       ; token TO
+$85bf       ; perform GOTO
+$85c1       ; token SUB
+$85c3       ; ?SN ERROR
+$85c7       ; memory check
+$85ca       ; BASIC source pointer
+$85cc       ; current line number
+$85ce       ; token SUB
+$85d2       ; perform GOTO
+$85d4       ; interpreter loop
+
+$85d7-$85f2 ; * perform GOTO
+$85d7       ; get current character from BASIC source
+$85d9       ; read line number & store in $2b
+$85dc       ; find end of line
+$85e2       ; current line number
+$85e7       ; start of BASIC program
+$85e9       ; scan for line D
+$85ec       ; ?UL ERROR
+$85f0       ; BASIC source pointer
+
+$85f3-$8604 ; * RETURN
+$85f3       ; RTS
+$85f7       ; set $3b to skip all FOR entries
+$85f9       ; examine BASIC stack
+$85fc       ; point stack to this entry
+$8600       ; GOSUB signature (#$BD - #$80)
+$8602       ; ?RG ERROR
+
+$8607-$8611 ; * (8605 C60E       LDB   #$0E)    ;?UL ERROR
+$8607       ; cause error
+$860a       ; ?SN ERROR
+$860f       ; current line number
+$8611       ; BASIC source pointer
+
+$8613-$8615 ; * DATA
+$8613-$8615 ; * (simply skips to next statement)
+$8613       ; find end of statement
+
+$8618-$861a ; * REM / ELSE
+$8618-$861a ; * (8616 8D06       BSR   $861E)   ;find end of line
+$8618       ; BASIC source pointer
+
+$861b-$861d ; * find end of statement
+
+$861f-$8645 ; * (861E 5F         CLRB)
+$8622       ; BASIC source pointer
+$862c       ; RTS
+$8632       ; RTS
+$863f       ; token IF (+1)
+$8643       ; increment for each IF token encountered
+
+$8647-$8672 ; * IF
+$8647-$8672 ; * IF condition (THEN/GOTO) [IF...THEN [IF...THEN...ELSE] ELSE] ELSE
+$8647-$8672 ; * --                                                           ----
+$8647-$8672 ; * ELSEs are tied to previous IFs
+$8647       ; read numeric expression into FPA1
+$864a       ; get current character from BASIC source
+$864c       ; token GO
+$8650       ; token THEN
+$8652       ; skip character in B
+$8657       ; IF condition true
+$8659       ; clear IF counter
+$865b       ; skip to start of next statement
+$865e       ; RTS
+$8660       ; get next character from BASIC source
+$8662       ; token ELSE
+$8664       ; we're looking for ELSE
+$8666       ; any IFs skipped?
+$8668       ; this ELSE doesn't go with this IF
+$866a       ; get next character from BASIC source
+$866c       ; get current character from BASIC source
+$866e       ; it's a number - perform GOTO
+$8672       ; interpret statement
+
+$8675-$8698 ; * ON
+$8675       ; get number into B
+$8678       ; token GO
+$867a       ; skip character in B
+$867f       ; token SUB
+$8683       ; token TO
+$8685       ; ?SN ERROR
+$8687       ; control variable
+$868d       ; GO (cmd pointer now at desired choice)
+$8690       ; get next character from BASIC source
+$8692       ; read line number & store in $2b
+
+$869a-$86ba ; * read line number from command & store in $2b
+$869a       ; zero
+$869e       ; not a digit - RTS
+$86a6       ;  D > 6399?
+$86a8       ; ?SN ERROR
+$86ac       ;  D = D * 10
+$86b2       ; add new digit
+$86b8       ; get next character from BASIC source
+$86ba       ; process another digit
+
+$86bc-$8704 ; * LET
+$86bc       ; get varptr of variable in X
+$86c1       ; token =
+$86c3       ; skip character in B
+$86c6       ; numeric / string flag
+$86ca       ; get expression
+$86cf       ; check that variable & expression
+$86d0       ; are of same type
+$86d3       ; assign FPA1 to varptr in <$3b
+$86d7       ; PATCH - assign string variable
+$86dc       ; stack root / string storage start
+$86e3       ; start of simple variables
+$86e9       ; reserve B bytes of string space
+$86ee       ; copy string (len B) from varptr X to ($25)+
+$86f6       ; if X is top of string stack then pull it
+
+$8705       ; * string used by INPUT
+$8705       ; /?REDO/CR
+
+$870c-$872a ; * take action for illegal input
+$870c       ; ?FD ERROR
+$870e       ; DEVN
+$8712       ; cause error
+$8719       ; line number of current DATA statement
+$871b       ; current line number
+$871d       ; ?SN ERROR
+$8720       ; /?REDO/
+$8723       ; print string to DEVN
+$8726       ; address of current BASIC statement
+$8728       ; BASIC source pointer
+
+$872b-$8776 ; * INPUT
+$872b       ; test for command mode
+$8730       ; DEVN
+$8737       ; read #-n & set up DEVN
+$873a       ; test cassette status OK for input
+$873d       ; skip comma
+$8742       ; no prompt
+$8744       ; read literal string
+$8749       ; skip character in B
+$874c       ; print prompt
+$8754       ; DEVN
+$8758       ; get something into input buffer
+$875e       ; read input into variables
+$8760       ; print '?' to DEVN
+$8763       ; print a space to DEVN
+$8766       ; line input from DEVN
+$876d       ; BREAK
+$8770       ; ?IE ERROR
+$8772       ; eof flag
+
+$8777-$8818 ; * READ
+$8777       ; READ pointer
+$877f       ; get varptr of variable in X
+$8784       ; BASIC source pointer
+$8792       ; PATCH - re-request input
+$8795       ; print '?' to DEVN
+$879a       ; BASIC source pointer
+$879c       ; get next character from BASIC source
+$879e       ; numeric / string flag
+$87a2       ; BASIC source pointer
+$87af       ; initialise virtual DEVN device
+$87b2       ; cassette IO flag
+$87b4       ; IO in progress
+$87be       ; compile literal string at X
+$87c4       ; assign string variable
+$87c9       ; read numeric constant into FPA1
+$87cc       ; assign FPA1 to varptr in <$3b
+$87cf       ; get current character from BASIC source
+$87d5       ; take action for illegal input
+$87d9       ; BASIC source pointer
+$87df       ; BASIC source pointer
+$87e1       ; get current character from BASIC source
+$87e5       ; skip comma
+$87ea       ; BASIC source pointer
+$87ec       ; find end of statement
+$87fc       ; line number of current DATA statement
+$8815       ; print string to DEVN
+
+$8819       ; * string used by INPUT
+$8819       ; /?EXTRA IGNORED/CR
+
+$8829-$8870 ; * NEXT
+$8829       ; control variable specified
+$882b       ; zero
+$882f       ; get varptr of variable in X
+$8834       ; examine BASIC stack
+$8837       ; found match
+$8839       ; ?NF ERROR
+$883d       ; point stack to this entry
+$883f       ; point X to STEP value
+$8841       ; load variable into FPA1 (X is varptr)
+$8844       ; sign of STEP value
+$8848       ; varptr of control variable
+$884a       ; add varptr X to FPA1
+$884d       ; assign FPA1 to varptr in <$3b
+$8850       ; point X to terminating value
+$8852       ; compare FPA1 - varptr X
+$8855       ; test depends on step direction
+$8857       ; terminating condition met
+$885b       ; current line number
+$8860       ; BASIC source pointer
+$8862       ; interpreter loop
+$8865       ; finished with this entry
+$8868       ; get current character from BASIC source
+$886c       ; no more variables after NEXT
+$886e       ; get next character from BASIC source
+$8870       ; BSR used for correct stack structure
+
+$8872       ; * ;(never returns to $8872)
+$8872       ; * get numeric expression into FPA1
+$8872       ; get expression
+
+$8874-$8876 ; * cause error if expression last evaluated not numeric
+
+$8879-$887f ; * cause error if expression last evaluated not string
+$8879-$887f ; * (8877 1A01       ORCC  #$01)
+$8879       ; numeric / string flag
+$887d       ; RTS
+
+$8882-$8884 ; * (8880 2B96       BMI   $8818)   ;RTS
+$8882       ; ?TM ERROR
+$8884       ; cause error
+
+$8887-$888a ; * get expression
+$8887       ; move source pointer back one
+
+$888d-$88b0 ; * (888B 3404       PSHS  B)
+$8891       ; memory check
+$8894       ; evaluate sub-expression
+$8897       ; flag used for relational operators
+$8899       ; get current character from BASIC source
+$889b       ; branch to $88B2 if token is not in the set
+$889d       ;   [ >, =, < ]
+$88a3       ; map [0, 1, 2] to [1, 2, 4]
+$88a6       ; determine valid combination of > = <
+$88aa       ; ?SN ERROR
+$88ae       ; get next character from BASIC source
+
+$88b2-$88e7 ; *
+$88b2       ;  $3f = [ 1, 2, 3, 4, 5, 6 ]
+$88b4       ;  for   [ >  =  >= <  <> <= ]
+$88bc       ; not a binary operator
+$88be       ;  A = A + 1 + ($06)
+$88c0       ;  '+' in a string expression
+$88c4       ;  A = A - 1 if numeric expression
+$88c9       ;  A = A * 3
+$88cb       ; binary operator precedence table
+$88d0       ; precedence of last operator
+$88d4       ; new op. has a lower precedence
+$88d6       ; validate numeric expression
+$88da       ; push op handler & FPA1 / get expression
+$88e3       ; LDB <$4F  RTS
+
+$88e9-$88f5 ; * set up precedence / handler for rel. op.
+$88e9       ; numeric / string flag
+$88ec       ; move source pointer back one
+$88f3       ; numeric / string flag
+
+$88f7-$88f9 ; * move source pointer back one
+$88f7       ; BASIC source pointer
+$88f9       ; subtract 1 from X & store in $a6
+
+$88fc-$8903 ; * rel. op. precedence & handler
+
+$8905-$8910 ; * push op handler & FPA1 onto stack / get expression
+$8905       ; op handler
+$8909       ; push FPA1 onto stack
+$890b       ; rel. op. flag
+$890d       ; get expression
+$8910       ; ?SN ERROR
+
+$8913-$8923 ; * push FPA1 onto stack
+
+$8925-$8953 ; * end of expression / execute operator
+$8925       ; zero
+$8929       ; LDB <$4F  RTS
+$892f       ; validate numeric expression
+$8938       ; RTS
+$893c       ; RTS
+$893e       ; sets carry if rel. op. was for string
+$8941       ; pull FPA2 off stack
+$8943       ; set $62 up with sign difference
+$8947       ; LDB <$4F
+$894b       ; RTS calls operator handler
+$894d       ; (with carry from above)
+
+$8954-$89a1 ; * evaluate sub-expression ('+' & '-' treated as signs)
+$8954       ; PATCH - evaluate expression
+$8957       ; numeric / string flag
+$8959       ; get next character from BASIC source
+$895d       ; read numeric constant into FPA1
+$8960       ; carry clear if A-Z
+$8963       ; evaluate variable
+$8969       ; token -
+$896b       ; read expression & negate
+$896d       ; token +
+$896f       ; ignore +
+$8975       ; BASIC source pointer
+$8977       ; compile literal string at X
+$897c       ; move source pointer to end of string
+$897f       ; token NOT
+$8988       ; read signed number from FPA1 to $52 & D
+$898d       ; assign D to FPA1
+$8990       ; token FN
+$8998       ; read octal or hex number into $52 / $53
+$899d       ; evaluate function
+$899f       ; skip open bracket (only legal chr. left)
+$89a1       ; get expression
+
+$89a4-$89a6 ; * check for close bracket
+
+$89a9       ; * check for open bracket
+$89a9       ; * (89A7 C628       LDB   #$28)
+
+$89ac-$89b6 ; * check for comma
+$89ac-$89b6 ; * (89AA C62C       LDB   #$2C)
+$89ac-$89b6 ; * check for character in B
+$89b0       ; ?SN ERROR
+$89b2       ; get next character from BASIC source
+$89b4       ; ?SN ERROR
+$89b6       ; cause error
+
+$89b9-$89be ; * read expression & negate FPA1
+$89be       ; COM $54 if FPA1 non zero
+
+$89c1-$89ca ; * evaluate variable
+$89c1       ; get varptr of variable in X
+$89c6       ; numeric / string flag
+$89c8       ; RTS (string)
+$89ca       ; load variable into FPA1 (X is varptr)
+
+$89cd-$8a03 ; * evaluate function
+$89cd       ; get next character from BASIC source
+$89d2       ; get next character from BASIC source
+$89d8       ; disk function despatch
+$89e0       ; functions with single arguments
+$89e4       ; functions with special or no arguments
+$89e6       ; skip open bracket
+$89ec       ; not LEFT$, RIGHT$ or MID$
+$89ee       ; get expression
+$89f1       ; skip comma
+$89f3       ; validate string
+$89fc       ; get number into B
+
+$8a06-$8a0e ; * (8A04 8D99       BSR   $899F)   ;get expression inside brackets
+$8a08       ; function despatch table
+$8a0e       ; validate numeric expression
+
+$8a11       ; * OR
+
+$8a13-$8a2e ; * AND
+$8a13-$8a2e ; * (8A12 4F         CLRA)
+$8a15       ; read signed number from FPA1 to $52 & D
+$8a1a       ; copy FPA2 to FPA1
+$8a1d       ; read signed number from FPA1 to $52 & D
+$8a2e       ; assign D to FPA1
+
+$8a31-$8a88 ; * handler for relational operators
+$8a31       ; validate string / numeric using carry
+$8a34       ; valid string
+$8a3e       ; FPA2
+$8a41       ; compare FPA1 - varptr X
+$8a46       ; numeric / string flag
+$8a4a       ; point X to string just compiled & len in B
+$8a53       ; point X to string & length in B
+$8a7c       ; map [-1, 0, 1] to [1, 2, 4]
+$8a7f       ; rel. op. number
+$8a85       ; assign B to FPA1 (result of relation)
+$8a88       ; skip comma
+
+$8a8b-$8a93 ; * DIM
+$8a8d       ; create variable
+$8a8f       ; get current character from BASIC source
+$8a91       ; skip comma & read next array
+
+$8a94-$8a95 ; * gets VARPTR address of following variable
+$8a94-$8a95 ; * set $08 to #$80 to exclude array variables
+$8a94-$8a95 ; * creates new variable if not found
+$8a94-$8a95 ; * returns $39 = X = varptr address
+$8a95       ; get current character from BASIC source
+
+$8a97-$8add ; * set B to cause error if array variable already exists
+$8a9b       ; get current character from BASIC source
+$8a9d       ; carry clear if A-Z
+$8a9f       ; ?SN ERROR
+$8aa4       ; numeric / string flag
+$8aa6       ; get next character from BASIC source
+$8aaa       ; carry clear if A-Z
+$8ab0       ; get next character from BASIC source
+$8ab4       ; carry clear if A-Z
+$8aba       ; numeric variable
+$8abc       ; numeric / string flag
+$8ac0       ; get next character from BASIC source
+$8ac4       ; set $08 to #$80 to exclude array variables
+$8ac8       ; array variable
+$8ace       ; start of simple variables
+$8ad2       ; start of array variables
+$8ad4       ; not found - create variable
+$8ad9       ; found existing variable - STX <$39 & RTS
+$8add       ; keep looking
+
+$8adf-$8ae7 ; * clear carry if A contains 'A'-'Z'
+
+$8ae8-$8b1c ; * create variable
+$8aed       ; if called by evaluate variable routine - RTS
+$8af1       ; (with X pointing to zero)
+$8af3       ; end of BASIC storage
+$8afc       ; start of array variables
+$8b00       ; move memory contents up
+$8b05       ; end of BASIC storage
+$8b09       ; start of array variables
+$8b0d       ; variable name
+$8b1c       ; FP constant -32768
+
+$8b21-$8b26 ; * read unsigned number into $52 & D
+$8b21       ; get next character from BASIC source
+$8b23       ; read numeric expression into FPA1
+$8b26       ; validate numeric expression
+
+$8b29-$8b2b ; * read +ve number from FPA1 into $52 & D
+$8b2b       ; ?FC ERROR
+
+$8b2d-$8b43 ; * read signed number from FPA1 into $52 & D
+$8b2d       ; validate numeric expression
+$8b36       ; only 16 bit number allowed is -32768
+$8b39       ; compare FPA1 - varptr X
+$8b3c       ; ?FC ERROR
+$8b3e       ; denormalize FPA1 to an integer
+
+$8b44-$8b8c ; * get varptr of variable continued (handle arrays)
+$8b46       ; numeric / string flag
+$8b4f       ; read unsigned number into $52 & D
+$8b5a       ; get current character from BASIC source
+$8b5e       ; get next dimension
+$8b60       ; number of dimensions
+$8b62       ; skip close bracket
+$8b67       ; numeric / string flag
+$8b6b       ; start of array variables
+$8b6d       ; end of BASIC storage
+$8b6f       ; not found - create new array
+$8b76       ; found array name
+$8b7c       ; keep looking
+$8b7e       ; ?DD ERROR
+$8b82       ; cause error if array exists & $05 set
+$8b88       ; correct number of dimensions
+$8b8a       ; ?BS ERROR
+
+$8b8f-$8c10 ; * (8B8D C608       LDB   #$08)    ;?FC ERROR
+$8b8f       ; cause error
+$8b92       ; bytes per element
+$8b99       ; array name
+$8b9d       ; number of dimensions
+$8b9f       ; memory check
+$8ba2       ; start of array header
+$8ba4       ; default number of elements
+$8bb2       ; D = word at 5,X * word at $64
+$8bba       ; next dimension
+$8bbc       ; start of array element storage
+$8bbe       ; D = end of array
+$8bc0       ; ?OM ERROR
+$8bc6       ; memory check (also adds #$3a to D)
+$8bcc       ; end of BASIC storage
+$8bcf       ; clear array
+$8bd7       ; array header
+$8bd9       ; end of BASIC storage
+$8bdd       ; offset to next array (when it's created)
+$8be1       ; RTS
+$8bf2       ; ?BS ERROR
+$8bf8       ; D = word at 5,X * word at $64
+$8c08       ;  D = D * 5
+
+$8c11-$8c2e ; * D = word at 5,X * word at $64
+$8c1d       ; ?BS ERROR
+$8c27       ; ?BS ERROR
+$8c2e       ; ?BS ERROR
+
+$8c31-$8c33 ; * MEM
+$8c33       ;  ...continued
+
+$8c36       ; * assign B to FPA1
+
+$8c37-$8c3d ; * assign D to FPA1 (signed)
+$8c37       ; numeric / string flag
+$8c3d       ; signed assign!
+
+$8c40-$8c4e ; * STR$
+$8c40       ; validate numeric expression
+$8c46       ; convert FPA1 to string at U
+$8c49       ; lose return address
+$8c4e       ; compile literal string at X
+
+$8c50-$8c58 ; * reserve B bytes of string space
+$8c50-$8c58 ; * returns X = $58 = start of requested block
+$8c50-$8c58 ; * B = $56 = length of block
+$8c52       ; reserve B bytes of string space
+
+$8c59-$8cb2 ; * register a delimited string pointed to by X
+$8c59-$8cb2 ; * if string is in keyboard buffer, then copy it into free string space.
+$8c59-$8cb2 ; * stores string start, end & length in $62, $64 & $56
+$8c59-$8cb2 ; * string start also in $58
+$8c59-$8cb2 ; * if copied to string space, start & end also in $58 & $4d
+$8c80       ; PATCH - reset BASIC memory
+$8c89       ; push temp string onto varptr stack
+$8c8b       ; reserve B bytes of string space
+$8c8f       ; copy string of length B from X+ to ($25)+
+$8c99       ; ?ST ERROR
+$8c9b       ; cause error
+$8ca8       ; numeric / string flag
+
+$8cb3-$8cd5 ; * reserve B bytes of string space
+$8cb3-$8cd5 ; * returns X = pointer to requested block & B = length
+$8cb3-$8cd5 ; * requested block also in $25
+$8cb8       ; top of free string space
+$8cbc       ; stack root / string storage start
+$8cbf       ; not enough space
+$8cc1       ; new free pointer
+$8cc7       ; points to requested block
+$8ccb       ; ?OS ERROR
+$8ccf       ; already done garbage collect - give up
+$8cd1       ; string garbage collect
+$8cd5       ; try to reserve space again
+
+$8cd7-$8d52 ; * string space garbage collect
+$8cd7       ; top of BASIC RAM
+$8cd9       ; top of free string space
+$8cdf       ; stack root / string storage start
+$8cee       ; start of simple variables
+$8cf0       ; start of array variables
+$8cfc       ; end of BASIC storage
+$8d24       ; top of free string space
+$8d41       ; top of free string space
+$8d45       ; move memory contents up (no memory check)
+
+$8d55-$8d86 ; * handle '+' in a string expression (concatenate)
+$8d59       ; evaluate sub-expression
+$8d5c       ; validate string expression
+$8d67       ; add string lengths
+$8d69       ; not too long
+$8d6b       ; ?LS ERROR
+$8d6d       ; cause error
+$8d70       ; reserve B bytes of string space
+$8d77       ; copy string (len B) from varptr X to ($25)+
+$8d7b       ; point X to string & length in B
+$8d7d       ; copy string of length B from X+ to ($25)+
+$8d81       ; point X to string & length in B
+$8d83       ; push temp string onto varptr stack
+$8d86       ; back to expression handler
+
+$8d89       ; * copy string of length B from varptr X to ($25)+
+
+$8d8b-$8d99 ; * copy string of length B from X+ to ($25)+
+
+$8d9a-$8dba ; * validate result of string expression
+$8d9a-$8dba ; * point X to 1st character & length in B
+$8d9a-$8dba ; * (if it is the most recent temp string then delete it)
+$8d9a       ; validate string expression
+$8da1       ; if X is top of string stack then pull it
+$8da3       ; normal varptr
+$8da9       ; top of free string space
+$8daf       ; top of free string space
+$8db1       ; top of free string space
+
+$8dbb-$8dc6 ; * if X is top of string stack then pull it
+
+$8dc7-$8dc9 ; * LEN
+$8dc7       ; validate string & test length
+$8dc9       ; assign B to FPA1
+
+$8dcc-$8dd1 ; * validate string & test length
+$8dcc       ; validate string & point X to it
+$8dce       ; numeric / string flag
+
+$8dd2-$8de3 ; * CHR$
+$8dd2       ; read 8 bit value into B from FPA1
+$8dd7       ; reserve B bytes of string space
+$8ddc       ; store string details as for temp string
+$8de3       ; push temp string onto varptr stack
+
+$8de6-$8de8 ; * ASC
+$8de6       ; get 1st character of string into B
+$8de8       ; assign B to FPA1
+
+$8dea-$8df0 ; * get 1st character of string into B
+$8dea       ; validate string & test length
+$8dec       ; ?FC ERROR
+
+$8df1-$8e0c ; * LEFT$
+$8df1       ; get str varptr in X & $4D, arg. in A & B
+$8df6       ; number of chrs <= string length
+$8dfd       ; reserve B bytes of string space
+$8e02       ; point X to string & length in B
+$8e06       ; adjust string start for MID$ / RIGHT$
+$8e09       ; copy string of length B from X+ to ($25)+
+$8e0c       ; push temp string onto varptr stack
+
+$8e0e-$8e13 ; * RIGHT$
+$8e0e       ; get str varptr in X & $4D, arg. in A & B
+$8e12       ; A = string length - argument
+$8e13       ; create new string
+
+$8e15-$8e39 ; * MID$
+$8e15       ; default length
+$8e19       ; get current character from BASIC source
+$8e1d       ; length not specified
+$8e1f       ; skip comma
+$8e22       ; get number into B (& $53)
+$8e24       ; get str varptr in X & $4D, arg. in A & B
+$8e26       ; ?FC ERROR
+$8e29       ; A = pos - 1
+$8e2c       ; pos past end - create empty string
+$8e32       ; B = string length - pos
+$8e35       ; no. of chrs available <= requested length
+$8e39       ; use requested length
+
+$8e3b-$8e4c ; * called by LEFT$, RIGHT$ & MID$
+$8e3b-$8e4c ; * get string varptr in X & $4D, argument in A & B
+$8e3b       ; skip close bracket
+$8e4c       ; ?FC ERROR
+
+$8e4f       ; * skip character & get 8 bit value into B
+$8e4f       ; get next character from BASIC source
+
+$8e51       ; * read 8 bit value into B
+$8e51       ; read numeric expression into FPA1
+
+$8e54-$8e5a ; * read 8 bit value into B from FPA1
+$8e54       ; read unsigned number into $52 & D from FPA1
+$8e58       ; ?FC ERROR
+$8e5a       ; get current character from BASIC source
+
+$8e5c-$8e79 ; * VAL
+$8e5c       ; validate string & test length
+$8e5f       ; clear exponents in FPA1 ($4f & $54)
+$8e63       ; save source pointer
+$8e65       ; point source pointer to start of string
+$8e68       ; save byte at end of string
+$8e6c       ; put a zero at end of string
+$8e6e       ; get current character from BASIC source
+$8e70       ; read numeric expression into FPA1
+$8e75       ; restore byte at end of string
+$8e77       ; restore source pointer
+
+$8e7a-$8e81 ; * read pair of numbers from command
+$8e7a-$8e81 ; * 1st in $2b / $2c & 2nd in B
+$8e7a       ; read 16 bit number into X
+$8e7e       ; skip comma
+$8e81       ; get number into B
+
+$8e83       ; * read 16 bit unsigned number into X
+$8e83       ; read numeric expression into FPA1
+
+$8e86-$8e95 ; * read 16 bit unsigned number into X from FPA1
+$8e88       ; ?FC ERROR
+$8e8e       ; ?FC ERROR
+$8e90       ; denormalize FPA1 to an integer
+
+$8e96-$8e9a ; * PEEK
+$8e96       ; read 16 bit number into X from FPA1
+$8e9a       ; assign B to FPA1
+
+$8e9d-$8ea3 ; * POKE
+$8e9d       ; read pair of numbers into $2b/2c & B
+
+$8ea4-$8ea8 ; * LLIST
+$8ea6       ; DEVN
+$8ea8       ; get current character from BASIC source
+
+$8eaa-$8f06 ; * LIST
+$8eac       ; read line number & store in $2b
+$8eaf       ; search program for line number in <$2b
+$8eb8       ; get current character from BASIC source
+$8ebc       ; token -
+$8ec0       ; get next character from BASIC source
+$8ec4       ; read line number & store in $2b
+$8ed3       ; initialise virtual DEVN device & new line
+$8ed6       ; scan for BREAK & pause if DEVN is not -1
+$8edd       ; close DEVN stream
+$8ee0       ; DEVN
+$8ee2       ; command mode
+$8eee       ; print unsigned number in D
+$8ef1       ; print a space to DEVN
+$8ef6       ; detokenize BASIC line
+$8f03       ; output character to DEVN
+
+$8f08-$8f66 ; * detokenize BASIC line
+$8f08       ; PATCH - detokenize
+
+$8f67-$903b ; * tokenize BASIC line
+$8f67       ; PATCH - tokenize
+$8f6a       ; BASIC source pointer
+$8f7b       ; carry clear if A-Z
+$8fae       ; BASIC source pointer
+$9027       ; carry clear if A-Z
+
+$903d-$909f ; * PRINT
+$903d       ; send CR to DEVN
+$9041       ; DEVN
+$9048       ; handle PRINT@
+$9051       ; read #-n & set up DEVN
+$9054       ; if DEVN = -1, test cassette OK for output
+$9057       ; get current character from BASIC source
+$9059       ; send CR to DEVN
+$905b       ; skip comma
+$905e       ; token USING
+$9064       ; RTS
+$9066       ; token TAB(
+$9070       ; skip semicolon
+$9072       ; get expression
+$9075       ; numeric / string flag
+$9079       ; string expression
+$907b       ; convert FPA1 to string at $3DA
+$907e       ; register string at X
+$9081       ; print string just compiled
+$9085       ; initialise virtual DEVN device
+$9088       ; cassette IO flag
+$908a       ; no IO in progress
+$908c       ; send CR to DEVN
+$908e       ; get current character from BASIC source
+$9093       ; string just printed so no space
+$9095       ; get current character from BASIC source
+$909b       ; print a space to DEVN
+$909d       ; get current character from BASIC source
+
+$90a1-$90a3 ; * send CR to DEVN
+$90a3       ; output character to DEVN
+
+$90a5-$90ae ; * initialise virtual DEVN device & new line
+$90a5       ; initialise virtual DEVN device
+$90a8       ; send CR to DEVN
+$90aa       ; device current column
+$90ac       ; send CR to DEVN
+
+$90af-$90c5 ; * called by PRINT to handle ,
+$90af       ; initialise virtual DEVN device
+$90b4       ; device current column
+$90b6       ; device last comma field
+$90ba       ; send CR to DEVN
+$90be       ; device current column
+$90c0       ; device comma field width
+
+$90c7-$90e2 ; * called by PRINT to handle TAB
+$90c7       ; skip character & get number in B
+$90cc       ; ?SN ERROR
+$90d0       ; initialise virtual DEVN device
+$90d3       ; device current column
+$90d7       ; cassette IO flag
+$90d9       ; IO in progress
+$90db       ; print a space to DEVN
+$90e0       ; get next character from BASIC source
+
+$90e5-$90f3 ; * print string to DEVN
+$90e5       ; compile literal string at X
+$90e8       ; point X to string just compiled & len in B
+$90ed       ; RTS
+$90f1       ; output character to DEVN
+
+$90f5-$90f7 ; * print a space to DEVN
+
+$90fa       ; * print '?' to DEVN
+$90fa       ; * (90F8 863F       LDA   #$3F)
+$90fa       ; output character to DEVN
+
+$90fd-$9100 ; * add 0.5 to FPA1
+$90fd       ; FP constant 0.5
+$9100       ; add varptr X to FPA1
+
+$9102-$9109 ; * subtract FPA1 from varptr X
+$9102       ; load FPA2 from varptr X
+
+$910b-$91a4 ; * add varptr X to FPA1
+$910b       ; load FPA2 from varptr X
+$910e       ; FPA1 exponent
+$910f       ; copy FPA2 to FPA1 (because FPA1 zero)
+$9113       ; FPA2
+$9116       ; A = B = FPA2 exponent
+$9119       ; RTS (FPA2 is zero)
+$911b       ; B = FPA2 exponent - FPA1 exponent
+$911d       ; FPA1 & FPA2 same order
+$911f       ; FPA1 higher order
+$9127       ; FPA1
+$912d       ; more than 8 bits to shift
+$9132       ; shift mantissa of varptr X right -B bits
+$9135       ; (carries into A)
+$9137       ; FPA1 & FPA2 same sign
+$913b       ; 2's complement FPA1
+$913d       ; carry is picked up below
+$9148       ; add mantissa in FPA2 to FPA1
+$915f       ; signs were same
+$9161       ; normalize FPA1
+$9163       ; 2's complent mantissa in FPA1
+$9168       ; normalize bit-wise
+$9188       ; shift mantissa of varptr X right -B bits
+$91a2       ; clear exponents in FPA1 ($4f & $54)
+
+$91a7-$91c1 ; * (91A5 2508       BCS   $91AF)
+$91b1       ; ?OV ERROR
+$91bd       ; add the carry to mantissa in FPA1
+
+$91c2-$91dd ; * 2's complement mantissa in FPA1
+$91db       ; ?OV ERROR
+$91dd       ; cause error
+
+$91e0-$91f5 ; * shift $13 - $16 & $63 right -B bits
+$91e0-$91f5 ; * (shifts 8 bits before testing B)
+
+$91f7-$920e ; * shift mantissa of varptr X right -B bits
+$91ff       ; RTS
+$920e       ; FP constant 1
+
+$9213-$9237 ; * log series coefficients
+$9214       ; FP constant .4342559419
+$9219       ; FP constant .5765845412
+$921e       ; FP constant .9618007592
+$9223       ; FP constant 2.885390073
+$9228       ; FP constant root 2 / 2
+$922d       ; FP constant root 2
+$9232       ; FP constant -0.5
+$9237       ; FP constant ln2
+
+$923c-$9270 ; * LOG
+$923c       ; sets B to -1, 0 or 1 as per sign of FPA1
+$923f       ; ?FC ERROR
+$9243       ; FP constant root 2 / 2
+$9250       ; add varptr X to FPA1
+$9253       ; FP constant root 2
+$9256       ; FPA1 = varptr X / FPA1
+$9259       ; FP constant 1
+$925c       ; FPA1 = varptr X - FPA1
+$925f       ; series coefficients
+$9262       ; calculate odd power series
+$9265       ; FP constant -0.5
+$9268       ; add varptr X to FPA1
+$926d       ; add B to FPA1
+$9270       ; FP constant ln2
+
+$9273-$92a6 ; * multiply FPA1 by varptr X
+$9273       ; load FPA2 from varptr X
+$9275       ; RTS (FPA1 zero)
+$9277       ; add A to exponent in FPA1
+$9285       ; multiply mantissa in FPA2 by B
+$928d       ; multiply mantissa in FPA2 by B
+$9295       ; multiply mantissa in FPA2 by B
+$92a3       ; copy mantissa from $13 - $16 to FPA1
+$92a6       ; normalize FPA1
+
+$92a9-$92d9 ; * multiply mantissa in FPA2 by B
+$92a9-$92d9 ; * accumulate result in $13 - $16 & $63 & shift result right 8 bits
+$92a9       ; B=0 (shift $13 - $16 & $63 right 8 bits)
+$92b1       ; RTS
+
+$92da-$92f2 ; * load FPA2 from varptr X & set $62 with FPA1 / FPA2 sign difference
+$92da-$92f2 ; * A = exponent from FPA2
+$92da-$92f2 ; * B = exponent from FPA1
+
+$92f3-$9312 ; * add A to exponent in FPA1
+$9300       ; clear exponents in FPA1 ($4f & $54)
+$9302       ; sign difference FPA1 / FPA2
+$930e       ; clear exponents in FPA1 ($4f & $54)
+$9312       ; ?OV ERROR
+
+$9315-$9328 ; * multiply FPA1 by 10
+$9315       ; copy FPA1 to FPA2
+$931a       ;  x4
+$931c       ; ?OV ERROR
+$9320       ; add FPA2 to FPA1 (FPA1 exponent in A)
+$9323       ; double result
+$9325       ; ?OV ERROR
+$9328       ; FP constant 10
+
+$932d-$9339 ; * divide FPA1 by 10
+$932d       ; copy FPA1 to FPA2
+$9330       ; FP constant 10
+$9336       ; load variable into FPA1 (X is varptr)
+
+$933c-$93b3 ; * divide varptr X by FPA1
+$933c-$93b3 ; * (933A 8D9E       BSR   $92DA)   ;load FPA2 from varptr X
+$933c       ; ?/0 ERROR (FPA1 zero)
+$9340       ; add A to exponent in FPA1
+$9344       ; ?OV ERROR
+$9367       ; identical mantissas - set carry
+$93ac       ; copy mantissa from $13 - $16 to FPA1
+$93ae       ; normalize FPA1
+$93b1       ; ?/0 ERROR
+$93b3       ; cause error
+
+$93b6-$93be ; * copy mantissa from $13 - $16 to FPA1
+
+$93bf-$93d3 ; * load variable into FPA1 (X is varptr)
+
+$93d5-$93d8 ; * assign FPA1 to variable store $45 - $49
+$93d8       ; assign FPA1 to varptr in X
+
+$93da-$93dd ; * assign FPA1 to variable store $40 - $44
+
+$93e0-$93f4 ; * assign FPA1 to varptr in <$3b
+$93e0-$93f4 ; * (93DE 9E3B       LDX   <$3B)
+$93e0-$93f4 ; * assign FPA1 to varptr in X
+
+$93f5-$9409 ; * copy FPA2 to FPA1 (A = sign)
+
+$940a-$9417 ; * copy FPA1 to FPA2 & test for exponent = 0
+
+$9418-$9424 ; * sets B to -1, 0 or 1 according to sign of FPA1
+
+$9425-$943b ; * SGN
+$9425       ; sets B to -1, 0 or 1 as per sign of FPA1
+$942f       ; set carry according to sign
+$9433       ; zero
+$943b       ; normalize FPA1 (if carry clear, negate 1st)
+
+$943e-$9440 ; * ABS
+$943e       ; simply clear sign byte
+
+$9441-$9449 ; * compare FPA1 - varptr X  (set B to -1, 0 or 1)
+$9443       ; sets B to -1, 0 or 1 as per sign of FPA1
+$9449       ; set B to -1 or 1 as per sign of FPA1
+
+$944b-$9471 ; * compare FPA1 - varptr X (of same sign)
+$946e       ; turn carry into sign
+$9471       ; reduce B to +/- 1
+
+$9473-$9496 ; * denormalize FPA1 to an integer (but don't update exponent)
+$9475       ; clear mantissa in FPA1
+$947f       ; 2's complement mantissa in FPA1 (not $54)
+$9482       ; FPA1
+$9489       ; shift mantissa of varptr X right -B bits
+$9496       ; shift mantissa of varptr X right -B bits
+
+$9499-$94b1 ; * INT
+$949b       ; when exponent >= $A0, no fractional part
+$949d       ; RTS (already an integer)
+$949f       ; denormalize FPA1 to an integer
+$94b1       ; normalize FPA1 (if carry clear, negate 1st)
+
+$94b4-$94bc ; * clear mantissa in FPA1
+
+$94bd-$9511 ; * read a numeric constant into FPA1
+$94bd       ; zero
+$94c7       ; $47 & $48 = decimal exponent & sign
+$94c9       ; $45 & $46 decimal place counter & flag
+$94cb       ; read sig. figs. into FPA1
+$94cf       ; read hex or octal
+$94df       ; get next character from BASIC source
+$94e1       ; read sig. figs. into FPA1
+$94e9       ; finished reading number, now finalise.
+$94eb       ; get next character from BASIC source
+$94ed       ; read decimal exponent into $47
+$94ef       ; token -
+$94f7       ; token +
+$9503       ; get next character from BASIC source
+$9505       ; read decimal exponent into $47
+$9509       ; finished reading number, now finalise.
+$950b       ; -ve exponent
+$950d       ; finished reading number, now finalise.
+$9511       ; 1st decimal point encountered
+
+$9513-$9531 ; * finished reading number, now finalise.
+$951d       ; divide FPA1 by 10
+$9526       ; multiply FPA1 by 10
+$952f       ; RTS
+$9531       ; COM $54 if FPA1 non zero
+
+$9534-$9545 ; * read sig. figs. into FPA1
+$9534       ; increment decimal place counter
+$9536       ; if decimal point passed
+$953c       ; multiply FPA1 by 10
+$9543       ; add B to FPA1
+
+$9547-$9550 ; * add B to FPA1
+$9547       ; assign FPA1 to variable store $40 - $44
+$954a       ; assign B to FPA1
+$9550       ; add varptr X to FPA1
+
+$9553-$9562 ; * read decimal exponent into $47
+$9553-$9562 ; * (note that it doesn't check for more than two digits)
+$9559       ;  B = 10 * $47
+
+$9564-$956e ; * used by print number routine
+$9564       ; FP constant 99999999.9
+$9569       ; FP constant 999999999
+$956e       ; FP constant 1000000000
+
+$9573-$9578 ; * print 'IN xxxx' (current line number)
+$9578       ; current line number
+
+$957a-$9584 ; * print unsigned number in D
+$957e       ; set carry for correct result
+$957f       ; normalize FPA1 using exponent in B
+$9582       ; convert FPA1 to string at $3DA
+$9584       ; print string to DEVN
+
+$9587-$966e ; * convert FPA1 to string at $3DA
+$9592       ; print '-' for negative numbers else space
+$959c       ; number is zero
+$95a3       ; number >= 1
+$95a5       ; FP constant 1000000000
+$95a8       ; multiply varptr X & FPA1
+$95ab       ; -9
+$95ad       ; decimal exponent
+$95af       ; FP constant 999999999
+$95b2       ; compare FPA1 - varptr X (of same sign)
+$95b7       ; FP constant 99999999.9
+$95ba       ; compare FPA1 - varptr X (of same sign)
+$95bd       ; (FPA1 is now 100000000 to 999999999)
+$95bf       ; multiply FPA1 by 10
+$95c2       ; correct exponent
+$95c6       ; divide FPA1 by 10
+$95c9       ; correct exponent
+$95cd       ; add 0.5 to FPA1 (round it up)
+$95d0       ; denormalize FPA1 to an integer
+$95d3       ; 1 digit before point for sci. notation
+$95d7       ; exponent now 2 more than it should be
+$95d9       ; actual exponent < -2 (use sci. notation)
+$95dd       ; actual exponent >= 9 (use sci. notation)
+$95e0       ; number of digits before point = exp + 1
+$95e6       ; decimal exponent
+$95e8       ; number of digits before decimal point
+$95ea       ; no leading decimal point
+$95f2       ; can only be zero or -ve here
+$95f3       ; no zero reqd after point & before 1st digit
+$95fc       ; sign bit used for zero crossing logic
+$95fe       ; resolves a decimal digit by adding powers
+$9600       ; of 10 until zero is passed.
+$9606       ; On 1st pass -ve values are used to get FPA1
+$9608       ; below zero. The digit is no. of loops - 1.
+$960c       ; On 2nd pass +ve values are used to get FPA1
+$960e       ; above zero. The digit is 10 - no. loops.
+$9612       ; This continues with alternating signs.
+$9616       ; loop counter
+$9617       ; logic to test if zero passed
+$961b       ; digit = loops - 1
+$9620       ; 1 less & ASCII conversion
+$9626       ; lose sign bit
+$962c       ; haven't reached decimal point yet
+$9632       ; alternates B between $00 & $80
+$963a       ; backtrack over digits
+$963c       ; until non-zero found
+$9642       ; if no sig. figs. after decimal point
+$9644       ; then lose it.
+$964a       ; normal number (no decimal exponent)
+$964c       ; +ve exponent
+$9657       ; convert B to ASCII number in D
+$9662       ; terminate string
+$9668       ; terminate string
+$966e       ; FP constant 0.5
+
+$9673-$9693 ; * table of 32 bit numbers used by convert number to string routine
+$9673-$9693 ; * (to resolve decimal digits)
+$9673       ;  -100000000
+$9677       ;    10000000
+$967b       ;    -1000000
+$967f       ;      100000
+$9683       ;      -10000
+$9687       ;        1000
+$968b       ;        -100
+$968f       ;          10
+$9693       ;          -1
+
+$9697-$969a ; * SQR
+$9697       ; copy FPA1 to FPA2
+$969a       ; FP constant 0.5
+
+$969d-$96e5 ; * raise FPA2 to power varptr X
+$969d       ; load variable into FPA1 (X is varptr)
+$96a0       ; EXP
+$96a7       ; ?/0 ERROR
+$96ab       ; clear FPA1 exponents
+$96b1       ; assign FPA1 to varptr in X
+$96b9       ; INT
+$96c1       ; compare FPA1 - varptr X (of same sign)
+$96c9       ; copy FPA2 to FPA1 & put A in $54
+$96ce       ; LOG
+$96d4       ; multiply varptr X & FPA1
+$96d7       ; EXP
+$96dc       ; RTS
+$96e5       ; FP constant 1/ln 2
+
+$96ea-$970e ; * EXP series coefficient table
+$96ea-$970e ; * values appear to be error compensated
+$96eb       ; FP constant .0000214987637  (ln2)^7 / 7!
+$96f0       ; FP constant .0001435231404  (ln2)^6 / 6!
+$96f5       ; FP constant .001342263483   (ln2)^5 / 5!
+$96fa       ; FP constant .009614017014   (ln2)^4 / 4!
+$96ff       ; FP constant .05550512686    (ln2)^3 / 3!
+$9704       ; FP constant .2402263846     (ln2)^2 / 2!
+$9709       ; FP constant .6931471862      ln2
+$970e       ; FP constant 1
+
+$9713-$9742 ; * EXP
+$9713-$9742 ; * calculates exp(x) by first calculating q=x/ln2 such that exp(x) = 2^q
+$9713-$9742 ; * fractional part of q is used for good convergence
+$9713-$9742 ; * integer part of q is simply added to FPA1 exponent afterwards
+$9713       ; FP constant 1/ln 2
+$9716       ; multiply FPA1 by varptr X
+$9718       ; assign FPA1 to variable store $40 - $44
+$9721       ; ?OV ERROR if FPA1 +ve else FPA1 = 0
+$9724       ; INT
+$9727       ; integer part of argument
+$972b       ; ?OV ERROR
+$9733       ; FPA1 = varptr X - FPA1
+$9736       ; EXP coefficient table
+$9739       ; series calculation
+$973f       ; add A to exponent in FPA1
+
+$9743-$974f ; * calculate odd power series
+$9743-$974f ; * X points to coefficient table (1st byte is n)
+$9743-$974f ; * x in FPA1
+$9743-$974f ; * result = (a0xx+a1)xx+a2)xx+a3 ...)xx+an) * x
+$9743-$974f ; * ( = a0*x^(2n+1) + a1*x^(2n-1) + ... + a(n-1)*x^3 + an*x )
+$9743-$974f ; * result in FPA1
+$9745       ; assign FPA1 to variable store $40 - $44
+$9748       ; multiply varptr X & FPA1 (x squared)
+$974a       ; calculate series
+$974f       ; multiply varptr X & FPA1 (odd powers)
+
+$9752-$9771 ; * calculate power series (polynomial of nth order)
+$9752-$9771 ; * X points to coefficient table (1st byte is n)
+$9752-$9771 ; * x in FPA1
+$9752-$9771 ; * result = (a0x+a1)x+a2)x+a3 ...)x+an
+$9752-$9771 ; * ( = a0*x^n + a1*x^(n-1) + ... + a(n-1)*x + an )
+$9752-$9771 ; * result in FPA1
+$9754       ; assign FPA1 to variable store $45 - $49
+$975f       ; multiply varptr X & FPA1
+$9767       ; add varptr X to FPA1
+
+$9772-$97c4 ; * RND
+$9772       ; sets B to -1, 0 or 1 as per sign of FPA1
+$9779       ; INT
+$977b       ; assign FPA1 to variable store $40 - $44
+$9783       ; multiply varptr X & FPA1
+$9785       ; FP constant 1
+$9788       ; add varptr X to FPA1
+$978b       ; INT
+$97a2       ; multiply FPA1 by mantissa in FPA2
+$97c4       ; normalize FPA1
+
+$97c7       ; * RND multiplier
+
+$97cb-$97ce ; * COS ... cos x = sin (x+pi/2)
+$97cb       ; FP constant pi/2
+$97ce       ; add varptr X to FPA1
+
+$97d1-$9813 ; * SIN
+$97d1       ; copy FPA1 to FPA2
+$97d4       ; FP constant 2*pi
+$97d9       ; STB $62 & divide FPA2 by varptr X (result FPA1)
+$97dc       ; copy FPA1 to FPA2
+$97df       ; INT
+$97e7       ; subtract FPA1 from FPA2 (B=FPA1 exponent)
+$97ea       ; FP constant 0.25
+$97ed       ; FPA1 = varptr X - FPA1
+$97f4       ; angle is 1st quadrant
+$97f6       ; add 0.5 to FPA1
+$97ff       ; COM $54 if FPA1 non zero
+$9802       ; FP constant 0.25
+$9805       ; add varptr X to FPA1
+$980d       ; COM $54 if FPA1 non zero
+$9810       ; series coefficients
+$9813       ; calculate odd power series
+
+$9816-$9849 ; * TAN ... tan x = sin x / cos x
+$9816       ; assign FPA1 to variable store $40 - $44
+$981b       ; SIN
+$9820       ; assign FPA1 to varptr in X
+$9826       ; load variable into FPA1 (X is varptr)
+$982d       ; must calculate cos
+$9831       ; ?OV ERROR
+$9838       ; FPA1 = varptr X / FPA1
+$983f       ; FP constant pi/2
+$9844       ; FP constant 2*pi
+$9849       ; FP constant 0.25
+
+$984e-$9872 ; * sin series coefficient table
+$984e-$9872 ; * values appear to be error compensated
+$984f       ; FP constant -14.38139067   -(2pi)^11 / 11!
+$9854       ; FP constant  42.00779712    (2pi)^9 / 9!
+$9859       ; FP constant -76.70417025   -(2pi)^7 / 7!
+$985e       ; FP constant  81.60522368    (2pi)^5 / 5!
+$9863       ; FP constant -41.34170211   -(2pi)^3 / 3!
+$9868       ; FP constant  2*pi
+$986d       ; FP constant  7324114470
+$9872       ; FP constant  26913.76914
+
+$9877-$98a5 ; * ATN
+$9877-$98a5 ; * calculates atn(x) or pi/2-atn(1/x)
+$9877-$98a5 ; * same result either way but series only works -1 < x <= 1
+$987d       ; COM $54 if FPA1 non zero
+$9887       ; FP constant 1
+$988a       ; divide varptr X by FPA1
+$988c       ; series coefficients
+$988f       ; calculate odd power series
+$9897       ; FP constant pi/2
+$989a       ; FPA1 = varptr X - FPA1
+$98a2       ; COM $54 if FPA1 non zero
+
+$98a6-$98de ; * ATN series coefficients
+$98a6-$98de ; * values appear to be error compensated
+$98a7       ; FP constant -.0006847939119
+$98ac       ; FP constant  .004850942155
+$98b1       ; FP constant -.01611170184
+$98b6       ; FP constant  .03420963805
+$98bb       ; FP constant -.05427913276
+$98c0       ; FP constant  .07245719654
+$98c5       ; FP constant -.08980239538
+$98ca       ; FP constant  .1109324134
+$98cf       ; FP constant -.1425398077
+$98d4       ; FP constant  .1999991205
+$98d9       ; FP constant -.3333333157
+$98de       ; FP constant 1
+
+$98e3-$98ff ; * part of reset routine: sets up sound & graphics variables
+$98e6       ; PLAY volume data
+$98ea       ; PLAY tempo
+$98ec       ; PLAY octave
+$98ef       ; PLAY note length
+$98f1       ; PLAY duration
+$98f3       ; zero
+$98f5       ; DRAW angle
+$98f9       ; graphics X
+$98fd       ; graphics Y
+
+$9900-$9948 ; * called by CSAVE to do CSAVEM
+$9900       ; get next character from BASIC source
+$9902       ; get filename
+$9905       ; get start address
+$990a       ; get end address
+$990e       ; ?FC ERROR
+$9912       ; get entry address
+$9917       ; get current character from BASIC source
+$991b       ; file type = 2 = binary
+$991d       ; non-ASCII & ungapped
+$991f       ; write filename block
+$9922       ; cassette status
+$9924       ; block type
+$9926       ; write leader
+$992b       ; IO buffer
+$992f       ; block length
+$9933       ; IO buffer
+$9939       ; NEG $7c CLR $7d & write last block
+$9943       ; block length
+$9945       ; write block to tape
+
+$994a-$9954 ; * get a number from command and leave it on stack
+$994a       ; skip comma
+$994d       ; read 16 bit number into X
+
+$9956-$9962 ; * FIX
+$9956       ; sets B to -1, 0 or 1 as per sign of FPA1
+$995b       ; INT
+$9962       ; COM $54 if FPA1 non zero
+
+$9965-$99e5 ; * EDIT
+$9965       ; get line number in $2b
+$9968       ; lose return address
+$996e       ; search program for line number in <$2b
+$9971       ; ?UL ERROR
+$9975       ; detokenize BASIC line
+$997d       ; line length
+$9981       ; print unsigned number in D
+$9984       ; print a space to DEVN
+$998c       ; print entire line
+$998f       ; read keys (carry clear if control key)
+$9992       ; set carry if A is non-numeric character
+$9997       ; accumulate typed digits in B
+$99a6       ; (A = abandon changes & start again)
+$99aa       ; send CR to DEVN
+$99af       ; (L = show line in current state)
+$99b3       ; output ASCIIZ string to DEVN (X is pointer)
+$99b7       ; send CR to DEVN
+$99bc       ; lose return address
+$99be       ; (RETURN = save changes, show line & quit)
+$99c2       ; output ASCIIZ string to DEVN (X is pointer)
+$99c4       ; send CR to DEVN
+$99ca       ; BASIC source pointer
+$99cc       ; enter BASIC line
+$99cf       ; (E = save changes & quit)
+$99d3       ; (Q = discard changes & quit)
+$99d7       ; send CR to DEVN
+$99da       ; command mode
+$99e1       ; (SPACE = show more characters)
+
+$99e8-$99f4 ; * output ASCIIZ string to DEVN (stops at 249 characters)
+$99e8-$99f4 ; * (99E6 C6F9       LDB   #$F9)
+$99ec       ; output character to DEVN
+$99f2       ; show another (in EDIT context)
+
+$99f5-$9a02 ; * EDIT: test for Delete
+$99f5       ; (D = delete a number of characters)
+$99fd       ; close line up over removed character
+
+$9a03-$9a0f ; * EDIT: close line up over removed character
+
+$9a10-$9a3f ; * EDIT: test for insert mode functions
+$9a10       ; (I = insert mode)
+$9a14       ; (X = insert mode at end of line)
+$9a18       ; (H = wipe rest of line & insert)
+$9a23       ; updated line length
+$9a25       ; output ASCIIZ string to DEVN (X is pointer)
+$9a27       ; read keys (carry clear if control key)
+$9a2c       ; RETURN
+$9a30       ; RTS (escape insert mode)
+$9a34       ; not backspace
+$9a39       ; nothing to delete
+$9a3b       ; delete it on screen
+$9a3d       ; delete it in memory
+
+$9a41-$9a57 ; * EDIT: test for Change
+$9a41       ; (C = change a number of characters)
+$9a47       ; RTS
+$9a49       ; read keys (carry clear if control key)
+$9a52       ; output character to DEVN
+$9a55       ; change another
+
+$9a58-$9a76 ; * EDIT: typed characters in insert mode
+$9a5e       ; line full
+$9a62       ; create a space for character
+$9a72       ; output character to DEVN
+
+$9a78-$9a81 ; * EDIT: backspace over a number of characters
+$9a7f       ; backspace again
+
+$9a82-$9a8b ; * EDIT: backspace
+$9a85       ; RTS
+$9a8b       ; output character to DEVN
+
+$9a8e-$9a96 ; * EDIT: test for search functions
+$9a8e       ; (K = wipe chrs until nth occurrence of chr)
+$9a92       ; (S = search for nth occurrence of chr)
+
+$9a97-$9ab7 ; * EDIT: search functions
+$9a99       ; read keys (carry clear if control key)
+$9a9f       ; PULS Y,PC
+$9aa3       ; Kill (not Search)
+$9aa5       ; output character to DEVN
+$9aab       ; close line up over removed character
+$9ab2       ; not found
+$9ab5       ; find next occurrence
+
+$9ab9-$9ad8 ; * read keys (carry clear if control key)
+$9ab9       ; read character from DEVN & strip MSB
+$9abe       ; pointless test!
+$9ac2       ; not shift + CU
+$9ac8       ; return
+$9acc       ; escape
+$9ad0       ; backspace
+$9ad4       ; illegal
+
+$9ad9       ; * TRON
+
+$9adb-$9add ; * TROFF
+$9adb-$9add ; * (9ADA 4F         CLRA)
+
+$9ade-$9af1 ; * POS
+$9ade       ; DEVN
+$9ae2       ; load DEVN from FPA1
+$9ae5       ; if DEVN = -1, test cassette OK for output
+$9ae8       ; initialise virtual DEVN device
+$9aeb       ; device current column
+$9aef       ; DEVN
+$9af1       ; assign B to FPA1
+
+$9af4-$9b09 ; * VARPTR
+$9af4       ; skip open bracket
+$9af7       ; end of BASIC storage
+$9afb       ; get varptr of variable in X
+$9afe       ; skip close bracket
+$9b05       ; not allowed to create new variable
+$9b07       ; ?FC ERROR
+$9b09       ; assign D to FPA1
+
+$9b0c-$9b7c ; * MID$ on LHS
+$9b0c       ; get next character from BASIC source
+$9b0e       ; skip open bracket
+$9b11       ; get varptr of variable in X
+$9b18       ; stack root / string storage start
+$9b1d       ; top of BASIC RAM
+$9b23       ; reserve B bytes of string space
+$9b2a       ; copy string (len B) from varptr X to ($25)+
+$9b39       ; ?FC ERROR
+$9b46       ; skip close bracket
+$9b4b       ; skip character in B
+$9b4e       ; get string expression & point X to it
+$9b5a       ; ?FC ERROR
+$9b79       ; copy B bytes from X to U
+
+$9b7e-$9b81 ; * get string expression & point X to it (B=len)
+$9b7e       ; get expression
+$9b81       ; validate string & point X to it (B=len)
+
+$9b84-$9bb1 ; * STRING$
+$9b84       ; skip open bracket
+$9b87       ; get number into B
+$9b8c       ; skip comma
+$9b8f       ; get expression
+$9b92       ; skip close bracket
+$9b95       ; numeric / string flag
+$9b99       ; read 8 bit value into B from FPA1
+$9b9e       ; get 1st character of string into B
+$9ba3       ; number of copies
+$9ba5       ; reserve B bytes of string space
+
+$9bb4-$9c0e ; * INSTR
+$9bb4       ; skip open bracket
+$9bb7       ; get expression
+$9bba       ; default start position
+$9bbe       ; numeric / string flag
+$9bc0       ; start pos not specified
+$9bc2       ; read 8 bit value into B from FPA1
+$9bc7       ; ?FC ERROR
+$9bc9       ; skip comma
+$9bcc       ; get expression
+$9bcf       ; validate string expression
+$9bd6       ; skip comma
+$9bd9       ; get string expression & point X to it
+$9bde       ; skip close bracket
+$9be1       ; varptr of main string
+$9be3       ; point X to string & length in B
+$9bea       ; main string is shorter than start pos
+$9bec       ; target string length
+$9bf0       ; start pos
+$9bf4       ; Y = X = position to start search
+$9bf6       ; U -> target characters
+$9bf8       ; B = target length
+$9bfa       ; A = main string length
+$9bfe       ; A = A - start pos + 1
+$9c01       ; remaining length is shorter than target
+$9c07       ; didn't match
+$9c0a       ; test next character in target
+$9c0c       ; found it
+
+$9c10-$9c19 ; * (9C0F 5F         CLRB)
+$9c12       ; assign B to FPA1
+$9c17       ; advance start pos & try again
+
+$9c1b-$9c3c ; * read octal or hex number from command into $52 / $53
+$9c22       ; get next character from BASIC source
+$9c2c       ; get current character from BASIC source
+$9c32       ; ?SN ERROR
+$9c38       ; shift word at ,X left B bits
+$9c3a       ; get next character from BASIC source
+
+$9c3e-$9c4c ; * assign contents of $52 / $53 to FPA1
+$9c42       ; numeric / string flag
+$9c4c       ; normalize FPA1
+
+$9c4f-$9c62 ; * read hex digits from command into ,X
+$9c4f       ; get next character from BASIC source
+$9c53       ; carry clear if A-Z
+$9c56       ; assign contents of $52 / $53 to FPA1
+$9c5a       ; assign contents of $52 / $53 to FPA1
+$9c60       ; shift word at ,X left B bits
+
+$9c64-$9c75 ; * shift word at ,X left B bits
+$9c68       ; ?OV ERROR
+
+$9c76-$9c7e ; * cause error if in command mode
+$9c76       ; current line number
+$9c7a       ; not in command mode
+$9c7c       ; ?ID ERROR
+$9c7e       ; cause error
+
+$9c81-$9cff ; * DEF
+$9c85       ; DEF USR
+$9c8e       ; test for command mode
+$9c90       ; skip open bracket
+$9c95       ; array illegal flag
+$9c97       ; get varptr of variable in X
+$9c9c       ; skip close bracket
+$9ca1       ; skip character in B
+$9ca6       ; BASIC source pointer
+$9cae       ; skip to start of next statement
+$9cb1       ; token FN
+$9cb3       ; skip character in B
+$9cb8       ; array illegal flag
+$9cc1       ; validate numeric expression
+$9cc8       ; get expression inside brackets
+$9ccf       ; ?UF ERROR
+$9cd3       ; cause error
+$9cd5       ; BASIC source pointer
+$9cda       ; BASIC source pointer
+$9ce6       ; assign FPA1 to varptr in X
+$9ce9       ; read numeric expression into FPA1
+$9cf6       ; get current character from BASIC source
+$9cf8       ; ?SN ERROR
+$9cfc       ; BASIC source pointer
+
+$9d00-$9d0c ; * DEF USRx = address
+$9d00       ; get next character from BASIC source
+$9d02       ; get next character from BASIC source
+
+$9d0d-$9d1c ; * called by USR: converts following digit into USR table pointer
+$9d0e       ; get current character from BASIC source
+$9d16       ; get next character from BASIC source
+$9d18       ; address of USR table
+
+$9d1d-$9d34 ; * USRx
+$9d23       ; get expression inside brackets
+$9d26       ; FPA1
+$9d29       ; numeric / string flag
+$9d2d       ; point X to string just compiled & len in B
+$9d32       ; numeric / string flag
+
+$9d35-$9d3a ; * skips = sign & reads 16 bit number into X
+$9d35       ; token =
+$9d37       ; skip character in B
+$9d3a       ; read 16 bit number into X
+
+$9d3d-$9d4e ; * IRQ service routine
+$9d40       ; vsync
+$9d46       ; TIMER value
+$9d4e       ; ...continued
+
+$9d51-$9d58 ; * TIMER on LHS
+$9d51       ; get next character from BASIC source
+$9d55       ; TIMER value
+
+$9d59-$9d5e ; * TIMER
+$9d59       ; TIMER value
+$9d5e       ; assign contents of $52 / $53 to FPA1
+
+$9d61-$9d83 ; * DEL
+$9d61       ; ?FC ERROR
+$9d65       ; read line number & store in $2b
+$9d68       ; search program for line number in <$2b
+$9d6d       ; get current character from BASIC source
+$9d71       ; token -
+$9d75       ; get next character from BASIC source
+
+$9d86-$9db0 ; * (9D84 EEC4       LDU   ,U)
+$9d92       ; move program down from U to X
+$9d94       ; clear variables and reset stack & cmd ptr
+$9d99       ; set up next line pointers from X onwards
+$9d9c       ; command mode
+$9d9f       ; read line number & store in $2b
+$9da2       ; cause error if next byte is not zero
+$9da9       ; start of simple variables
+$9dae       ; start of simple variables
+
+$9db1-$9dea ; * LINE INPUT
+$9db1       ; test for command mode
+$9db4       ; get next character from BASIC source
+$9dba       ; read #-n & set up DEVN
+$9dbd       ; test cassette status OK for input
+$9dc0       ; skip comma
+$9dc5       ; no prompt
+$9dc7       ; read literal string
+$9dcc       ; skip character in B
+$9dcf       ; print string just compiled
+$9dd9       ; DEVN
+$9ddb       ; get varptr of variable in X
+$9de0       ; validate string expression
+$9de7       ; compile literal string at X
+$9dea       ; assign string variable
+
+$9ded-$9df2 ; * read line number into X & $2b
+$9ded       ; read line number & store in $2b
+
+$9df3-$9df7 ; * RENUM: search for start line
+$9df7       ; search program for line number in <$2b
+
+$9dfa-$9e55 ; * RENUM
+$9dfa       ; clear variables & reset stack
+$9e00       ; default RENUM 10,0,10
+$9e07       ; get current character from BASIC source
+$9e0b       ; read line number into X & $2b
+$9e0d       ; new start line
+$9e0f       ; get current character from BASIC source
+$9e13       ; skip comma
+$9e18       ; read line number into X & $2b
+$9e1a       ; line to start renumbering at
+$9e1c       ; get current character from BASIC source
+$9e20       ; skip comma
+$9e25       ; read line number into X & $2b
+$9e27       ; line increment
+$9e29       ; ?FC ERROR
+$9e2b       ; cause error if next byte is not zero
+$9e2e       ; search for start line
+$9e30       ; save address
+$9e34       ; search for new start line
+$9e36       ; not allowed to be lower than start line
+$9e38       ; ?FC ERROR
+$9e3a       ; dry run - check lines don't get too high
+$9e3c       ; prepare line numbers in statements
+$9e3f       ; set up next line pointers in BASIC program
+$9e42       ; search for start line
+$9e44       ; save address
+$9e46       ; convert line numbers to addresses
+$9e48       ; do the actual renumbering
+$9e4a       ; convert addresses to line numbers
+$9e4c       ; convert line numbers back to ASCII
+$9e4f       ; clear variables & reset stack
+$9e52       ; set up next line pointers in BASIC program
+$9e55       ; command mode
+
+$9e58       ; * RENUM: dry run to check that line numbers don't get too high
+
+$9e5a-$9e74 ; * RENUM: renumber!
+$9e5a-$9e74 ; * (9E59 4F         CLRA)
+$9e5c       ; start address
+$9e5e       ; new start number
+$9e60       ; test for end of program
+$9e62       ; dry run flag
+$9e66       ; store new line number
+$9e68       ; point X to next line
+$9e6a       ; test for end of program
+$9e6c       ; increment line number
+$9e6e       ; ?FC ERROR
+$9e74       ; ?FC ERROR
+
+$9e77-$9e81 ; * RENUM: test for end of program
+$9e7f       ; return 2 levels if at end of program
+
+$9e82-$9ecc ; * RENUM: on 1st call converts the line numbers in each info block
+$9e82-$9ecc ; * into line addresses. On 2nd call converts them back into
+$9e82-$9ecc ; * line numbers.
+$9e82       ; start of BASIC program
+$9e88       ; test for end of program
+$9e90       ; end of line
+$9e95       ; 1st pass - convert line number to address
+$9e98       ; 2nd pass - convert address to line number
+$9ea3       ; reconstruct line number coded in block
+$9eb5       ; search program for line number in <$2b
+$9eba       ; line not found - store a 3 for 'UL'
+$9ebc       ; address of line
+$9ec4       ; becomes a 1 in a moment
+$9ec6       ; address of line
+$9ec8       ; actual line number
+$9ecc       ; store it in info block
+
+$9ece-$9f6a ; * RENUM: prepare line numbers in statements
+$9ece-$9f6a ; * (replaces line number digits with 5 byte info block)
+$9ece       ; start of BASIC program
+$9ed2       ; BASIC source pointer
+$9ed6       ; test for end of program
+$9edc       ; BASIC source pointer
+$9ede       ; get next character from BASIC source
+$9ee1       ; end of line
+$9ee3       ; non-token
+$9ee5       ; BASIC source pointer
+$9ee9       ; skip function token
+$9eeb       ; PATCH - CLS GET PUT ???
+$9eee       ; token THEN
+$9ef2       ; token ELSE
+$9ef6       ; token GO
+$9efa       ; get next character from BASIC source
+$9efc       ; token TO
+$9f00       ; token SUB
+$9f02       ; keep looking for interesting stuff
+$9f04       ; get next character from BASIC source
+$9f06       ; found digit
+$9f08       ; get current character from BASIC source
+$9f0c       ; BASIC source pointer
+$9f0e       ; start of digits
+$9f10       ; read line number & store in $2b
+$9f13       ; BASIC source pointer
+$9f17       ; set carry if A is non-numeric character
+$9f1c       ; end of digits
+$9f24       ; exactly 5 digits
+$9f26       ; less than 5 digits
+$9f2d       ; move program down from U to X
+$9f34       ; start of simple variables
+$9f3d       ; start of simple variables
+$9f3f       ; move memory contents up
+$9f44       ; BASIC source pointer
+$9f46       ; start of digits
+$9f4a       ; replace line number with 5 byte info block
+$9f4c       ; line number coded to avoid zeros
+$9f4e       ; otherwise world would fall apart
+$9f64       ; get current character from BASIC source
+$9f68       ; comma - look for another line number
+
+$9f6c-$9fca ; * RENUM: convert line numbers into ASCII again (also flags UL errors)
+$9f6c       ; start of BASIC program
+$9f74       ; current line number
+$9f76       ; test for end of program
+$9f7f       ; end of line
+$9f82       ; found an info block
+$9f8a       ; /UL /
+$9f8d       ; print string to DEVN
+$9f94       ; print unsigned number in D
+$9f97       ; print 'IN xxxx' (current line number)
+$9f9a       ; send CR to DEVN
+$9fa1       ; adjusted line number
+$9fa5       ; assign contents of $52 / $53 to FPA1
+$9fa8       ; convert FPA1 to string at $3DA
+$9faf       ; write line number into program
+$9fbd       ; exactly 5 digits - no problem
+$9fc3       ; move program down from U to X
+$9fca       ; /UL /
+
+$9fce-$9fd6 ; * MEM continued
+$9fce       ; end of BASIC storage
+$9fd0       ; numeric / string flag
+$9fd4       ; meaningless
+$9fd6       ; assign contents of $52 / $53 to FPA1
+
+$9fd9-$9fff ; * unused
+
+$a000-$a00c ; * ($A000 - $BFFF)
+$a000-$a00c ; * indirect jump vectors
+$a000       ; scan keyboard
+$a002       ; output character to DEVN
+$a004       ; read leader
+$a006       ; read block
+$a008       ; write block
+$a00a       ; update joysticks
+$a00c       ; write leader
+
+$a00e-$a046 ; * HEX$
+$a00e       ; read 16 bit number into X from FPA1 (& $52)
+$a01b       ; get a nibble into B
+$a024       ; digit non-zero
+$a029       ; at last digit
+$a02e       ; don't store leading zeroes
+$a034       ; not A - F
+$a041       ; lose return address
+$a046       ; register string at X
+
+$a049-$a08b ; * DLOAD
+$a049-$a08b ; * There is a logic bug in the serial system. The routines that call
+$a049-$a08b ; * the serial I/O drivers expect to see the Z flag set for success. The
+$a049-$a08b ; * serial drivers don't change the flags, however. Either re-write the
+$a049-$a08b ; * drivers for correct operation or skip the checks by changing BNE to
+$a049-$a08b ; * BRN at locations $a13d, $a16e & $a1ab.
+$a049       ; close cassette stream & set DEVN to 0
+$a04e       ; get current character from BASIC source
+$a056       ; get next character from BASIC source
+$a058       ; get filename
+$a05b       ; get current character from BASIC source
+$a05f       ; check comma
+$a066       ; get number in B
+$a069       ; select baud rate
+$a06c       ; ?FC ERROR
+$a070       ; send filename & get 1st block
+$a077       ; DEVN = -3
+$a07d       ; DLOADM
+$a07f       ; ensure nothing else on command line
+$a082       ; B must not be 0
+$a083       ; ?FM ERROR
+$a085       ; NEW BASIC
+$a088       ; command mode / no device initialise
+$a08b       ; ?FM ERROR
+
+$a08e-$a0a7 ; * called by CLOAD to handle CLOADM
+$a08e       ; cassette IO status
+$a090       ; get next character from BASIC source
+$a092       ; get filename
+$a095       ; find file & set up buffer
+$a098       ; gap flag
+$a09b       ; continuous file
+$a09f       ; U = file type & ASCII flag
+$a0a2       ; DEVN
+$a0a4       ; get block from tape
+
+$a0a9-$a0e1 ; * called by DLOAD to handle DLOADM
+$a0a9-$a0e1 ; * For both CLOADM & DLOADM, this is now a gapped binary file, with data
+$a0a9-$a0e1 ; * being read on a character by character basis. Note that data blocks do
+$a0a9-$a0e1 ; * not have to align with physical file blocks; the data is treated as a
+$a0a9-$a0e1 ; * continuous stream.
+$a0a9-$a0e1 ; * Within the file data itself, the first byte is an end of file marker.
+$a0a9-$a0e1 ; * Next 4 bytes are the data length and the load address, followed by the
+$a0a9-$a0e1 ; * data. This repeats until the end of file marker is true, whereupon
+$a0a9-$a0e1 ; * the final load address encountered becomes the EXEC address. There is
+$a0a9-$a0e1 ; * no data in the EOF block.
+$a0ac       ; ?FM ERROR
+$a0ae       ; zero
+$a0b0       ; get current character from BASIC source
+$a0b4       ; check comma
+$a0b7       ; get 16 bit number into X
+$a0ba       ; load offset
+$a0bc       ; ensure nothing else on command line
+$a0bf       ; read character from DEVN
+$a0c3       ; read 2 characters from DEVN into D
+$a0c5       ; Y = data length
+$a0c7       ; read 2 characters from DEVN into D
+$a0cb       ; default EXEC address
+$a0cd       ; X = load address (inc. offset)
+$a0d1       ; close DEVN stream & set DEVN to 0
+$a0d5       ; read character from DEVN
+$a0d9       ; checks that we are loading into RAM
+$a0db       ; ?IO ERROR
+
+$a0e3-$a0e9 ; * read 2 characters from DEVN into D
+$a0e5       ; read character from DEVN
+
+$a0ea-$a0f1 ; * read character from device DEVN
+$a0ea-$a0f1 ; * (+cause error if EOF)
+$a0ed       ; EOF flag
+$a0f1       ; ?IO ERROR
+
+$a0f4-$a103 ; * send filename & get 1st block
+$a0f4       ; send filename to serial port
+$a0fb       ; zero
+$a0fd       ; get block from serial port
+$a101       ; ?NE ERROR
+
+$a106-$a112 ; * get block from serial port into IO buffer
+$a10c       ; IO buffer
+$a10f       ; get serial block & store at X
+$a112       ; update IO buffer size / reset header address
+
+$a115-$a147 ; * send filename to serial port
+$a11c       ; 5 retries only
+$a120       ; clear checksum, write, read & compare
+$a124       ; filename
+$a129       ; update checksum & write serial
+$a12c       ; IO buffer
+$a12f       ; filename now sent
+$a131       ; send checksum & clear, read & compare #$c8
+$a135       ; read serial & update checksum
+$a13b       ; read serial & update checksum
+$a141       ; read serial, update checksum & load A
+
+$a149-$a156 ; * retry count - cause error if count reaches 5
+$a153       ; write serial character
+$a156       ; ?IO ERROR
+
+$a159-$a161 ; * clear checksum, write serial, read & compare
+$a15b       ; clear checksum, write serial & read
+
+$a163-$a16b ; * send checksum & clear, read & compare #$c8
+$a165       ; clear checksum, write serial & read
+
+$a16c-$a172 ; * read serial, update checksum & load A
+$a16c       ; read serial & update checksum
+
+$a173-$a17c ; * read serial & update checksum
+$a173       ; read serial character
+
+$a17e-$a1b8 ; * get block from serial & store starting at X
+$a18b       ; 5 retries only
+$a18f       ; clear checksum, write, read & compare
+$a195       ; update checksum & write serial
+$a199       ; update checksum & write serial
+$a19b       ; send checksum & clear, read & compare #$c8
+$a19f       ; read serial & update checksum
+$a1a9       ; read serial & update checksum
+$a1b2       ; read serial, update checksum & load A
+
+$a1ba-$a1be ; * clear checksum, write serial & read
+$a1be       ; read serial character
+
+$a1c1-$a1c9 ; * update checksum & write serial
+$a1c9       ; write serial character
+
+$a1cc-$a1fc ; * handle ! (PRINT USING 1st character)
+$a1d1       ; print a plus sign to DEVN if $DA set
+$a1d4       ; get current character from BASIC source
+$a1dc       ; get expression
+$a1df       ; validate string
+$a1e8       ; perform left$ of B chrs on varptr X
+$a1eb       ; print string just compiled to DEVN
+$a1f9       ; send a space to DEVN
+
+$a1fe-$a223 ; * handle % (PRINT USING string field)
+$a21d       ; print a plus sign to DEVN if $DA set
+$a220       ; output character to DEVN
+
+$a225-$a363 ; * called by PRINT to handle USING
+$a225       ; get expression
+$a228       ; validate string
+$a22d       ; skip semicolon
+$a232       ; varptr of USING string
+$a238       ; ?FC ERROR
+$a23c       ; comma counter?
+$a240       ; USING string has a length
+$a242       ; ?FC ERROR
+$a245       ; point X to USING string
+$a24f       ; print 1st character
+$a255       ; numeric field
+$a25a       ; print a plus sign to DEVN if $DA set
+$a25d       ; output character to DEVN
+$a260       ; get current character from BASIC source
+$a268       ; send CR to DEVN
+$a26d       ; point X to string & length in B
+$a274       ; print a plus sign to DEVN if $DA set
+$a324       ; get current character from BASIC source
+$a335       ; ?FC ERROR
+$a33e       ; print string to DEVN
+$a343       ; get current character from BASIC source
+$a34d       ; check comma
+$a352       ; get next character from BASIC source
+
+$a366-$a437 ; * print a plus sign to DEVN if $DA set
+$a36e       ; output character to DEVN
+$a394       ; FP constant 1000000000
+$a397       ; compare FPA1 - varptr X (of same sign)
+$a39c       ; convert FPA1 to string at $3da
+$a3b7       ; convert FPA1 to sig figs & exponent in $47
+$a3cb       ; print number to U (commas & point if reqd)
+$a420       ; carry set if A non-numeric
+
+$a438-$a55a ; * carry clear if A is ASCII digit
+$a451       ; divide FPA1 by 10
+$a48d       ; print number to U (commas & point if reqd)
+$a4a1       ; convert FPA1 to sig figs & exponent in $47
+$a4c2       ; divide FPA1 by 10
+$a4da       ; print number to U (commas & point if reqd)
+
+$a55b-$a58e ; * convert FPA1 to sig figs & exponent in $47
+$a566       ; FP constant 1000000000
+$a569       ; FPA1 = varptr X * FPA1
+$a572       ; divide FPA1 by 10
+$a577       ; FP constant 999999999
+$a57a       ; compare FPA1 - varptr X (of same sign)
+$a57f       ; FP constant 99999999.9
+$a582       ; compare FPA1 - varptr X (of same sign)
+$a587       ; multiply FPA1 by 10
+
+$a590-$a5e3 ; * print number to U (commas & point if reqd)
+$a592       ; add 0.5 to FPA1
+$a595       ; denormalize FPA1 to an integer
+$a59a       ; powers of 10 table
+
+$a5e4-$a61c ; * store a comma if required
+
+$a61d-$a625 ; * get address of pixel calc routine for current PMODE
+$a620       ; current PMODE
+
+$a626-$a628 ; * call relevant pixel calc routine for PMODE
+
+$a62a       ; * JMP table containing pixel calc routines for each PMODE
+
+$a634-$a64e ; * calculate pixel address & mask for 2 colour modes
+$a636       ; bytes per line in current graphics mode
+$a63b       ; start of current graphics
+
+$a650-$a669 ; * calculate pixel address & mask for 4 colour modes
+$a652       ; bytes per line in current graphics mode
+$a657       ; start of current graphics
+
+$a66b       ; * pixel mask table for 2 colour modes
+
+$a673       ; * pixel mask table for 4 colour modes
+
+$a677-$a67a ; * move X one line down for all PMODEs
+$a677       ; bytes per line in current graphics mode
+
+$a67b-$a681 ; * pixel step routine for 2 colour PMODEs
+$a67b-$a681 ; * used by LINE
+
+$a682-$a689 ; * pixel step routine for 4 colour PMODEs
+$a682-$a689 ; * used by LINE
+
+$a68a-$a6a7 ; * read coordinates into $bd & $bf
+$a68a       ; read pair of numbers into $2b/$2c & B
+
+$a6a8       ; * read coords into $bd & $bf and adjust for PMODE
+$a6a8       ; read coordinates into $bd & $bf
+
+$a6ab-$a6c6 ; * adjust standard coords into true pixel coords
+$a6ae       ; current PMODE
+$a6b4       ; adjust Y for PMODEs 0 & 1
+$a6ba       ; current PMODE
+$a6c0       ; adjust X for PMODEs 0 to 3
+
+$a6c7-$a6ed ; * PPOINT
+$a6c7       ; get coords into $bd / $bf
+$a6ca       ; adjust coords for PMODE
+$a6cd       ; call relevant pixel calc routine for PMODE
+$a6d2       ; current PMODE
+$a6e1       ; current colour set
+$a6e6       ; assign B to FPA1
+
+$a6ef-$a6f1 ; * PSET
+
+$a6f3-$a702 ; * PRESET
+$a6f4       ; PRESET / PSET flag
+$a6f6       ; skip open bracket
+$a6f9       ; read coords into $bd & $bf and adjust
+$a6fc       ; read optional colour
+$a6ff       ; skip close bracket
+$a702       ; call relevant pixel calc routine for PMODE
+
+$a705-$a71c ; * called by LINE to plot pixel
+$a70e       ; byte value of plot colour
+
+$a71d-$a73e ; * reads coordinate pair into $bd / $bf & $c3 / $c5
+$a71d-$a73e ; * if first pair is missing then current coords are used
+$a725       ; token -
+$a731       ; skip open bracket
+$a734       ; read pair of numbers into $2b/$2c & B
+$a73e       ; skip close bracket
+
+$a740-$a746 ; * read coordinates inside brackets
+$a740-$a746 ; * (into $bd & $bf)
+$a740       ; skip open bracket
+$a743       ; read coordinates into $bd & $bf
+$a746       ; skip close bracket
+
+$a749-$a776 ; * LINE
+$a749       ; token INPUT
+$a74b       ; LINE INPUT
+$a753       ; token -
+$a759       ; optional @ before coords
+$a75c       ; sets up $bd/$bf & $c3/$c5
+$a75f       ; with coords
+$a767       ; check comma
+$a76a       ; token PRESET
+$a76e       ; token PSET
+$a770       ; ?SN ERROR
+
+$a778-$a794 ; * (A777 5F         CLRB)
+$a77a       ; get next character from BASIC source
+$a77c       ; adjust coords for PMODE
+$a781       ; PRESET / PSET flag
+$a783       ; set up current colour
+$a786       ; get current character from BASIC source
+$a788       ; must be a normal line
+$a78c       ; check comma
+$a791       ; check for 'B'
+
+$a796-$a7ac ; * draw empty rectangle
+
+$a7ae-$a7b4 ; * adjust line's coords for current PMODE
+
+$a7b7-$a7c0 ; * only 'F' allowed after 'B'
+
+$a7c2-$a7d1 ; * draw a solid rectangle
+$a7c2       ; draw horizontal line
+$a7cb       ; next Y up or down?
+
+$a7d2-$a7f9 ; * draw horizontal line from left to right
+$a7d6       ; calc +ve difference in x ords
+$a7dd       ; store lower of two values for calc
+$a7e3       ; calc pixel
+$a7ea       ; get address of pixel stepper in U
+$a7ec       ; store pixel mask
+$a7ee       ; plot
+$a7f3       ; next pixel
+
+$a7fa       ; * jumped from general line routine
+
+$a7fc-$a816 ; * draw vertical line downwards
+$a800       ; +ve difference in Y ords
+$a80d       ; call relevant pixel calc routine for PMODE
+
+$a818       ; * table of addresses of pixel step routines according to PMODE
+
+$a822-$a82a ; * get address of pixel step routine according to PMODE
+$a825       ; current PMODE
+
+$a82b-$a82e ; * set U up with address of vertical pixel stepper
+
+$a82f-$a892 ; * draw general line
+$a82f       ; increment Y ord
+$a833       ; +ve difference in Y ords
+$a836       ; horizontal line
+$a83a       ; draw left to right
+$a83c       ; decrement Y ord
+$a842       ; increment X ord
+$a845       ; +ve difference in X ords
+$a848       ; vertical line
+$a84a       ; draw top to bottom
+$a84c       ; decrement X ord
+$a854       ; delta X >= delta Y
+$a856       ; get main stepper in U
+$a858       ; get larger delta in D
+$a85e       ; make initial total 1/2 of large
+$a85f       ; delta for equal end segments
+$a860       ; large delta was odd
+$a866       ; main stepper is in +ve direction
+$a868       ; mystery tweak
+$a86d       ; get pixel calc in U
+$a872       ; plot
+$a87b       ; dec counter
+$a87d       ; step pixel in main direction
+$a882       ; add small delta
+$a884       ; to total
+$a886       ; subtract larger delta
+$a888       ; threshold not reached
+$a88c       ; step pixel in lesser direction
+
+$a894-$a89a ; * increment X ord (LINE / PAINT)
+
+$a89b-$a8a1 ; * increment Y ord (LINE)
+
+$a8a2-$a8a8 ; * decrement X ord (LINE / PAINT)
+
+$a8a9-$a8af ; * decrement Y ord (LINE)
+
+$a8b0-$a8bd ; * sets up $d3 / $d5 with max coords adjusted for PMODE
+
+$a8c0-$a8d2 ; * PCLS
+$a8c7       ; start of current graphics
+$a8cb       ; 1st byte after current graphics
+$a8d0       ; current background colour
+
+$a8d4-$a8e7 ; * COLOR
+$a8da       ; current foreground colour
+$a8dc       ; get current character from BASIC source
+$a8e0       ; check comma
+$a8e5       ; current background colour
+
+$a8e8-$a90d ; * read number and interpret as colour
+$a8e8-$a90d ; * (returns 0 - 3)
+$a8e8       ; get number in B
+$a8ed       ; ?FC ERROR
+$a8fc       ; current PMODE
+
+$a90f-$a926 ; * read optional colour & set up $b5 accordingly
+$a90f       ; set up colours
+$a912       ; get current character from BASIC source
+$a91a       ; check comma
+$a926       ; get current character from BASIC source
+
+$a928-$a937 ; * stores either foreground or background colour
+$a928-$a937 ; * as current depending on plot flag $c2
+$a928       ; current foreground colour
+$a92a       ; PRESET / PSET flag
+$a92e       ; current background colour
+$a930       ; plot colour
+$a935       ; byte value of plot colour
+
+$a938       ; * called by SCREEN: sets up text or graphics according to Z
+
+$a93a-$a95b ; * reset VDU
+
+$a95d-$a987 ; * set up graphics display
+$a95f       ; current PMODE
+$a968       ; current colour set
+$a976       ; start of current graphics
+$a979       ; set up SAM VDG base
+$a97c       ; current PMODE
+$a985       ; set up SAM VDG mem mode
+
+$a989-$a99c ; * set up SAM VDG mode
+
+$a99d-$a9a2 ; * set up VDG offset
+
+$a9a4-$a9ae ; * select VDG colour set
+$a9a9       ; current colour set
+
+$a9af-$a9fb ; * PMODE
+$a9b3       ; get number in B
+$a9b8       ; ?FC ERROR
+$a9ba       ; MSB of start of graphics page 1
+$a9bc       ; start of current graphics
+$a9bf       ; PMODE setup table + 1
+$a9c4       ; start of BASIC program
+$a9c6       ; ?FC ERROR
+$a9c8       ; 1st byte after current graphics
+$a9ce       ; bytes per line in current graphics mode
+$a9d1       ; current PMODE
+$a9d4       ; current background colour
+$a9d8       ; current foreground colour
+$a9da       ; get current character from BASIC source
+$a9dc       ; RTS
+$a9de       ; skip comma & get number in B
+$a9e2       ; ?FC ERROR
+$a9e8       ; MSB of start of graphics page 1
+$a9ec       ; 1st byte after current graphics
+$a9ee       ; start of current graphics
+$a9f0       ; start of BASIC program
+$a9f2       ; ?FC ERROR
+$a9f4       ; 1st byte after current graphics
+$a9f8       ; start of current graphics
+$a9fb       ; ?FC ERROR
+
+$a9fe-$aa17 ; * SCREEN
+$aa02       ; get number in B
+$aa09       ; get current character from BASIC source
+$aa0d       ; skip comma & get number in B
+$aa15       ; current colour set
+
+$aa19-$aa7f ; * PCLEAR
+$aa19       ; get number in B
+$aa1d       ; ?FC ERROR
+$aa21       ; ?FC ERROR
+$aa26       ; MSB of start of graphics page 1
+$aa2e       ; 1st byte after current graphics
+$aa31       ; ?FC ERROR
+$aa35       ; start of BASIC program
+$aa37       ; start of simple variables
+$aa3e       ; stack root / string storage start
+$aa40       ; ?FC ERROR
+$aa42       ; current line number
+$aa49       ; start of BASIC program
+$aa4b       ; BASIC source pointer
+$aa4f       ; start of simple variables
+$aa5c       ; start of BASIC program
+$aa61       ; start of BASIC program
+$aa66       ; set up next line pointers in BASIC program
+$aa69       ; clear variables & reset stack
+$aa6c       ; interpreter loop
+$aa6f       ; start of BASIC program
+$aa7a       ; start of simple variables
+
+$aa81-$aa9e ; * called by reset routine to PCLEAR 4
+$aa83       ; start of BASIC program
+$aa87       ; MSB of start of graphics page 1
+$aa89       ; start of current graphics
+$aa8c       ; current PMODE
+$aa90       ; bytes per line in current graphics mode
+$aa94       ; current foreground colour
+$aa98       ; 1st byte after current graphics
+$aa9a       ; start of BASIC program
+$aa9e       ; NEW BASIC
+
+$aaa1       ; * PMODE setup table: bytes/line + MSB of display size
+
+$aaab-$aab6 ; * calc +ve difference in Y ords
+$aab3       ;  D = -D
+
+$aab8-$aabc ; * calc +ve difference in X ords
+
+$aabe-$aad9 ; * PCOPY
+$aac4       ; check for token TO
+
+$aada-$aaed ; * converts number into graphics page address
+$aada       ; get number in B
+$aade       ; ?FC ERROR
+$aae4       ; MSB of start of graphics page 1
+$aae6       ; page address must be lower
+$aae8       ; than BASIC program
+$aaed       ; ?FC ERROR
+
+$aaf0-$aaf1 ; * notes concerning GET & PUT:
+$aaf0-$aaf1 ; * when G is not specified for GET, whole bytes are transferred from the
+$aaf0-$aaf1 ; * screen to the array. The effective width will therefore be a multiple
+$aaf0-$aaf1 ; * of 8. Using such an array, PUT with no action will only display correctly
+$aaf0-$aaf1 ; * on byte boundaries. (although it will be fast)
+$aaf0-$aaf1 ; * If G is specified for GET then screen bits are packed into the array.
+$aaf0-$aaf1 ; * PUT with no action will only work if the array image width is a multiple
+$aaf0-$aaf1 ; * of 8 and then only on a screen byte boundary.
+$aaf0-$aaf1 ; * PUT with an action works as long as the effective array image width is
+$aaf0-$aaf1 ; * observed in the first case of GET. In the second case, the precise width
+$aaf0-$aaf1 ; * is used as expected.
+$aaf0-$aaf1 ; * GET
+
+$aaf3-$ab50 ; * PUT
+$aaf7       ; PATCH - CLS GET PUT
+$aafc       ; optional @ before coords
+$aafe       ; get next character from BASIC source
+$ab00       ; get coords into $bd/$bf & $c3/$c5
+$ab03       ; check comma
+$ab06       ; validate & get varptr of array
+$ab11       ; address of last byte of array+1
+$ab15       ; no. of dimensions
+$ab19       ; address of first byte of array
+$ab1b       ; string arrays not allowed
+$ab1d       ; ?FC ERROR
+$ab21       ; get current character from BASIC source
+$ab23       ; no parameter after array
+$ab27       ; check comma
+$ab2c       ; PUT
+$ab30       ; skip G
+$ab33       ; GET ,G
+$ab3a       ; set up action routines for PUT
+$ab46       ; ?SN ERROR
+$ab4e       ; get next character from BASIC source
+
+$ab52-$abbd ; * bytewise GET / PUT
+$ab54       ; current PMODE
+$ab57       ; 2 colour modes
+$ab5d       ; adjust horizontal coords to align with bytes
+$ab65       ; calc +ve difference in x ords
+$ab68       ; 1st is less than 2nd
+$ab6e       ; x ord difference
+$ab70       ; +ve difference in Y ords
+$ab73       ; 1st is less than 2nd
+$ab79       ; y ord difference
+$ab7b       ; current PMODE
+$ab80       ; 2 colour modes
+$ab86       ; adjust coords for PMODE
+$ab8f       ; add 1 to y difference to get height
+$ab93       ; action specified
+$ab9e       ; width of image in bytes
+$aba0       ; call relevant pixel calc routine for PMODE
+$aba9       ; GET
+$abab       ; increment array pointer (U)
+$abb2       ; repeat until line done
+$abb6       ; move X one line down for all PMODEs
+$abbb       ; another line
+
+$abbe-$abc9 ; * increment array pointer (U)
+$abc7       ; RTS
+$abc9       ; ?FC ERROR
+
+$abcc-$abd2 ; * action for GET without G parameter
+$abce       ; increment array pointer (U)
+
+$abd4-$abe8 ; * PUT action JMP table
+$abd4-$abe8 ; * action for a clear array bit / action for a set array bit / token
+$abd4       ; PSET
+$abd9       ; PRESET
+$abde       ; OR
+$abe3       ; AND
+$abe8       ; NOT
+
+$abed-$ac2b ; * GET(G) & PUT(action) - does it bitwise
+$abf0       ; width of image in bits
+$abf4       ; PUT
+$abf8       ; clear array for GET
+$abff       ; call relevant pixel calc routine for PMODE
+$ac02       ; current PMODE
+$ac05       ; 2 colour modes
+$ac07       ; reduce mask to single bit
+$ac10       ; U = image width in bits
+$ac14       ; step array bit pointer
+$ac17       ; B = $80
+$ac18       ; filled an array byte, so point to next one
+$ac1a       ; test for end of array
+$ac1d       ; ?FC ERROR
+$ac21       ; GET
+$ac23       ; test array bit
+$ac27       ; action if array bit set
+$ac2b       ; action if array bit clear
+
+$ac2f-$ac34 ; * action for PSET 0, PRESET 1, AND 0
+$ac32       ; clear screen bit
+$ac34       ; next bit
+
+$ac36-$ac3a ; * action for PSET 1, PRESET 0, OR 1
+$ac38       ; set screen bit
+$ac3a       ; next bit
+
+$ac3c-$ac40 ; * action for NOT 0, NOT 1
+$ac3e       ; invert screen bit
+$ac40       ; next bit
+
+$ac42-$ac4a ; * GET bit
+$ac42       ; test screen bit
+$ac44       ; don't set array bit - next pixel
+$ac4a       ; set array bit
+
+$ac4c-$ac66 ; * next bit (also action for OR 0, AND 1)
+$ac4c       ; pixel mask & width counter
+$ac4e       ; step bit one to right
+$ac53       ; zero
+$ac56       ; not end of line
+$ac5a       ; bytes per line in current graphics mode
+$ac5c       ; point X to next line
+$ac64       ; do another line
+
+$ac67-$ac86 ; * called by GET / PUT: get varptr for specified array
+$ac67       ; get varptr address
+$ac6e       ; get variable name in U
+$ac74       ; ?FC ERROR
+$ac78       ; search array storage to ensure
+$ac7b       ; that specified variable is an
+$ac7d       ; array
+$ac83       ; varptr
+
+$ac87-$accc ; * PAINT
+$ac89       ; optional @ before coords
+$ac8b       ; get next character from BASIC source
+$ac8d       ; get coords into $bd / $bf
+$ac90       ; adjust coords for PMODE
+$ac95       ; PRESET / PSET flag
+$ac97       ; read optional colour
+$ac9a       ; plot colour
+$ac9e       ; get current character from BASIC source
+$aca2       ; read optional colour
+$aca5       ; byte value of plot colour
+$acab       ; plot colour
+$acb0       ; set up max coords for PMODE
+$acb3       ; get address of pixel calc routine
+$acb6       ; pixel calc
+$acb8       ; paint left & count pixels in U, D & X
+$acbb       ; none painted
+$acbd       ; paint right after previous left
+$acc4       ; save pos on stack
+$acc9       ; save pos on stack
+
+$accf-$ad39 ; * (main loop)
+$acd1       ; pixels were painted on previous line
+$acd8       ; pixel changed flag (updated by plot)
+$acdf       ; current x pos
+$ace1       ; no. of pixels painted on previous line
+$ace3       ; up / down flag
+$ace5       ; RTS - pulled final stack entry
+$ace7       ; paint up
+$acec       ; not off bottom of screen
+$acf0       ; at top/bottom of screen
+$acf5       ; paint left & count pixels in U, D & X
+$acf8       ; none painted
+$acfe       ; only 1 or 2 pixels painted
+$ad02       ; save pos on stack with reverse direction
+$ad04       ; paint right after previous left
+$ad07       ; save pos on stack
+$ad11       ; increment X ord
+$ad14       ; calc pixel & test for border colour
+$ad1e       ; decrement X ord
+$ad21       ; copy X ord to $c3
+$ad23       ; paint right & count pixels in U, D & X
+$ad27       ; increment X ord
+$ad37       ; save pos on stack with reverse direction
+$ad39       ; loop again
+
+$ad3c-$ad54 ; * save pos with reverse direction
+$ad4f       ; memory check
+
+$ad55-$ad5f ; * save pos on stack
+
+$ad61-$ad65 ; * copy X ord to $c3
+
+$ad66-$ad79 ; * paint right after previous left
+$ad66-$ad79 ; * X = total no. of pixels painted left & right
+$ad66-$ad79 ; * D = no. of pixels painted right + 1
+$ad6b       ; copy X ord to $c3
+$ad70       ; paint right & count pixels in U, D & X
+
+$ad7a-$ad81 ; * paint left & return pixel count in U, D & X
+$ad7a       ; copy X ord to $c3
+$ad7d       ; decrement X ord
+
+$ad83-$adac ; * paint right & return pixel count in U, D & X
+$ad83       ; increment X ord
+$ad87       ; step X ord
+$ad89       ; zero
+$ad8d       ; < min X
+$ad91       ; > max X
+$ad95       ; calc pixel & test for border colour
+$ad99       ; plot
+$ada0       ; step X ord
+$adaa       ; CMPD #0
+
+$adad-$adbb ; * calc pixel & test for border colour
+$adad       ; pixel calc
+
+$adbd-$adf5 ; * PLAY
+$adbd       ; zero
+$adc3       ; get expression
+$adc7       ; B=0 to select d/a sound
+$adca       ; enable audio
+$adcd       ; validate string & point X to it (len in B)
+$add4       ; string length
+$add8       ; 1st byte in string
+$adda       ; nothing to do - disable audio & quit
+$adde       ; remaining string length
+$ade2       ; get character
+$adef       ; execute substring
+$adf3       ; interpret meta-command
+
+$adf7-$ae07 ; * change octave
+$adfb       ; PLAY octave
+$adfe       ; modify B according to PLAY parameter
+$ae03       ; ?FC ERROR
+$ae05       ; PLAY octave
+
+$ae08-$ae25 ; * change volume
+$ae0c       ; PLAY d/a high value
+$ae12       ; modify B according to PLAY parameter
+$ae16       ; ?FC ERROR
+$ae23       ; PLAY volume data
+
+$ae26-$ae4c ; * change note length
+$ae2a       ; PLAY note length
+$ae2c       ; modify B according to PLAY parameter
+$ae2f       ; ?FC ERROR
+$ae31       ; PLAY note length
+$ae33       ; duration modifier (no. of dots)
+$ae3a       ; remaining string length
+$ae3e       ; get character
+$ae45       ; move string pointer back one
+$ae4a       ; duration modifier (no. of dots)
+
+$ae4d-$ae5a ; * change tempo
+$ae51       ; PLAY tempo
+$ae53       ; modify B according to PLAY parameter
+$ae56       ; ?FC ERROR
+$ae58       ; PLAY tempo
+
+$ae5b       ; * change a PLAY parameter (modifies value in B)
+
+$ae5e-$ae84 ; * play a pause
+$ae62       ; check for number or =variable (get into B)
+$ae68       ; ?FC ERROR
+$ae6b       ; duration modifier (no. of dots)
+$ae6d       ; PLAY volume data
+$ae73       ; PLAY d/a high value
+$ae75       ; PLAY d/a low value
+$ae77       ; duration modifier (no. of dots)
+$ae7d       ; duration modifier (no. of dots)
+$ae7f       ; PLAY volume data
+
+$ae86-$aef0 ; * ignore an N!
+$ae8a       ; get character
+$ae95       ; check for number or =variable (get into B)
+$ae9c       ; note number XLAT table
+$ae9f       ; XLAT into number
+$aea1       ; remaining string length
+$aea5       ; get character
+$aeb0       ; sharpen note
+$aeb7       ; flatten note
+$aeba       ; move string pointer back one
+$aec0       ; ?FC ERROR
+$aec4       ; PLAY note length
+$aec6       ; PLAY tempo
+$aec9       ; PLAY duration decrement value
+$aecb       ; point U to return address ($ADF5)
+$aecd       ; PLAY octave
+$aed3       ; pitch XLAT table for octaves 1 & 2
+$aede       ; XLAT note for octaves 1 & 2
+$aee0       ; compute PLAY duration
+$aee2       ; PLAY duration counter
+$aee4       ; zero d/a
+$aee6       ; PLAY d/a high value
+$aee8       ; set d/a
+$aeea       ; zero d/a
+$aeec       ; PLAY d/a low value
+$aeee       ; set d/a
+$aef0       ; irq routine controls duration
+
+$aef2-$af19 ; * ;forces jump to $adf5
+$aeff       ; XLAT table for octaves 3 - 5 (-$18)
+$af08       ; XLAT note for octaves 3 - 5
+$af09       ; compute PLAY duration
+$af0b       ; PLAY duration counter
+$af0d       ; zero d/a
+$af0f       ; PLAY d/a high value
+$af11       ; set d/a
+$af13       ; zero d/a
+$af15       ; PLAY d/a low value
+$af17       ; set d/a
+$af19       ; irq routine controls duration
+
+$af1b-$af26 ; * ;forces jump to $adf5
+
+$af27-$af32 ; * compute PLAY duration
+$af29       ; duration modifier (no. of dots)
+
+$af33-$af45 ; * get next character in string, skipping over spaces
+$af33-$af45 ; * (called by PLAY & DRAW)
+$af35       ; remaining string length
+$af39       ; string pointer
+$af3d       ; string pointer
+$af3f       ; remaining string length
+
+$af47-$af86 ; * change a PLAY parameter (modifies value in B)
+$af47       ; get character
+$af49       ; inc
+$af4d       ; dec
+$af51       ; double
+$af55       ; halve
+$af59       ; equals a variable
+$af5d       ; carry set if A non-numeric
+$af60       ; ?FC ERROR
+$af6b       ; ?FC ERROR
+$af6f       ; ?FC ERROR
+$af71       ; remaining string length
+$af75       ; get character
+$af78       ; carry set if A non-numeric
+$af7d       ; remaining string length
+$af7f       ; string pointer
+$af83       ; string pointer
+$af86       ; ?FC ERROR
+
+$af89-$af8c ; * increment PLAY parameter
+$af8a       ; ?FC ERROR
+
+$af8d-$af91 ; * decrement PLAY parameter
+$af8e       ; ?FC ERROR
+
+$af92-$af96 ; * halve PLAY parameter
+$af93       ; ?FC ERROR
+
+$af97-$af9b ; * double PLAY parameter
+$af98       ; ?FC ERROR
+
+$af9c-$afa3 ; * PLAY parameter equals a variable
+$af9e       ; validate variable
+$afa0       ; get number in B from FPA1
+
+$afa5-$afb3 ; * execute PLAY substring
+$afa5       ; validate variable
+$afaa       ; memory check
+$afad       ; remaining string length
+$afaf       ; string pointer
+
+$afb6-$afd8 ; * validate PLAY / DRAW variable
+$afb6       ; string pointer
+$afba       ; get character
+$afbd       ; carry clear if A-Z
+$afc0       ; ?FC ERROR
+$afc2       ; get character
+$afcb       ; BASIC source pointer
+$afcf       ; BASIC source pointer
+$afd6       ; BASIC source pointer
+
+$afd9-$aff5 ; * IRQ service routine continued
+$afdc       ; PLAY duration counter
+$afe2       ; must be in PLAY loop
+$afe4       ; therefore calculate
+$afe6       ; duration remaining
+$afe8       ; PLAY duration counter
+$afee       ; points S to old U (=$adf5)
+$aff1       ; mask entire state save
+$aff3       ; RTI will now return to $adf5
+
+$aff6       ; * PLAY letter to note number XLAT table
+
+$affd-$b021 ; * PLAY pitch XLAT table for octaves 1 & 2
+
+$b02d-$b045 ; * PLAY pitch XLAT table for octaves 3 - 5
+
+$b051-$b0e7 ; * DRAW
+$b051       ; zero
+$b057       ; PRESET / PSET flag
+$b05b       ; set up colours
+$b05e       ; get expression
+$b061       ; validate string & point X to it (len in B)
+$b066       ; get character
+$b069       ; check for number or =variable (get into B)
+$b06e       ; remaining string length
+$b072       ; string pointer
+$b074       ; nothing left to do - RTS
+$b078       ; remaining string length
+$b07c       ; get character
+$b0a7       ; remaining string length
+$b0ab       ; get character
+$b0ae       ; carry clear if A-Z
+$b0b3       ; move string pointer back one
+$b0ba       ; check for number or =variable (get into B)
+$b0e7       ; ?FC ERROR
+
+$b0ea-$b0f2 ; * DRAW 'C'
+$b0ea       ; interpret colour in B
+$b0ed       ; foreground colour
+$b0ef       ; set up colours
+
+$b0f4-$b0fa ; * DRAW 'A'
+$b0f6       ; ?FC ERROR
+$b0f8       ; angle
+
+$b0fc-$b102 ; * DRAW 'S'
+$b0fe       ; ?FC ERROR
+$b100       ; scale
+
+$b104-$b107 ; * DRAW 'H'    (D = X = -B)
+$b105       ; NEGB, A=A-C
+
+$b109-$b10b ; * DRAW 'F'    (D = X = B)
+$b109-$b10b ; * (B108 4F         CLRA)
+
+$b10d-$b114 ; * DRAW 'E'    (D = B, X = -B)
+$b110       ; NEGB, A=A-C
+
+$b116-$b11b ; * DRAW 'G'    (D = -B, X = B)
+$b119       ; NEGB, A=A-C
+
+$b11d-$b120 ; * DRAW 'R'    (D = B, X = 0)
+$b11e       ; zero
+
+$b122-$b125 ; * DRAW 'L'    (D = -B, X = 0)
+$b123       ; NEGB, A=A-C
+
+$b127-$b128 ; * DRAW 'D'    (D = 0, X = B)
+
+$b12a-$b131 ; * DRAW 'U'    (D = 0, X = -B)
+$b12b       ; NEGB, A=A-C
+$b12d       ; zero
+
+$b133-$b141 ; * DRAW 'X'
+$b133       ; validate variable
+$b138       ; memory check
+$b13b       ; remaining string length
+$b13d       ; string pointer
+$b13f       ; store current string
+$b141       ; start again with new string
+
+$b144-$b165 ; * apply DRAW scale factor to X
+$b14f       ;  D = -D
+$b151       ;  Y:U = D * X
+
+$b166-$b1ca ; * apply scale & angle to relative movement vector in D & X,
+$b166-$b1ca ; * calculate new pos & draw.
+$b166-$b1ca ; * (D = horizontal component, X = vertical component)
+$b168       ; scale X into D
+$b16e       ; scale X into D
+$b172       ; angle
+$b17b       ;  swap vector components
+$b17d       ;  D = -D
+$b181       ; rotate another 90 degrees
+$b185       ; zero
+$b187       ; current X
+$b18b       ;  U = new X
+$b18f       ; zero
+$b191       ; current Y
+$b1a5       ;  X = new Y
+$b1b6       ; no position update
+$b1bc       ; adjust coords for PMODE
+$b1c1       ; blank move
+$b1c3       ; draw line
+
+$b1cd-$b1f3 ; * DRAW 'M'
+$b1cd       ; get character
+$b1d2       ; get ordinate into D
+$b1d7       ; get character
+$b1e0       ; get ordinate into D
+$b1ef       ; absolute position
+$b1f3       ; relative movement
+
+$b1f6-$b213 ; * get ordinate for Move
+$b1f6       ; get character
+$b201       ; move string pointer back one
+$b207       ; check for number or =variable (get into B)
+
+$b214-$b234 ; * CIRCLE trig factor look-up table
+$b214-$b234 ; * circle is drawn in 8 main sectors with 8 or 9 subdivisions each
+
+$b238-$b341 ; * CIRCLE
+$b23a       ; optional @ before coords
+$b23c       ; get next character from BASIC source
+$b23e       ; set up max coords for PMODE
+$b241       ; get coords from command into $bd / $bf
+$b244       ; adjust coords for PMODE
+$b24f       ; check comma
+$b252       ; get 16 bit number into X
+$b258       ; circle radius
+$b25a       ; adjust radius correct for PMODE
+$b25f       ; PRESET / PSET flag
+$b261       ; read optional colour
+$b267       ; get current character from BASIC source
+$b26b       ; check comma
+$b26e       ; get FP number (h/w ratio)
+$b275       ; multiply FP number by 256
+$b277       ; read 16 bit number into X from FPA1
+$b27a       ; current PMODE
+$b282       ; double hw ratio for PMODEs 2 & 3
+$b288       ; PRESET / PSET flag
+$b28c       ; read optional start value
+$b291       ; read optional end value
+$b298       ; loop starts here
+$b29a       ; move old end coords to start coords
+$b2aa       ; B = 8-B for odd sectors
+$b2b2       ; X= (,U) x radius
+$b2bb       ; X= (,U) x radius
+$b2be       ; X & Y now hold circle coord offsets
+$b2ca       ; swap X & Y for sectors 1,2,5,6
+$b2cc       ; x offset
+$b2d2       ;  Y:U = D * X
+$b2d5       ; D = hw ratio x y ord
+$b2d8       ; ?FC ERROR
+$b2dc       ; MSB of y offset
+$b2e0       ; LSB of y offset
+$b2ee       ; x = centre - offset
+$b2f0       ; for sectors 2,3,4,5
+$b2f2       ; keep on screen
+$b2f8       ; x = centre + offset
+$b2fa       ; for sectors 0,1,6,7
+$b2fc       ; keep on screen
+$b303       ; circle x ord now calculated
+$b30d       ; y = centre - offset
+$b30f       ; for sectors 4,5,6,7
+$b311       ; keep on screen
+$b317       ; y = centre + offset
+$b319       ; for sectors 0,1,2,3
+$b31b       ; keep on screen
+$b322       ; circle y ord now calculated
+$b326       ; 1st loop - don't draw
+$b328       ; draw line ($bd,$bf)-($c3,$c5)
+$b32e       ; 1st loop - don't test end condition
+$b330       ; reached end angle?
+$b335       ; increment angle counter
+
+$b342-$b34f ; * multiply radius by value pointed to by U
+$b342       ; radius
+$b34b       ;  Y:U = D * X
+
+$b350-$b378 ; * multiplies D by X & leaves result in Y:U
+
+$b37a       ; * called by CIRCLE
+$b37a       ; draw line
+
+$b37d-$b39a ; * called by CIRCLE: reads optional start/end value
+$b37d-$b39a ; * reduces to 6 bits and leaves top 3 bits in A
+$b37d-$b39a ; * & bottom 3 bits in B
+$b37e       ; get current character from BASIC source
+$b382       ; check comma
+$b385       ; get FP number
+$b38c       ; multiply FP number by 64
+$b38e       ; get FP number in B
+
+$b39b-$b3b2 ; * reset routine continued
+$b39f       ; enable cart FIRQ
+$b3a4       ; cold boot flag
+$b3a8       ; cold boot
+$b3aa       ; soft reset vector
+$b3b0       ; cold boot
+$b3b2       ; soft reset
+
+$b3b4-$b3b7 ; * reset routine (CPU vector)
+$b3b7       ; JMP to $BB3C
+
+$b3ba-$b44d ; * reset routine - invalid soft vector
+$b3ba       ; clear 0 - 3ff
+$b3c3       ; clear text screen
+$b3c8       ; start of BASIC program
+$b3ca       ; memory test
+$b3d9       ; top of RAM
+$b3db       ; top of BASIC RAM
+$b3dd       ; top of free string space
+$b3e3       ; stack root / string storage start
+$b3e7       ; calls $BB88
+$b3ed       ; initialise system variables
+$b3f2       ; copy B bytes from X to U
+$b3f5       ; initialise system variables
+$b3fa       ; copy B bytes from X to U
+$b3fd       ; ?SN ERROR
+$b400       ; dummy disk command jump
+$b402       ; dummy disk function jump
+$b404       ; set patch vectors to RTS
+$b40f       ; mystery RTS
+$b412       ; NEW BASIC
+$b415       ; set up PLAY & graphics variables
+$b418       ; set up USR vectors
+$b41b       ; address of USR table
+$b41d       ; ?FC ERROR
+$b427       ; PCLEAR 4
+$b42f       ; enable vsync irq
+$b432       ; check for 'DK' disk
+$b435       ; cartridge sigature
+$b43c       ; enable interrupts
+$b441       ; display copyright message
+$b444       ; set up soft reset vector
+$b447       ; soft reset vector
+$b44b       ; cold boot flag
+$b44d       ; (JMP $8371 - command mode)
+
+$b44f-$b466 ; * normal soft reset routine
+$b450       ; clear PLAY duration counter
+$b454       ; enable vsync irq
+$b45c       ; DEVN = VDU
+$b45e       ; reset stack
+$b461       ; enable interrupts
+$b463       ; clear screen
+$b466       ; command mode
+
+$b469-$b47d ; * FIRQ service routine
+$b46c       ; cartridge
+$b46f       ; delay
+$b47b       ; cold boot flag
+
+$b480-$b486 ; * delay before starting FIRQ cartrige
+$b480       ; zero
+
+$b487-$7ebb ; * copied to $9d - $aa on start up
+$b487-$7ebb ; * (default EXEC & get character routine)
+
+$b495-$b4a9 ; * copied to $10c - $129 on start up
+$b495-$b4a9 ; * (IRQ, FIRQ, RND seeds, key delay, command addresses)
+
+$b4b3-$b503 ; * copyright message
+
+$b505-$b509 ; * read 7 bit character from device DEVN
+
+$b50a-$b519 ; * read character from device DEVN
+$b50a-$b519 ; * (+set EOF file flag if applicable)
+$b50a       ; PATCH - input character from DEVN
+$b50d       ; EOF flag
+$b50f       ; DEVN
+$b511       ; get character from keyboard
+$b513       ; no. of characters in buffer
+$b515       ; get character from file
+$b517       ; set EOF flag
+
+$b51a-$b536 ; * read character from file
+$b51c       ; buffer pointer
+$b522       ; buffer pointer
+$b524       ; no. of characters in buffer
+$b528       ; DEVN
+$b52c       ; serial
+$b52e       ; get block from tape
+$b533       ; get block from serial
+
+$b538-$b548 ; * wait for character from keyboard
+$b538-$b548 ; * (with cursor)
+$b53a       ; blink cursor
+$b53d       ; scan keyboard
+$b544       ; text cursor address
+
+$b54a-$b576 ; * output character to device DEVN
+$b54a       ; PATCH - output character to DEVN
+$b54f       ; DEVN
+$b553       ; not -3 (serial output not supported)
+$b55a       ; send to printer
+$b55e       ; send to VDU
+$b560       ; send to file
+$b562       ; cassette IO status
+$b565       ; input - quit
+$b567       ; no. of characters in buffer
+$b56c       ; flush tape buffer
+$b56e       ; buffer pointer
+$b572       ; buffer pointer
+$b574       ; no. of characters in buffer
+
+$b578-$b58c ; * flush tape buffer
+$b57a       ; block type
+$b57c       ; IO buffer
+$b581       ; no. of characters in buffer
+$b583       ; block length
+$b587       ; write leader & block to tape
+$b58c       ; reset IO buffer
+
+$b58f-$b592 ; * send character to VDU
+$b58f       ; reset VDU
+$b592       ; write to VDU
+
+$b595-$b5c1 ; * initialise virtual DEVN device
+$b595       ; PATCH - device initialisation
+$b59a       ; cassette IO flag
+$b59c       ; DEVN
+$b59e       ; VDU
+$b5a1       ; cassette
+$b5a3       ; printer comma field width / last comma field
+$b5a5       ; printer line width / head pos
+$b5ab       ; get VDU column number
+$b5b2       ; comma field width / last comma field
+$b5b4       ; current column number
+$b5b6       ; line width
+$b5ba       ; set cassette IO flag
+
+$b5c3       ; * clear screen
+$b5c3       ; clear screen
+
+$b5c6-$b621 ; * command mode line input from DEVN
+$b5c6       ; PATCH - line input file
+$b5c9       ; last key pressed
+$b5ce       ; B = character count
+$b5d0       ; read 7 bit character from DEVN
+$b5d3       ; EOF flag
+$b5d5       ; EOF
+$b5d7       ; DEVN
+$b5d9       ; not keyed input
+$b5db       ; CLEAR key
+$b5df       ; backspace
+$b5e4       ; nothing to delete
+$b5ea       ; shift + backspace
+$b5ef       ; nothing to delete
+$b5f3       ; output character to DEVN
+$b5f8       ; BREAK
+$b5fe       ; RETURN
+$b605       ; send CR to DEVN
+$b60a       ; return with carry set if
+$b60d       ; input aborted with BREAK
+$b611       ; chr < $20
+$b615       ; chr >= $7b
+$b619       ; max no. of characters = $fa
+$b61e       ; echo typed character
+
+$b623-$b639 ; * test cassette status OK for input
+$b623       ; PATCH - input file
+$b626       ; DEVN
+$b628       ; RTS
+$b62b       ; ?FM ERROR
+$b62d       ; cassette IO status
+$b62f       ; open
+$b631       ; ?NO ERROR
+$b637       ; input - RTS
+$b639       ; ?FM ERROR
+
+$b63c-$b64b ; * if DEVN = -1 test cassette status for output
+$b63c       ; PATCH - output file
+$b63f       ; DEVN
+$b642       ; not cassette
+$b644       ; cassette IO status
+$b646       ; ?NO ERROR
+$b649       ; ?FM ERROR
+
+$b64c-$b65c ; * CLOSE
+$b64c-$b65c ; * Format: CLOSE [#-n[,#-n]]
+$b64c       ; no parameter so close #-1
+$b64e       ; read #-n & set up DEVN (no skip comma)
+$b651       ; close DEVN stream & set DEVN to 0
+$b653       ; get current character from BASIC source
+$b655       ; RTS
+$b657       ; read #-n & set up DEVN
+$b65a       ; read next stream no.
+$b65c       ; PATCH - close all files
+
+$b65f-$b681 ; * close cassette stream & set DEVN to 0
+$b661       ; DEVN
+$b663       ; PATCH - close file
+$b666       ; DEVN
+$b668       ; DEVN
+$b66b       ; not cassette
+$b66d       ; cassette IO status
+$b671       ; not output
+$b673       ; no. of characters in buffer
+$b677       ; flush tape buffer
+$b67c       ; B = $FF = EOF block
+$b67f       ; cassette IO status
+
+$b682-$b6a2 ; * CSAVE
+$b684       ; CSAVEM
+$b688       ; get filename
+$b68b       ; get current character from BASIC source
+$b68d       ; normal CSAVE
+$b68f       ; check comma
+$b694       ; skip over 'A'
+$b697       ; return if anything else on command line
+$b699       ; file type = 0 = tokenized BASIC
+$b69a       ; write filename block for gapped ASCII
+$b69f       ; DEVN = -1
+$b6a2       ; LIST to DEVN - very clever!
+
+$b6a5-$b6d1 ; * ungapped CSAVE
+$b6a5       ; tokenized BASIC
+$b6a6       ; non-ASCII & ungapped
+$b6a8       ; write filename block
+$b6ab       ; cassette IO status
+$b6ad       ; block type
+$b6af       ; write leader
+$b6b2       ; start of BASIC program
+$b6b4       ; IO buffer
+$b6b8       ; block length
+$b6ba       ; start of simple variables
+$b6bc       ; IO buffer
+$b6c6       ; block length
+$b6c8       ; write block to tape
+$b6cd       ; block type
+$b6cf       ; block length
+$b6d1       ; write block & cassette relay off
+
+$b6d4-$b6fa ; * CLOAD
+$b6d4       ; cassette IO status
+$b6d8       ; CLOADM (returns to $b73c if not gapped)
+$b6de       ; get filename
+$b6e1       ; find file & set up buffer
+$b6e4       ; gap flag
+$b6e9       ; ASCII flag
+$b6ec       ; ?FM ERROR
+$b6ee       ; NEW BASIC
+$b6f3       ; DEVN = -1
+$b6f5       ; cassette status 1 = input
+$b6f7       ; get block from tape
+$b6fa       ; command mode / no device initialise
+
+$b6fd-$b703 ; * close file & return to command mode
+$b6fd       ; PATCH - close ASCII file
+$b700       ; close DEVN stream & set DEVN to 0
+$b703       ; command mode
+
+$b706-$b739 ; * ungapped CLOAD
+$b706       ; file type 0 = tokenized BASIC
+$b70b       ; ?FM ERROR
+$b70e       ; NEW BASIC
+$b711       ; read leader from tape
+$b714       ; start of BASIC program
+$b716       ; IO buffer
+$b71b       ; memory check
+$b71e       ; read block from tape
+$b721       ; error
+$b723       ; block type
+$b725       ; error
+$b729       ; start of simple variables
+$b72b       ; cassette relay off
+$b730       ; print string to DEVN
+$b733       ; set up new BASIC program & go command mode
+$b736       ; NEW BASIC
+$b739       ; ?IO ERROR
+
+$b73c-$b76d ; * returned to do ungapped CLOADM
+$b73c       ; zero
+$b73e       ; get current character from BASIC source
+$b742       ; check comma
+$b745       ; get 16 bit number into X
+$b748       ; file type
+$b74b       ; 2 = binary
+$b74d       ; ?FM ERROR
+$b74f       ; entry address
+$b752       ; apply offset
+$b754       ; EXEC address
+$b756       ; load address
+$b75b       ; IO buffer
+$b75d       ; read leader from tape
+$b760       ; read block from tape
+$b763       ; ?IO ERROR
+$b765       ; IO buffer
+$b767       ; block type
+$b769       ; ?IO ERROR
+$b76d       ; cassette relay off
+
+$b770-$b777 ; * EXEC
+$b772       ; get 16 bit number into X
+$b775       ; default EXEC address
+
+$b77b-$b783 ; * scan for break & pause if DEVN not -1
+$b77b       ; PATCH - check break & pause
+$b77e       ; DEVN
+$b781       ; RTS
+$b783       ; scan keyboard for break & pause
+
+$b786-$b795 ; * called by PRINT to handle PRINT@
+$b786       ; get unsigned number into D & $52 from FPA1
+$b78c       ; ?FC ERROR
+$b793       ; text cursor address
+
+$b796-$b7a7 ; * INKEY$
+$b796       ; last key pressed
+$b798       ; key ready
+$b79a       ; scan keyboard
+$b79d       ; last key pressed
+$b7a1       ; set up character & put on varptr stack
+$b7a7       ; leas 2,s & put temp string on varptr stack
+
+$b7aa-$b7c9 ; * called by get filename routine
+$b7aa-$b7c9 ; * (reads filename from command into usual location)
+$b7b3       ; IO buffer
+$b7b8       ; get current character from BASIC source
+$b7ba       ; RTS
+$b7bc       ; get expression
+$b7bf       ; validate string & point X to it (len in B)
+$b7c5       ; store length
+
+$b7cc-$b7d3 ; * copy 8 bytes from X to U
+$b7cc-$b7d3 ; * (B7CA C608       LDB   #$08)
+$b7cc-$b7d3 ; * copy B bytes from X to U
+
+$b7d4-$b7f6 ; * read #-n from command and sets up DEVN
+$b7d4       ; check comma
+$b7db       ; get next character from BASIC source
+$b7dd       ; get numeric expression into FPA1
+$b7e0       ; get 16 bit number into D & $52 from FPA1
+$b7e6       ; ?DN ERROR
+$b7e9       ; DEVN
+$b7eb       ; PATCH - check device number
+$b7f0       ; ?DN ERROR
+$b7f4       ; ?DN ERROR
+
+$b7f7-$b7fd ; * get filename from command
+$b7f7-$b7fd ; * (sets up filename locations)
+$b7f7       ; get filename
+$b7f9       ; get current character from BASIC source
+$b7fb       ; RTS
+$b7fd       ; ?SN ERROR
+
+$b800-$b81b ; * EOF
+$b800       ; PATCH - check eof
+$b803       ; DEVN
+$b807       ; get device number from command
+$b809       ; test cassette status OK for input
+$b80d       ; DEVN
+$b80f       ; VDU
+$b811       ; no. of characters in buffer
+$b813       ; not EOF
+$b818       ; DEVN
+$b81b       ; assign D to FPA1
+
+$b81e-$b827 ; * SKIPF
+$b81e       ; get filename
+$b820       ; find file & set up buffer
+$b822       ; skip rest of file
+$b825       ; ?IO ERROR
+
+$b828-$b84a ; * OPEN
+$b828       ; PATCH - device open
+$b82b       ; get expression
+$b82e       ; get 1st character of string into B
+$b833       ; read #-n & set up DEVN
+$b835       ; check comma
+$b838       ; get filename
+$b83a       ; DEVN
+$b83c       ; DEVN
+$b842       ; open for input
+$b846       ; write filename block if A = -1
+$b848       ; ?FM ERROR
+
+$b84d       ; * (B84B C62A       LDB   #$2A)    ;?IO ERROR
+
+$b850       ; * (B84E C626       LDB   #$26)    ;?AO ERROR
+
+$b853-$b878 ; * (B851 C628       LDB   #$28)    ;?DN ERROR
+$b856       ; input stream must be >= -1
+$b857       ; ?FM ERROR
+$b859       ; return if stream <> -1
+$b85b       ; find file & set up buffer
+$b85d       ; must be ASCII
+$b860       ; and gapped
+$b863       ; ?FM ERROR
+$b865       ; cassette IO status
+$b867       ; read leader & block from tape
+$b86a       ; ?IO ERROR
+$b86c       ; block must be data or EOF
+$b86e       ; ?IO ERROR
+$b870       ; return if EOF block
+$b872       ; block length
+$b874       ; get another block if zero length
+$b876       ; no. of characters in buffer
+$b878       ; finish setting up buffer
+
+$b87a-$b889 ; * find file & set up buffer
+$b87a       ; cassette IO status
+$b87c       ; ?AO ERROR
+$b87e       ; find file
+$b880       ; ?IO ERROR
+$b882       ; no. of characters in buffer
+$b884       ; IO buffer
+$b887       ; buffer pointer
+
+$b88a-$b88d ; * if A = -1 then write filename block for gapped ASCII
+$b88b       ; RTS
+$b88d       ; A = 1
+
+$b88e-$b8b1 ; * write filename block for gapped ASCII (file type in A)
+$b891       ; cassette IO status
+$b893       ; ?AO ERROR
+$b895       ; IO buffer
+$b89a       ; file type
+$b89c       ; ASCII flag & gap flag
+$b89e       ; filename
+$b8a1       ; copy 8 bytes from X to U
+$b8a4       ; block type
+$b8a8       ; block length
+$b8aa       ; write leader & block to tape
+$b8ad       ; 2 = output
+$b8af       ; cassette IO status
+$b8b1       ; reset IO buffer
+
+$b8b3-$b902 ; * find file
+$b8b3       ; IO buffer
+$b8b8       ; current line number
+$b8bb       ; not in command mode
+$b8bd       ; clear screen
+$b8c0       ; text cursor address
+$b8c6       ; text cursor address
+$b8c8       ; read leader & block from tape
+$b8ca       ; block type
+$b8cc       ; keep going until filename block loaded
+$b8ce       ; IO buffer
+$b8d1       ; filename to find
+$b8da       ; current line number
+$b8df       ; not in command mode
+$b8e1       ; DEVN
+$b8e3       ; output character to DEVN
+$b8f1       ; matched filename
+$b8f5       ; no filename specified
+$b8f7       ; skip rest of file
+$b8f9       ; return with error
+$b8fb       ; try next file
+$b8ff       ; display 'F'
+
+$b903-$b915 ; * skip rest of file
+$b903       ; gap flag
+$b906       ; gapped file
+$b908       ; read leader from tape
+$b90b       ; read block from tape
+$b90d       ; test file status
+$b90f       ; do next block
+$b911       ; read leader & block from tape
+$b913       ; test file status
+$b915       ; do next block
+
+$b917-$b923 ; * test file status
+$b919       ; block type
+$b91c       ; normal block - RTS
+$b91f       ; error status
+$b923       ; cassette relay off & get status in B
+
+$b925-$b932 ; * flash loading cursor
+$b92a       ; current line number
+$b92d       ; not in command mode
+
+$b933-$b93d ; * read leader & block from tape
+$b933       ; read leader from tape
+$b936       ; read block from tape
+$b938       ; cassette relay off
+$b93b       ; error status
+
+$b93e-$b97b ; * read block from tape
+$b93e       ; mask interrupts
+$b940       ; flash loading cursor
+$b942       ; IO buffer
+$b945       ; bit in
+$b94b       ; wait for sync byte
+$b94d       ; byte in
+$b950       ; block type
+$b952       ; byte in
+$b955       ; block length
+$b957       ; block type
+$b959       ; checksum
+$b95b       ; block length
+$b95d       ; use error status as counter
+$b95f       ; no data
+$b961       ; byte in
+$b966       ; check that we are loading into RAM
+$b96c       ; checksum
+$b970       ; get next data byte
+$b972       ; byte in
+$b975       ; checksum
+$b977       ; status = OK
+$b979       ; status = CRC error
+
+$b97e-$b980 ; * (B97C 8602       LDA   #$02)    ;status = no RAM
+$b97e       ; status
+
+$b981-$b98e ; * MOTOR
+$b983       ; get next character from BASIC source
+$b985       ; token OFF
+$b987       ; cassette relay off
+$b989       ; token ON
+$b98b       ; ?SN ERROR if <>0
+$b98e       ; cassette relay on
+
+$b991-$b996 ; * write leader & block to tape
+$b991       ; write leader
+$b994       ; write block to tape
+$b996       ; cassette relay off
+
+$b999-$b9cf ; * write block to tape
+$b999       ; mask interrupts
+$b99b       ; block length
+$b99d       ; use error status as counter
+$b99f       ; block length
+$b9a1       ; no data
+$b9a3       ; IO buffer address
+$b9a8       ; calculate checksum
+$b9aa       ; block type
+$b9ac       ; checksum
+$b9ae       ; IO buffer address
+$b9b0       ; write single leader byte
+$b9b2       ; sync byte
+$b9b4       ; byte out
+$b9b6       ; block type
+$b9b8       ; byte out
+$b9ba       ; block length
+$b9bc       ; byte out
+$b9bf       ; no data
+$b9c3       ; byte out
+$b9c7       ; keep going until all data sent
+$b9c9       ; checksum
+$b9cb       ; byte out
+$b9cd       ; leader byte
+$b9cf       ; byte out
+
+$b9d2-$b9ed ; * SET
+$b9d2       ; read coords & calc pixel
+$b9d6       ; skip comma & get number in B
+$b9dd       ; ?FC ERROR
+$b9e0       ; black
+$b9e9       ; non-graphics block present
+
+$b9ef-$ba02 ; * (B9EE 5F         CLRB)
+$b9f1       ; skip close bracket
+$b9f7       ; non-graphics block present
+$b9fa       ; lo-res pixel mask
+
+$ba03-$ba12 ; * RESET
+$ba03       ; read coords & calc pixel
+$ba05       ; skip close bracket
+$ba0c       ; lo-res pixel mask
+
+$ba13-$ba43 ; * read coords & calc pixel for SET / RESET / POINT
+$ba13       ; skip open bracket
+$ba16       ; get number in B
+$ba1b       ; ?FC ERROR
+$ba1f       ; skip comma & get number in B
+$ba24       ; ?FC ERROR
+$ba41       ; lo-res pixel mask
+
+$ba44-$ba5c ; * POINT
+$ba44       ; read coords
+$ba4a       ; non-graphics block
+$ba4c       ; lo-res pixel mask
+$ba59       ; return number to BASIC
+$ba5c       ; skip close bracket
+
+$ba5f-$ba76 ; * CLS
+$ba5f       ; PATCH - CLS GET PUT
+$ba62       ; no parameter - clear to spaces
+$ba64       ; get number in B
+$ba69       ; CLS 9+
+$ba6c       ; CLS 0
+
+$ba79-$ba85 ; * clear text screen
+$ba79-$ba85 ; * (BA77 C660       LDB   #$60)
+$ba7c       ; text cursor address
+
+$ba86-$ba8b ; * clear text screen & print copyright message for CLS9+
+$ba86       ; clear screen
+$ba8b       ; print string to DEVN
+
+$ba8e-$ba97 ; * get parameter for SOUND
+$ba8e       ; check comma
+$ba91       ; get number in B
+$ba95       ; RTS
+$ba97       ; ?FC ERROR
+
+$ba9a-$bac1 ; * SOUND
+$ba9a       ; get pitch
+$ba9c       ; pitch
+$ba9e       ; skip comma & get duration
+$baa3       ; duration x 4
+$baaa       ; enable vsync irq
+$baaf       ; B=0 to select d/a sound
+$bab1       ; enable audio
+$bab3       ;  centre d/a
+$bab7       ;  max d/a
+$bab9       ;  centre d/a
+$babd       ;  min d/a
+$babf       ; loop until irq routine
+$bac1       ; decrements duration to zero
+
+$bac3-$bac4 ; * disable audio
+
+$bac7-$bad3 ; * enable audio
+$bac7-$bad3 ; * (BAC5 8608       LDA #$08)
+
+$bad4       ; * reset D/A and delay
+
+$bad6-$bade ; * store A in D/A and delay
+$bad9       ; SOUND pitch value
+
+$badf-$baef ; * AUDIO
+$bae1       ; get next character from BASIC source
+$bae3       ; token OFF
+$bae7       ; token ON
+$bae9       ; ?SN ERROR if <>0
+$baed       ; B=1 for cassette sound
+$baef       ; enable audio
+
+$baf1-$bb01 ; * select sound source
+
+$bb02-$bb0c ; * SOUND duration counter
+$bb02-$bb0c ; * (called by IRQ service routine)
+$bb02       ; SOUND counter
+$bb09       ; SOUND counter
+
+$bb0d-$bb23 ; * JOYSTK
+$bb0d       ; get number in B from FPA1
+$bb12       ; ?FC ERROR
+$bb19       ; update joysticks if B = 0
+$bb1c       ; joystick value table
+$bb1f       ; get number again
+$bb23       ; assign B to FPA1
+
+$bb26-$bb34 ; * continued from fetch character routine at $9f
+$bb26-$bb34 ; * skips spaces and returns with carry set if
+$bb26-$bb34 ; * character is a digit
+$bb28       ; higher than '9'
+$bb2c       ; not a space
+$bb2e       ; get next character from BASIC source
+$bb32       ; set carry if >= '0'
+
+$bb35       ; * unused
+
+$bb3c-$bb7e ; * reset routine continued
+$bb3c       ; initialise PIA0:
+$bb3f       ;        $FF00 PDR rrrrrrrr
+$bb42       ;        $FF02 PDR wwwwwwww
+$bb44       ;        CA2 bit3 output mode
+$bb46       ;        CB2 bit3 output mode
+$bb48       ;        IRQA disabled (hsync)
+$bb49       ;        IRQB disabled (vsync)
+$bb4f       ; initialise PIA1:
+$bb52       ;        $FF20 PDR wwwwwwwr
+$bb54       ;        $FF22 PDR wwwwwrrr
+$bb56       ;        CA2 bit3 output mode
+$bb57       ;        CB2 bit3 output mode
+$bb59       ;        IRQA disabled (ack)
+$bb5b       ;        IRQB disabled (cart)
+$bb65       ; initialise serial hardware:
+$bb68       ;        no parity, no IRQ, DTR low
+$bb6b       ;        1200 baud, 8 data, 2 stop
+$bb6e       ; initialise SAM:
+$bb71       ;        512 byte display
+$bb73       ;        display base 1024
+$bb75       ;        mem page 0
+$bb76       ;        slow MPU rate
+$bb78       ;        64K dynamic memory
+$bb7b       ;        MAP 0
+
+$bb80       ; * boot 64K BASIC
+
+$bb83-$bb86 ; * reset routine continued
+$bb86       ; JMP to $B39B
+
+$bb88-$bb9e ; * part of start up reset routine
+$bb90       ; copy B bytes from X to U
+$bb92       ; set up serial printer parameters
+$bb9c       ; copy B bytes from X to U
+
+$bb9f       ; * copied to $8f - $9b on start up
+$bb9f       ; * (cursor counter, leader count, COS timing, motor on delay,
+$bb9f       ; * key scan delay, printer parameters)
+
+$bbac       ; * copied to $148 - $150 on start up
+$bbac       ; * (auto LF flag, caps flag, printer EOL sequence)
+
+$bbb5-$bbcc ; * blink cursor
+$bbb5       ; cursor flash counter
+$bbbb       ; cursor flash counter
+$bbbd       ; text cursor address
+
+$bbcd-$bbd9 ; * read key matrix & mask SHIFT key
+$bbd0       ; mask analogue comp.
+
+$bbda-$bbe4 ; * test for SHIFT key
+
+$bbe5-$bc70 ; * scan keyboard & return ASCII
+$bbee       ; key rollover table
+$bbf1       ; test all keys
+$bbf7       ; mask analogue comp.
+$bbfb       ; nothing changed - return NUL
+$bbff       ; disable all keys
+$bc02       ; read matrix & mask shift
+$bc06       ; joystick button pressed - return NUL
+$bc08       ;  $0151 = keyboard state
+$bc0a       ; row counter
+$bc11       ; read matrix & mask shift
+$bc17       ; sets bits in B for new keys pressed
+$bc1b       ; save new scan code
+$bc1e       ; new keys pressed
+$bc22       ; set carry
+$bc23       ; next row
+$bc26       ; more rows to do
+$bc28       ; no new keys pressed - return NUL
+$bc2c       ; debounce delay
+$bc30       ; read matrix & mask shift
+$bc36       ; key state changed during delay - return NUL
+$bc38       ; row number
+$bc3c       ; convert scan code into a number
+$bc3e       ; between 0 and 54
+$bc3f       ; (nb. shift masked out)
+$bc42       ; zero key
+$bc46       ;  keys 1 to 9 : ;
+$bc4a       ;  keys , - . / @
+$bc4e       ;  arrows SPC RET CLR BRK
+$bc50       ; ASCII A - Z
+$bc52       ; test for SHIFT key
+$bc54       ; SHIFT pressed
+$bc56       ; CAPS flag
+$bc59       ; upper case
+$bc5b       ; convert to lower case
+$bc5f       ; ASCII 1 to 9 : ;
+$bc61       ; test for SHIFT key
+$bc64       ; SHIFT not pressed
+$bc6a       ; not shift + 0
+$bc6c       ; CAPS flag
+
+$bc72-$bc82 ; * XLAT key scan code to ASCII
+$bc77       ; test for SHIFT key
+
+$bc84-$bc9c ; * keyboard XLAT table
+$bc84-$bc9c ; * (two bytes per entry - unshifted & shifted)
+$bc84       ;  0      ,
+$bc88       ;  -      .
+$bc8c       ;  /      @
+$bc90       ;  CU     CD
+$bc94       ;  CL     CR
+$bc98       ;  SPC    RET
+$bc9c       ;  CLR    BRK
+
+$bca0-$bcaa ; * clear VDU line + CR/LF
+
+$bcab-$bcf3 ; * write character to VDU
+$bcad       ; text cursor address
+$bcb3       ; backspace
+$bcbe       ; return
+$bcc2       ; clear VDU line + CR/LF
+$bcc8       ;  chr < $20
+$bccb       ;  chr >= 128
+$bccf       ;  $20 <= chr < $40
+$bcd3       ;  $40 <= chr < $60
+$bcdb       ; text cursor address
+$bce2       ; scroll
+$bcef       ; text cursor address
+$bcf1       ; clear VDU line + CR/LF
+
+$bcf5-$bcfa ; * write character direct to printer
+$bcf7       ; printer type flag
+$bcfa       ; continued...
+
+$bcfd-$bd08 ; * write character to parallel port
+$bd05       ; strobe
+
+$bd0a-$bd19 ; * send EOL characters to printer
+$bd14       ; send character direct to printer
+$bd16       ; continued...
+
+$bd1a-$bd3f ; * write character to printer
+$bd22       ; don't advance head pos for CTRL chrs
+$bd24       ; printer head pos
+$bd26       ; send character to printer
+$bd28       ; printer head pos
+$bd2a       ; printer line width
+$bd2e       ; printer auto LF flag
+$bd33       ; printer head pos
+$bd39       ; send character to printer
+$bd3b       ; send EOL sequence
+$bd3d       ; printer head pos
+
+$bd41-$bd51 ; * select joystick source B (0-3)
+
+$bd52-$bd88 ; * update joystick values in locations $15a - $15d
+$bd52-$bd88 ; * (reads each channel up to 10 times until stable result is obtained)
+$bd54       ; end of joystick table + 1
+$bd5d       ; select joystick source B
+$bd67       ; test analogue comp.
+$bd6a       ; approximation low
+$bd6c       ; try smaller value
+$bd70       ; try larger value
+$bd75       ; do finer approximation
+$bd78       ; convert range to 0-63
+$bd7b       ; reading stable
+$bd7f       ; do up to 10 readings until stable
+$bd86       ; do next joystick channel
+
+$bd8a-$bd90 ; * read state of cassette input comparator into carry
+$bd8a-$bd90 ; * (+update wavelength timer)
+$bd8a       ; wavelength timer
+
+$bd91-$bd97 ; * wave timer
+$bd91       ; wavelength timer
+$bd93       ; phase flag
+$bd95       ; time antiphase wave
+$bd97       ; time +ve going wave
+
+$bd99-$bd9d ; * time -ve going wave
+$bd99       ; read cassette input & update timer
+
+$bd9e       ; * alternative wave timer (antiphase)
+$bd9e       ; time -ve going wave
+
+$bda0-$bda4 ; * time +ve going wave
+$bda0       ; read cassette input & update timer
+
+$bda5-$bdac ; * read bit from tape into carry
+$bda7       ; wavelength timer
+$bdaa       ; wavelength threshold
+
+$bdad-$bdb8 ; * read byte from tape into A
+$bdb1       ; read bit from tape into carry
+$bdb3       ; LSB first
+$bdb6       ; do next bit
+
+$bdb9-$bdbd ; * called by read leader routine - test +ve going wave
+$bdb9       ; wavelength timer
+$bdbb       ; time +ve going wave
+
+$bdbf-$bdce ; * called by read leader routine - test -ve going wave
+$bdbf       ; wavelength timer
+$bdc1       ; time -ve going wave
+$bdc3       ; wavelength timer
+$bdc5       ; rejection threshold
+$bdc7       ; bad wave - clear counter
+$bdc9       ; discrimination threshold
+$bdcc       ; phase lock counter
+
+$bdcf-$bdd9 ; * turn cassette relay on
+
+$bddc-$bde6 ; * turn cassette relay off
+
+$bde7-$be11 ; * read leader from tape
+$bde7-$be11 ; * (+determine phase of signal)
+$bde7       ; mask interrupts
+$bde9       ; cassette relay on
+$bdeb       ; phase lock counter
+$bded       ; synchronise to in-phase wave (+ve then -ve)
+$bdef       ; test +ve wave
+$bdf1       ; 0 or bad
+$bdf3       ; test -ve wave
+$bdf5       ; 1 or bad
+$bdf7       ; add 1 for each antiphase pair of cycles
+$bdff       ; test -ve wave
+$be01       ; 0 or bad
+$be03       ; test +ve wave
+$be05       ; 1 or bad
+$be07       ; subtract 1 for each in-phase pair of cycles
+$be0b       ; SUBA #-$60
+$be0d       ; need $60 locks in a row ($18 leader bytes)
+$be0f       ; phase flag
+
+$be12-$be42 ; * write byte out to tape (A)
+$be14       ; send LSB first
+$be16       ; wave table
+$be1a       ; inter-wave level
+$be21       ; high frequency for 1
+$be23       ; low frequency for 0
+$be29       ; done 0
+$be36       ; done 1
+$be3d       ; inter-wave level
+$be40       ; do next bit
+
+$be44-$be64 ; * wave table for cassette output
+
+$be68-$be79 ; * write leader to tape
+$be6a       ; mask interrupts
+$be6c       ; cassette relay on
+$be71       ; cassette leader byte count
+$be73       ; write byte out to tape
+$be77       ; do next byte
+
+$be7b-$be96 ; * read character from serial port into A
+$be7d       ; mask interrupts
+$be86       ; set DTR
+$be8b       ; wait until RX full
+$be90       ; clear DTR
+
+$be98-$bea4 ; * write character to serial port (A)
+$be9c       ; wait until TX ready
+
+$bea6-$bebd ; * serial baud rate select
+$bea6-$bebd ; * (parameter in B is as per DLOAD)
+$bea8       ; B must be 0 - 6
+$beaa       ; serial baud setup table
+
+$bebe       ; * serial port baud setup table
+
+$bec4       ; * odd byte?
+
+$bec5-$bedd ; * printer direct out (continued from $BCF5)
+$becb       ; printer busy
+$bed6       ; wait until keys released
+$bedd       ; send character to serial port
+
+$bee0-$befd ; * scan keyboard continued
+$bee4       ; key pressed
+$bee6       ; stores a zero
+$beea       ; ASCII NUL
+$beec       ; repeat delay
+$beef       ; current key
+$bef2       ; same key pressed - use normal repeat rate
+$bef5       ; set up initial repeat delay
+$bef7       ; repeat counter
+$befa       ; current key
+
+$beff-$bf0b ; * D64 extension to start up reset routine
+$beff       ; printer type flag
+$bf02       ; serial printer EOL delay
+
+$bf0c-$bf1f ; * send printer EOL characters (continued)
+$bf12       ; EOL delay
+$bf18       ; 10ms delay
+
+$bf20-$bf46 ; * D64 alternative IRQ service routine
+$bf20-$bf46 ; * (gives autorepeat keys)
+$bf23       ; not serial interrupt
+$bf27       ; RX not full
+$bf2e       ; set DTR low
+$bf32       ; force complete keyboard read
+$bf35       ; key repeat counter
+$bf38       ; not yet...
+$bf3a       ; clear key rollover table
+$bf46       ; resume with normal IRQ routine
+
+$bf49-$bf57 ; * boot 64K BASIC continued
+$bf49-$bf57 ; * (doubles as 64K BASIC soft reset)
+$bf4a       ; mask interrupts
+$bf4f       ; IO buffer
+$bf54       ; copy B bytes from X to U
+$bf57       ; IO buffer
+
+$bf5a-$bfe6 ; * copied to cassette buffer & executed
+$bf5a       ; 64K BASIC flag
+$bf71       ; 64K BASIC checksum
+$bfa5       ; ?FC ERROR
+$bfa8       ; 64K BASIC checksum
+$bfbc       ; 64K BASIC checksum
+$bfd0       ; top of RAM
+$bfd2       ; top of BASIC RAM
+$bfd4       ; top of free string space
+$bfda       ; stack root / string storage start
+$bfe1       ; soft reset vector
+
+$bff2-$bffe ; * unused
+$bff2-$bffe ; * $BFE9 to
+$bff2-$bffe ; * $BFF1
+$bff2-$bffe ; * interrupt vectors
+$bff2       ; SWI3
+$bff4       ; SWI2
+$bff6       ; FIRQ
+$bff8       ; IRQ
+$bffa       ; SWI
+$bffc       ; NMI
+$bffe       ; RESET
