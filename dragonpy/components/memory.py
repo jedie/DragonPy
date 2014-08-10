@@ -265,12 +265,12 @@ class Memory(object):
         self.write_byte(address + 1, value & 0xff)
 
     def iter_bytes(self, start, end):
-        for addr in xrange(start, end):
+        for addr in xrange(start, end + 1):
             yield addr, self.read_byte(addr)
 
     def get_dump(self, start, end):
         dump_lines = []
-        for addr, value in self.iter_bytes(start, end + 1):
+        for addr, value in self.iter_bytes(start, end):
             msg = "$%04x: $%02x (dez: %i)" % (addr, value, value)
             msg = "%-25s| %s" % (
                 msg, self.cfg.mem_info.get_shortest(addr)

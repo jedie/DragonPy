@@ -20,11 +20,65 @@ from dragonpy.utils.logging_utils import log
 from dragonpy.utils.simple_debugger import print_exc_plus
 
 
+class BaseCommunicator(object):
+    MEMORY_DUMP="dump"
+    MEMORY_LOAD="load"
+
+
+class CommunicatorRequest(BaseCommunicator):
+    def __init__(self):
+        self.request_queue = Queue.Queue(maxsize=1)
+        self.response_queue = Queue.Queue(maxsize=1)
+
+    def get_queues(self):
+        return self.request_queue, self.response_queue
+
+    def request_memory_dump(self, start_addr,end_addr):
+        self.request_queue.put(
+            (self.MEMORY_DUMP, start_addr,end_addr)
+        )
+        return self.response_queue.get(block=True, timeout=10)
+        
+
+class CommunicatorResponse(BaseCommunicator):
+    def __init__(self, request_queue, response_queue):
+        self.request_queue = request_queue
+        self.response_queue = response_queue
+
+        self.cpu = None
+        self._response_func_map = {
+            self.MEMORY_DUMP:self._response_memory_dump,
+#            self.MEMORY_LOAD:self._response_memory_load,
+        }
+    def add_cpu(self, cpu):
+        self.cpu = cpu
+
+    def do_response(self):
+        try:
+            queue_entry = self.request_queue.get(block=False)
+        except Queue.Empty:
+            return
+
+        func_key = queue_entry[0]
+        args = queue_entry[1:]
+        func = self._response_func_map[func_key]
+        log.critical("Call %s with: %s", func.__name__, repr(args))
+        response = func(*args)
+        self.response_queue.put(response)
+
+    def _response_memory_dump(self, start_addr, end_addr):
+        dump = [
+            value
+            for addr, value in self.cpu.memory.iter_bytes(start_addr, end_addr)
+        ]
+        return (dump, start_addr, end_addr)
+
+
 class Machine(object):
     """
     Non-Threaded Machine.
     """
-    def __init__(self, cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue):
+    def __init__(self, cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue, response_comm):
         self.cfg = cfg
         self.periphery_class = periphery_class
 
@@ -38,31 +92,42 @@ class Machine(object):
         # LifoQueue filles in CPU Thread with CPU-Cycles information:
         self.cpu_status_queue = cpu_status_queue
 
-    def run(self):
-        memory = Memory(self.cfg)
+        self.response_comm = response_comm
 
+        self.burst_count=1000
+
+        memory = Memory(self.cfg)
         periphery = self.periphery_class(
             self.cfg, memory, self.display_queue, self.key_input_queue
         )
         self.cfg.periphery = periphery  # Needed?!?
 
         self.cpu = CPU(memory, self.cfg, self.cpu_status_queue)
-        cpu = self.cpu
-        memory.cpu = cpu  # FIXME
+        memory.cpu = self.cpu  # FIXME
 
-        cpu.reset()
-        max_ops = self.cfg.cfg_dict["max_ops"]
-        if max_ops:
-            log.critical("Running only %i ops!", max_ops)
-            for __ in xrange(max_ops):
+        self.response_comm.add_cpu(self.cpu)
+
+        self.cpu.reset()
+        self.max_ops = self.cfg.cfg_dict["max_ops"]
+
+    def run(self):
+        cpu = self.cpu
+        op_count=0
+        while cpu.running:
+            for __ in xrange(self.burst_count):
                 cpu.get_and_call_next_op()
-                if not cpu.running:
+            
+            self.response_comm.do_response()
+                
+            if self.max_ops:
+                op_count += self.burst_count
+                if op_count >= self.max_ops:
+                    log.critical("Quit CPU after given 'max_ops' %i ops.", self.max_ops)
                     break
-            log.critical("Quit CPU after given 'max_ops' %i ops.", max_ops)
-            return
-        else:
-            while cpu.running:
-                cpu.get_and_call_next_op()
+                
+
+                
+
 
     def quit(self):
         self.cpu.running = False
@@ -72,10 +137,12 @@ class MachineThread(threading.Thread):
     """
     run machine in a seperated thread.
     """
-    def __init__(self, cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue):
+    def __init__(self, cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue, response_comm):
         super(MachineThread, self).__init__(name="CPU-Thread")
         log.critical(" *** MachineThread init *** ")
-        self.machine = Machine(cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue)
+        self.machine = Machine(
+            cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue, response_comm
+        )
 
     def run(self):
         log.critical(" *** MachineThread.run() start *** ")
@@ -91,9 +158,10 @@ class MachineThread(threading.Thread):
 
 
 class ThreadedMachine(object):
-    def __init__(self, cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue):
+    def __init__(self, cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue, response_comm):
         self.cpu_thread = MachineThread(
-            cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue)
+            cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue, response_comm
+        )
         self.cpu_thread.deamon = True
         self.cpu_thread.start()
 #         log.critical("Wait for CPU thread stop.")
@@ -125,16 +193,23 @@ def run_machine(ConfigClass, cfg_dict, PeripheryClass, GUI_Class):
     # for render them in DragonTextDisplayCanvas():
     display_queue = Queue.Queue(maxsize=64)
 
+    
+    # Queue to send from GUI a request to the CPU/Memory
+    # and send the response back to the GUI
+    req_communicator = CommunicatorRequest()
+    request_queue, response_queue = req_communicator.get_queues()
+    response_comm = CommunicatorResponse(request_queue, response_queue)
+
     log.critical("init GUI")
     # e.g. TkInter GUI
     gui = GUI_Class(
-        cfg, display_queue, key_input_queue, cpu_status_queue,
+        cfg, display_queue, key_input_queue, cpu_status_queue, req_communicator
     )
 
     log.critical("init machine")
     # start CPU+Memory+Periphery in a separate thread
     machine = ThreadedMachine(
-        cfg, PeripheryClass, display_queue, key_input_queue, cpu_status_queue
+        cfg, PeripheryClass, display_queue, key_input_queue, cpu_status_queue, response_comm
     )
 
     try:

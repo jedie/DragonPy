@@ -102,7 +102,7 @@ class DragonTkinterGUI(object):
     """
     The complete Tkinter GUI window
     """
-    def __init__(self, cfg, display_queue, key_input_queue, cpu_status_queue):
+    def __init__(self, cfg, display_queue, key_input_queue, cpu_status_queue, response_comm):
         self.cfg = cfg
 
         # Queue which contains "write into Display RAM" information
@@ -114,6 +114,8 @@ class DragonTkinterGUI(object):
 
         # LifoQueue filles in CPU Thread with CPU-Cycles information:
         self.cpu_status_queue = cpu_status_queue
+
+        self.response_comm = response_comm
 
         self.last_cpu_cycles = 0
         self.last_cpu_cycle_update = time.time()
@@ -156,7 +158,8 @@ class DragonTkinterGUI(object):
         self.root.update()
 
     def dump(self):
-        tkMessageBox.showinfo("TODO", "TODO: dump!")
+        dump, start_addr, end_addr = self.response_comm.request_memory_dump(start_addr=0x0115, end_addr=0x0119)
+        tkMessageBox.showinfo("TODO", "dump: %s" % repr(dump))
 
     def load(self):
         tkMessageBox.showinfo("TODO", "TODO: load!")
