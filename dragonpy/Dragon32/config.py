@@ -9,14 +9,14 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import os
 import logging
+import os
 
-from dragonpy.core.configs import BaseConfig, DRAGON32
-
-from dragonpy.Dragon32.mem_info import get_dragon_meminfo
-from dragonpy.utils.logging_utils import log
+from dragonpy.Dragon32.basic_tokens import BASIC_TOKENS
 from dragonpy.Dragon32.keyboard_map import get_dragon_keymatrix_pia_result
+from dragonpy.Dragon32.mem_info import get_dragon_meminfo
+from dragonpy.core.configs import BaseConfig, DRAGON32
+from dragonpy.utils.logging_utils import log
 
 
 class Dragon32Cfg(BaseConfig):
@@ -53,6 +53,8 @@ class Dragon32Cfg(BaseConfig):
         os.path.abspath(os.path.dirname(__file__)),
         "d32.rom"
     )
+
+    BASIC_TOKENS = BASIC_TOKENS
 
     def __init__(self, cmd_args):
         self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1

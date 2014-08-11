@@ -21,8 +21,9 @@ from dragonpy.utils.simple_debugger import print_exc_plus
 
 
 class BaseCommunicator(object):
-    MEMORY_DUMP="dump"
+    MEMORY_DUMP="dump_program"
     MEMORY_LOAD="load"
+    MEMORY_WORDS="words"
 
 
 class CommunicatorRequest(BaseCommunicator):
@@ -32,12 +33,21 @@ class CommunicatorRequest(BaseCommunicator):
 
     def get_queues(self):
         return self.request_queue, self.response_queue
-
+    
+    def _request(self, *args):
+        log.critical("request: %s",repr(args))
+        self.request_queue.put(args)
+        log.critical("\twait for response")
+        result = self.response_queue.get(block=True, timeout=10)
+        log.critical("\tget response, result: %s", repr(result))
+        return result
+    
     def request_memory_dump(self, start_addr,end_addr):
-        self.request_queue.put(
-            (self.MEMORY_DUMP, start_addr,end_addr)
-        )
-        return self.response_queue.get(block=True, timeout=10)
+        log.critical("request memory dump from $%04x-$%04x", start_addr, end_addr)
+        return self._request(self.MEMORY_DUMP, start_addr, end_addr)
+    
+    def request_words(self, addresses):
+        return self._request(self.MEMORY_WORDS, addresses)
         
 
 class CommunicatorResponse(BaseCommunicator):
@@ -48,7 +58,8 @@ class CommunicatorResponse(BaseCommunicator):
         self.cpu = None
         self._response_func_map = {
             self.MEMORY_DUMP:self._response_memory_dump,
-#            self.MEMORY_LOAD:self._response_memory_load,
+#            self.MEMORY_DUMP:self._response_memory_dump,
+            self.MEMORY_WORDS:self._response_words,
         }
     def add_cpu(self, cpu):
         self.cpu = cpu
@@ -65,13 +76,21 @@ class CommunicatorResponse(BaseCommunicator):
         log.critical("Call %s with: %s", func.__name__, repr(args))
         response = func(*args)
         self.response_queue.put(response)
+        log.critical("\tput response: %s", repr(response))
 
     def _response_memory_dump(self, start_addr, end_addr):
+        log.critical("Dump memory from $%04x-$%04x", start_addr, end_addr)
         dump = [
             value
             for addr, value in self.cpu.memory.iter_bytes(start_addr, end_addr)
         ]
         return (dump, start_addr, end_addr)
+
+    def _response_words(self, addresses):
+        result = {}
+        for address in addresses:
+            result[address] = self.cpu.memory.read_word(address)
+        return result
 
 
 class Machine(object):

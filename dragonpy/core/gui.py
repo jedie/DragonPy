@@ -20,6 +20,7 @@ import tkMessageBox
 from dragonpy.Dragon32 import dragon_charmap
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
+from dragonpy.basic.parser import BasicListing
 from dragonpy.utils.logging_utils import log
 
 
@@ -99,6 +100,33 @@ class MC6847_TextModeCanvas(object):
         self.canvas.itemconfigure(image_id, image=image)
 
 
+class EditorWindow(object):
+    def __init__(self, cfg, parent):
+        self.cfg = cfg
+        self.parent = parent
+        self.root = Tkinter.Toplevel(self.parent)
+        self.root.title("%s - BASIC Editor" % self.cfg.MACHINE_NAME)
+
+        # http://www.tutorialspoint.com/python/tk_text.htm
+        self.text = Tkinter.Text(self.root, height=30, width=80)
+        scollbar = Tkinter.Scrollbar(self.root)
+        scollbar.config(command=self.text.yview)
+
+        self.text.config(
+            background="#08ff08", # nearly green
+            foreground="#004100", # nearly black
+            font=('courier', 11, 'bold'),
+#            yscrollcommand=scollbar.set, # FIXME
+        )
+
+        scollbar.pack(side=Tkinter.RIGHT, fill=Tkinter.Y)
+        self.text.pack(side=Tkinter.LEFT, fill=Tkinter.Y)
+
+    def set_content(self, listing_ascii):
+        for line in listing_ascii:
+            self.text.insert(Tkinter.END, "%s\n" % line)
+        self.text.see(Tkinter.END)
+
 class DragonTkinterGUI(object):
     """
     The complete Tkinter GUI window
@@ -145,7 +173,7 @@ class DragonTkinterGUI(object):
 
         editmenu = Tkinter.Menu(menubar, tearoff=0)
         editmenu.add_command(label="load", command=self.load)
-        editmenu.add_command(label="dump", command=self.dump)
+        editmenu.add_command(label="dump_program BASIC program", command=self.dump_program)
         menubar.add_cascade(label="edit", menu=editmenu)
 
         # help menu
@@ -158,11 +186,84 @@ class DragonTkinterGUI(object):
         self.root.config(menu=menubar)
         self.root.update()
 
-    def dump(self):
-        dump, start_addr, end_addr = self.response_comm.request_memory_dump(start_addr=0x0115, end_addr=0x0119)
-        tkMessageBox.showinfo("TODO", "dump: %s" % repr(dump))
+        self.editor_content = None
+        self._editor_window = None
+
+    def get_or_create_editor(self):
+        if self._editor_window is None:
+            log.critical("Create EditorWindow")
+            self._editor_window = EditorWindow(self.cfg, self.root)
+            #self._editor_window.mainloop()
+
+        log.critical("return editor window")
+        return self._editor_window
+
+    def dump_program(self):
+        """
+130 PS=0 'Program Start
+140 PE=0 'Program End
+150 VS=0 'Variables Start
+160 VE=0 'Variables End
+170 AS=0 'Array Start
+180 AE=0 'Array End
+190 DA=0 'Dump Address
+200 NA=0 'Next Address
+210 DV=0 'Device number
+220 DBYTE=0:AN$="":SBYTE=0
+230 R=0:H3=0:H2=0:H1=0:H0=0
+240 PA=&H19
+250 PS=FNW(PA) '19:1A contain PS address
+260 VS=FNW(PA+2) '1B:1C contain VS address
+270 AS=FNW(PA+4) '1D:1E contain AS address
+280 PE=VS-1 'Variables are after program
+290 VE=AS-1 'Arrays are after variables
+300 AE=FNW(PA+6)-1 '1F:20 holds free space address
+        """
+        addresses = range(0x0019, 0x0020 + 1, 2)
+        result = self.response_comm.request_words(addresses)
+        log.critical(repr(result))
+        program_start = result[0x0019]
+        variables_start = result[0x001B]
+        array_start = result[0x001D]
+        free_space_start = result[0x001F]
+        program_end = variables_start - 1
+        variables_end = array_start - 1
+        array_end = free_space_start - 1
+
+        log.critical("programm code: $%04x-$%04x", program_start, program_end)
+        log.critical("variables: $%04x-$%04x", variables_start, variables_end)
+        log.critical("array: $%04x-$%04x", array_start, array_end)
+
+        dump, start_addr, end_addr = self.response_comm.request_memory_dump(program_start, program_end)
+        log.critical("Program Dump: (%s)", ",".join(["0x%02x" % e for e in dump]))
+
+        listing = BasicListing(self.cfg.BASIC_TOKENS)
+        listing.load_from_dump(dump, program_start, program_end)
+        listing.debug_listing()
+
+        editor_window = self.get_or_create_editor()
+        listing_ascii = listing.get_ascii()
+        log.critical("Listing in ASCII:\n%s", "\n".join(listing_ascii))
+        editor_window.set_content(listing_ascii)
+
+    def dump_rnd(self):
+        start_addr = 0x0019
+        end_addr = 0x0020
+        dump, start_addr, end_addr = self.response_comm.request_memory_dump(
+#            start_addr=0x0115, end_addr=0x0119 # RND seed
+            start_addr, end_addr
+        )
+        def format_dump(dump, start_addr, end_addr):
+            lines = []
+            for addr, value in zip(xrange(start_addr, end_addr + 1), dump):
+                log.critical("$%04x: $%02x (dez.: %i)", addr, value, value)
+                lines.append("$%04x: $%02x (dez.: %i)" % (addr, value, value))
+            return lines
+        lines = format_dump(dump, start_addr, end_addr)
+        tkMessageBox.showinfo("TODO", "dump_program:\n%s" % "\n".join(lines))
 
     def load(self):
+        self.get_or_create_editor()
         tkMessageBox.showinfo("TODO", "TODO: load!")
 
     def menu_event_about(self):
