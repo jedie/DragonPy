@@ -47,7 +47,8 @@ class MC6847_TextModeCanvas(object):
         self.canvas = Tkinter.Canvas(root,
             width=self.total_width,
             height=self.total_height,
-            bd=0,  # Border
+            bd=0, # no border
+            highlightthickness=0, # no highlight border
             bg="#ff0000",
         )
 
