@@ -20,7 +20,8 @@ import tkMessageBox
 from dragonpy.Dragon32 import dragon_charmap
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
-from dragonpy.basic.parser import BasicListing
+from dragonpy.basic_editor.editor import EditorWindow
+from dragonpy.basic_editor.parser import BasicListing
 from dragonpy.utils.logging_utils import log
 
 
@@ -100,33 +101,6 @@ class MC6847_TextModeCanvas(object):
         self.canvas.itemconfigure(image_id, image=image)
 
 
-class EditorWindow(object):
-    def __init__(self, cfg, parent):
-        self.cfg = cfg
-        self.parent = parent
-        self.root = Tkinter.Toplevel(self.parent)
-        self.root.title("%s - BASIC Editor" % self.cfg.MACHINE_NAME)
-
-        # http://www.tutorialspoint.com/python/tk_text.htm
-        self.text = Tkinter.Text(self.root, height=30, width=80)
-        scollbar = Tkinter.Scrollbar(self.root)
-        scollbar.config(command=self.text.yview)
-
-        self.text.config(
-            background="#08ff08", # nearly green
-            foreground="#004100", # nearly black
-            font=('courier', 11, 'bold'),
-#            yscrollcommand=scollbar.set, # FIXME
-        )
-
-        scollbar.pack(side=Tkinter.RIGHT, fill=Tkinter.Y)
-        self.text.pack(side=Tkinter.LEFT, fill=Tkinter.Y)
-
-    def set_content(self, listing_ascii):
-        for line in listing_ascii:
-            self.text.insert(Tkinter.END, "%s\n" % line)
-        self.text.see(Tkinter.END)
-
 class DragonTkinterGUI(object):
     """
     The complete Tkinter GUI window
@@ -172,8 +146,8 @@ class DragonTkinterGUI(object):
         menubar.add_cascade(label="File", menu=filemenu)
 
         editmenu = Tkinter.Menu(menubar, tearoff=0)
-        editmenu.add_command(label="load", command=self.load)
-        editmenu.add_command(label="dump_program BASIC program", command=self.dump_program)
+        editmenu.add_command(label="load BASIC program", command=self.load_program)
+        editmenu.add_command(label="dump BASIC program", command=self.dump_program)
         menubar.add_cascade(label="edit", menu=editmenu)
 
         # help menu
@@ -262,7 +236,7 @@ class DragonTkinterGUI(object):
         lines = format_dump(dump, start_addr, end_addr)
         tkMessageBox.showinfo("TODO", "dump_program:\n%s" % "\n".join(lines))
 
-    def load(self):
+    def load_program(self):
         self.get_or_create_editor()
         tkMessageBox.showinfo("TODO", "TODO: load!")
 
