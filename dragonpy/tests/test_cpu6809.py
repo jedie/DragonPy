@@ -14,14 +14,14 @@ import unittest
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.mem_info import DragonMemInfo
-from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase, BaseStackTestCase
+from dragonpy.tests.test_base import TextTestRunner2, BaseCPUTestCase, BaseStackTestCase
 from dragonpy.utils.logging_utils import setup_logging
 
 
 log = logging.getLogger("DragonPy")
 
 
-class BaseDragon32TestCase(BaseTestCase):
+class BaseDragon32TestCase(BaseCPUTestCase):
     # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4462
     INITIAL_SYSTEM_STACK_ADDR = 0x7f36
     INITIAL_USER_STACK_ADDR = 0x82ec
@@ -40,7 +40,7 @@ class BaseDragon32TestCase(BaseTestCase):
             self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
 
 
-class Test6809_Register(BaseTestCase):
+class Test6809_Register(BaseCPUTestCase):
     def test_registerA(self):
         for i in xrange(255):
             self.cpu.accu_a.set(i)
@@ -105,7 +105,7 @@ class Test6809_Register(BaseTestCase):
         self.assertEqualHex(x, 0x10000 - 2)
 
 
-class Test6809_ZeroFlag(BaseTestCase):
+class Test6809_ZeroFlag(BaseCPUTestCase):
     def test_DECA(self):
         self.assertEqual(self.cpu.cc.Z, 0)
         self.cpu_test_run(start=0x4000, end=None, mem=[
@@ -180,7 +180,7 @@ class Test6809_ZeroFlag(BaseTestCase):
 
 
 
-class Test6809_CC(BaseTestCase):
+class Test6809_CC(BaseCPUTestCase):
     """
     condition code register tests
     """
@@ -219,7 +219,7 @@ class Test6809_CC(BaseTestCase):
                 self.assertEqual(self.cpu.cc.get(), 0)
 
 
-class Test6809_Ops(BaseTestCase):
+class Test6809_Ops(BaseCPUTestCase):
     def test_TFR01(self):
         self.cpu.index_x.set(512) # source
         self.assertEqual(self.cpu.index_y.get(), 0) # destination
@@ -389,7 +389,7 @@ class Test6809_Ops(BaseTestCase):
         self.assertEqualHex(self.cpu.cc.get(), 0x00)
 
 
-class Test6809_TestInstructions(BaseTestCase):
+class Test6809_TestInstructions(BaseCPUTestCase):
     def assertTST(self, i):
         if 128 <= i <= 255: # test negative
             self.assertEqual(self.cpu.cc.N, 1)
@@ -590,7 +590,7 @@ class Test6809_Stack(BaseStackTestCase):
         self.assertEqualHex(self.cpu.accu_d.get(), 0x1234)
 
 
-class Test6809_Code(BaseTestCase):
+class Test6809_Code(BaseCPUTestCase):
     """
     Test with some small test codes
     """
@@ -676,7 +676,7 @@ class Test6809_Code(BaseTestCase):
 
 
 
-class TestSimple6809ROM(BaseTestCase):
+class TestSimple6809ROM(BaseCPUTestCase):
     """
     use routines from Simple 6809 ROM code
     """

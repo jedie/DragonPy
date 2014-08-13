@@ -13,14 +13,14 @@ import operator
 import sys
 import unittest
 
-from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase
+from dragonpy.tests.test_base import TextTestRunner2, BaseCPUTestCase
 from dragonpy.utils.logging_utils import setup_logging
 
 
 log = logging.getLogger("DragonPy")
 
 
-class Test6809_BranchInstructions(BaseTestCase):
+class Test6809_BranchInstructions(BaseCPUTestCase):
     """
     Test branch instructions
     """

@@ -16,14 +16,14 @@ import logging
 import sys
 import unittest
 
-from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase
+from dragonpy.tests.test_base import TextTestRunner2, BaseCPUTestCase
 from dragonpy.utils.logging_utils import setup_logging
 
 
 log = logging.getLogger("DragonPy")
 
 
-class Test6809_AddressModes_LowLevel(BaseTestCase):
+class Test6809_AddressModes_LowLevel(BaseCPUTestCase):
     def test_base_page_direct01(self):
         self.cpu.memory.load(0x1000, [0x12, 0x34, 0x0f])
         self.cpu.program_counter.set(0x1000)
@@ -39,7 +39,7 @@ class Test6809_AddressModes_LowLevel(BaseTestCase):
         ea = self.cpu.get_ea_direct()
         self.assertEqualHexByte(ea, 0xf)
 
-class Test6809_AddressModes_Indexed(BaseTestCase):
+class Test6809_AddressModes_Indexed(BaseCPUTestCase):
     def test_5bit_signed_offset_01(self):
         self.cpu.index_x.set(0x0300)
         self.cpu.index_y.set(0x1234)

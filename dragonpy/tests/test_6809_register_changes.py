@@ -16,14 +16,14 @@ import logging
 import sys
 import unittest
 
-from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase
+from dragonpy.tests.test_base import TextTestRunner2, BaseCPUTestCase
 from dragonpy.utils.logging_utils import setup_logging
 
 
 log = logging.getLogger("DragonPy")
 
 
-class Test6809_TFR(BaseTestCase):
+class Test6809_TFR(BaseCPUTestCase):
     def test_TFR_A_B(self):
         self.cpu.accu_a.set(0x12)
         self.cpu.accu_b.set(0x34)
@@ -108,7 +108,7 @@ class Test6809_TFR(BaseTestCase):
         self.assertEqualHexByte(self.cpu.accu_a.get(), 0xff)
 
 
-class Test6809_EXG(BaseTestCase):
+class Test6809_EXG(BaseCPUTestCase):
     def test_EXG_A_B(self):
         self.cpu.accu_a.set(0xab)
         self.cpu.accu_b.set(0x12)

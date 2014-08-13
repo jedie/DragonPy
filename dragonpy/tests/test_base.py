@@ -8,52 +8,41 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import cPickle as pickle
+import Queue
+import hashlib
 import logging
 import os
+import pprint
 import sys
 import tempfile
 import time
 import unittest
-import Queue
-import hashlib
-import pprint
 
+import cPickle as pickle
 from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809TestPeriphery
+from dragonpy.basic_editor.parser import format_program_dump
+from dragonpy.components.cpu6809 import CPU
+from dragonpy.components.memory import Memory
 from dragonpy.cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
-from dragonpy.tests.test_config import TestCfg
 from dragonpy.sbc09.config import SBC09Cfg
 from dragonpy.sbc09.periphery import SBC09PeripheryConsole, \
     SBC09PeripheryUnittest
+from dragonpy.tests.test_config import TestCfg
 from dragonpy.utils.logging_utils import setup_logging
-from dragonpy.components.cpu6809 import CPU
-from dragonpy.components.memory import Memory
-
-
 
 
 log = logging.getLogger("DragonPy")
 
 
 class BaseTestCase(unittest.TestCase):
-    UNITTEST_CFG_DICT = {
-        "verbosity":None,
-        "display_cycle":False,
-        "trace":None,
-        "bus_socket_host":None,
-        "bus_socket_port":None,
-        "ram":None,
-        "rom":None,
-
-        "use_bus":False,
-    }
-    def setUp(self):
-        cfg = TestCfg(self.UNITTEST_CFG_DICT)
-        memory = Memory(cfg)
-        self.cpu = CPU(memory, cfg)
-        memory.cpu = self.cpu # FIXME
-        self.cpu.cc.set(0x00)
+    """
+    Only some special assertments.
+    """
+    def assertHexList(self, first, second, msg=None):
+        first = ["$%x" % value for value in first]
+        second = ["$%x" % value for value in second]
+        self.assertEqual(first, second, msg)
 
     def assertEqualHex(self, hex1, hex2, msg=None):
         first = "$%x" % hex1
@@ -87,6 +76,30 @@ class BaseTestCase(unittest.TestCase):
         if msg is None:
             msg = "%s != %s" % (first, second)
         self.assertEqual(first, second, msg)
+    
+    def assertEqualProgramDump(self, first, second, msg=None):
+        first = format_program_dump(first)
+        second = format_program_dump(second)
+        self.assertEqual(first, second, msg)
+
+class BaseCPUTestCase(BaseTestCase):
+    UNITTEST_CFG_DICT = {
+        "verbosity":None,
+        "display_cycle":False,
+        "trace":None,
+        "bus_socket_host":None,
+        "bus_socket_port":None,
+        "ram":None,
+        "rom":None,
+
+        "use_bus":False,
+    }
+    def setUp(self):
+        cfg = TestCfg(self.UNITTEST_CFG_DICT)
+        memory = Memory(cfg)
+        self.cpu = CPU(memory, cfg)
+        memory.cpu = self.cpu # FIXME
+        self.cpu.cc.set(0x00)
 
     def cpu_test_run(self, start, end, mem):
         for cell in mem:
@@ -118,7 +131,7 @@ class BaseTestCase(unittest.TestCase):
             self.assertEqual(is_byte, should_byte, msg)
 
 
-class BaseStackTestCase(BaseTestCase):
+class BaseStackTestCase(BaseCPUTestCase):
     INITIAL_SYSTEM_STACK_ADDR = 0x1000
     INITIAL_USER_STACK_ADDR = 0x2000
     def setUp(self):
@@ -161,7 +174,7 @@ def print_cpu_state_data(state):
         print "\t%r: %s" % (k, v)
 
 
-class Test6809_BASIC_simple6809_Base(BaseTestCase):
+class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
     """
     Run tests with the BASIC Interpreter from simple6809 ROM.
     """
@@ -256,7 +269,7 @@ class Test6809_BASIC_simple6809_Base(BaseTestCase):
         raise self.failureException(msg)
 
 
-class Test6809_sbc09_Base(BaseTestCase):
+class Test6809_sbc09_Base(BaseCPUTestCase):
     """
     Run tests with the sbc09 ROM.
     """

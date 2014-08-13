@@ -12,12 +12,12 @@ import unittest
 import logging
 import sys
 
-from test_base import BaseTestCase
+from test_base import BaseCPUTestCase
 from dragonpy.tests.test_base import TextTestRunner2
 from dragonpy.utils.byte_word_values import signed8
 
 
-class CCTestCase(BaseTestCase):
+class CCTestCase(BaseCPUTestCase):
     def test_set_get(self):
         for i in xrange(256):
             self.cpu.cc.set(i)

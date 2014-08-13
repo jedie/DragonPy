@@ -16,7 +16,7 @@ import logging
 import sys
 import unittest
 
-from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase
+from dragonpy.tests.test_base import TextTestRunner2, BaseCPUTestCase
 from dragonpy.utils.logging_utils import setup_logging
 from dragonpy.utils.bits import is_bit_set, get_bit
 
@@ -24,7 +24,7 @@ from dragonpy.utils.bits import is_bit_set, get_bit
 log = logging.getLogger("DragonPy")
 
 
-class Test6809_LogicalShift(BaseTestCase):
+class Test6809_LogicalShift(BaseCPUTestCase):
     """
     unittests for:
         * LSL (Logical Shift Left) alias ASL (Arithmetic Shift Left)
@@ -178,7 +178,7 @@ loop:
                 self.assertEqual(self.cpu.cc.C, 0)
 
 
-class Test6809_Rotate(BaseTestCase):
+class Test6809_Rotate(BaseCPUTestCase):
     """
     unittests for:
         * ROL (Rotate Left) alias

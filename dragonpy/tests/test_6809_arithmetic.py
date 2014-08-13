@@ -11,7 +11,7 @@ import logging
 import sys
 import unittest
 
-from dragonpy.tests.test_base import TextTestRunner2, BaseTestCase
+from dragonpy.tests.test_base import TextTestRunner2, BaseCPUTestCase
 from dragonpy.utils.logging_utils import setup_logging
 from dragonpy.tests.test_config import TestCfg
 from dragonpy.components.cpu6809 import CPU
@@ -20,7 +20,7 @@ from dragonpy.components.cpu6809 import CPU
 log = logging.getLogger("DragonPy")
 
 
-class Test6809_Arithmetic(BaseTestCase):
+class Test6809_Arithmetic(BaseCPUTestCase):
     def test_ADDA_extended01(self):
         self.cpu_test_run(start=0x1000, end=0x1003, mem=[
             0xbb, # ADDA extended

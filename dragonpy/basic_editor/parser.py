@@ -17,6 +17,18 @@ from dragonpy.Dragon32.basic_tokens import BASIC_TOKENS
 from dragonpy.utils.logging_utils import log
 
 
+def format_program_dump(ram_content):
+    msg = u" ".join(["$%02x" % v for v in ram_content])
+    msg = msg.replace(u"$00 ", u"\n$00\n")
+    return msg
+
+
+def log_program_dump(ram_content, level=99):
+    msg = "BASIC program dump:\n"
+    msg += format_program_dump(ram_content)
+    log.log(level, msg)
+
+
 class BasicTokenUtil(object):
     def __init__(self, basic_token_dict):
         self.basic_token_dict = basic_token_dict

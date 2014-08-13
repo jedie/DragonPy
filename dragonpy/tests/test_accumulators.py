@@ -10,10 +10,10 @@
 
 import unittest
 
-from test_base import BaseTestCase
+from test_base import BaseCPUTestCase
 
 
-class CC_AccumulatorTestCase(BaseTestCase):
+class CC_AccumulatorTestCase(BaseCPUTestCase):
     def test_A_01(self):
         self.cpu.accu_a.set(0xff)
         self.assertEqualHex(self.cpu.accu_a.get(), 0xff)
