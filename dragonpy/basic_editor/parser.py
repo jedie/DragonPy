@@ -14,6 +14,7 @@
 import re
 
 from dragonpy.Dragon32.basic_tokens import BASIC_TOKENS
+from dragonpy.utils.byte_word_values import word2bytes
 from dragonpy.utils.logging_utils import log
 
 
@@ -41,7 +42,6 @@ class BasicTokenUtil(object):
             re.escape(statement)
             for statement in self.basic_token_dict.values()
         ])
-        print regex
         self.regex = re.compile(regex)
         
     def token2ascii(self, value):
@@ -90,14 +90,18 @@ class BasicLine(object):
         self.line_code = tokens[:-1] # rstrip \x00        
     
     def ascii_load(self, line_ascii):
-        line_number, ascii_code = line_ascii.split(" ", 1)
+        try:
+            line_number, ascii_code = line_ascii.split(" ", 1)
+        except ValueError as err:
+            msg = "Error split line number and code in line: %r (Origin error: %s)" % (
+                line_ascii, err
+            )
+            raise ValueError(msg)
         self.line_number = int(line_number)
         self.line_code = self.token_util.ascii2token(ascii_code)   
     
     def get_tokens(self):
-        return tuple(
-            [self.line_number, ord(" ")] + self.line_code + [0x00]
-        )
+        return [self.line_number] + self.line_code
 
     def get_ascii(self, code=None, debug=False):
         if code is None: # start
@@ -118,8 +122,10 @@ class BasicLine(object):
             line += code
         return line
     
-    def debug_line(self):
-        log.critical(self.get_ascii(debug=True))
+    def log_line(self):
+        log.critical("%r -> %s" % (
+            self.get_ascii(debug=True), " ".join(["$%02x" % v for v in self.get_tokens()])
+        ))
 
 
 class BasicListing(object):
@@ -147,6 +153,22 @@ class BasicListing(object):
         
         self.load_from_dump(dump[length:], next_address, program_end)
 
+    def get_ram_content(self, program_start):
+        result = []
+        current_address = program_start
+        count = len(self.lines)
+        for no, line in enumerate(self.lines, 1):
+            line.log_line()
+            tokens = [0x00] + line.get_tokens() + [0x00]
+
+            current_address += len(tokens) + 2
+            result += word2bytes(current_address)
+            if no == count: # It's the last line
+                tokens += [0x00, 0x00]
+            result += tokens
+
+        return result
+
     def get_ascii(self):
         listing = []
         for line in self.lines:
@@ -155,13 +177,19 @@ class BasicListing(object):
 
     def parse_ascii(self, txt):
         for line in txt.splitlines():
-            basic_line = BasicLine(self.token_util)
-            basic_line.ascii_load(line)
-            self.lines.append(basic_line)
+            line = line.strip()
+            if line:
+                basic_line = BasicLine(self.token_util)
+                basic_line.ascii_load(line)
+                self.lines.append(basic_line)
 
     def debug_listing(self):
         for line in self.lines:
-            line.debug_line()
+            line.log_line()
+
+    def log_ram_content(self, program_start, level=99):
+        ram_content = self.get_ram_content(program_start)
+        log_program_dump(ram_content, level)
 
 
 if __name__ == "__main__":

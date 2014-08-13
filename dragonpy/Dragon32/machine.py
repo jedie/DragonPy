@@ -46,6 +46,10 @@ class CommunicatorRequest(BaseCommunicator):
         log.critical("request memory dump from $%04x-$%04x", start_addr, end_addr)
         return self._request(self.MEMORY_DUMP, start_addr, end_addr)
     
+    def request_memory_load(self, address, data):
+        log.critical("request memory load %iBytes to $%04s", len(data), address)
+        return self._request(self.MEMORY_LOAD, address, data)
+
     def request_words(self, addresses):
         return self._request(self.MEMORY_WORDS, addresses)
         
@@ -58,7 +62,7 @@ class CommunicatorResponse(BaseCommunicator):
         self.cpu = None
         self._response_func_map = {
             self.MEMORY_DUMP:self._response_memory_dump,
-#            self.MEMORY_DUMP:self._response_memory_dump,
+            self.MEMORY_LOAD:self._response_memory_load,
             self.MEMORY_WORDS:self._response_words,
         }
     def add_cpu(self, cpu):
@@ -85,6 +89,11 @@ class CommunicatorResponse(BaseCommunicator):
             for addr, value in self.cpu.memory.iter_bytes(start_addr, end_addr)
         ]
         return (dump, start_addr, end_addr)
+
+    def _response_memory_load(self, address, data):
+        log.critical("Load into memory %iBytes to $%04s", len(data), address)
+        self.cpu.memory.load(address, data)
+        return "OK"
 
     def _response_words(self, addresses):
         result = {}

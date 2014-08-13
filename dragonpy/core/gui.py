@@ -21,7 +21,7 @@ from dragonpy.Dragon32 import dragon_charmap
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
 from dragonpy.basic_editor.editor import EditorWindow
-from dragonpy.basic_editor.parser import BasicListing
+from dragonpy.basic_editor.parser import BasicListing, log_program_dump
 from dragonpy.utils.logging_utils import log
 
 
@@ -208,8 +208,10 @@ class DragonTkinterGUI(object):
         log.critical("variables: $%04x-$%04x", variables_start, variables_end)
         log.critical("array: $%04x-$%04x", array_start, array_end)
 
-        dump, start_addr, end_addr = self.response_comm.request_memory_dump(program_start, program_end)
-        log.critical("Program Dump: (%s)", ",".join(["0x%02x" % e for e in dump]))
+        dump, start_addr, end_addr = self.response_comm.request_memory_dump(
+            program_start, program_end
+        )
+        log_program_dump(dump)
 
         listing = BasicListing(self.cfg.BASIC_TOKENS)
         listing.load_from_dump(dump, program_start, program_end)
@@ -237,8 +239,20 @@ class DragonTkinterGUI(object):
         tkMessageBox.showinfo("TODO", "dump_program:\n%s" % "\n".join(lines))
 
     def load_program(self):
-        self.get_or_create_editor()
-        tkMessageBox.showinfo("TODO", "TODO: load!")
+        editor = self.get_or_create_editor()
+        basic_program_ascii = editor.get_ascii()
+        listing = BasicListing(self.cfg.BASIC_TOKENS)
+
+        listing.parse_ascii(basic_program_ascii)
+        listing.debug_listing()
+
+        program_start = 0x1e01
+
+        data = listing.get_ram_content(program_start)
+        log_program_dump(data)
+
+        result = self.response_comm.request_memory_load(program_start, data)
+        log.critical("program loaded: %s", result)
 
     def menu_event_about(self):
         tkMessageBox.showinfo("DragonPy",

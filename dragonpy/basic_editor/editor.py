@@ -11,13 +11,17 @@
 """
 
 import Tkinter
+import tkMessageBox
 
+from dragonpy.basic_editor.parser import BasicTokenUtil, BasicListing
 from dragonpy.utils.logging_utils import log
+
 
 class EditorWindow(object):
     def __init__(self, cfg, parent):
         self.cfg = cfg
         self.parent = parent
+
         self.root = Tkinter.Toplevel(self.parent)
         self.root.title("%s - BASIC Editor" % self.cfg.MACHINE_NAME)
 
@@ -35,6 +39,19 @@ class EditorWindow(object):
 
         scollbar.pack(side=Tkinter.RIGHT, fill=Tkinter.Y)
         self.text.pack(side=Tkinter.LEFT, fill=Tkinter.Y)
+
+
+        self.token_util = BasicTokenUtil(self.cfg.BASIC_TOKENS)
+        self.listing = BasicListing(self.cfg.BASIC_TOKENS)
+
+    def debug_display_tokens(self):
+        ascii = self.get_ascii()
+        self.listing.parse_ascii(ascii)
+        self.listing.debug_listing()
+        tkMessageBox.showinfo("TODO", "TODO: debug_display_tokens")
+
+    def get_ascii(self):
+        return self.text.get("1.0", Tkinter.END)
 
     def set_content(self, listing_ascii):
         log.critical("insert listing:")
