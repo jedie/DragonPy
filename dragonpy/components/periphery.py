@@ -11,11 +11,15 @@
 """
 
 import Queue
-import time
-import sys
 import httplib
-import threading
+import sys
 import thread
+import threading
+import time
+
+from dragonpy.utils import pager
+from dragonpy.utils.logging_utils import log
+
 
 try:
     import Tkinter
@@ -23,20 +27,21 @@ except Exception, err:
     print "Error importing Tkinter: %s" % err
     Tkinter = None
 
-from dragonpy.utils import pager
-from dragonpy.utils.logging_utils import log
 
 
 class PeripheryBase(object):
     INITAL_INPUT = None # For quick test
 
-    def __init__(self, cfg, memory):
+    def __init__(self, cfg, memory, user_input_queue=None):
         self.cfg = cfg
         self.memory = memory
         self.running = True
 
         self.output_queue = Queue.Queue() # Buffer for output from CPU
-        self.user_input_queue = Queue.Queue() # Buffer for input to send back to the CPU
+        if user_input_queue is None:
+            self.user_input_queue = Queue.Queue() # Buffer for input to send back to the CPU
+        else:
+            self.user_input_queue = user_input_queue
 
         self.update_time = 0.1
         self.last_cpu_cycle_update = time.time()
@@ -281,14 +286,14 @@ class PeripheryUnittestBase(object):
     def __init__(self, *args, **kwargs):
         super(PeripheryUnittestBase, self).__init__(*args, **kwargs)
         self._out_buffer = ""
-        self.out_lines = []
+        self.output_lines = []
 
     def _new_output_char(self, char):
 #        sys.stdout.write(char)
 #        sys.stdout.flush()
         self._out_buffer += char
         if char == "\n":
-            self.out_lines.append(self._out_buffer)
+            self.output_lines.append(self._out_buffer)
             self._out_buffer = ""
 
     def write_acia_data(self, cpu_cycles, op_address, address, value):

@@ -106,7 +106,7 @@ class Machine(object):
     """
     Non-Threaded Machine.
     """
-    def __init__(self, cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue, response_comm):
+    def __init__(self, cfg, periphery_class, display_queue, user_input_queue, cpu_status_queue, response_comm):
         self.cfg = cfg
         self.periphery_class = periphery_class
 
@@ -115,7 +115,7 @@ class Machine(object):
         self.display_queue = display_queue
 
         # Queue to send keyboard inputs to CPU Thread:
-        self.key_input_queue = key_input_queue
+        self.user_input_queue = user_input_queue
 
         # LifoQueue filles in CPU Thread with CPU-Cycles information:
         self.cpu_status_queue = cpu_status_queue
@@ -126,7 +126,7 @@ class Machine(object):
 
         memory = Memory(self.cfg)
         periphery = self.periphery_class(
-            self.cfg, memory, self.display_queue, self.key_input_queue
+            self.cfg, memory, self.display_queue, self.user_input_queue
         )
         self.cfg.periphery = periphery  # Needed?!?
 
@@ -165,11 +165,11 @@ class MachineThread(threading.Thread):
     """
     run machine in a seperated thread.
     """
-    def __init__(self, cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue, response_comm):
+    def __init__(self, cfg, periphery_class, display_queue, user_input_queue, cpu_status_queue, response_comm):
         super(MachineThread, self).__init__(name="CPU-Thread")
         log.critical(" *** MachineThread init *** ")
         self.machine = Machine(
-            cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue, response_comm
+            cfg, periphery_class, display_queue, user_input_queue, cpu_status_queue, response_comm
         )
 
     def run(self):
@@ -186,9 +186,9 @@ class MachineThread(threading.Thread):
 
 
 class ThreadedMachine(object):
-    def __init__(self, cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue, response_comm):
+    def __init__(self, cfg, periphery_class, display_queue, user_input_queue, cpu_status_queue, response_comm):
         self.cpu_thread = MachineThread(
-            cfg, periphery_class, display_queue, key_input_queue, cpu_status_queue, response_comm
+            cfg, periphery_class, display_queue, user_input_queue, cpu_status_queue, response_comm
         )
         self.cpu_thread.deamon = True
         self.cpu_thread.start()
@@ -215,7 +215,7 @@ def run_machine(ConfigClass, cfg_dict, PeripheryClass, GUI_Class):
     cpu_status_queue = Queue.LifoQueue(maxsize=1)  # CPU cyltes/sec information
 
     # Queue to send keyboard inputs from GUI to CPU Thread:
-    key_input_queue = Queue.Queue(maxsize=1024)
+    user_input_queue = Queue.Queue(maxsize=1024)
 
     # Queue which contains "write into Display RAM" information
     # for render them in DragonTextDisplayCanvas():
@@ -231,13 +231,13 @@ def run_machine(ConfigClass, cfg_dict, PeripheryClass, GUI_Class):
     log.critical("init GUI")
     # e.g. TkInter GUI
     gui = GUI_Class(
-        cfg, display_queue, key_input_queue, cpu_status_queue, req_communicator
+        cfg, display_queue, user_input_queue, cpu_status_queue, req_communicator
     )
 
     log.critical("init machine")
     # start CPU+Memory+Periphery in a separate thread
     machine = ThreadedMachine(
-        cfg, PeripheryClass, display_queue, key_input_queue, cpu_status_queue, response_comm
+        cfg, PeripheryClass, display_queue, user_input_queue, cpu_status_queue, response_comm
     )
 
     try:

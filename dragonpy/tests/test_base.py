@@ -19,6 +19,8 @@ import time
 import unittest
 
 import cPickle as pickle
+from dragonpy.Dragon32.config import Dragon32Cfg
+from dragonpy.Dragon32.periphery_dragon import Dragon32PeripheryUnittest
 from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809TestPeriphery
 from dragonpy.basic_editor.parser import format_program_dump
@@ -169,8 +171,11 @@ def print_cpu_state_data(state):
     print "cpu state data %r (ID:%i):" % (state.__class__.__name__, id(state))
     for k, v in sorted(state.items()):
         if k == "RAM":
-            v = ",".join(["$%x" % i for i in v])
-            print "\tSHA from RAM:", hashlib.sha224(v).hexdigest()
+            #v = ",".join(["$%x" % i for i in v])
+            print "\tSHA from RAM:", hashlib.sha224(repr(v)).hexdigest()
+            continue
+        if isinstance(v, int):
+            v = "$%x" % v
         print "\t%r: %s" % (k, v)
 
 
@@ -221,12 +226,12 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
             )
 
             # Check if machine is ready
-            assert cls.periphery.out_lines == [
+            assert cls.periphery.output_lines == [
                 '6809 EXTENDED BASIC\r\n',
                 '(C) 1982 BY MICROSOFT\r\n',
                 '\r\n',
                 'OK\r\n'
-            ], "Outlines are: %s" % repr(cls.periphery.out_lines)
+            ], "Outlines are: %s" % repr(cls.periphery.output_lines)
             # Save CPU state
             init_state = cpu.get_state()
             with open(cls.TEMP_FILE, "wb") as f:
@@ -243,7 +248,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
         """ restore CPU/Periphery state to a fresh startup. """
         self.periphery.user_input_queue = Queue.Queue()
         self.periphery.output_queue = Queue.Queue()
-        self.periphery.out_lines = []
+        self.periphery.output_lines = []
         self.cpu.set_state(self.__init_state)
 #         print_cpu_state_data(self.cpu.get_state())
 
@@ -253,7 +258,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
         existing_OK_count = 0
         for op_call_count in xrange(max_ops):
             self.cpu.get_and_call_next_op()
-            out_lines = self.periphery.out_lines
+            out_lines = self.periphery.output_lines
             if out_lines:
                 output += out_lines
                 if out_lines[-1] == "OK\r\n":
@@ -261,7 +266,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
                 if existing_OK_count >= OK_count:
                     cycles = self.cpu.cycles - old_cycles
                     return op_call_count, cycles, output
-                self.periphery.out_lines = []
+                self.periphery.output_lines = []
 
         msg = "ERROR: Abort after %i op calls (%i cycles)" % (
             op_call_count, (self.cpu.cycles - old_cycles)
@@ -316,9 +321,9 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
             )
 
             # Check if machine is ready
-            assert cls.periphery.out_lines == [
+            assert cls.periphery.output_lines == [
                 'Welcome to BUGGY version 1.0\r\n',
-            ], "Outlines are: %s" % repr(cls.periphery.out_lines)
+            ], "Outlines are: %s" % repr(cls.periphery.output_lines)
             # Save CPU state
             init_state = cpu.get_state()
             with open(cls.TEMP_FILE, "wb") as f:
@@ -335,7 +340,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         """ restore CPU/Periphery state to a fresh startup. """
         self.periphery.user_input_queue = Queue.Queue()
         self.periphery.output_queue = Queue.Queue()
-        self.periphery.out_lines = []
+        self.periphery.output_lines = []
         self.cpu.set_state(self.__init_state)
 #         print_cpu_state_data(self.cpu.get_state())
 
@@ -345,7 +350,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         existing_OK_count = 0
         for op_call_count in xrange(max_ops):
             self.cpu.get_and_call_next_op()
-            out_lines = self.periphery.out_lines
+            out_lines = self.periphery.output_lines
             if out_lines:
                 output += out_lines
                 if out_lines[-1] == "OK\r\n":
@@ -353,7 +358,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
                 if existing_OK_count >= OK_count:
                     cycles = self.cpu.cycles - old_cycles
                     return op_call_count, cycles, output
-                self.periphery.out_lines = []
+                self.periphery.output_lines = []
 
         msg = "ERROR: Abort after %i op calls (%i cycles)" % (
             op_call_count, (self.cpu.cycles - old_cycles)
@@ -365,13 +370,13 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         output = []
         for op_call_count in xrange(max_ops):
             self.cpu.get_and_call_next_op()
-            out_lines = self.periphery.out_lines
+            out_lines = self.periphery.output_lines
             if out_lines:
                 output += out_lines
                 if len(output) >= newline_count:
                     cycles = self.cpu.cycles - old_cycles
                     return op_call_count, cycles, output
-                self.periphery.out_lines = []
+                self.periphery.output_lines = []
 
         msg = "ERROR: Abort after %i op calls (%i cycles) newline count: %i" % (
             op_call_count, (self.cpu.cycles - old_cycles), len(output)
@@ -379,3 +384,94 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         msg += "\nOutput so far: %s\n" % pprint.pformat(output)
         raise self.failureException(msg)
 
+
+
+class Test6809_Dragon32_Base(BaseCPUTestCase):
+    """
+    Run tests with the Dragon32 ROM.
+    """
+    TEMP_FILE = os.path.join(
+        tempfile.gettempdir(),
+        "DragonPy_Dragon32_unittests.dat"
+    )
+
+    @classmethod
+    def setUpClass(cls, cmd_args=None):
+        """
+        prerun ROM to complete initiate and ready for user input.
+        save the CPU state to speedup unittest
+        """
+        super(Test6809_Dragon32_Base, cls).setUpClass()
+
+        print "CPU state pickle file: %r" % cls.TEMP_FILE
+#         os.remove(cls.TEMP_FILE);print "Delete CPU date file!"
+
+        cfg = Dragon32Cfg(cls.UNITTEST_CFG_DICT)
+
+        memory = Memory(cfg)
+
+        cls.periphery = Dragon32PeripheryUnittest(cfg, memory)
+        cfg.periphery = cls.periphery
+
+        cpu = CPU(memory, cfg)
+        memory.cpu = cpu # FIXME
+        cpu.reset()
+        cls.cpu = cpu
+
+#        os.remove(cls.TEMP_FILE)
+        try:
+            temp_file = open(cls.TEMP_FILE, "rb")
+        except IOError:
+            print "init machine..."
+            init_start = time.time()
+            cpu.test_run(
+                start=cpu.program_counter.get(),
+                end=cfg.STARTUP_END_ADDR,
+            )
+            duration = time.time() - init_start
+            print "done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
+                duration, float(cpu.cycles / duration), cpu.cycles
+            )
+            # Check if machine is ready
+            assert cls.periphery.output_lines[-4:] == [
+                u'(C) 1982 DRAGON DATA LTD',
+                u'16K BASIC INTERPRETER 1.0',
+                u'(C) 1982 BY MICROSOFT',
+                u''
+            ]
+            # Save CPU state
+            init_state = cpu.get_state()
+            with open(cls.TEMP_FILE, "wb") as f:
+                pickle.dump(init_state, f)
+                print "Save CPU init state to: %r" % cls.TEMP_FILE
+            cls.__init_state = init_state
+        else:
+            print "Load CPU init state from: %r" % cls.TEMP_FILE
+            cls.__init_state = pickle.load(temp_file)
+
+#        print_cpu_state_data(cls.__init_state)
+
+    def setUp(self):
+        """ restore CPU/Periphery state to a fresh startup. """
+        self.periphery.setUp()
+        self.cpu.set_state(self.__init_state)
+#        print_cpu_state_data(self.cpu.get_state())
+
+    def _run_until_OK(self, OK_count=1, max_ops=5000):
+        old_cycles = self.cpu.cycles
+        output = []
+        existing_OK_count = 0
+        for op_call_count in xrange(max_ops):
+            self.cpu.get_and_call_next_op()
+
+            output_lines = self.periphery.output_lines
+            if output_lines[-1] == "OK":
+                existing_OK_count += 1
+            if existing_OK_count >= OK_count:
+                cycles = self.cpu.cycles - old_cycles
+                return op_call_count, cycles, self.periphery.striped_output()
+
+        msg = "ERROR: Abort after %i op calls (%i cycles)" % (
+            op_call_count, (self.cpu.cycles - old_cycles)
+        )
+        raise self.failureException(msg)

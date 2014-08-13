@@ -1,4 +1,4 @@
 #!/bin/bash
 
 set -x
-pypy -m unittest discover
+python2 -m unittest discover

@@ -54,6 +54,9 @@ class Dragon32Cfg(BaseConfig):
         "d32.rom"
     )
 
+    # for unittests init:
+    STARTUP_END_ADDR = 0xbbe5 # scan keyboard
+
     BASIC_TOKENS = BASIC_TOKENS
 
     def __init__(self, cmd_args):

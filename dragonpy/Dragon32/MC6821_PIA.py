@@ -41,7 +41,7 @@ class PIA_register(object):
         self.irq = 0x0
 
     def set(self, value):
-        log.debug("\t set %s to $%02x", self.name, value)
+#        log.debug("\t set %s to $%02x", self.name, value)
         self.value = value
 
     def get(self):
@@ -66,23 +66,17 @@ class PIA(object):
     PIA0 - Keyboard, Joystick
     PIA1 - Printer, Cassette, 6-Bit DAC, Sound Mux
     """
-    def __init__(self, cfg, memory, key_input_queue):
+    def __init__(self, cfg, memory, user_input_queue):
         self.cfg = cfg
         self.memory = memory
-        self.key_input_queue = key_input_queue
+        self.user_input_queue = user_input_queue
 
         self.pia_0_A_register = PIA_register("PIA0 A")
         self.pia_0_B_register = PIA_register("PIA0 B")
         self.pia_1_A_register = PIA_register("PIA1 A")
         self.pia_1_B_register = PIA_register("PIA1 B")
 
-        self.empty_key_toggle = True
-#         for char in 'AAABBBCCC111222':self.key_input_queue.put(char)
-#         for char in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ':self.key_input_queue.put(char)
-#         for char in 'PRINT "HELLO WORLD!"\r':self.key_input_queue.put(char)
-        self.current_input_char = None
-
-        self.input_repead = 0
+        self.internal_reset()
 
         #
         # TODO: Collect this information via a decorator similar to op codes in CPU!
@@ -134,14 +128,23 @@ class PIA(object):
         self.pia_1_A_register.reset()
         self.pia_1_B_register.reset()
 
+    def internal_reset(self):
+        """
+        internal state reset.
+        used e.g. in unittests
+        """
+        self.empty_key_toggle = True
+        self.current_input_char = None
+        self.input_repead = 0
+
     #--------------------------------------------------------------------------
 
     def key_down(self, char_or_code, block=False):
         log.error(
             "Add user key down %r to PIA input queue.", repr(char_or_code))
-        self.key_input_queue.put(char_or_code, block=False)
+        self.user_input_queue.put(char_or_code, block=False)
 #         try:
-#             self.key_input_queue.put(char_or_code, block=block)
+#             self.user_input_queue.put(char_or_code, block=block)
 #         except Queue.Full:
 #             log.log(level=99,
 #                 msg="Ignore key press %s, because input queue is full!" % repr(char_or_code)
@@ -221,17 +224,17 @@ class PIA(object):
 
         # FIXME: Find a way to handle CoCo and Dragon in the same way!
         if self.cfg.CONFIG_NAME == COCO:
-            #             log.critical("\t count: %i", self.input_repead)
+#            log.critical("\t count: %i", self.input_repead)
             if self.input_repead == 7:
                 try:
-                    self.current_input_char = self.key_input_queue.get_nowait()
+                    self.current_input_char = self.user_input_queue.get_nowait()
                 except Queue.Empty:
                     self.current_input_char = None
                 else:
                     log.critical(
                         "\tget new key from queue: %s", repr(self.current_input_char))
             elif self.input_repead == 18:
-                #                 log.critical("\tForce send 'no key pressed'")
+#                log.critical("\tForce send 'no key pressed'")
                 self.current_input_char = None
             elif self.input_repead > 20:
                 self.input_repead = 0
@@ -247,7 +250,7 @@ class PIA(object):
                     #
                     # Here with the empty_key_toggle, we always send a "no key pressed"
                     # after every key press back and then we send the next key from
-                    # the self.key_input_queue
+                    # the self.user_input_queue
                     #
                     # TODO: We can check the row of the previous key press and only
                     # force a 'no key pressed' if the row is the same
@@ -256,20 +259,20 @@ class PIA(object):
 #                     log.critical("\tForce send 'no key pressed'")
                 else:
                     try:
-                        self.current_input_char = self.key_input_queue.get_nowait()
+                        self.current_input_char = self.user_input_queue.get_nowait()
                     except Queue.Empty:
-                        #                     log.critical("\tinput_queue is empty")
+#                        log.critical("\tinput_queue is empty"))
                         self.current_input_char = None
                     else:
-                        #                         log.critical("\tget new key from queue: %s", repr(self.current_input_char))
+#                        log.critical("\tget new key from queue: %s", repr(self.current_input_char))
                         self.empty_key_toggle = True
 
         if self.current_input_char is None:
-            #             log.critical("\tno key pressed")
+#            log.critical("\tno key pressed")
             result = 0xff
             self.empty_key_toggle = False
         else:
-            #             log.critical("\tsend %s", repr(self.current_input_char))
+#            log.critical("\tsend %s", repr(self.current_input_char))
             result = self.cfg.pia_keymatrix_result(
                 self.current_input_char, pia0b)
 
@@ -346,20 +349,20 @@ class PIA(object):
         """
         pia0b = self.pia_0_B_register.get()  # $ff02
         result = pia0b
-        log.error(
-            "%04x| read $%04x (PIA 0 B side Data reg.) send $%02x back.\t|%s",
-            op_address, address, result, self.cfg.mem_info.get_shortest(op_address)
-        )
+#        log.error(
+#            "%04x| read $%04x (PIA 0 B side Data reg.) send $%02x back.\t|%s",
+#            op_address, address, result, self.cfg.mem_info.get_shortest(op_address)
+#        )
         return result
 
     def write_PIA0_B_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff02 -> PIA 0 B side Data reg. """
 #         log.critical(
-        log.info(
-            "%04x| write $%02x %s to $%04x -> PIA 0 B side Data reg.\t|%s",
-            op_address, value, '{0:08b}'.format(value),
-            address, self.cfg.mem_info.get_shortest(op_address)
-        )
+#        log.info(
+#            "%04x| write $%02x %s to $%04x -> PIA 0 B side Data reg.\t|%s",
+#            op_address, value, '{0:08b}'.format(value),
+#            address, self.cfg.mem_info.get_shortest(op_address)
+#        )
         self.pia_0_B_register.set(value)
 
     def read_PIA0_B_control(self, cpu_cycles, op_address, address):

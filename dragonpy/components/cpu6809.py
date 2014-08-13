@@ -21,15 +21,15 @@
     more info, see README
 """
 
+import Queue
 import inspect
 import os
 import socket
 import sys
+import thread
 import threading
 import time
 import warnings
-import Queue
-import thread
 
 from dragonpy.MC6809data.MC6809_data_raw2 import (
     OP_DATA, REG_A, REG_B, REG_CC, REG_D, REG_DP, REG_PC,
@@ -41,8 +41,8 @@ from dragonpy.cpu_utils.MC6809_registers import (
     ValueStorage16Bit, ConditionCodeRegister, UndefinedRegister
 )
 from dragonpy.cpu_utils.instruction_caller import OpCollection
-from dragonpy.utils.byte_word_values import signed8, signed16, signed5
 from dragonpy.utils.bits import is_bit_set, get_bit
+from dragonpy.utils.byte_word_values import signed8, signed16, signed5
 from dragonpy.utils.logging_utils import log
 from dragonpy.utils.simple_debugger import print_exc_plus
 

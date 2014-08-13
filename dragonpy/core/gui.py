@@ -105,7 +105,7 @@ class DragonTkinterGUI(object):
     """
     The complete Tkinter GUI window
     """
-    def __init__(self, cfg, display_queue, key_input_queue, cpu_status_queue, response_comm):
+    def __init__(self, cfg, display_queue, user_input_queue, cpu_status_queue, response_comm):
         self.cfg = cfg
 
         # Queue which contains "write into Display RAM" information
@@ -113,7 +113,7 @@ class DragonTkinterGUI(object):
         self.display_queue = display_queue
 
         # Queue to send keyboard inputs to CPU Thread:
-        self.key_input_queue = key_input_queue
+        self.user_input_queue = user_input_queue
 
         # LifoQueue filles in CPU Thread with CPU-Cycles information:
         self.cpu_status_queue = cpu_status_queue
@@ -283,12 +283,12 @@ class DragonTkinterGUI(object):
         for line in clipboard.splitlines():
             log.critical("paste line: %s", repr(line))
             for char in line:
-                self.key_input_queue.put(char)
-            self.key_input_queue.put("\r")
+                self.user_input_queue.put(char)
+            self.user_input_queue.put("\r")
 
     def event_key_pressed(self, event):
         char_or_code = event.char or event.keycode
-        self.key_input_queue.put(char_or_code)
+        self.user_input_queue.put(char_or_code)
 
     def display_cpu_status_interval(self, interval):
         """
