@@ -34,3 +34,37 @@ def signed16(x):
     if x > 0x7fff: # 0x7fff ==  2**15-1 == 32767
         x = x - 0x10000 # 0x100 == 2**16 == 65536
     return x
+
+
+def word2bytes(value):
+    """
+    >>> word2bytes(0xff09)
+    (255, 9)
+
+    >>> [hex(i) for i in word2bytes(0xffab)]
+    ['0xff', '0xab']
+
+    >>> word2bytes(0xffff +1)
+    Traceback (most recent call last):
+    ...
+    AssertionError
+    """
+    assert 0 <= value <= 0xffff
+    return (value >> 8, value & 0xff)
+
+
+def bytes2word(byte_list):
+    """
+    >>> bytes2word([0xff,0xab])
+    65451
+
+    >>> hex(bytes2word([0xff,0xab]))
+    '0xffab'
+    """
+    assert len(byte_list) == 2
+    return (byte_list[0] << 8) + byte_list[1]
+
+
+if __name__ == "__main__":
+    import doctest
+    print doctest.testmod(verbose=0)

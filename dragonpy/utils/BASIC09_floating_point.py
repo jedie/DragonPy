@@ -11,7 +11,7 @@
 import math
 import decimal
 
-from dragonpy.cpu_utils.signed import unsigned8, signed16
+from dragonpy.utils.byte_word_values import unsigned8, signed16
 
 
 class BASIC09FloatingPoint(object):

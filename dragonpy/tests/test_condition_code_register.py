@@ -14,7 +14,7 @@ import sys
 
 from test_base import BaseTestCase
 from dragonpy.tests.test_base import TextTestRunner2
-from dragonpy.cpu_utils.signed import signed8
+from dragonpy.utils.byte_word_values import signed8
 
 
 class CCTestCase(BaseTestCase):
