@@ -40,11 +40,11 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
         self.assertEqual(cycles, 316144) # TODO: cycles are probably not set corrent in CPU, yet!
 
     def test_poke(self):
-        self.periphery.add_to_input_queue('POKE &H05ff,64\r\n')
+        self.periphery.add_to_input_queue('POKE &H05ff,88\r\n')
         op_call_count, cycles, output = self._run_until_OK(max_ops=114000)
 #        print op_call_count, cycles, output
         self.assertEqual(output,
-            [u'POKE &H05FF,64', u'OK', u'@']
+            [u'POKE &H05FF,88', u'OK', u'X']
         )
 
 
