@@ -62,7 +62,7 @@ class Console6809Periphery(Simple6809PeripheryBase):
         super(Console6809Periphery, self).write_acia_data(cpu_cycles, op_address, address, value)
         while True:
             try:
-                char = self.output_queue.get(block=False)
+                char = self.display_queue.get(block=False)
             except Queue.Empty:
                 break
             else:

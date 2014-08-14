@@ -13,13 +13,14 @@ import hashlib
 import logging
 import os
 import pprint
-import sys
 import tempfile
 import time
 import unittest
 
 import cPickle as pickle
 from dragonpy.Dragon32.config import Dragon32Cfg
+from dragonpy.Dragon32.machine import Machine, CommunicatorRequest, \
+    CommunicatorResponse
 from dragonpy.Dragon32.periphery_dragon import Dragon32PeripheryUnittest
 from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809TestPeriphery
@@ -93,7 +94,7 @@ class BaseCPUTestCase(BaseTestCase):
         "bus_socket_port":None,
         "ram":None,
         "rom":None,
-
+        "max_ops":None,
         "use_bus":False,
     }
     def setUp(self):
@@ -247,7 +248,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
     def setUp(self):
         """ restore CPU/Periphery state to a fresh startup. """
         self.periphery.user_input_queue = Queue.Queue()
-        self.periphery.output_queue = Queue.Queue()
+        self.periphery.display_queue = Queue.Queue()
         self.periphery.output_lines = []
         self.cpu.set_state(self.__init_state)
 #         print_cpu_state_data(self.cpu.get_state())
@@ -339,7 +340,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
     def setUp(self):
         """ restore CPU/Periphery state to a fresh startup. """
         self.periphery.user_input_queue = Queue.Queue()
-        self.periphery.output_queue = Queue.Queue()
+        self.periphery.display_queue = Queue.Queue()
         self.periphery.output_lines = []
         self.cpu.set_state(self.__init_state)
 #         print_cpu_state_data(self.cpu.get_state())
@@ -384,6 +385,26 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         msg += "\nOutput so far: %s\n" % pprint.pformat(output)
         raise self.failureException(msg)
 
+#-----------------------------------------------------------------------------
+
+
+class UnittestCommunicatorRequest(CommunicatorRequest):
+    """
+    Used in unittests:
+    Create a request, but doesn't block until response exists
+    """
+    def __init__(self, cfg):
+        super(UnittestCommunicatorRequest, self).__init__(cfg)
+
+    def add_response_comm(self, response_comm):
+        self.response_comm = response_comm
+
+    def _request(self, *args):
+        log.critical("request: %s", repr(args))
+        self.request_queue.put(args)
+        self.response_comm.do_response()
+        return self.response_queue.get(block=False)
+
 
 DRAGON32ROM_EXISTS = os.path.isfile(Dragon32Cfg.DEFAULT_ROM)
 
@@ -410,16 +431,27 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
 
         cfg = Dragon32Cfg(cls.UNITTEST_CFG_DICT)
 
-        memory = Memory(cfg)
+        cls.user_input_queue = Queue.Queue()
+        cls.display_queue = Queue.Queue()
 
-        cls.periphery = Dragon32PeripheryUnittest(cfg, memory)
+#        cls.request_comm = CommunicatorRequest(cfg)
+        cls.request_comm = UnittestCommunicatorRequest(cfg)
+        cls.request_queue, cls.response_queue = cls.request_comm.get_queues()
+        cls.response_comm = CommunicatorResponse(cls.request_queue, cls.response_queue)
+
+        cls.request_comm.add_response_comm(cls.response_comm)
+
+        cls.machine = Machine(
+            cfg,
+            periphery_class=Dragon32PeripheryUnittest,
+            display_queue=cls.display_queue,
+            user_input_queue=cls.user_input_queue,
+            cpu_status_queue=None, # CPU should not start seperate thread for this
+            response_comm=cls.response_comm,
+        )
+        cls.cpu = cls.machine.cpu
+        cls.periphery = cls.machine.periphery
         cls.periphery.setUp()
-        cfg.periphery = cls.periphery
-
-        cpu = CPU(memory, cfg)
-        memory.cpu = cpu # FIXME
-        cpu.reset()
-        cls.cpu = cpu
 
 #        os.remove(cls.TEMP_FILE)
         try:
@@ -427,13 +459,13 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
         except IOError:
             print "init machine..."
             init_start = time.time()
-            cpu.test_run(
-                start=cpu.program_counter.get(),
+            cls.cpu.test_run(
+                start=cls.cpu.program_counter.get(),
                 end=cfg.STARTUP_END_ADDR,
             )
             duration = time.time() - init_start
             print "done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
-                duration, float(cpu.cycles / duration), cpu.cycles
+                duration, float(cls.cpu.cycles / duration), cls.cpu.cycles
             )
 
             # Check if machine is ready
@@ -445,7 +477,7 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
                 u'', u'OK'
             ]
             # Save CPU state
-            init_state = cpu.get_state()
+            init_state = cls.cpu.get_state()
             with open(cls.TEMP_FILE, "wb") as f:
                 pickle.dump(init_state, f)
                 print "Save CPU init state to: %r" % cls.TEMP_FILE
@@ -475,6 +507,23 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
             if existing_OK_count >= OK_count:
                 cycles = self.cpu.cycles - old_cycles
                 return op_call_count, cycles, self.periphery.striped_output()
+
+        msg = "ERROR: Abort after %i op calls (%i cycles)" % (
+            op_call_count, (self.cpu.cycles - old_cycles)
+        )
+        raise self.failureException(msg)
+
+    def _run_until_response(self, max_ops=10000):
+        old_cycles = self.cpu.cycles
+        for op_call_count in xrange(max_ops):
+            self.cpu.get_and_call_next_op()
+            try:
+                result = self.response_queue.get(block=False)
+            except Queue.Empty:
+                continue
+            else:
+                cycles = self.cpu.cycles - old_cycles
+                return op_call_count, cycles, result
 
         msg = "ERROR: Abort after %i op calls (%i cycles)" % (
             op_call_count, (self.cpu.cycles - old_cycles)

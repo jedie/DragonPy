@@ -37,7 +37,7 @@ class PeripheryBase(object):
         self.memory = memory
         self.running = True
 
-        self.output_queue = Queue.Queue() # Buffer for output from CPU
+        self.display_queue = Queue.Queue() # Buffer for output from CPU
         if user_input_queue is None:
             self.user_input_queue = Queue.Queue() # Buffer for input to send back to the CPU
         else:
@@ -204,7 +204,7 @@ class TkPeripheryBase(PeripheryBase):
 
         while True:
             try:
-                char = self.output_queue.get(block=False)
+                char = self.display_queue.get(block=False)
             except Queue.Empty:
                 break
             else:
@@ -301,7 +301,7 @@ class PeripheryUnittestBase(object):
 
         while True:
             try:
-                char = self.output_queue.get(block=False)
+                char = self.display_queue.get(block=False)
             except Queue.Empty:
                 break
             else:

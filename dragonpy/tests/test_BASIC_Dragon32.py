@@ -46,6 +46,21 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
         self.assertEqual(output,
             [u'POKE &H05FF,88', u'OK', u'X']
         )
+    
+    def test_code_load(self):
+        self.periphery.add_to_input_queue(
+            '10A=1\r\n'
+            '20B=2\r\n'
+            'LIST\r\n'
+        )
+        op_call_count, cycles, output = self._run_until_OK(max_ops=143000)
+#        print op_call_count, cycles, output
+        self.assertEqual(output,
+            [u'10A=1', u'20B=2', u'LIST', u'10 A=1', u'20 B=2', u'OK']
+        )
+        output = self.request_comm.get_basic_program()
+        self.assertEqual(output, ['10 A=1', '20 B=2'])
+
 
 
 if __name__ == '__main__':
@@ -61,14 +76,7 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-#             "Test_Dragon32_BASIC.test_print01",
-
-#             "Test_Dragon32_BASIC_Float1",
-#             "Test_Dragon32_BASIC_NumericFunctions",
-#             "Test_Dragon32_BASIC_Float2",
-#            "Test_Dragon32_BASIC_Float2.test_divide_FPA0_by_10",
-#            "Test_Dragon32_BASIC_Float2.test_FPA0_to_D",
-#            "Test_Dragon32_BASIC_Float2.test_division",
+            "Test_Dragon32_BASIC.test_code_load",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,

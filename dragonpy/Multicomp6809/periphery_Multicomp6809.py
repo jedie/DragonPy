@@ -78,7 +78,7 @@ class Multicomp6809PeripheryBase(PeripheryBase):
             char = chr(value)
 #            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
 
-        self.output_queue.put(char)
+        self.display_queue.put(char)
 
 
 

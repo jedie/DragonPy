@@ -105,7 +105,7 @@ class DragonTkinterGUI(object):
     """
     The complete Tkinter GUI window
     """
-    def __init__(self, cfg, display_queue, user_input_queue, cpu_status_queue, response_comm):
+    def __init__(self, cfg, display_queue, user_input_queue, cpu_status_queue, request_comm):
         self.cfg = cfg
 
         # Queue which contains "write into Display RAM" information
@@ -118,7 +118,7 @@ class DragonTkinterGUI(object):
         # LifoQueue filles in CPU Thread with CPU-Cycles information:
         self.cpu_status_queue = cpu_status_queue
 
-        self.response_comm = response_comm
+        self.request_comm = request_comm
 
         self.last_cpu_cycles = 0
         self.last_cpu_cycle_update = time.time()
@@ -173,59 +173,14 @@ class DragonTkinterGUI(object):
         return self._editor_window
 
     def dump_program(self):
-        """
-130 PS=0 'Program Start
-140 PE=0 'Program End
-150 VS=0 'Variables Start
-160 VE=0 'Variables End
-170 AS=0 'Array Start
-180 AE=0 'Array End
-190 DA=0 'Dump Address
-200 NA=0 'Next Address
-210 DV=0 'Device number
-220 DBYTE=0:AN$="":SBYTE=0
-230 R=0:H3=0:H2=0:H1=0:H0=0
-240 PA=&H19
-250 PS=FNW(PA) '19:1A contain PS address
-260 VS=FNW(PA+2) '1B:1C contain VS address
-270 AS=FNW(PA+4) '1D:1E contain AS address
-280 PE=VS-1 'Variables are after program
-290 VE=AS-1 'Arrays are after variables
-300 AE=FNW(PA+6)-1 '1F:20 holds free space address
-        """
-        addresses = range(0x0019, 0x0020 + 1, 2)
-        result = self.response_comm.request_words(addresses)
-        log.critical(repr(result))
-        program_start = result[0x0019]
-        variables_start = result[0x001B]
-        array_start = result[0x001D]
-        free_space_start = result[0x001F]
-        program_end = variables_start - 1
-        variables_end = array_start - 1
-        array_end = free_space_start - 1
-
-        log.critical("programm code: $%04x-$%04x", program_start, program_end)
-        log.critical("variables: $%04x-$%04x", variables_start, variables_end)
-        log.critical("array: $%04x-$%04x", array_start, array_end)
-
-        dump, start_addr, end_addr = self.response_comm.request_memory_dump(
-            program_start, program_end
-        )
-        log_program_dump(dump)
-
-        listing = BasicListing(self.cfg.BASIC_TOKENS)
-        listing.load_from_dump(dump, program_start, program_end)
-        listing.debug_listing()
-
+        listing_ascii = self.request_comm.get_basic_program()
         editor_window = self.get_or_create_editor()
-        listing_ascii = listing.get_ascii()
-        log.critical("Listing in ASCII:\n%s", "\n".join(listing_ascii))
         editor_window.set_content(listing_ascii)
 
     def dump_rnd(self):
         start_addr = 0x0019
         end_addr = 0x0020
-        dump, start_addr, end_addr = self.response_comm.request_memory_dump(
+        dump, start_addr, end_addr = self.request_comm.request_memory_dump(
 #            start_addr=0x0115, end_addr=0x0119 # RND seed
             start_addr, end_addr
         )
@@ -251,7 +206,7 @@ class DragonTkinterGUI(object):
         data = listing.get_ram_content(program_start)
         log_program_dump(data)
 
-        result = self.response_comm.request_memory_load(program_start, data)
+        result = self.request_comm.request_memory_load(program_start, data)
         log.critical("program loaded: %s", result)
 
     def menu_event_about(self):

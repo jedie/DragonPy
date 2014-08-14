@@ -14,6 +14,7 @@ import Queue
 import thread
 import threading
 
+from dragonpy.basic_editor.parser import log_program_dump, BasicListing
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
 from dragonpy.utils.logging_utils import log
@@ -27,7 +28,12 @@ class BaseCommunicator(object):
 
 
 class CommunicatorRequest(BaseCommunicator):
-    def __init__(self):
+    """
+    Useable only with ThreadedMachine, because every request block until
+    the response was created.
+    """
+    def __init__(self, cfg):
+        self.cfg = cfg
         self.request_queue = Queue.Queue(maxsize=1)
         self.response_queue = Queue.Queue(maxsize=1)
 
@@ -53,6 +59,35 @@ class CommunicatorRequest(BaseCommunicator):
     def request_words(self, addresses):
         return self._request(self.MEMORY_WORDS, addresses)
         
+    def get_basic_program(self):
+        addresses = range(0x0019, 0x0020 + 1, 2)
+        result = self.request_words(addresses)
+        log.critical(repr(result))
+        program_start = result[0x0019]
+        variables_start = result[0x001B]
+        array_start = result[0x001D]
+        free_space_start = result[0x001F]
+        program_end = variables_start - 1
+        variables_end = array_start - 1
+        array_end = free_space_start - 1
+
+        log.critical("programm code: $%04x-$%04x", program_start, program_end)
+        log.critical("variables: $%04x-$%04x", variables_start, variables_end)
+        log.critical("array: $%04x-$%04x", array_start, array_end)
+
+        dump, start_addr, end_addr = self.request_memory_dump(
+            program_start, program_end
+        )
+        log_program_dump(dump)
+
+        listing = BasicListing(self.cfg.BASIC_TOKENS)
+        listing.load_from_dump(dump, program_start, program_end)
+        listing.debug_listing()
+
+        listing_ascii = listing.get_ascii()
+        log.critical("Listing in ASCII:\n%s", "\n".join(listing_ascii))
+        return listing_ascii
+
 
 class CommunicatorResponse(BaseCommunicator):
     def __init__(self, request_queue, response_queue):
@@ -125,10 +160,9 @@ class Machine(object):
         self.burst_count=1000
 
         memory = Memory(self.cfg)
-        periphery = self.periphery_class(
+        self.periphery = self.periphery_class(
             self.cfg, memory, self.display_queue, self.user_input_queue
         )
-        self.cfg.periphery = periphery  # Needed?!?
 
         self.cpu = CPU(memory, self.cfg, self.cpu_status_queue)
         memory.cpu = self.cpu  # FIXME
@@ -152,10 +186,6 @@ class Machine(object):
                 if op_count >= self.max_ops:
                     log.critical("Quit CPU after given 'max_ops' %i ops.", self.max_ops)
                     break
-                
-
-                
-
 
     def quit(self):
         self.cpu.running = False
@@ -221,17 +251,16 @@ def run_machine(ConfigClass, cfg_dict, PeripheryClass, GUI_Class):
     # for render them in DragonTextDisplayCanvas():
     display_queue = Queue.Queue(maxsize=64)
 
-    
     # Queue to send from GUI a request to the CPU/Memory
     # and send the response back to the GUI
-    req_communicator = CommunicatorRequest()
-    request_queue, response_queue = req_communicator.get_queues()
+    request_comm = CommunicatorRequest(cfg)
+    request_queue, response_queue = request_comm.get_queues()
     response_comm = CommunicatorResponse(request_queue, response_queue)
 
     log.critical("init GUI")
     # e.g. TkInter GUI
     gui = GUI_Class(
-        cfg, display_queue, user_input_queue, cpu_status_queue, req_communicator
+        cfg, display_queue, user_input_queue, cpu_status_queue, request_comm
     )
 
     log.critical("init machine")

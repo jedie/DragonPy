@@ -15,7 +15,6 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import Queue
 import os
 import sys
 
@@ -96,8 +95,9 @@ class DragonDisplayOutputHandler(object):
 #------------------------------------------------------------------------------
 
 class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
-    def __init__(self, cfg, memory):
-        self.user_input_queue = Queue.Queue()
+    def __init__(self, cfg, memory, display_queue, user_input_queue):
+        self.display_queue = display_queue
+        self.user_input_queue = user_input_queue
         super(Dragon32PeripheryUnittest, self).__init__(cfg, memory, self.user_input_queue)
 
         self.rows = 32
@@ -113,7 +113,7 @@ class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
     def setUp(self):
         self.pia.internal_reset()
         self.user_input_queue.queue.clear()
-        self.output_queue.queue.clear()
+        self.display_queue.queue.clear()
         self.old_columns = None
         self.output_lines = [""] # for unittest run_until_OK()
         self.display_buffer = {} # for striped_output()
