@@ -385,7 +385,9 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         raise self.failureException(msg)
 
 
+DRAGON32ROM_EXISTS = os.path.isfile(Dragon32Cfg.DEFAULT_ROM)
 
+@unittest.skipUnless(DRAGON32ROM_EXISTS, "No Dragon 32 ROM file: %r" % Dragon32Cfg.DEFAULT_ROM)
 class Test6809_Dragon32_Base(BaseCPUTestCase):
     """
     Run tests with the Dragon32 ROM.
