@@ -413,6 +413,7 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
         memory = Memory(cfg)
 
         cls.periphery = Dragon32PeripheryUnittest(cfg, memory)
+        cls.periphery.setUp()
         cfg.periphery = cls.periphery
 
         cpu = CPU(memory, cfg)
@@ -434,12 +435,14 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
             print "done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
                 duration, float(cpu.cycles / duration), cpu.cycles
             )
+
             # Check if machine is ready
-            assert cls.periphery.output_lines[-4:] == [
+            output = cls.periphery.striped_output()[:5]
+            assert output == [
                 u'(C) 1982 DRAGON DATA LTD',
                 u'16K BASIC INTERPRETER 1.0',
                 u'(C) 1982 BY MICROSOFT',
-                u''
+                u'', u'OK'
             ]
             # Save CPU state
             init_state = cpu.get_state()
