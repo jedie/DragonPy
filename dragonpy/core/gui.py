@@ -17,12 +17,13 @@ import sys
 import time
 import tkMessageBox
 
+from basic_editor.editor import EditorWindow
+
 from dragonlib.utils.logging_utils import log
 
 from dragonpy.Dragon32 import dragon_charmap
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
-from dragonpy.basic_editor.editor import EditorWindow
 
 
 class MC6847_TextModeCanvas(object):

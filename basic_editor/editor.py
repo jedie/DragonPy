@@ -13,15 +13,26 @@
 import Tkinter
 import tkMessageBox
 
-from dragonlib.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log, format_program_dump
 
 
 class EditorWindow(object):
-    def __init__(self, cfg, parent):
+    def __init__(self, cfg, parent=None):
         self.cfg = cfg
-        self.parent = parent
+        if parent is None:
+            self.standalone_run = True
+        else:
+            self.parent = parent
+            self.standalone_run = False
 
-        self.root = Tkinter.Toplevel(self.parent)
+        self.machine_api = self.cfg.machine_api
+
+        if self.standalone_run:
+            self.root = Tkinter.Tk()
+        else:
+            # As sub window in DragonPy Emulator
+            self.root = Tkinter.Toplevel(self.parent)
+
         self.root.title("%s - BASIC Editor" % self.cfg.MACHINE_NAME)
 
         # http://www.tutorialspoint.com/python/tk_text.htm
@@ -42,7 +53,10 @@ class EditorWindow(object):
         menubar = Tkinter.Menu(self.root)
 
         filemenu = Tkinter.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Exit", command=self.root.quit)
+        filemenu.add_command(label="Load", command=self.load_file)
+        filemenu.add_command(label="Save", command=self.save_file)
+        if self.standalone_run:
+            filemenu.add_command(label="Exit", command=self.root.quit)
         menubar.add_cascade(label="File", menu=filemenu)
 
         editmenu = Tkinter.Menu(menubar, tearoff=0)
@@ -63,11 +77,16 @@ class EditorWindow(object):
         self.root.config(menu=menubar)
         self.root.update()
 
+    def load_file(self):
+        tkMessageBox.showinfo("TODO", "load file")
+    def save_file(self):
+        tkMessageBox.showinfo("TODO", "save file")
+
     def debug_display_tokens(self):
-        ascii = self.get_ascii()
-        self.listing.ascii_listing2basic_lines(ascii)
-        self.listing.debug_listing()
-        tkMessageBox.showinfo("TODO", "TODO: debug_display_tokens")
+        ascii_listing = self.get_ascii()
+        program_dump = self.machine_api.ascii_listing2program_dump(ascii_listing)
+        msg = format_program_dump(program_dump)
+        tkMessageBox.showinfo("Program Dump:", msg)
 
     def get_ascii(self):
         return self.text.get("1.0", Tkinter.END)
@@ -79,6 +98,10 @@ class EditorWindow(object):
             log.critical("\t%s", repr(line))
             self.text.insert(Tkinter.END, line)
         self.text.see(Tkinter.END)
+
+    def mainloop(self):
+        """ for standalone usage """
+        self.root.mainloop()
 
 
 def test():
@@ -95,8 +118,8 @@ def test():
     }
     from dragonpy.Dragon32.config import Dragon32Cfg
     cfg = Dragon32Cfg(CFG_DICT)
-    root = Tkinter.Tk()
-    editor_window = EditorWindow(cfg, root)
+
+    editor = EditorWindow(cfg)
 
     listing_ascii = (
         "10 CLS",
@@ -105,8 +128,8 @@ def test():
         "40 NEXT I",
         "50 I$ = INKEY$:IF I$="" THEN 50",
     )
-    editor_window.set_content(listing_ascii)
-    root.mainloop()
+    editor.set_content(listing_ascii)
+    editor.mainloop()
 
 if __name__ == "__main__":
     test()
