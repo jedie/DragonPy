@@ -10,7 +10,6 @@
 
 import Queue
 import hashlib
-import logging
 import os
 import pprint
 import tempfile
@@ -18,72 +17,21 @@ import time
 import unittest
 
 import cPickle as pickle
+from dragonlib.tests.test_base import BaseTestCase
+from dragonlib.utils.logging_utils import log
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.machine import Machine, CommunicatorRequest, \
     CommunicatorResponse
 from dragonpy.Dragon32.periphery_dragon import Dragon32PeripheryUnittest
 from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809TestPeriphery
-from dragonpy.basic_editor.parser import format_program_dump
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
 from dragonpy.cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
 from dragonpy.sbc09.config import SBC09Cfg
-from dragonpy.sbc09.periphery import SBC09PeripheryConsole, \
-    SBC09PeripheryUnittest
+from dragonpy.sbc09.periphery import SBC09PeripheryUnittest
 from dragonpy.tests.test_config import TestCfg
-from dragonpy.utils.logging_utils import setup_logging
 
-
-log = logging.getLogger("DragonPy")
-
-
-class BaseTestCase(unittest.TestCase):
-    """
-    Only some special assertments.
-    """
-    def assertHexList(self, first, second, msg=None):
-        first = ["$%x" % value for value in first]
-        second = ["$%x" % value for value in second]
-        self.assertEqual(first, second, msg)
-
-    def assertEqualHex(self, hex1, hex2, msg=None):
-        first = "$%x" % hex1
-        second = "$%x" % hex2
-        if msg is None:
-            msg = "%s != %s" % (first, second)
-        self.assertEqual(first, second, msg)
-
-    def assertIsByteRange(self, value):
-        self.assertTrue(0x0 <= value, "Value (dez: %i - hex: %x) is negative!" % (value, value))
-        self.assertTrue(0xff >= value, "Value (dez: %i - hex: %x) is greater than 0xff!" % (value, value))
-
-    def assertIsWordRange(self, value):
-        self.assertTrue(0x0 <= value, "Value (dez: %i - hex: %x) is negative!" % (value, value))
-        self.assertTrue(0xffff >= value, "Value (dez: %i - hex: %x) is greater than 0xffff!" % (value, value))
-
-    def assertEqualHexByte(self, hex1, hex2, msg=None):
-        self.assertIsByteRange(hex1)
-        self.assertIsByteRange(hex2)
-        first = "$%02x" % hex1
-        second = "$%02x" % hex2
-        if msg is None:
-            msg = "%s != %s" % (first, second)
-        self.assertEqual(first, second, msg)
-
-    def assertEqualHexWord(self, hex1, hex2, msg=None):
-        self.assertIsWordRange(hex1)
-        self.assertIsWordRange(hex2)
-        first = "$%04x" % hex1
-        second = "$%04x" % hex2
-        if msg is None:
-            msg = "%s != %s" % (first, second)
-        self.assertEqual(first, second, msg)
-    
-    def assertEqualProgramDump(self, first, second, msg=None):
-        first = format_program_dump(first)
-        second = format_program_dump(second)
-        self.assertEqual(first, second, msg)
 
 class BaseCPUTestCase(BaseTestCase):
     UNITTEST_CFG_DICT = {
@@ -486,13 +434,14 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
             print "Load CPU init state from: %r" % cls.TEMP_FILE
             cls.__init_state = pickle.load(temp_file)
 
-#        print_cpu_state_data(cls.__init_state)
+#        print "cls.__init_state:", ;print_cpu_state_data(cls.__init_state)
 
     def setUp(self):
         """ restore CPU/Periphery state to a fresh startup. """
         self.periphery.setUp()
+#        print "self.__init_state:", ;print_cpu_state_data(self.__init_state)
         self.cpu.set_state(self.__init_state)
-#        print_cpu_state_data(self.cpu.get_state())
+#        print "self.cpu.get_state():", ;print_cpu_state_data(self.cpu.get_state())
 
     def _run_until_OK(self, OK_count=1, max_ops=5000):
         old_cycles = self.cpu.cycles

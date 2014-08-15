@@ -12,7 +12,7 @@
 
 import unittest
 
-from dragonpy.utils.logging_utils import setup_logging, log
+from dragonlib.utils.logging_utils import setup_logging, log
 from dragonpy.tests.test_base import TextTestRunner2
 
 

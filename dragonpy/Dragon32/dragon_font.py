@@ -14,7 +14,7 @@ import Tkinter
 import math
 
 from dragonpy.Dragon32.dragon_charmap import NORMAL, get_hex_color, COLORS, INVERTED
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 
 BACKGROUND_CHAR = "."
 FOREGROUND_CHAR = "X"

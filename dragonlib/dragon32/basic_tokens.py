@@ -1,4 +1,15 @@
-BASIC_TOKENS = {    
+# encoding:utf8
+
+"""
+    DragonPy - Dragon 32 emulator in Python
+    =======================================
+
+    :created: 2014 by Jens Diemer - www.jensdiemer.de
+    :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
+    :license: GNU GPL v3 or above, see LICENSE for more details.
+"""
+
+DRAGON32_BASIC_TOKENS = {
     0x80:"FOR",
     0x81:"GO",
     0x82:"REM",

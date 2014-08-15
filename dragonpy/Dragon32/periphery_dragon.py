@@ -22,7 +22,7 @@ from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.components.periphery import PeripheryBase
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 
 
 class Dragon32PeripheryBase(PeripheryBase):

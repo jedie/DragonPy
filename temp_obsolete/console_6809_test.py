@@ -17,11 +17,11 @@ import time
 
 from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809PeripheryBase
-from dragonpy.utils.logging_utils import setup_logging
+from dragonlib.utils.logging_utils import setup_logging
 from dragonpy.utils import pager
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 
 
 CFG_DICT = {

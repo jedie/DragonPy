@@ -14,7 +14,7 @@ import logging
 
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.CoCo.mem_info import get_coco_meminfo
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 from dragonpy.core.configs import COCO
 from dragonpy.Dragon32.keyboard_map import get_coco_keymatrix_pia_result
 

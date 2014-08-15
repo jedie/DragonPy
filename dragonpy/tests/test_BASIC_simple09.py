@@ -20,7 +20,7 @@ from dragonpy.tests.test_base import TextTestRunner2, Test6809_BASIC_simple6809_
 
 
 from dragonpy.utils.BASIC09_floating_point import BASIC09FloatingPoint
-from dragonpy.utils.logging_utils import setup_logging
+from dragonlib.utils.logging_utils import setup_logging
 
 
 

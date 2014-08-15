@@ -12,7 +12,7 @@ import sys
 import unittest
 
 from dragonpy.tests.test_base import TextTestRunner2, BaseCPUTestCase
-from dragonpy.utils.logging_utils import setup_logging
+from dragonlib.utils.logging_utils import setup_logging
 from dragonpy.tests.test_config import TestCfg
 from dragonpy.components.cpu6809 import CPU
 

@@ -23,7 +23,7 @@ import sys
 import unittest
 
 from dragonpy.tests.test_base import TextTestRunner2, Test6809_sbc09_Base
-from dragonpy.utils.logging_utils import setup_logging
+from dragonlib.utils.logging_utils import setup_logging
 from dragonpy.utils import srecord_utils
 
 

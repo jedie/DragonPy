@@ -14,7 +14,7 @@ import argparse
 import logging
 import os
 import sys
-from dragonpy.utils.logging_utils import log, setup_logging
+from dragonlib.utils.logging_utils import log, setup_logging
 
 
 def get_log_levels():

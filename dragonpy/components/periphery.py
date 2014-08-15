@@ -18,7 +18,7 @@ import threading
 import time
 
 from dragonpy.utils import pager
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 
 
 try:

@@ -14,7 +14,7 @@ from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.machine import run_machine
 from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 from dragonpy.core.gui import DragonTkinterGUI
-from dragonpy.utils.logging_utils import log, setup_logging
+from dragonlib.utils.logging_utils import log, setup_logging
 
 
 CFG_DICT = {

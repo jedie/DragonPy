@@ -14,7 +14,7 @@ import struct
 import multiprocessing
 
 
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 
 
 DRAGON32 = "Dragon32"

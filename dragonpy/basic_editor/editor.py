@@ -13,8 +13,7 @@
 import Tkinter
 import tkMessageBox
 
-from dragonpy.basic_editor.parser import BasicTokenUtil, BasicListing
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 
 
 class EditorWindow(object):
@@ -40,13 +39,33 @@ class EditorWindow(object):
         scollbar.pack(side=Tkinter.RIGHT, fill=Tkinter.Y)
         self.text.pack(side=Tkinter.LEFT, fill=Tkinter.Y)
 
+        menubar = Tkinter.Menu(self.root)
 
-        self.token_util = BasicTokenUtil(self.cfg.BASIC_TOKENS)
-        self.listing = BasicListing(self.cfg.BASIC_TOKENS)
+        filemenu = Tkinter.Menu(menubar, tearoff=0)
+        filemenu.add_command(label="Exit", command=self.root.quit)
+        menubar.add_cascade(label="File", menu=filemenu)
+
+        editmenu = Tkinter.Menu(menubar, tearoff=0)
+#        editmenu.add_command(label="load BASIC program", command=self.load_program)
+        menubar.add_cascade(label="edit", menu=editmenu)
+
+        editmenu = Tkinter.Menu(menubar, tearoff=0)
+        editmenu.add_command(label="display tokens", command=self.debug_display_tokens)
+        menubar.add_cascade(label="debug", menu=editmenu)
+
+        # help menu
+        helpmenu = Tkinter.Menu(menubar, tearoff=0)
+#        helpmenu.add_command(label="help", command=self.menu_event_help)
+#        helpmenu.add_command(label="about", command=self.menu_event_about)
+        menubar.add_cascade(label="help", menu=helpmenu)
+
+        # display the menu
+        self.root.config(menu=menubar)
+        self.root.update()
 
     def debug_display_tokens(self):
         ascii = self.get_ascii()
-        self.listing.parse_ascii(ascii)
+        self.listing.ascii_listing2basic_lines(ascii)
         self.listing.debug_listing()
         tkMessageBox.showinfo("TODO", "TODO: debug_display_tokens")
 

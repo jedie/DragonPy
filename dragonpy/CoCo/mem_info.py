@@ -12,7 +12,7 @@
 
 from dragonpy.core.memory_info import BaseMemoryInfo
 from dragonpy.utils.humanize import nice_hex
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 
 
 class CoCoColorBasic1_3MemInfo(BaseMemoryInfo):

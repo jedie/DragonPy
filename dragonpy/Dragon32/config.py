@@ -12,11 +12,11 @@
 import logging
 import os
 
-from dragonpy.Dragon32.basic_tokens import BASIC_TOKENS
+from dragonlib.api import Dragon32API
+from dragonlib.utils.logging_utils import log
 from dragonpy.Dragon32.keyboard_map import get_dragon_keymatrix_pia_result
 from dragonpy.Dragon32.mem_info import get_dragon_meminfo
 from dragonpy.core.configs import BaseConfig, DRAGON32
-from dragonpy.utils.logging_utils import log
 
 
 class Dragon32Cfg(BaseConfig):
@@ -57,12 +57,12 @@ class Dragon32Cfg(BaseConfig):
     # for unittests init:
     STARTUP_END_ADDR = 0xbbe5 # scan keyboard
 
-    BASIC_TOKENS = BASIC_TOKENS
-
     def __init__(self, cmd_args):
         self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
         self.RAM_SIZE = (self.RAM_END - self.RAM_START) + 1
         super(Dragon32Cfg, self).__init__(cmd_args)
+
+        self.machine_api = Dragon32API()
 
         if self.verbosity <= logging.ERROR:
             self.mem_info = get_dragon_meminfo()

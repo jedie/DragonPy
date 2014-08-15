@@ -42,7 +42,7 @@
 import string
 
 from dragonpy.utils.bits import invert_byte, is_bit_set, clear_bit
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 
 DRAGON_KEYMAP = {
     # TODO: Use PyGame event.scancode / Tkinter event.keycode constants

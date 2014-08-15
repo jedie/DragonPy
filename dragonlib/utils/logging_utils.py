@@ -14,7 +14,6 @@ import logging
 import multiprocessing
 import sys
 
-
 log = multiprocessing.log_to_stderr()
 
 
@@ -95,6 +94,18 @@ def log_hexlist(byte_list, group=8, start=0x0000, level=99):
             pos = 0
             line = []
     _log(level, addr, line)
+
+
+def format_program_dump(ram_content):
+    msg = u" ".join(["$%02x" % v for v in ram_content])
+    msg = msg.replace(u"$00 ", u"\n$00\n")
+    return msg
+
+
+def log_program_dump(ram_content, level=99):
+    msg = "BASIC program dump:\n"
+    msg += format_program_dump(ram_content)
+    log.log(level, msg)
 
 
 if __name__ == '__main__':

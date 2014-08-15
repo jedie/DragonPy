@@ -23,7 +23,7 @@ from dragonpy.core.base_cli import Base_CLI
 from dragonpy.core.configs import configs
 from dragonpy.sbc09.config import SBC09Cfg
 from dragonpy.core.process_main import main_process_startup
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 
 
 configs.register("Dragon32", Dragon32Cfg)

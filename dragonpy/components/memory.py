@@ -23,7 +23,7 @@ import logging
 import os
 import sys
 
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 
 
 class ROM(object):

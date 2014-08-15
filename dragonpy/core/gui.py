@@ -17,12 +17,12 @@ import sys
 import time
 import tkMessageBox
 
+from dragonlib.utils.logging_utils import log
+
 from dragonpy.Dragon32 import dragon_charmap
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
 from dragonpy.basic_editor.editor import EditorWindow
-from dragonpy.basic_editor.parser import BasicListing, log_program_dump
-from dragonpy.utils.logging_utils import log
 
 
 class MC6847_TextModeCanvas(object):
@@ -196,17 +196,7 @@ class DragonTkinterGUI(object):
     def load_program(self):
         editor = self.get_or_create_editor()
         basic_program_ascii = editor.get_ascii()
-        listing = BasicListing(self.cfg.BASIC_TOKENS)
-
-        listing.parse_ascii(basic_program_ascii)
-        listing.debug_listing()
-
-        program_start = 0x1e01
-
-        data = listing.get_ram_content(program_start)
-        log_program_dump(data)
-
-        result = self.request_comm.request_memory_load(program_start, data)
+        result = self.request_comm.inject_basic_program(basic_program_ascii)
         log.critical("program loaded: %s", result)
 
     def menu_event_about(self):

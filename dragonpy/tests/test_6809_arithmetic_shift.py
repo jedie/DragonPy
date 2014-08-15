@@ -17,7 +17,7 @@ import sys
 import unittest
 
 from dragonpy.tests.test_base import TextTestRunner2, BaseCPUTestCase
-from dragonpy.utils.logging_utils import setup_logging
+from dragonlib.utils.logging_utils import setup_logging
 from dragonpy.utils.bits import is_bit_set, get_bit
 
 

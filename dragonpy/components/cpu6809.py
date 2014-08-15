@@ -43,7 +43,7 @@ from dragonpy.cpu_utils.MC6809_registers import (
 from dragonpy.cpu_utils.instruction_caller import OpCollection
 from dragonpy.utils.bits import is_bit_set, get_bit
 from dragonpy.utils.byte_word_values import signed8, signed16, signed5
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 from dragonpy.utils.simple_debugger import print_exc_plus
 
 

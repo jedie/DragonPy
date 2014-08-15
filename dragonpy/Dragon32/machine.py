@@ -14,16 +14,17 @@ import Queue
 import thread
 import threading
 
-from dragonpy.basic_editor.parser import log_program_dump, BasicListing
+from dragonlib.core.basic import log_program_dump, BasicListing
+from dragonlib.utils.logging_utils import log
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
-from dragonpy.utils.logging_utils import log
 from dragonpy.utils.simple_debugger import print_exc_plus
 
 
 class BaseCommunicator(object):
     MEMORY_DUMP="dump_program"
     MEMORY_LOAD="load"
+    MEMORY_WORD = "word"
     MEMORY_WORDS="words"
 
 
@@ -34,6 +35,7 @@ class CommunicatorRequest(BaseCommunicator):
     """
     def __init__(self, cfg):
         self.cfg = cfg
+        self.machine_api = self.cfg.machine_api
         self.request_queue = Queue.Queue(maxsize=1)
         self.response_queue = Queue.Queue(maxsize=1)
 
@@ -56,7 +58,12 @@ class CommunicatorRequest(BaseCommunicator):
         log.critical("request memory load %iBytes to $%04s", len(data), address)
         return self._request(self.MEMORY_LOAD, address, data)
 
+    def request_word(self, address):
+        """ returns one word from the given address """
+        return self._request(self.MEMORY_WORD, address)
+
     def request_words(self, addresses):
+        """ returns a dict of words from all given addresses """
         return self._request(self.MEMORY_WORDS, addresses)
         
     def get_basic_program(self):
@@ -80,13 +87,19 @@ class CommunicatorRequest(BaseCommunicator):
         )
         log_program_dump(dump)
 
-        listing = BasicListing(self.cfg.BASIC_TOKENS)
-        listing.load_from_dump(dump, program_start, program_end)
-        listing.debug_listing()
-
-        listing_ascii = listing.get_ascii()
-        log.critical("Listing in ASCII:\n%s", "\n".join(listing_ascii))
-        return listing_ascii
+        listing = self.machine_api.program_dump2ascii_lines(dump, program_start)
+        log.critical("Listing in ASCII:\n%s", "\n".join(listing))
+        return listing
+    
+    def inject_basic_program(self, ascii_listing):
+        """
+        save the given ASCII BASIC program listing into the emulator RAM.
+        """
+        program_start = self.request_word(0x0019)
+        tokens = self.machine_api.ascii_listing2program_dump(ascii_listing)
+        result = self.request_memory_load(program_start, tokens)
+        log.critical("inject_basic_program(): %s", result)
+        return result
 
 
 class CommunicatorResponse(BaseCommunicator):
@@ -98,6 +111,7 @@ class CommunicatorResponse(BaseCommunicator):
         self._response_func_map = {
             self.MEMORY_DUMP:self._response_memory_dump,
             self.MEMORY_LOAD:self._response_memory_load,
+            self.MEMORY_WORD:self._response_word,
             self.MEMORY_WORDS:self._response_words,
         }
     def add_cpu(self, cpu):
@@ -129,6 +143,9 @@ class CommunicatorResponse(BaseCommunicator):
         log.critical("Load into memory %iBytes to $%04s", len(data), address)
         self.cpu.memory.load(address, data)
         return "OK"
+
+    def _response_word(self, address):
+        return self.cpu.memory.read_word(address)
 
     def _response_words(self, addresses):
         result = {}

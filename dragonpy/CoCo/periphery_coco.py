@@ -16,7 +16,7 @@
 """
 
 from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 
 
 class CoCoPeriphery(Dragon32Periphery):

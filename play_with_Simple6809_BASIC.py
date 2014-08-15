@@ -19,7 +19,7 @@ import os
 import sys
 
 from dragonpy.tests.test_base import Test6809_BASIC_simple6809_Base
-from dragonpy.utils.logging_utils import setup_logging
+from dragonlib.utils.logging_utils import setup_logging
 
 
 log = logging.getLogger("DragonPy")

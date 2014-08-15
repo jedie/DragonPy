@@ -9,7 +9,7 @@
     #~ python2 Dragon64_test.py | python ../PyDragon32/misc/filter_xroar_trace.py  --unique | tee Dragon64_test_trace.txt
     #~ python2 Dragon64_test.py > Dragon64_test_trace.txt
     #~ python2 Dragon64_test.py | tee Dragon64_test_trace.txt
-    ~/pypy-2.3.1-linux_x86_64-portable/bin/pypy Dragon64_test.py
+    ~/pypy-2.3.1-linux_i686-portable/bin/pypy Dragon64_test.py
 )
 echo
 read -n1 -p "Start bash? [y,n]" doit

@@ -24,7 +24,7 @@ import os
 from dragonpy.core.configs import COCO
 from dragonpy.utils.bits import is_bit_set, invert_byte, clear_bit
 from dragonpy.utils.humanize import byte2bit_string
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 class PIA_register(object):
 
     def __init__(self, name):

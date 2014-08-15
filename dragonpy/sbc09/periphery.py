@@ -23,7 +23,7 @@ except Exception, err:
 
 from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase, \
     ConsolePeripheryBase, PeripheryUnittestBase
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 
 
 class SBC09PeripheryBase(PeripheryBase):

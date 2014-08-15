@@ -25,7 +25,7 @@ import thread
 import Queue
 
 from dragonpy.core.process_sub import start_cpu
-from dragonpy.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log
 
 
 class BusCommunicationThread(threading.Thread):
