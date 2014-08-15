@@ -91,7 +91,7 @@ class CoCoCfg(Dragon32Cfg):
         return mem
 
     def pia_keymatrix_result(self, char_or_code, pia0b):
-        return get_coco_keymatrix_pia_result(char_or_code, pia0b, auto_shift=True)
+        return get_coco_keymatrix_pia_result(char_or_code, pia0b, invert_shift=True)
 
 
 config = CoCoCfg

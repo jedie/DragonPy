@@ -147,9 +147,10 @@ class DragonTkinterGUI(object):
         menubar.add_cascade(label="File", menu=filemenu)
 
         editmenu = Tkinter.Menu(menubar, tearoff=0)
-        editmenu.add_command(label="load BASIC program", command=self.load_program)
-        editmenu.add_command(label="dump BASIC program", command=self.dump_program)
-        menubar.add_cascade(label="edit", menu=editmenu)
+#        editmenu.add_command(label="load BASIC program", command=self.load_program)
+#        editmenu.add_command(label="dump BASIC program", command=self.dump_program)
+        editmenu.add_command(label="open", command=self.open_basic_editor)
+        menubar.add_cascade(label="BASIC editor", menu=editmenu)
 
         # help menu
         helpmenu = Tkinter.Menu(menubar, tearoff=0)
@@ -164,19 +165,8 @@ class DragonTkinterGUI(object):
         self.editor_content = None
         self._editor_window = None
 
-    def get_or_create_editor(self):
-        if self._editor_window is None:
-            log.critical("Create EditorWindow")
-            self._editor_window = EditorWindow(self.cfg, self.root)
-            #self._editor_window.mainloop()
-
-        log.critical("return editor window")
-        return self._editor_window
-
-    def dump_program(self):
-        listing_ascii = self.request_comm.get_basic_program()
-        editor_window = self.get_or_create_editor()
-        editor_window.set_content(listing_ascii)
+    def open_basic_editor(self):
+        self._editor_window = EditorWindow(self.cfg, self.root, self.request_comm)
 
     def dump_rnd(self):
         start_addr = 0x0019
@@ -193,12 +183,6 @@ class DragonTkinterGUI(object):
             return lines
         lines = format_dump(dump, start_addr, end_addr)
         tkMessageBox.showinfo("TODO", "dump_program:\n%s" % "\n".join(lines))
-
-    def load_program(self):
-        editor = self.get_or_create_editor()
-        basic_program_ascii = editor.get_ascii()
-        result = self.request_comm.inject_basic_program(basic_program_ascii)
-        log.critical("program loaded: %s", result)
 
     def menu_event_about(self):
         tkMessageBox.showinfo("DragonPy",

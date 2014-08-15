@@ -14,7 +14,7 @@ import Queue
 import thread
 import threading
 
-from dragonlib.core.basic import log_program_dump, BasicListing
+from dragonlib.core.basic import log_program_dump
 from dragonlib.utils.logging_utils import log
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory

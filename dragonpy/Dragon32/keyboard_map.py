@@ -41,8 +41,10 @@
 
 import string
 
-from dragonpy.utils.bits import invert_byte, is_bit_set, clear_bit
+from dragonlib.utils.auto_shift import invert_shift
 from dragonlib.utils.logging_utils import log
+from dragonpy.utils.bits import invert_byte, is_bit_set, clear_bit
+
 
 DRAGON_KEYMAP = {
     # TODO: Use PyGame event.scancode / Tkinter event.keycode constants
@@ -186,12 +188,7 @@ for key, coordinates in DRAGON_KEYMAP.items():
 
 def _get_col_row_values(char_or_code, keymap, auto_shift=True):
     if auto_shift and isinstance(char_or_code, basestring):
-        if char_or_code in string.ascii_lowercase:
-#             log.critical("auto shift lowercase char %s to UPPERCASE", repr(char_or_code))
-            char_or_code = char_or_code.upper()
-        elif char_or_code in string.ascii_uppercase:
-#             log.critical("auto shift UPPERCASE char %s to lowercase", repr(char_or_code))
-            char_or_code = char_or_code.lower()
+        char_or_code = invert_shift(char_or_code)
 
     try:
         col_row_values = keymap[char_or_code]
