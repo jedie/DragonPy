@@ -92,7 +92,7 @@ class BasicLine(object):
     def get_tokens(self):
         return [self.line_number] + self.line_code
 
-    def get_ascii(self, code=None, debug=False):
+    def get_content(self, code=None, debug=False):
         if code is None: # start
             code = self.line_code
 
@@ -113,7 +113,7 @@ class BasicLine(object):
 
     def log_line(self):
         log.critical("%r -> %s" % (
-            self.get_ascii(debug=True), " ".join(["$%02x" % v for v in self.get_tokens()])
+            self.get_content(debug=True), " ".join(["$%02x" % v for v in self.get_tokens()])
         ))
 
 
@@ -189,5 +189,5 @@ class BasicListing(object):
         log.critical("basic_lines: %s", repr(basic_lines))
         ascii_lines = []
         for line in basic_lines:
-            ascii_lines.append(line.get_ascii())
+            ascii_lines.append(line.get_content())
         return ascii_lines

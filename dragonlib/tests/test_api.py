@@ -40,7 +40,7 @@ class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):
             0x00, 0x00 # program end
         )
         basic_lines = self.dragon32api.listing.dump2basic_lines(dump, program_start=0x1e01)
-        ascii_listing = basic_lines[0].get_ascii()
+        ascii_listing = basic_lines[0].get_content()
         self.assertEqual(ascii_listing, "10 CLS")
         self.assertEqual(len(basic_lines), 1)
 
@@ -49,7 +49,7 @@ class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):
             line_number=50,
             tokens=(0x49, 0x24, 0x20, 0xcb, 0x20, 0xff, 0x9a, 0x3a, 0x85, 0x20, 0x49, 0x24, 0xcb, 0x22, 0x22, 0x20, 0xbf, 0x20, 0x35, 0x30, 0x00)
         )
-        code = self.basic_line.get_ascii()
+        code = self.basic_line.get_content()
         self.assertEqual(code,
             '50 I$ = INKEY$:IF I$="" THEN 50'
         )

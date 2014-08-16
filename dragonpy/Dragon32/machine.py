@@ -26,6 +26,7 @@ class BaseCommunicator(object):
     MEMORY_LOAD="load"
     MEMORY_WORD = "word"
     MEMORY_WORDS="words"
+    MEMORY_WRITE_WORDS = "write_words"
 
 
 class CommunicatorRequest(BaseCommunicator):
@@ -65,22 +66,31 @@ class CommunicatorRequest(BaseCommunicator):
     def request_words(self, addresses):
         """ returns a dict of words from all given addresses """
         return self._request(self.MEMORY_WORDS, addresses)
+
+    def request_write_words(self, words_dict):
+        """ writes words into memory """
+        return self._request(self.MEMORY_WRITE_WORDS, words_dict)
         
     def get_basic_program(self):
-        addresses = range(0x0019, 0x0020 + 1, 2)
+        addresses = (
+            self.machine_api.PROGRAM_START_ADDR,
+            self.machine_api.VARIABLES_START_ADDR,
+            self.machine_api.ARRAY_START_ADDR,
+            self.machine_api.FREE_SPACE_START_ADDR,
+        )
         result = self.request_words(addresses)
         log.critical(repr(result))
-        program_start = result[0x0019]
-        variables_start = result[0x001B]
-        array_start = result[0x001D]
-        free_space_start = result[0x001F]
+        program_start = result[self.machine_api.PROGRAM_START_ADDR]
+        variables_start = result[self.machine_api.VARIABLES_START_ADDR]
+        array_start = result[self.machine_api.ARRAY_START_ADDR]
+        free_space_start = result[self.machine_api.FREE_SPACE_START_ADDR]
         program_end = variables_start - 1
         variables_end = array_start - 1
         array_end = free_space_start - 1
 
         log.critical("programm code: $%04x-$%04x", program_start, program_end)
-        log.critical("variables: $%04x-$%04x", variables_start, variables_end)
-        log.critical("array: $%04x-$%04x", array_start, array_end)
+        log.critical("variables....: $%04x-$%04x", variables_start, variables_end)
+        log.critical("array........: $%04x-$%04x", array_start, array_end)
 
         dump, start_addr, end_addr = self.request_memory_dump(
             program_start, program_end
@@ -95,11 +105,22 @@ class CommunicatorRequest(BaseCommunicator):
         """
         save the given ASCII BASIC program listing into the emulator RAM.
         """
-        program_start = self.request_word(0x0019)
+        program_start = self.request_word(
+            self.machine_api.PROGRAM_START_ADDR
+        )
         tokens = self.machine_api.ascii_listing2program_dump(ascii_listing)
-        result = self.request_memory_load(program_start, tokens)
-        log.critical("inject_basic_program(): %s", result)
-        return result
+        status = self.request_memory_load(program_start, tokens)
+        log.critical("inject BASIC program: %s", status)
+
+        # Update the BASIC addresses:
+        program_end = program_start + len(tokens)
+        status = self.request_write_words({
+            self.machine_api.VARIABLES_START_ADDR:program_end,
+            self.machine_api.ARRAY_START_ADDR:program_end,
+            self.machine_api.FREE_SPACE_START_ADDR:program_end,
+        })
+        log.critical("Update BASIC addresses: %s", status)
+        return "OK"
 
 
 class CommunicatorResponse(BaseCommunicator):
@@ -113,6 +134,7 @@ class CommunicatorResponse(BaseCommunicator):
             self.MEMORY_LOAD:self._response_memory_load,
             self.MEMORY_WORD:self._response_word,
             self.MEMORY_WORDS:self._response_words,
+            self.MEMORY_WRITE_WORDS:self._response_write_words,
         }
     def add_cpu(self, cpu):
         self.cpu = cpu
@@ -152,6 +174,12 @@ class CommunicatorResponse(BaseCommunicator):
         for address in addresses:
             result[address] = self.cpu.memory.read_word(address)
         return result
+
+    def _response_write_words(self, words_dict):
+        for address, word in sorted(words_dict.items()):
+            log.critical("Write $%04x to $%04x", address, word)
+            self.cpu.memory.write_word(address, word)
+        return "OK"
 
 
 class Machine(object):
