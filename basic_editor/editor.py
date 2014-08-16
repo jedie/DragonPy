@@ -10,7 +10,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+import ScrolledText
 import Tkinter
+import tkFileDialog
 import tkMessageBox
 
 from dragonlib.utils.logging_utils import log, format_program_dump
@@ -38,11 +40,9 @@ class EditorWindow(object):
 
         self.root.title("%s - BASIC Editor" % self.cfg.MACHINE_NAME)
 
-        # http://www.tutorialspoint.com/python/tk_text.htm
-        self.text = Tkinter.Text(self.root, height=30, width=80)
-        scollbar = Tkinter.Scrollbar(self.root)
-        scollbar.config(command=self.text.yview)
-
+        self.text = ScrolledText.ScrolledText(
+            master=self.root, height=30, width=80
+        )
         self.text.config(
             background="#08ff08", # nearly green
             foreground="#004100", # nearly black
@@ -55,14 +55,13 @@ class EditorWindow(object):
         self.auto_shift = True # use invert shift for letters?
 #        self.root.bind("<Key>", self.event_key_pressed)
 
-        scollbar.pack(side=Tkinter.RIGHT, fill=Tkinter.Y)
         self.text.pack(side=Tkinter.LEFT, fill=Tkinter.Y)
 
         menubar = Tkinter.Menu(self.root)
 
         filemenu = Tkinter.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Load", command=self.load_file)
-        filemenu.add_command(label="Save", command=self.save_file)
+        filemenu.add_command(label="Load", command=self.command_load_file)
+        filemenu.add_command(label="Save", command=self.command_save_file)
         if self.standalone_run:
             filemenu.add_command(label="Exit", command=self.root.quit)
         menubar.add_cascade(label="File", menu=filemenu)
@@ -97,28 +96,41 @@ class EditorWindow(object):
 #        self.text.see("end")
 #        self.text.config(state=Tkinter.DISABLED)
 
-    def load_file(self):
-        tkMessageBox.showinfo("TODO", "load file")
-    def save_file(self):
-        tkMessageBox.showinfo("TODO", "save file")
+    def command_load_file(self):
+        infile = tkFileDialog.askopenfile(mode="r", title="Select a BASIC file to load")
+        if infile is not None:
+            content = infile.read()
+            infile.close()
+            content = content.strip()
+            listing_ascii = content.splitlines()
+            self.set_content(listing_ascii)
+
+    def command_save_file(self):
+        outfile = tkFileDialog.asksaveasfile(mode="w")
+        if outfile is not None:
+            content = self.get_content()
+            outfile.write(content)
+            outfile.close()
 
     def load_from_DragonPy(self):
         listing_ascii = self.request_comm.get_basic_program()
         self.set_content(listing_ascii)
         
     def inject_into_DragonPy(self):
-        basic_program_ascii = self.get_ascii()
-        result = self.request_comm.inject_basic_program(basic_program_ascii)
+        content = self.get_content()
+        result = self.request_comm.inject_basic_program(content)
         log.critical("program loaded: %s", result)
 
     def debug_display_tokens(self):
-        ascii_listing = self.get_ascii()
-        program_dump = self.machine_api.ascii_listing2program_dump(ascii_listing)
+        content = self.get_content()
+        program_dump = self.machine_api.ascii_listing2program_dump(content)
         msg = format_program_dump(program_dump)
         tkMessageBox.showinfo("Program Dump:", msg)
 
-    def get_ascii(self):
-        return self.text.get("1.0", Tkinter.END)
+    def get_content(self):
+        content = self.text.get("1.0", Tkinter.END)
+        content = content.strip()
+        return content
 
     def set_content(self, listing_ascii):
 #        self.text.config(state=Tkinter.NORMAL)
