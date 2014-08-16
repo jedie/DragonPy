@@ -46,6 +46,7 @@ class EditorWindow(object):
         self.text.config(
             background="#08ff08", # nearly green
             foreground="#004100", # nearly black
+            highlightthickness=0,
             font=('courier', 11, 'bold'),
 #            yscrollcommand=scollbar.set, # FIXME
 #            state=Tkinter.DISABLED # FIXME: make textbox "read-only"
