@@ -17,6 +17,8 @@ Future goals are:
 The Dragon 32 / 64 and CoCo ROMs works in Text mode.
 Also the "single board computer" ROMs sbc09, Simple6809 and Multicomp6809 works well.
 
+There is a rudementary BASIC editor and you can inject a BASIC program listing from the editor directly into the emulator
+and back: get the listing from emulator into the editor. (Currently only with Dragon 32)
 
 === ROMs
 
