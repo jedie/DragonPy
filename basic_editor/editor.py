@@ -142,7 +142,8 @@ class EditorWindow(object):
             log.critical("\t%s", repr(line))
             self.text.insert(Tkinter.END, line)
 #        self.text.config(state=Tkinter.DISABLED)
-        self.text.see(Tkinter.END)
+        self.text.mark_set(Tkinter.INSERT, '1.0') # Set cursor at start
+        self.text.focus()
 
     def mainloop(self):
         """ for standalone usage """
