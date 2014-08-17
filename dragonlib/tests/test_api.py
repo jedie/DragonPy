@@ -54,7 +54,7 @@ class BaseDragon32ApiTestCase(BaseTestCase):
         # ~ print(repr(txt))
         # ~ print("-"*79)
 
-        return txt
+        return unicode(txt) # turn to unicode, for better assertEqual error messages
 
 
 class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):
@@ -64,7 +64,7 @@ class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):
         self.basic_line = BasicLine(self.token_util)
 
     def test_load_from_dump(self):
-        dump=(
+        dump = (
             0x1e, 0x07, # next_address
             0x00,
             0x0a, # 10
@@ -164,8 +164,6 @@ class Dragon32BASIC_HighLevel_ApiTest(BaseDragon32ApiTestCase):
 
 
 class RenumTests(BaseDragon32ApiTestCase):
-    import doctest
-    doctest.DocTestParser()
     def test_renum01(self):
         old_listing = self._prepare_text("""
             1 PRINT "ONE"
@@ -188,6 +186,22 @@ class RenumTests(BaseDragon32ApiTestCase):
             50 PRINT "BAR"
             60 RESUME
             70 PRINT "END?"
+        """))
+
+    def test_missing_number01(self):
+        old_listing = self._prepare_text("""
+            1 GOTO 2
+            2 GOTO 123 ' 123 didn't exists
+            3 IF A=1 THEN 456 ELSE 2 ' 456 didn't exists
+        """)
+#         print old_listing
+#         print "-"*79
+        new_listing = self.dragon32api.renum_ascii_listing(old_listing)
+#         print new_listing
+        self.assertEqual(new_listing, self._prepare_text("""
+            10 GOTO 20
+            20 GOTO 123 ' 123 didn't exists
+            30 IF A=1 THEN 456 ELSE 20 ' 456 didn't exists
         """))
 
 
