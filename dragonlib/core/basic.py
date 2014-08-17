@@ -40,6 +40,9 @@ class BasicTokenUtil(object):
         return result
 
     def ascii2token(self, ascii_code, debug=False):
+        """
+        TODO: replace no tokens in comments and strings
+        """
         log.critical(repr(ascii_code))
         parts = self.regex.split(ascii_code)
         log.critical(repr(parts))

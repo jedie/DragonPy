@@ -20,6 +20,9 @@ Also the "single board computer" ROMs sbc09, Simple6809 and Multicomp6809 works 
 There is a rudementary BASIC editor and you can inject a BASIC program listing from the editor directly into the emulator
 and back: get the listing from emulator into the editor. (Currently only with Dragon 32)
 
+TODO:
+* Don't replace reversed words into tokens in comments and strings.
+
 === ROMs
 
 The Dragon ROMs can be downloaded here:
