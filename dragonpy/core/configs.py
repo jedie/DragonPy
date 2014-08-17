@@ -130,6 +130,7 @@ class BaseConfig(object):
 
         self.mem_info = DummyMemInfo()
         self.memory_byte_middlewares = {}
+        self.memory_word_middlewares = {}
 
     def _get_initial_Memory(self, size):
         return [0x00] * size
