@@ -16,12 +16,45 @@ import unittest
 from dragonlib.api import Dragon32API
 from dragonlib.core.basic import BasicLine
 from dragonlib.tests.test_base import BaseTestCase
-from dragonlib.utils.logging_utils import log, setup_logging
+from dragonlib.utils.logging_utils import log, setup_logging, log_program_dump
 
 
 class BaseDragon32ApiTestCase(BaseTestCase):
     def setUp(self):
         self.dragon32api = Dragon32API()
+
+    def _prepare_text(self, txt):
+        """
+        prepare the multiline, indentation text.
+        from python-creole
+        """
+        # txt = unicode(txt)
+        txt = txt.splitlines()
+        assert txt[0] == "", "First assertion line must be empty! Is: %s" % repr(txt[0])
+        txt = txt[1:] # Skip the first line
+
+        # get the indentation level from the first line
+        count = False
+        for count, char in enumerate(txt[0]):
+            if char != " ":
+                break
+
+        assert count != False, "second line is empty!"
+
+        # remove indentation from all lines
+        txt = [i[count:].rstrip(" ") for i in txt]
+
+        # ~ txt = re.sub("\n {2,}", "\n", txt)
+        txt = "\n".join(txt)
+
+        # strip *one* newline at the begining...
+        if txt.startswith("\n"): txt = txt[1:]
+        # and strip *one* newline at the end of the text
+        if txt.endswith("\n"): txt = txt[:-1]
+        # ~ print(repr(txt))
+        # ~ print("-"*79)
+
+        return txt
 
 
 class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):
@@ -129,6 +162,33 @@ class Dragon32BASIC_HighLevel_ApiTest(BaseDragon32ApiTestCase):
             0x00, 0x00 # program end
         ))
 
+
+class RenumTests(BaseDragon32ApiTestCase):
+    import doctest
+    doctest.DocTestParser()
+    def test_renum01(self):
+        old_listing = self._prepare_text("""
+            1 PRINT "ONE"
+            11 GOTO 12
+            12 PRINT "FOO":GOSUB 15
+            14 IF A=1 THEN 20 ELSE 1
+            15 PRINT "BAR"
+            16 RESUME
+            20 PRINT "END?"
+        """)
+#         print old_listing
+#         print "-"*79
+        new_listing = self.dragon32api.renum_ascii_listing(old_listing)
+#         print new_listing
+        self.assertEqual(new_listing, self._prepare_text("""
+            10 PRINT "ONE"
+            20 GOTO 30
+            30 PRINT "FOO":GOSUB 50
+            40 IF A=1 THEN 70 ELSE 10
+            50 PRINT "BAR"
+            60 RESUME
+            70 PRINT "END?"
+        """))
 
 
 if __name__ == '__main__':

@@ -17,7 +17,6 @@ from dragonlib.utils.logging_utils import log, log_program_dump
 from dragonpy.utils.byte_word_values import word2bytes
 
 
-
 class BasicTokenUtil(object):
     def __init__(self, basic_token_dict):
         self.basic_token_dict = basic_token_dict
@@ -182,7 +181,7 @@ class BasicListing(object):
         ram_content = self.basic_lines2program_dump(program_start)
         log_program_dump(ram_content, level)
 
-    def ascii_listing2program_dump(self,basic_program_ascii, program_start):
+    def ascii_listing2program_dump(self, basic_program_ascii, program_start):
         basic_lines = self.ascii_listing2basic_lines(basic_program_ascii)
         self.debug_listing(basic_lines)
         return self.basic_lines2program_dump(basic_lines, program_start)
@@ -194,3 +193,79 @@ class BasicListing(object):
         for line in basic_lines:
             ascii_lines.append(line.get_content())
         return ascii_lines
+
+    def format_tokens(self, tokens):
+        result = []
+        for token in tokens:
+            char = self.token_util.token2ascii(token)
+            result.append("\t$%02x -> %s" % (token, repr(char)))
+        return result
+
+class RenumTool(object):
+    """
+    Renumber a BASIC program
+    """
+    def __init__(self, renum_regex):
+        self.line_no_regex = re.compile("(?P<no>\d+)(?P<code>.+)")
+        self.renum_regex = re.compile(renum_regex, re.VERBOSE)
+
+    def renum(self, ascii_listing):
+        self.renum_dict = self.create_renum_dict(ascii_listing)
+        log.critical("renum: %s",
+            ", ".join([
+                "%s->%s" % (o, n)
+                for o, n in sorted(self.renum_dict.items())
+            ])
+        )
+        new_listing = []
+        lines = ascii_listing.splitlines()
+        lines = [line.strip() for line in lines if line.strip()]
+        for new_number, line in enumerate(lines, 1):
+            new_number *= 10
+            line = self.line_no_regex.sub("%s\g<code>" % new_number, line)
+            new_line = self.renum_regex.sub(self.renum_inline, line)
+            new_listing.append(new_line)
+        return "\n".join(new_listing)
+
+    def renum_inline(self, matchobj):
+        old_number = matchobj.group("no")
+        try:
+            new_number = "%s" % self.renum_dict[old_number]
+        except KeyError:
+            log.critical(
+                "Error in line '%s': line no. '%s' doesn't exist.",
+                matchobj.group(0), old_number
+            )
+            new_number = old_number
+        return "".join([
+            matchobj.group("statement"),
+            matchobj.group("space"),
+            new_number
+        ])
+
+    def create_renum_dict(self, ascii_listing):
+        old_numbers = [match[0] for match in self.line_no_regex.findall(ascii_listing)]
+        renum_dict = {}
+        for new_number, old_number in enumerate(old_numbers, 1):
+            new_number *= 10
+            renum_dict[old_number] = new_number
+        return renum_dict
+
+
+if __name__ == "__main__":
+    from dragonlib.api import Dragon32API
+
+    api = Dragon32API()
+    listing = """\
+1 PRINT "ONE"
+11 GOTO 12
+12 PRINT "FOO":GOSUB 15
+14 IF A=1 THEN 20 ELSE 1
+15 PRINT "BAR"
+16 RESUME
+20 PRINT "END?"
+30 GOTO 123 ' didn't exist
+"""
+    print listing
+    print "-"*79
+    print api.renum_ascii_listing(listing)

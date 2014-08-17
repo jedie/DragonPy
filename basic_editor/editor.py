@@ -74,8 +74,9 @@ class EditorWindow(object):
             menubar.add_cascade(label="DragonPy", menu=editmenu)
 
         editmenu = Tkinter.Menu(menubar, tearoff=0)
+        editmenu.add_command(label="renum", command=self.renumber_listing)
         editmenu.add_command(label="display tokens", command=self.debug_display_tokens)
-        menubar.add_cascade(label="debug", menu=editmenu)
+        menubar.add_cascade(label="tools", menu=editmenu)
 
         # help menu
         helpmenu = Tkinter.Menu(menubar, tearoff=0)
@@ -98,7 +99,7 @@ class EditorWindow(object):
 #        self.text.config(state=Tkinter.DISABLED)
 
     def command_load_file(self):
-        infile = tkFileDialog.askopenfile(mode="r", title="Select a BASIC file to load")
+        infile = tkFileDialog.askopenfile(parent=self.root, mode="r", title="Select a BASIC file to load")
         if infile is not None:
             content = infile.read()
             infile.close()
@@ -107,7 +108,7 @@ class EditorWindow(object):
             self.set_content(listing_ascii)
 
     def command_save_file(self):
-        outfile = tkFileDialog.asksaveasfile(mode="w")
+        outfile = tkFileDialog.asksaveasfile(parent=self.root, mode="w")
         if outfile is not None:
             content = self.get_content()
             outfile.write(content)
@@ -116,7 +117,7 @@ class EditorWindow(object):
     def load_from_DragonPy(self):
         listing_ascii = self.request_comm.get_basic_program()
         self.set_content(listing_ascii)
-        
+
     def inject_into_DragonPy(self):
         content = self.get_content()
         result = self.request_comm.inject_basic_program(content)
@@ -126,7 +127,12 @@ class EditorWindow(object):
         content = self.get_content()
         program_dump = self.machine_api.ascii_listing2program_dump(content)
         msg = format_program_dump(program_dump)
-        tkMessageBox.showinfo("Program Dump:", msg)
+        tkMessageBox.showinfo("Program Dump:", msg, parent=self.root)
+
+    def renumber_listing(self):
+        content = self.get_content()
+        content = self.machine_api.renum_ascii_listing(content)
+        self.set_content(content)
 
     def get_content(self):
         content = self.text.get("1.0", Tkinter.END)
@@ -137,6 +143,9 @@ class EditorWindow(object):
 #        self.text.config(state=Tkinter.NORMAL)
         self.text.delete("1.0", Tkinter.END)
         log.critical("insert listing:")
+        if isinstance(listing_ascii, basestring):
+            listing_ascii = listing_ascii.splitlines()
+
         for line in listing_ascii:
             line = "%s\n" % line # use os.sep ?!?
             log.critical("\t%s", repr(line))

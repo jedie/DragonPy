@@ -10,7 +10,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from dragonlib.core.basic import BasicListing
+from dragonlib.core.basic import BasicListing, RenumTool
 from dragonlib.dragon32.basic_tokens import DRAGON32_BASIC_TOKENS
 from dragonlib.utils.logging_utils import log
 
@@ -19,6 +19,10 @@ DRAGON32 = "Dragon32"
 
 
 class BaseAPI(object):
+    RENUM_REGEX = r"""
+        (?P<statement> GOTO|GOSUB|THEN|ELSE ) (?P<space>\s*) (?P<no>\d+)
+    """
+
     def program_dump2ascii_lines(self, dump, program_start=None):
         """
         convert a memory dump of a tokensized BASIC listing into
@@ -38,12 +42,18 @@ class BaseAPI(object):
             program_start = self.DEFAULT_PROGRAM_START
         return self.listing.ascii_listing2program_dump(basic_program_ascii, program_start)
 
+    def format_tokens(self, tokens):
+        return self.listing.format_tokens(tokens)
+
+    def renum_ascii_listing(self, content):
+        return self.renum_tool.renum(content)
+
 
 class Dragon32API(BaseAPI):
     CONFIG_NAME = DRAGON32
     MACHINE_NAME = "Dragon 32"
     BASIC_TOKENS = DRAGON32_BASIC_TOKENS
-    
+
     PROGRAM_START_ADDR = 0x0019
     VARIABLES_START_ADDR = 0x001B
     ARRAY_START_ADDR = 0x001D
@@ -54,5 +64,6 @@ class Dragon32API(BaseAPI):
 
     def __init__(self):
         self.listing = BasicListing(self.BASIC_TOKENS)
+        self.renum_tool = RenumTool(self.RENUM_REGEX)
 
 
