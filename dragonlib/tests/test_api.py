@@ -179,6 +179,64 @@ class Dragon32BASIC_HighLevel_ApiTest(BaseDragon32ApiTestCase):
             0x00, 0x00 # program end
         ))
 
+    @unittest.expectedFailure # TODO:
+    def test_listing2program_strings_dont_in_comment(self):
+        """
+        TODO: Don't replace tokens in comments
+
+        NOTE: The REM shortcut >'< would be replace by >:'< internally from
+        the BASIC Interpreter.
+
+        See also:
+        http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4310&p=11632#p11630
+        """
+        program_dump = self.dragon32api.ascii_listing2program_dump(
+            "10 'IF THEN ELSE"
+        )
+        log_program_dump(program_dump)
+        print "\n".join(
+            self.dragon32api.format_program_dump(program_dump)
+        )
+        self.assertEqualProgramDump(program_dump, (
+            0x1e, 0x10, # start address
+            0x00, # line start
+                0x0a, # 10
+                0x3a, # :
+                0x83, # '
+                0x49, 0x46, # I, F
+                0x20, # " "
+                0x54, 0x48, 0x45, 0x4e, # T, H, E, N
+                0x20, # " "
+                0x45, 0x4c, 0x53, 0x45, # E, L, S, E
+            0x00, # end of line
+            0x00, 0x00, # program end
+        ))
+
+    @unittest.expectedFailure # TODO:
+    def test_listing2program_strings_dont_in_strings(self):
+        """
+        TODO: Don't replace tokens in strings
+        """
+        program_dump = self.dragon32api.ascii_listing2program_dump(
+            '10 PRINT"FOR NEXT'
+        )
+        log_program_dump(program_dump)
+        print "\n".join(
+            self.dragon32api.format_program_dump(program_dump)
+        )
+        self.assertEqualProgramDump(program_dump, (
+            0x1e, 0x10, # start address
+            0x00, # line start
+                0x0a, # 10
+                0x87, # PRINT
+                0x22, # "
+                0x46, 0x4f, 0x52, # F, O, R
+                0x20, # " "
+                0x4e, 0x45, 0x58, 0x54, # N, E, X, T
+            0x00, # end of line
+            0x00, 0x00, # program end
+        ))
+
 
 class RenumTests(BaseDragon32ApiTestCase):
     def test_renum01(self):
@@ -293,7 +351,7 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-#            "Test_Dragon32_BASIC.test_code_load02",
+            "Dragon32BASIC_HighLevel_ApiTest",
         ),
 #         verbosity=1,
         verbosity=2,

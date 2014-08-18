@@ -82,19 +82,20 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
             [u'LIST', u'10 ?123', u'20 PRINT "FOO"', u'OK']
         )
 
-
-#    def test_code_load02(self):
-#        self.periphery.add_to_input_queue(
-#            "10 PRINT ' FOR NEXT COMMENT\r\n"
-#            'LIST\r\n'
-#        )
-#        op_call_count, cycles, output = self._run_until_OK(max_ops=1430000)
-##        print op_call_count, cycles, output
-#        self.assertEqual(output,
-#            [u'10A=1', u'20B=2', u'LIST', u'10 A=1', u'20 B=2', u'OK']
-#        )
-#        output = self.request_comm.get_basic_program()
-#        self.assertEqual(output, ['10 A=1', '20 B=2'])
+    @unittest.expectedFailure # TODO:
+    def test_tokens_in_string(self):
+        self.periphery.add_to_input_queue(
+            # "10 PRINT ' FOR NEXT COMMENT\r\n"
+            "10 PRINT ' FOR NEXT\r\n"
+            'LIST\r\n'
+        )
+        op_call_count, cycles, output = self._run_until_OK(max_ops=1430000)
+        print op_call_count, cycles, output
+        self.assertEqual(output,
+            [u'10A=1', u'20B=2', u'LIST', u'10 A=1', u'20 B=2', u'OK']
+        )
+        output = self.request_comm.get_basic_program()
+        self.assertEqual(output, ['10 A=1', '20 B=2'])
 
 
 
@@ -112,7 +113,8 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #            "Test_Dragon32_BASIC.test_code_load02",
-#            "Test_Dragon32_BASIC.test_code_save01",
+#             "Test_Dragon32_BASIC.test_code_save01",
+            "Test_Dragon32_BASIC.test_tokens_in_string",
         ),
         testRunner=TextTestRunner2,
 #         verbosity=1,
