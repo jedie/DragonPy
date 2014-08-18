@@ -35,6 +35,9 @@ class BasicTokenUtil(object):
         try:
             result = self.basic_token_dict[value]
         except KeyError:
+            if value > 0xff:
+                log.critical("ERROR: Token $%04x is not in BASIC_TOKENS!", value)
+                return ""
             result = chr(value)
         return result
 
@@ -60,12 +63,29 @@ class BasicTokenUtil(object):
                     tokens.append(new_token)
             else:
                 new_tokens = [ord(char) for char in part]
-                log.critical("\t%s -> %s", repr(part),
-                    ",".join(["$%02x" % t for t in new_tokens])
-                )
                 tokens += new_tokens
         return tokens
 
+    def format_tokens(self, tokens):
+        result = []
+        token_value = None
+        for token in tokens:
+            if token == 0xff:
+                token_value = token
+                continue
+            if token_value is not None:
+                token_value = (token_value << 8) + token
+            else:
+                token_value = token
+
+            char = self.token2ascii(token_value)
+            if token_value > 0xff:
+                result.append("\t$%04x -> %s" % (token_value, repr(char)))
+            else:
+                result.append("\t  $%02x -> %s" % (token_value, repr(char)))
+            token_value = None
+
+        return result
 
 class BasicLine(object):
     def __init__(self, token_util):
@@ -94,7 +114,7 @@ class BasicLine(object):
     def get_tokens(self):
         return [self.line_number] + self.line_code
 
-    def get_content(self, code=None, debug=False):
+    def get_content(self, code=None):
         if code is None: # start
             code = self.line_code
 
@@ -108,15 +128,14 @@ class BasicLine(object):
                 value = (old_value << 8) + value
                 old_value = None
             code = self.token_util.token2ascii(value)
-            if debug:
-                log.critical("\t%s -> %s", hex(value), repr(code))
             line += code
         return line
 
     def log_line(self):
-        log.critical("%r -> %s" % (
-            self.get_content(debug=True), " ".join(["$%02x" % v for v in self.get_tokens()])
-        ))
+        log.critical("%r:\n\t%s",
+            self.get_content(),
+            "\n\t".join(self.token_util.format_tokens(self.line_code))
+        )
 
 
 class BasicListing(object):
@@ -139,7 +158,7 @@ class BasicListing(object):
         length = next_address - program_start
         log.critical("length: %i", length)
         tokens = dump[4:length]
-        log.critical("tokens: %s", ",".join(["$%02x" % i for i in tokens]))
+        log.critical("tokens:\n\t%s", "\n\t".join(self.token_util.format_tokens(tokens)))
 
         basic_line = BasicLine(self.token_util)
         basic_line.token_load(line_number, tokens)
@@ -194,12 +213,6 @@ class BasicListing(object):
             ascii_lines.append(line.get_content())
         return ascii_lines
 
-    def format_tokens(self, tokens):
-        result = []
-        for token in tokens:
-            char = self.token_util.token2ascii(token)
-            result.append("\t$%02x -> %s" % (token, repr(char)))
-        return result
 
 class RenumTool(object):
     """
