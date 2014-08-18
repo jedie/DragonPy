@@ -9,8 +9,8 @@
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
+
 import unittest
-from dragonlib.utils.logging_utils import format_program_dump
 
 class BaseTestCase(unittest.TestCase):
     """
@@ -54,7 +54,3 @@ class BaseTestCase(unittest.TestCase):
             msg = "%s != %s" % (first, second)
         self.assertEqual(first, second, msg)
 
-    def assertEqualProgramDump(self, first, second, msg=None):
-        first = format_program_dump(first)
-        second = format_program_dump(second)
-        self.assertEqual(first, second, msg)

@@ -67,12 +67,17 @@ class BasicTokenUtil(object):
         return tokens
 
     def format_tokens(self, tokens):
+        """
+        format a tokenized BASIC program line. Useful for debugging.
+        returns a list of formated string lines.
+        """
         result = []
         token_value = None
         for token in tokens:
             if token == 0xff:
                 token_value = token
                 continue
+
             if token_value is not None:
                 token_value = (token_value << 8) + token
             else:
@@ -86,6 +91,7 @@ class BasicTokenUtil(object):
             token_value = None
 
         return result
+
 
 class BasicLine(object):
     def __init__(self, token_util):
@@ -191,6 +197,34 @@ class BasicListing(object):
                 basic_line.ascii_load(line)
                 basic_lines.append(basic_line)
         return basic_lines
+
+    def format_program_dump(self, program_dump, program_start, formated_dump=None):
+        """
+        format a BASIC program dump. Useful for debugging.
+        returns a list of formated string lines.
+        """
+        if formated_dump is None:
+            formated_dump = []
+            formated_dump.append(
+                "program start address: $%04x" % program_start
+            )
+
+        next_address = (program_dump[0] << 8) + program_dump[1]
+        if next_address == 0x0000:
+            formated_dump.append("$%04x -> end address" % next_address)
+            return formated_dump
+
+        length = next_address - program_start
+        formated_dump.append(
+            "$%04x -> next address (length: %i)" % (next_address, length)
+        )
+        line_number = (program_dump[2] << 8) + program_dump[3]
+        formated_dump.append("$%04x -> %i (line number)" % (line_number, line_number))
+
+        tokens = program_dump[4:length]
+        formated_dump.append("tokens:")
+        formated_dump += self.token_util.format_tokens(tokens)
+        return self.format_program_dump(program_dump[length:], next_address, formated_dump)
 
     def debug_listing(self, basic_lines):
         for line in basic_lines:

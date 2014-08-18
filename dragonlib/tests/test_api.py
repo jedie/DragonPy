@@ -23,6 +23,11 @@ class BaseDragon32ApiTestCase(BaseTestCase):
     def setUp(self):
         self.dragon32api = Dragon32API()
 
+    def assertEqualProgramDump(self, first, second, msg=None):
+        first = self.dragon32api.format_program_dump(first)
+        second = self.dragon32api.format_program_dump(second)
+        self.assertEqual(first, second, msg)
+
     def _prepare_text(self, txt):
         """
         prepare the multiline, indentation text.
