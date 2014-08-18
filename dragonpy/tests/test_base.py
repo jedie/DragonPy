@@ -448,7 +448,12 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
         output = []
         existing_OK_count = 0
         for op_call_count in xrange(max_ops):
-            self.cpu.get_and_call_next_op()
+            try:
+                self.cpu.get_and_call_next_op()
+            except Exception as err:
+                log.critical("Execute Error: %s", err)
+                cycles = self.cpu.cycles - old_cycles
+                return op_call_count, cycles, self.periphery.striped_output()
 
             output_lines = self.periphery.output_lines
             if output_lines[-1] == "OK":
