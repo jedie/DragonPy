@@ -211,7 +211,7 @@ class RenumTool(object):
 
     def renum(self, ascii_listing):
         self.renum_dict = self.create_renum_dict(ascii_listing)
-        log.critical("renum: %s",
+        log.info("renum: %s",
             ", ".join([
                 "%s->%s" % (o, n)
                 for o, n in sorted(self.renum_dict.items())
@@ -227,21 +227,50 @@ class RenumTool(object):
             new_listing.append(new_line)
         return "\n".join(new_listing)
 
-    def renum_inline(self, matchobj):
-        old_number = matchobj.group("no")
+    def _get_new_line_number(self, line, old_number):
         try:
             new_number = "%s" % self.renum_dict[old_number]
         except KeyError:
-            log.critical(
+            log.error(
                 "Error in line '%s': line no. '%s' doesn't exist.",
-                matchobj.group(0), old_number
+                line, old_number
             )
             new_number = old_number
+        return new_number
+
+    def _replace_statement(self, matchobj):
+        old_number = matchobj.group("no")
+        new_number = self._get_new_line_number(matchobj.group(0), old_number)
         return "".join([
             matchobj.group("statement"),
             matchobj.group("space"),
             new_number
         ])
+
+    def _replace_on_goto(self, matchobj):
+        old_numbers = matchobj.group("on_goto_no")
+        if old_numbers[-1] == " ":
+            # e.g.: space before comment: ON X GOTO 1,2 ' Comment
+            space_after = " "
+        else:
+            space_after = ""
+        old_numbers = [n.strip() for n in old_numbers.split(",")]
+        new_numbers = [
+            self._get_new_line_number(matchobj.group(0), old_number)
+            for old_number in old_numbers
+        ]
+        return "".join([
+            matchobj.group("on_goto_statement"),
+            matchobj.group("on_goto_space"),
+            ",".join(new_numbers), space_after
+        ])
+
+    def renum_inline(self, matchobj):
+#         log.critical(matchobj.groups())
+        if matchobj.group("on_goto_statement"):
+            return self._replace_on_goto(matchobj)
+        else:
+            return self._replace_statement(matchobj)
 
     def create_renum_dict(self, ascii_listing):
         old_numbers = [match[0] for match in self.line_no_regex.findall(ascii_listing)]
@@ -258,6 +287,7 @@ if __name__ == "__main__":
     api = Dragon32API()
     listing = """\
 1 PRINT "ONE"
+2 ON X GOSUB 1,12 , 14 , 15,455 ' foo
 11 GOTO 12
 12 PRINT "FOO":GOSUB 15
 14 IF A=1 THEN 20 ELSE 1

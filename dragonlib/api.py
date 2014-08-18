@@ -21,6 +21,8 @@ DRAGON32 = "Dragon32"
 class BaseAPI(object):
     RENUM_REGEX = r"""
         (?P<statement> GOTO|GOSUB|THEN|ELSE ) (?P<space>\s*) (?P<no>\d+)
+        |
+        (?P<on_goto_statement> ON.+?GOTO|ON.+?GOSUB ) (?P<on_goto_space>\s*) (?P<on_goto_no>[\d*,\s*]+)
     """
 
     def program_dump2ascii_lines(self, dump, program_start=None):

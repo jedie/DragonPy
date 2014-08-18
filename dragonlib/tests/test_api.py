@@ -194,14 +194,72 @@ class RenumTests(BaseDragon32ApiTestCase):
             2 GOTO 123 ' 123 didn't exists
             3 IF A=1 THEN 456 ELSE 2 ' 456 didn't exists
         """)
-#         print old_listing
-#         print "-"*79
         new_listing = self.dragon32api.renum_ascii_listing(old_listing)
 #         print new_listing
         self.assertEqual(new_listing, self._prepare_text("""
             10 GOTO 20
             20 GOTO 123 ' 123 didn't exists
             30 IF A=1 THEN 456 ELSE 20 ' 456 didn't exists
+        """))
+
+    def test_on_goto(self):
+        old_listing = self._prepare_text("""
+            1 ON X GOTO 2,3
+            2 ?"A"
+            3 ?"B"
+        """)
+        new_listing = self.dragon32api.renum_ascii_listing(old_listing)
+#         print new_listing
+        self.assertEqual(new_listing, self._prepare_text("""
+            10 ON X GOTO 20,30
+            20 ?"A"
+            30 ?"B"
+        """))
+
+    def test_on_goto_spaces(self):
+        old_listing = self._prepare_text("""
+            1 ON X GOTO 2,30 , 4,  555
+            2 ?"A"
+            30 ?"B"
+            4 ?"C"
+            555 ?"D"
+        """)
+        new_listing = self.dragon32api.renum_ascii_listing(old_listing)
+#         print new_listing
+        self.assertEqual(new_listing, self._prepare_text("""
+            10 ON X GOTO 20,30,40,50
+            20 ?"A"
+            30 ?"B"
+            40 ?"C"
+            50 ?"D"
+        """))
+
+    def test_on_goto_space_after(self):
+        old_listing = self._prepare_text("""
+            1 ON X GOTO 1,2 ' space before comment?
+            2 ?"A"
+        """)
+#         print old_listing
+#         print "-"*79
+        new_listing = self.dragon32api.renum_ascii_listing(old_listing)
+#         print new_listing
+        self.assertEqual(new_listing, self._prepare_text("""
+            10 ON X GOTO 10,20 ' space before comment?
+            20 ?"A"
+        """))
+
+    def test_on_gosub_dont_exists(self):
+        old_listing = self._prepare_text("""
+            1 ON X GOSUB 1,2,3
+            2 ?"A"
+        """)
+#         print old_listing
+#         print "-"*79
+        new_listing = self.dragon32api.renum_ascii_listing(old_listing)
+#         print new_listing
+        self.assertEqual(new_listing, self._prepare_text("""
+            10 ON X GOSUB 10,20,3
+            20 ?"A"
         """))
 
 
