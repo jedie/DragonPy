@@ -143,7 +143,7 @@ class DragonTkinterGUI(object):
         menubar = Tkinter.Menu(self.root)
 
         filemenu = Tkinter.Menu(menubar, tearoff=0)
-        filemenu.add_command(label="Exit", command=self.root.quit)
+        filemenu.add_command(label="Exit", command=self.exit)
         menubar.add_cascade(label="File", menu=filemenu)
 
         editmenu = Tkinter.Menu(menubar, tearoff=0)
@@ -202,7 +202,6 @@ class DragonTkinterGUI(object):
             self.root.destroy()
         except:
             pass
-        super(DragonTkinterGUI, self).exit()
 
     def paste_clipboard(self, event):
         """
@@ -283,7 +282,10 @@ class DragonTkinterGUI(object):
         self.display_cpu_status_interval(interval=1000)
 
         log.critical("Start root.mainloop()")
-        self.root.mainloop()
+        try:
+            self.root.mainloop()
+        except KeyboardInterrupt:
+            self.exit()
         log.critical("root.mainloop() has quit!")
 
 
