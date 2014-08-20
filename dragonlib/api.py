@@ -109,3 +109,6 @@ class CoCoAPI(Dragon32API):
     CONFIG_NAME = COCO
     MACHINE_NAME = "CoCo"
     BASIC_TOKENS = COCO_BASIC_TOKENS
+
+    # Default memory location of BASIC listing start
+    DEFAULT_PROGRAM_START = 0x0601
