@@ -15,9 +15,11 @@ from dragonlib.core.basic import BasicListing, RenumTool, BasicTokenUtil,\
 from dragonlib.core.basic_parser import BASICParser
 from dragonlib.dragon32.basic_tokens import DRAGON32_BASIC_TOKENS
 from dragonlib.utils.logging_utils import log
+from dragonlib.CoCo.basic_tokens import COCO_BASIC_TOKENS
 
 
 DRAGON32 = "Dragon32"
+COCO = "CoCo"
 
 
 class BaseAPI(object):
@@ -99,3 +101,11 @@ class Dragon32API(BaseAPI):
     # Default memory location of BASIC listing start
     DEFAULT_PROGRAM_START = 0x1E01
 
+
+class CoCoAPI(Dragon32API):
+    """
+    http://sourceforge.net/p/toolshed/code/ci/default/tree/cocoroms/dragon_equivs.asm
+    """
+    CONFIG_NAME = COCO
+    MACHINE_NAME = "CoCo"
+    BASIC_TOKENS = COCO_BASIC_TOKENS

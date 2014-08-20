@@ -12,11 +12,13 @@
 import os
 import logging
 
-from dragonpy.Dragon32.config import Dragon32Cfg
-from dragonpy.CoCo.mem_info import get_coco_meminfo
+from dragonlib.api import CoCoAPI
 from dragonlib.utils.logging_utils import log
-from dragonpy.core.configs import COCO
+
+from dragonpy.CoCo.mem_info import get_coco_meminfo
+from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.keyboard_map import get_coco_keymatrix_pia_result
+from dragonpy.core.configs import COCO
 
 
 class CoCoCfg(Dragon32Cfg):
@@ -56,6 +58,8 @@ class CoCoCfg(Dragon32Cfg):
         self.RAM_SIZE = (self.RAM_END - self.RAM_START) + 1
         super(CoCoCfg, self).__init__(cmd_args)
 
+        self.machine_api = CoCoAPI()
+
         if self.verbosity <= logging.ERROR:
             self.mem_info = get_coco_meminfo()
 
@@ -91,7 +95,7 @@ class CoCoCfg(Dragon32Cfg):
         return mem
 
     def pia_keymatrix_result(self, char_or_code, pia0b):
-        return get_coco_keymatrix_pia_result(char_or_code, pia0b, invert_shift=True)
+        return get_coco_keymatrix_pia_result(char_or_code, pia0b, auto_shift=True)
 
 
 config = CoCoCfg
