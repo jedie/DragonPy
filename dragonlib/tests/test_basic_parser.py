@@ -50,10 +50,10 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:CLS>""",
                 ],
-                "20": [
+                20: [
                     """<CODE:PRINT>""",
                 ],
             },
@@ -64,7 +64,7 @@ class TestBASICParser(unittest.TestCase):
         ascii_listing = '10 A$="A STRING"'
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:A$=>""",
                     """<STRING:"A STRING">""",
                 ],
@@ -78,7 +78,7 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:A$=>""",
                     """<STRING:"1">""",
                     """<CODE::B=2:C$=>""",
@@ -96,7 +96,7 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:A$=>""",
                     """<STRING:"NO :'REM">""",
                     """<CODE: '>""",
@@ -112,7 +112,7 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:PRINT >""",
                     """<STRING:"NOT TERMINATED STRING>""",
                 ],
@@ -126,7 +126,7 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:DATA>""",
                     """<DATA: 1,2,A,FOO>""",
                 ],
@@ -140,7 +140,7 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:DATA>""",
                     """<DATA: 1,2,"A","FOO BAR",4,5>""",
                 ],
@@ -154,7 +154,7 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:DATA>""",
                     """<DATA: "FOO : BAR">""",
                 ],
@@ -168,7 +168,7 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:DATA>""",
                     """<DATA: "FOO : BAR">""",
                     """<CODE::PRINT 123>""",
@@ -183,7 +183,7 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:REM>""",
                     """<COMMENT: A COMMENT>""",
                 ],
@@ -197,7 +197,7 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:REM>""",
                 ],
             },
@@ -210,7 +210,7 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:'>""",
                 ],
             },
@@ -223,7 +223,7 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:REM>""",
                     """<COMMENT: FOR "FOO : BAR":PRINT 123>""",
                 ],
@@ -237,7 +237,7 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:A=2 '>""",
                     """<COMMENT: FOR "FOO : BAR":PRINT 123>""",
                 ],
@@ -251,7 +251,7 @@ class TestBASICParser(unittest.TestCase):
         """
         self.assertParser(ascii_listing,
             {
-                "10": [
+                10: [
                     """<CODE:B$=>""",
                     """<STRING:"'">""",
                 ],

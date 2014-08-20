@@ -119,7 +119,7 @@ class BASICParser(object):
         for match in self.regex_line_no.finditer(ascii_listing):
             log.info("_" * 79)
             log.info("parse line >>>%r<<<", match.group())
-            line_no = match.group("no")
+            line_no = int(match.group("no"))
             line_content = match.group("content")
 
             self.line_data = []
