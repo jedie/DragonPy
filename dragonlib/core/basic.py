@@ -14,7 +14,9 @@
 import re
 
 from dragonlib.core import basic_parser
-from dragonlib.utils.logging_utils import log, log_program_dump
+from dragonlib.utils.iter_utils import list_replace
+from dragonlib.utils.logging_utils import log, log_program_dump,\
+    pformat_byte_hex_list
 from dragonpy.utils.byte_word_values import word2bytes
 
 
@@ -74,7 +76,20 @@ class BasicTokenUtil(object):
         for code_object in code_objects:
             if code_object.PART_TYPE == basic_parser.CODE_TYPE_CODE:
                 # Code part
-                tokens += self.ascii2token(code_object.content)
+                content = code_object.content
+                """
+                NOTE: The BASIC interpreter changed REM shortcut and ELSE
+                internaly:
+                   "'" <-> ":'"
+                "ELSE" <-> ":ELSE"
+                
+                See also:
+                http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4310&p=11632#p11630
+                """
+                log.info("replace ' and ELSE with :' and :ELSE")
+                content=content.replace("'", ":'")
+                content=content.replace("ELSE", ":ELSE")
+                tokens += self.ascii2token(content)
             else:
                 # Strings, Comments or DATA
                 tokens += self.chars2tokens(code_object.content)
@@ -112,12 +127,41 @@ class BasicLine(object):
         self.token_util = token_util
         self.line_number = None
         self.line_code = None
+        
+        try:
+            colon_token = self.token_util.ascii2token_dict[":"]
+        except KeyError: # XXX: Always not defined as token?
+            colon_token = ord(":")
+        rem_token = self.token_util.ascii2token_dict["'"]
+        else_token = self.token_util.ascii2token_dict["ELSE"]
+        self.tokens_replace_rules = (
+            ((colon_token, rem_token), rem_token),
+            ((colon_token, else_token), else_token),
+        )
 
     def token_load(self, line_number, tokens):
         self.line_number = line_number
         assert tokens[-1] == 0x00, "line code %s doesn't ends with \\x00: %s" % (
             repr(tokens), repr(tokens[-1])
         )
+        
+        """
+        NOTE: The BASIC interpreter changed REM shortcut and ELSE
+        internaly:
+           "'" <-> ":'"
+        "ELSE" <-> ":ELSE"
+        
+        See also:
+        http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4310&p=11632#p11630
+        """
+        for src, dst in self.tokens_replace_rules:
+            log.info("Relace tokens %s with $%02x",
+                pformat_byte_hex_list(src), dst
+            )
+            log.debug("Before..: %s", pformat_byte_hex_list(tokens) )
+            tokens = list_replace(tokens, src, dst)
+            log.debug("After...: %s", pformat_byte_hex_list(tokens) )
+        
         self.line_code = tokens[:-1] # rstrip \x00
 
     def ascii_load(self, line_ascii):
@@ -177,6 +221,11 @@ class BasicListing(object):
             # program end
             log.critical("return: %s", repr(basic_lines))
             return basic_lines
+        
+        assert next_address>program_start, "Next address $%04x not bigger than program start $%04x ?!?" % (
+            next_address,program_start
+        )
+        
         line_number = (dump[2] << 8) + dump[3]
         log.critical("line_number: %i", line_number)
         length = next_address - program_start
@@ -253,9 +302,8 @@ class BasicListing(object):
         tokens = program_dump[4:length]
         formated_dump.append("tokens:")
         formated_dump += self.token_util.pformat_tokens(tokens)
-        rest = program_dump[length:]
-        print rest, next_address, formated_dump
-        return self.pformat_program_dump(rest, next_address, formated_dump)
+
+        return self.pformat_program_dump(program_dump[length:], next_address, formated_dump)
 
     def debug_listing(self, basic_lines):
         for line in basic_lines:

@@ -17,7 +17,9 @@ import unittest
 from dragonlib.api import Dragon32API
 from dragonlib.core.basic import BasicLine
 from dragonlib.tests.test_base import BaseTestCase
-from dragonlib.utils.logging_utils import log, setup_logging, log_program_dump
+from dragonlib.utils.logging_utils import log, setup_logging, log_program_dump,\
+    pformat_program_dump
+from dragonpy.tests.test_base import TextTestRunner2
 
 
 class BaseDragon32ApiTestCase(BaseTestCase):
@@ -28,6 +30,43 @@ class BaseDragon32ApiTestCase(BaseTestCase):
         first = self.dragon32api.pformat_program_dump(first)
         second = self.dragon32api.pformat_program_dump(second)
         self.assertEqual(first, second, msg)
+
+    def assertListing2Dump(self, ascii_listing,program_dump,debug=False):
+        if debug:
+            print "\n"+"_"*79
+            print " *** Debug Listing:\n%s" % ascii_listing
+            print " -"*39
+            print " *** Debug Dump:\n%s\n" % (
+                pformat_program_dump(program_dump)
+            )
+            print " -"*39
+            
+        created_program_dump = self.dragon32api.ascii_listing2program_dump(
+            ascii_listing
+        )
+        if debug:
+            print " *** Created dump from listing:\n%s\n" % (
+                pformat_program_dump(created_program_dump)
+            )
+            print " -"*39
+        
+        if not created_program_dump:
+            log.critical("Created dump empty? repr: %s", repr(created_program_dump))
+            
+        if debug:
+            print " *** Full Dump:\n%s" % "\n".join(
+                self.dragon32api.pformat_program_dump(created_program_dump)
+            )
+        self.assertEqualProgramDump(created_program_dump, program_dump)
+        
+    def assertDump2Listing(self, ascii_listing,program_dump):
+#         log_program_dump(created_program_dump)
+#         print "\n".join(
+#             self.dragon32api.pformat_program_dump(created_program_dump)
+#         )
+        created_listing = self.dragon32api.program_dump2ascii_lines(program_dump)
+        ascii_listing=ascii_listing.splitlines()
+        self.assertEqual(created_listing, ascii_listing)
 
     def _prepare_text(self, txt):
         """
@@ -183,22 +222,13 @@ class Dragon32BASIC_HighLevel_ApiTest(BaseDragon32ApiTestCase):
 
     def test_listing2program_strings_dont_in_comment(self):
         """
-        TODO: Don't replace tokens in comments
-
-        NOTE: The REM shortcut >'< would be replace by >:'< internally from
-        the BASIC Interpreter.
-
-        See also:
-        http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4310&p=11632#p11630
+        Don't replace tokens in comments
         """
-        program_dump = self.dragon32api.ascii_listing2program_dump(
-            "10 :'IF THEN ELSE"
-        )
-        print "\n".join(
-            self.dragon32api.pformat_program_dump(program_dump)
-        )
-        self.assertEqualProgramDump(program_dump, (
-            0x1e, 0x14, # next address
+        ascii_listing = self._prepare_text("""
+            10 'IF THEN ELSE"
+        """)
+        program_dump= (
+            0x1e, 0x15, # next address
             0x00, 0x0a, # 10
             0x3a, # :
             0x83, # '
@@ -207,33 +237,120 @@ class Dragon32BASIC_HighLevel_ApiTest(BaseDragon32ApiTestCase):
             0x54, 0x48, 0x45, 0x4e, # T, H, E, N
             0x20, # " "
             0x45, 0x4c, 0x53, 0x45, # E, L, S, E
+            0x22, # "
             0x00, # end of line
             0x00, 0x00, # program end
-        ))
+        )
+        self.assertListing2Dump(ascii_listing,program_dump,
+#             debug=True
+        )
+        self.assertDump2Listing(ascii_listing,program_dump)
 
     def test_listing2program_strings_dont_in_strings(self):
         """
         Don't replace tokens in strings
         """
-        program_dump = self.dragon32api.ascii_listing2program_dump(
-            '10 PRINT"FOR NEXT'
-        )
-        log_program_dump(program_dump)
-        print "\n".join(
-            self.dragon32api.pformat_program_dump(program_dump)
-        )
-        self.assertEqualProgramDump(program_dump, (
-            0x1e, 0x10,  # start address
-            0x00,  # line start
-            0x0a,  # 10
-            0x87,  # PRINT
-            0x22,  # "
-            0x46, 0x4f, 0x52,  # F, O, R
-            0x20,  # " "
+        ascii_listing = self._prepare_text("""
+            10 PRINT"FOR NEXT
+        """)
+        program_dump= (
+            0x1e, 0x10, # next address
+            0x00, 0x0a, # 10
+            0x87, # PRINT
+            0x22, # "
+            0x46, 0x4f, 0x52, # F, O, R
+            0x20, # " "
             0x4e, 0x45, 0x58, 0x54,  # N, E, X, T
+            0x00, # end of line
+            0x00, 0x00,  # program end
+        )
+        self.assertListing2Dump(ascii_listing,program_dump,
+#             debug=True
+        )
+        self.assertDump2Listing(ascii_listing,program_dump)
+
+        
+    def test_ascii_listing2program_dump_with_bigger_line_number(self):
+        """
+        Don't replace tokens in strings
+        """
+        ascii_listing = self._prepare_text("""
+            65000 CLS
+        """)
+        program_dump = (
+            0x1e, 0x07,  # start address
+            0xfd, 0xe8,  # 65000
+            0xa0,  # CLS
             0x00,  # end of line
             0x00, 0x00,  # program end
-        ))
+        )
+        self.assertListing2Dump(ascii_listing,program_dump)
+        self.assertDump2Listing(ascii_listing,program_dump)
+
+    def test_auto_add_colon_before_comment(self):
+        """
+        NOTE: The REM shortcut >'< would be replace by >:'< internally from
+        the BASIC Interpreter.
+
+        See also:
+        http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4310&p=11632#p11630
+        """
+        ascii_listing = self._prepare_text("""
+            100 'FOO
+        """)
+        program_dump = (
+            0x1e, 0x0b, # next address (length: 10)
+            0x00, 0x64, # 100 (line number)
+            0x3a, # : ===> Insert/remove it automaticly
+            0x83, # '
+            0x46, # F
+            0x4f, # O
+            0x4f, # O
+            0x00, # EOL
+            0x00, 0x00, # end address
+        )
+        self.assertListing2Dump(ascii_listing,program_dump,
+            debug=True
+        )
+        self.assertDump2Listing(ascii_listing,program_dump)
+
+    def test_auto_add_colon_before_else(self):
+        """
+        NOTE: The REM shortcut >'< would be replace by >:'< internally from
+        the BASIC Interpreter.
+
+        See also:
+        http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4310&p=11632#p11630
+        """
+        ascii_listing = self._prepare_text("""
+            100 IF A=1 THEN 10 ELSE 20
+        """)
+        program_dump = (
+            0x1e, 0x16, # -> next address (length: 21)
+            0x00, 0x64, # -> 100 (line number)
+            0x85, # -> 'IF'
+            0x20, # -> ' '
+            0x41, # -> 'A'
+            0xcb, # -> '='
+            0x31, # -> '1'
+            0x20, # -> ' '
+            0xbf, # -> 'THEN'
+            0x20, # -> ' '
+            0x31, # -> '1'
+            0x30, # -> '0'
+            0x20, # -> ' '
+            0x3a, # : ===> Insert/remove it automaticly
+            0x84, # -> 'ELSE'
+            0x20, # -> ' '
+            0x32, # -> '2'
+            0x30, # -> '0'
+            0x00, # -> EOL
+            0x00, 0x00, # -> end address
+        )
+        self.assertListing2Dump(ascii_listing,program_dump,
+            debug=True
+        )
+        self.assertDump2Listing(ascii_listing,program_dump)
 
 
 class RenumTests(BaseDragon32ApiTestCase):
@@ -339,17 +456,18 @@ class RenumTests(BaseDragon32ApiTestCase):
 if __name__ == '__main__':
     setup_logging(log,
 #        level=1 # hardcore debug ;)
-#        level=10 # DEBUG
-#        level=20 # INFO
+#         level=10 # DEBUG
+#         level=20 # INFO
 #        level=30 # WARNING
 #         level=40 # ERROR
         level=50  # CRITICAL/FATAL
     )
 
     unittest.main(
+        testRunner= TextTestRunner2,
         argv=(
             sys.argv[0],
-            #             "Dragon32BASIC_HighLevel_ApiTest",
+#             "Dragon32BASIC_HighLevel_ApiTest.test_listing2program_strings_dont_in_comment",
         ),
         #         verbosity=1,
         verbosity=2,

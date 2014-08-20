@@ -76,9 +76,18 @@ def log_memory_dump(memory, start, end, mem_info, level=99):
         log.log(level, "\t%s", msg)
 
 
+def pformat_hex_list(hex_list):
+    return u" ".join([u"$%x" % v for v in hex_list])
+
+def pformat_byte_hex_list(hex_list):
+    return u" ".join([u"$%02x" % v for v in hex_list])
+
+def pformat_word_hex_list(hex_list):
+    return u" ".join([u"$%02x" % v for v in hex_list])
+
 def log_hexlist(byte_list, group=8, start=0x0000, level=99):
     def _log(level, addr, line):
-        msg = " ".join(["$%02x" % v for v in line])
+        msg = pformat_byte_hex_list(line)
         msg = "%04x - %s" % (addr, msg)
         log.log(level, msg)
 
@@ -97,7 +106,7 @@ def log_hexlist(byte_list, group=8, start=0x0000, level=99):
 
 
 def pformat_program_dump(ram_content):
-    msg = u" ".join(["$%02x" % v for v in ram_content])
+    msg = pformat_byte_hex_list(ram_content)
     msg = msg.replace(u"$00 ", u"\n$00\n")
     return msg
 
