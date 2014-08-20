@@ -36,7 +36,7 @@ class BaseDragon32ApiTestCase(BaseTestCase):
         # txt = unicode(txt)
         txt = txt.splitlines()
         assert txt[0] == "", "First assertion line must be empty! Is: %s" % repr(txt[0])
-        txt = txt[1:] # Skip the first line
+        txt = txt[1:]  # Skip the first line
 
         # get the indentation level from the first line
         count = False
@@ -53,13 +53,15 @@ class BaseDragon32ApiTestCase(BaseTestCase):
         txt = "\n".join(txt)
 
         # strip *one* newline at the begining...
-        if txt.startswith("\n"): txt = txt[1:]
+        if txt.startswith("\n"):
+            txt = txt[1:]
         # and strip *one* newline at the end of the text
-        if txt.endswith("\n"): txt = txt[:-1]
+        if txt.endswith("\n"):
+            txt = txt[:-1]
         # ~ print(repr(txt))
         # ~ print("-"*79)
 
-        return unicode(txt) # turn to unicode, for better assertEqual error messages
+        return unicode(txt)  # turn to unicode, for better assertEqual error messages
 
 
 class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):
@@ -70,12 +72,12 @@ class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):
 
     def test_load_from_dump(self):
         dump = (
-            0x1e, 0x07, # next_address
+            0x1e, 0x07,  # next_address
             0x00,
-            0x0a, # 10
-            0xa0, # CLS
-            0x00, # end of line
-            0x00, 0x00 # program end
+            0x0a,  # 10
+            0xa0,  # CLS
+            0x00,  # end of line
+            0x00, 0x00  # program end
         )
         basic_lines = self.dragon32api.listing.dump2basic_lines(dump, program_start=0x1e01)
         ascii_listing = basic_lines[0].get_content()
@@ -98,8 +100,8 @@ class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):
         )
         tokens = basic_lines[0].get_tokens()
         self.assertHexList(tokens, [
-            0x0a, # 10
-            0xa0, # CLS
+            0x0a,  # 10
+            0xa0,  # CLS
         ])
         self.assertEqual(len(basic_lines), 1)
 
@@ -109,14 +111,14 @@ class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):
         )
         tokens = basic_lines[0].get_tokens()
         self.assertHexList(tokens, [
-            0x32, # 50
+            0x32,  # 50
             # I$ = INKEY$:IF I$="" THEN 50
             0x49, 0x24, 0x20, 0xcb, 0x20, 0xff, 0x9a, 0x3a, 0x85, 0x20, 0x49, 0x24, 0xcb, 0x22, 0x22, 0x20, 0xbf, 0x20, 0x35, 0x30,
         ])
         self.assertEqual(len(basic_lines), 1)
 
     def test_format_tokens(self):
-        tokens = (0x49, 0x24, 0x20, 0xcb, 0x20, 0xff, 0x9a) # I$ = INKEY$
+        tokens = (0x49, 0x24, 0x20, 0xcb, 0x20, 0xff, 0x9a)  # I$ = INKEY$
         formated_tokens = self.token_util.format_tokens(tokens)
         self.assertEqual(formated_tokens, [
             "\t  $49 -> 'I'",
@@ -131,12 +133,12 @@ class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):
 class Dragon32BASIC_HighLevel_ApiTest(BaseDragon32ApiTestCase):
     DUMP = (0x1e, 0x07, 0x00, 0x0a, 0xa0, 0x00, 0x1e, 0x1a, 0x00, 0x14, 0x80, 0x20, 0x49, 0x20, 0xcb, 0x20, 0x30, 0x20, 0xbc, 0x20, 0x32, 0x35, 0x35, 0x3a, 0x00, 0x1e, 0x2d, 0x00, 0x1e, 0x93, 0x20, 0x31, 0x30, 0x32, 0x34, 0xc3, 0x28, 0x49, 0xc5, 0x32, 0x29, 0x2c, 0x49, 0x00, 0x1e, 0x35, 0x00, 0x28, 0x8b, 0x20, 0x49, 0x00, 0x1e, 0x4e, 0x00, 0x32, 0x49, 0x24, 0x20, 0xcb, 0x20, 0xff, 0x9a, 0x3a, 0x85, 0x20, 0x49, 0x24, 0xcb, 0x22, 0x22, 0x20, 0xbf, 0x20, 0x35, 0x30, 0x00, 0x00, 0x00)
     LISTING = [
-            '10 CLS',
-            '20 FOR I = 0 TO 255:',
-            '30 POKE 1024+(I*2),I',
-            '40 NEXT I',
-            '50 I$ = INKEY$:IF I$="" THEN 50'
-        ]
+        '10 CLS',
+        '20 FOR I = 0 TO 255:',
+        '30 POKE 1024+(I*2),I',
+        '40 NEXT I',
+        '50 I$ = INKEY$:IF I$="" THEN 50'
+    ]
 
     def test_program_dump2ascii(self):
         listing = self.dragon32api.program_dump2ascii_lines(self.DUMP)
@@ -152,12 +154,12 @@ class Dragon32BASIC_HighLevel_ApiTest(BaseDragon32ApiTestCase):
 #        log_hexlist(ram_content)
 #        log_hexlist(dump)
         self.assertEqualProgramDump(tokens, (
-            0x1e, 0x07, # next_address
+            0x1e, 0x07,  # next_address
             0x00,
-            0x0a, # 10
-            0xa0, # CLS
-            0x00, # end of line
-            0x00, 0x00 # program end
+            0x0a,  # 10
+            0xa0,  # CLS
+            0x00,  # end of line
+            0x00, 0x00  # program end
         ))
 
     def test_ascii2RAM02(self):
@@ -168,18 +170,18 @@ class Dragon32BASIC_HighLevel_ApiTest(BaseDragon32ApiTestCase):
 #        log_hexlist(ram_content)
 #        log_hexlist(dump)
         self.assertEqualProgramDump(tokens, (
-            0x1e, 0x09,# next_address
-            0x00, # line start
-            0x0a, 0x41, 0xcb, 0x31, # 10 A=1
-            0x00, # end of line
-            0x1e, 0x11,# next_address
-            0x00, # line start
-            0x14, 0x42, 0xcb, 0x32, # 20 B=2
-            0x00, # end of line
-            0x00, 0x00 # program end
+            0x1e, 0x09,  # next_address
+            0x00,  # line start
+            0x0a, 0x41, 0xcb, 0x31,  # 10 A=1
+            0x00,  # end of line
+            0x1e, 0x11,  # next_address
+            0x00,  # line start
+            0x14, 0x42, 0xcb, 0x32,  # 20 B=2
+            0x00,  # end of line
+            0x00, 0x00  # program end
         ))
 
-    @unittest.expectedFailure # TODO:
+    @unittest.expectedFailure  # TODO:
     def test_listing2program_strings_dont_in_comment(self):
         """
         TODO: Don't replace tokens in comments
@@ -198,21 +200,21 @@ class Dragon32BASIC_HighLevel_ApiTest(BaseDragon32ApiTestCase):
             self.dragon32api.format_program_dump(program_dump)
         )
         self.assertEqualProgramDump(program_dump, (
-            0x1e, 0x10, # start address
-            0x00, # line start
-                0x0a, # 10
-                0x3a, # :
-                0x83, # '
-                0x49, 0x46, # I, F
-                0x20, # " "
-                0x54, 0x48, 0x45, 0x4e, # T, H, E, N
-                0x20, # " "
-                0x45, 0x4c, 0x53, 0x45, # E, L, S, E
-            0x00, # end of line
-            0x00, 0x00, # program end
+            0x1e, 0x10,  # start address
+            0x00,  # line start
+            0x0a,  # 10
+            0x3a,  # :
+            0x83,  # '
+            0x49, 0x46,  # I, F
+            0x20,  # " "
+            0x54, 0x48, 0x45, 0x4e,  # T, H, E, N
+            0x20,  # " "
+            0x45, 0x4c, 0x53, 0x45,  # E, L, S, E
+            0x00,  # end of line
+            0x00, 0x00,  # program end
         ))
 
-    @unittest.expectedFailure # TODO:
+    @unittest.expectedFailure  # TODO:
     def test_listing2program_strings_dont_in_strings(self):
         """
         TODO: Don't replace tokens in strings
@@ -225,16 +227,16 @@ class Dragon32BASIC_HighLevel_ApiTest(BaseDragon32ApiTestCase):
             self.dragon32api.format_program_dump(program_dump)
         )
         self.assertEqualProgramDump(program_dump, (
-            0x1e, 0x10, # start address
-            0x00, # line start
-                0x0a, # 10
-                0x87, # PRINT
-                0x22, # "
-                0x46, 0x4f, 0x52, # F, O, R
-                0x20, # " "
-                0x4e, 0x45, 0x58, 0x54, # N, E, X, T
-            0x00, # end of line
-            0x00, 0x00, # program end
+            0x1e, 0x10,  # start address
+            0x00,  # line start
+            0x0a,  # 10
+            0x87,  # PRINT
+            0x22,  # "
+            0x46, 0x4f, 0x52,  # F, O, R
+            0x20,  # " "
+            0x4e, 0x45, 0x58, 0x54,  # N, E, X, T
+            0x00,  # end of line
+            0x00, 0x00,  # program end
         ))
 
 
@@ -345,15 +347,15 @@ if __name__ == '__main__':
 #        level=20 # INFO
 #        level=30 # WARNING
 #         level=40 # ERROR
-        level=50 # CRITICAL/FATAL
+        level=50  # CRITICAL/FATAL
     )
 
     unittest.main(
         argv=(
             sys.argv[0],
-            "Dragon32BASIC_HighLevel_ApiTest",
+            #             "Dragon32BASIC_HighLevel_ApiTest",
         ),
-#         verbosity=1,
+        #         verbosity=1,
         verbosity=2,
         failfast=True,
     )
