@@ -20,7 +20,6 @@ Also the "single board computer" ROMs sbc09, Simple6809 and Multicomp6809 works 
 There is a rudimentary BASIC editor with save/load BASIC programm listings direct into RAM.
 (Currently only with Dragon 32 and CoCo)
 
-
 Looks like this:
 
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140820_DragonPy_BASIC_Editor_01.png|screenshot BASIC Editor}}
@@ -56,13 +55,13 @@ There is a simple shell script to automatic download and extract the Dragon ROMs
 ~$ cd DragonPy
 
 # Download all ROM files:
-~$ ./download_ROMs.sh
+~/DragonPy$ ./download_ROMs.sh
 
 # start with Dragon 32 ROM:
-~$ python2 ./Dragon32_test.py
+~/DragonPy$ python2 ./Dragon32_test.py
 
 # start with CoCo Color BASIC 1.3 ROM:
-~$ python2 ./CoCo_test.py
+~/DragonPy$ python2 ./CoCo_test.py
 }}}
 
 == example
