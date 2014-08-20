@@ -70,6 +70,7 @@ COCO_BASIC_TOKENS = {
 
     # Function tokens - all proceeded by 0xff to differentiate from operators
 
+    0xff80: "SGN",
     0xff81: "INT",
     0xff82: "ABS",
     0xff83: "USR",
