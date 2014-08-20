@@ -101,7 +101,7 @@ class Dragon32Cfg(BaseConfig):
 #        VARIABLES_START_ADDR = 0x001B
 #        ARRAY_START_ADDR = 0x001D
 #        FREE_SPACE_START_ADDR = 0x001F
-        log.critical("%04x| write $%03x to $%04x", last_op_address, word, address)
+        log.critical("%04x| write $%04x to $%04x", last_op_address, word, address)
         return word
 
     def get_initial_RAM(self):
