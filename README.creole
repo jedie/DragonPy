@@ -17,11 +17,23 @@ Future goals are:
 The Dragon 32 / 64 and CoCo ROMs works in Text mode.
 Also the "single board computer" ROMs sbc09, Simple6809 and Multicomp6809 works well.
 
-There is a rudementary BASIC editor and you can inject a BASIC program listing from the editor directly into the emulator
-and back: get the listing from emulator into the editor. (Currently only with Dragon 32)
+There is a rudementary BASIC editor with save/load BASIC programm listings direct into RAM.
+(Currently only with Dragon 32)
 
-TODO:
-* Don't replace reversed words into tokens in comments and strings.
+
+Looks like this:
+
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140820_DragonPy_BASIC_Editor_01.png|screenshot BASIC Editor}}
+
+
+Use "BASIC editor / open" in the main menu to open the editor.
+
+You can load/save ASCII .bas files from you local drive or just type a BASIC listing ;)
+With "inject into DragonPy" you send the current listing from the Editor to the Emulator and with "load from DragonPy" back from emulator to editor.
+Note: The is currently no "warning" that un-saved content will be "overwritten" and there is no "auto-backup" ;)
+
+The "renumbering" tool can be found in the editor window under "tools"
+
 
 === ROMs
 
@@ -36,13 +48,19 @@ There is a simple shell script to automatic download and extract the Dragon ROMs
 === Quick start:
 
 {{{
-...path/to/DragonPy$ python2 console_6809_test.py
+# clone the repro:
+~$ git clone https://github.com/jedie/DragonPy.git
+
+# Alternative download as .zip: https://github.com/jedie/DragonPy/archive/master.zip
+
+~$ cd DragonPy
+
+# Download all ROM files:
+~$ ./download_ROMs.sh
+
+# start with Dragon 32 ROM:
+~$ python2 ./Dragon32_test.py
 }}}
-or better, using [[http://pypy.org|PyPy]]:
-{{{
-...path/to/DragonPy$ pypy console_6809_test.py
-}}}
-It's the Simple6809 BASIC ROM running on console.
 
 == example
 
@@ -58,27 +76,6 @@ or:
 {{{
 ...path/to/DragonPy$ python2 ./CoCo_test.py
 }}}
-
-----
-
-Start sbc09:
-{{{
-...path/to/DragonPy$ ./DragonPy_CLI.py --cfg sbc09 --display_cycle
-}}}
-
-Start Simple6809 (with many debug output):
-{{{
-...path/to/DragonPy$ ./DragonPy_CLI.py --cfg Simple6809 --verbosity=5
-}}}
-
-Start Dragon 32 (with some debug output):
-{{{
-...path/to/DragonPy$ ./DragonPy_CLI.py --cfg Dragon32 --verbosity=30
-}}}
-
-If the CPU runs, it starts a http server.
-Just request http://localhost:6809 from your browser.
-(The Web-Page must be enhanced ;)
 
 == unittests ==
 
@@ -120,12 +117,6 @@ install [[https://pypi.python.org/pypi/coverage|coverage]] for python 2:
 ...path/to/DragonPy$ coverage2 coverage2 html
 # e.g.:
 ...path/to/DragonPy$ firefox htmlcov/index.html
-}}}
-
-== CLI
-
-{{{
-...path/to/DragonPy$ ./DragonPy_CLI.py --help
 }}}
 
 
@@ -235,7 +226,6 @@ e.g. The Dragon 32 6809 machine with a 14.31818 MHz crystal runs with:
 == TODO:
 
 # Reimplement the CLI
-# Fast save/load BASIC programm listings direct into RAM
 # Use bottle for http control server part
 # implement more Dragon 32 periphery
 
