@@ -66,7 +66,7 @@ class BasicTokenUtil(object):
                 tokens += new_tokens
         return tokens
 
-    def format_tokens(self, tokens):
+    def pformat_tokens(self, tokens):
         """
         format a tokenized BASIC program line. Useful for debugging.
         returns a list of formated string lines.
@@ -140,7 +140,7 @@ class BasicLine(object):
     def log_line(self):
         log.critical("%r:\n\t%s",
             self.get_content(),
-            "\n\t".join(self.token_util.format_tokens(self.line_code))
+            "\n\t".join(self.token_util.pformat_tokens(self.line_code))
         )
 
 
@@ -164,7 +164,7 @@ class BasicListing(object):
         length = next_address - program_start
         log.critical("length: %i", length)
         tokens = dump[4:length]
-        log.critical("tokens:\n\t%s", "\n\t".join(self.token_util.format_tokens(tokens)))
+        log.critical("tokens:\n\t%s", "\n\t".join(self.token_util.pformat_tokens(tokens)))
 
         basic_line = BasicLine(self.token_util)
         basic_line.token_load(line_number, tokens)
@@ -198,7 +198,7 @@ class BasicListing(object):
                 basic_lines.append(basic_line)
         return basic_lines
 
-    def format_program_dump(self, program_dump, program_start, formated_dump=None):
+    def pformat_program_dump(self, program_dump, program_start, formated_dump=None):
         """
         format a BASIC program dump. Useful for debugging.
         returns a list of formated string lines.
@@ -223,8 +223,8 @@ class BasicListing(object):
 
         tokens = program_dump[4:length]
         formated_dump.append("tokens:")
-        formated_dump += self.token_util.format_tokens(tokens)
-        return self.format_program_dump(program_dump[length:], next_address, formated_dump)
+        formated_dump += self.token_util.pformat_tokens(tokens)
+        return self.pformat_program_dump(program_dump[length:], next_address, formated_dump)
 
     def debug_listing(self, basic_lines):
         for line in basic_lines:
@@ -344,5 +344,5 @@ if __name__ == "__main__":
 30 GOTO 123 ' didn't exist
 """
     print listing
-    print "-"*79
+    print "-" * 79
     print api.renum_ascii_listing(listing)

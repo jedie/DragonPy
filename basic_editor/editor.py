@@ -15,7 +15,7 @@ import Tkinter
 import tkFileDialog
 import tkMessageBox
 
-from dragonlib.utils.logging_utils import log, format_program_dump
+from dragonlib.utils.logging_utils import log, pformat_program_dump
 
 
 class EditorWindow(object):
@@ -126,7 +126,7 @@ class EditorWindow(object):
     def debug_display_tokens(self):
         content = self.get_content()
         program_dump = self.machine_api.ascii_listing2program_dump(content)
-        msg = format_program_dump(program_dump)
+        msg = pformat_program_dump(program_dump)
         tkMessageBox.showinfo("Program Dump:", msg, parent=self.root)
 
     def renumber_listing(self):

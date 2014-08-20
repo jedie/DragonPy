@@ -96,7 +96,7 @@ def log_hexlist(byte_list, group=8, start=0x0000, level=99):
     _log(level, addr, line)
 
 
-def format_program_dump(ram_content):
+def pformat_program_dump(ram_content):
     msg = u" ".join(["$%02x" % v for v in ram_content])
     msg = msg.replace(u"$00 ", u"\n$00\n")
     return msg
@@ -104,7 +104,7 @@ def format_program_dump(ram_content):
 
 def log_program_dump(ram_content, level=99):
     msg = "BASIC program dump:\n"
-    msg += format_program_dump(ram_content)
+    msg += pformat_program_dump(ram_content)
     log.log(level, msg)
 
 

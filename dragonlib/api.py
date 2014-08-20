@@ -44,21 +44,21 @@ class BaseAPI(object):
             program_start = self.DEFAULT_PROGRAM_START
         return self.listing.ascii_listing2program_dump(basic_program_ascii, program_start)
 
-    def format_tokens(self, tokens):
+    def pformat_tokens(self, tokens):
         """
         format a tokenized BASIC program line. Useful for debugging.
         returns a list of formated string lines.
         """
-        return self.listing.token_util.format_tokens(tokens)
+        return self.listing.token_util.pformat_tokens(tokens)
 
-    def format_program_dump(self, program_dump, program_start=None):
+    def pformat_program_dump(self, program_dump, program_start=None):
         """
         format a BASIC program dump. Useful for debugging.
         returns a list of formated string lines.
         """
         if program_start is None:
             program_start = self.DEFAULT_PROGRAM_START
-        return self.listing.format_program_dump(program_dump, program_start)
+        return self.listing.pformat_program_dump(program_dump, program_start)
 
     def renum_ascii_listing(self, content):
         return self.renum_tool.renum(content)
@@ -80,5 +80,3 @@ class Dragon32API(BaseAPI):
     def __init__(self):
         self.listing = BasicListing(self.BASIC_TOKENS)
         self.renum_tool = RenumTool(self.RENUM_REGEX)
-
-

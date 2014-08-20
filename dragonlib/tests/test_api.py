@@ -24,8 +24,8 @@ class BaseDragon32ApiTestCase(BaseTestCase):
         self.dragon32api = Dragon32API()
 
     def assertEqualProgramDump(self, first, second, msg=None):
-        first = self.dragon32api.format_program_dump(first)
-        second = self.dragon32api.format_program_dump(second)
+        first = self.dragon32api.pformat_program_dump(first)
+        second = self.dragon32api.pformat_program_dump(second)
         self.assertEqual(first, second, msg)
 
     def _prepare_text(self, txt):
@@ -119,7 +119,7 @@ class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):
 
     def test_format_tokens(self):
         tokens = (0x49, 0x24, 0x20, 0xcb, 0x20, 0xff, 0x9a)  # I$ = INKEY$
-        formated_tokens = self.token_util.format_tokens(tokens)
+        formated_tokens = self.token_util.pformat_tokens(tokens)
         self.assertEqual(formated_tokens, [
             "\t  $49 -> 'I'",
             "\t  $24 -> '$'",
@@ -197,7 +197,7 @@ class Dragon32BASIC_HighLevel_ApiTest(BaseDragon32ApiTestCase):
         )
         log_program_dump(program_dump)
         print "\n".join(
-            self.dragon32api.format_program_dump(program_dump)
+            self.dragon32api.pformat_program_dump(program_dump)
         )
         self.assertEqualProgramDump(program_dump, (
             0x1e, 0x10,  # start address
@@ -224,7 +224,7 @@ class Dragon32BASIC_HighLevel_ApiTest(BaseDragon32ApiTestCase):
         )
         log_program_dump(program_dump)
         print "\n".join(
-            self.dragon32api.format_program_dump(program_dump)
+            self.dragon32api.pformat_program_dump(program_dump)
         )
         self.assertEqualProgramDump(program_dump, (
             0x1e, 0x10,  # start address
