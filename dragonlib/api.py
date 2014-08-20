@@ -10,7 +10,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from dragonlib.core.basic import BasicListing, RenumTool
+from dragonlib.core.basic import BasicListing, RenumTool, BasicTokenUtil,\
+    BasicLine
+from dragonlib.core.basic_parser import BASICParser
 from dragonlib.dragon32.basic_tokens import DRAGON32_BASIC_TOKENS
 from dragonlib.utils.logging_utils import log
 
@@ -24,6 +26,11 @@ class BaseAPI(object):
         |
         (?P<on_goto_statement> ON.+?GOTO|ON.+?GOSUB ) (?P<on_goto_space>\s*) (?P<on_goto_no>[\d*,\s*]+)
     """
+    
+    def __init__(self):
+        self.listing = BasicListing(self.BASIC_TOKENS)
+        self.renum_tool = RenumTool(self.RENUM_REGEX)
+        self.token_util = BasicTokenUtil(self.BASIC_TOKENS)
 
     def program_dump2ascii_lines(self, dump, program_start=None):
         """
@@ -42,7 +49,18 @@ class BaseAPI(object):
         """
         if program_start is None:
             program_start = self.DEFAULT_PROGRAM_START
-        return self.listing.ascii_listing2program_dump(basic_program_ascii, program_start)
+#         return self.listing.ascii_listing2program_dump(basic_program_ascii, program_start)
+            
+        parser = BASICParser()
+        parsed_lines = parser.parse(basic_program_ascii)
+         
+        basic_lines = []       
+        for line_no, code_objects in sorted(parsed_lines.items()):
+            basic_line = BasicLine(self.token_util)
+            basic_line.code_objects_load(line_no,code_objects)
+            basic_lines.append(basic_line)
+         
+        return self.listing.basic_lines2program_dump(basic_lines, program_start)          
 
     def pformat_tokens(self, tokens):
         """
@@ -77,6 +95,3 @@ class Dragon32API(BaseAPI):
     # Default memory location of BASIC listing start
     DEFAULT_PROGRAM_START = 0x1E01
 
-    def __init__(self):
-        self.listing = BasicListing(self.BASIC_TOKENS)
-        self.renum_tool = RenumTool(self.RENUM_REGEX)

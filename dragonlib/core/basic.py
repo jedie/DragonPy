@@ -13,6 +13,7 @@
 
 import re
 
+from dragonlib.core import basic_parser
 from dragonlib.utils.logging_utils import log, log_program_dump
 from dragonpy.utils.byte_word_values import word2bytes
 
@@ -25,9 +26,9 @@ class BasicTokenUtil(object):
             for token, code in basic_token_dict.items()
         ])
 
-        regex = "(%s)" % "|".join([
+        regex = r"(%s)" % "|".join([
             re.escape(statement)
-            for statement in self.basic_token_dict.values()
+            for statement in sorted(self.basic_token_dict.values(), key=len, reverse=True)
         ])
         self.regex = re.compile(regex)
 
@@ -40,6 +41,9 @@ class BasicTokenUtil(object):
                 return ""
             result = chr(value)
         return result
+
+    def chars2tokens(self, chars):
+        return [ord(char) for char in chars]
 
     def ascii2token(self, ascii_code, debug=False):
         """
@@ -62,8 +66,18 @@ class BasicTokenUtil(object):
                 else:
                     tokens.append(new_token)
             else:
-                new_tokens = [ord(char) for char in part]
-                tokens += new_tokens
+                tokens += self.chars2tokens(part)
+        return tokens
+
+    def code_objects2token(self, code_objects):
+        tokens=[]
+        for code_object in code_objects:
+            if code_object.PART_TYPE == basic_parser.CODE_TYPE_CODE:
+                # Code part
+                tokens += self.ascii2token(code_object.content)
+            else:
+                # Strings, Comments or DATA
+                tokens += self.chars2tokens(code_object.content)
         return tokens
 
     def pformat_tokens(self, tokens):
@@ -116,6 +130,10 @@ class BasicLine(object):
             raise ValueError(msg)
         self.line_number = int(line_number)
         self.line_code = self.token_util.ascii2token(ascii_code)
+
+    def code_objects_load(self, line_number, code_objects):
+        self.line_number = line_number
+        self.line_code = self.token_util.code_objects2token(code_objects)
 
     def get_tokens(self):
         return [self.line_number] + self.line_code
@@ -209,10 +227,21 @@ class BasicListing(object):
                 "program start address: $%04x" % program_start
             )
 
-        next_address = (program_dump[0] << 8) + program_dump[1]
+        try:
+            next_address = (program_dump[0] << 8) + program_dump[1]
+        except IndexError as err:
+            raise IndexError(
+                "Can't get next address from: %s program start: $%04x (Origin error: %s)" % (
+                    repr(program_dump), program_start, err
+            ))
+                  
         if next_address == 0x0000:
             formated_dump.append("$%04x -> end address" % next_address)
             return formated_dump
+
+        assert next_address>program_start, "Next address $%04x not bigger than program start $%04x ?!?" % (
+            next_address,program_start
+        )
 
         length = next_address - program_start
         formated_dump.append(
@@ -224,7 +253,9 @@ class BasicListing(object):
         tokens = program_dump[4:length]
         formated_dump.append("tokens:")
         formated_dump += self.token_util.pformat_tokens(tokens)
-        return self.pformat_program_dump(program_dump[length:], next_address, formated_dump)
+        rest = program_dump[length:]
+        print rest, next_address, formated_dump
+        return self.pformat_program_dump(rest, next_address, formated_dump)
 
     def debug_listing(self, basic_lines):
         for line in basic_lines:
@@ -238,6 +269,12 @@ class BasicListing(object):
         basic_lines = self.ascii_listing2basic_lines(basic_program_ascii)
         self.debug_listing(basic_lines)
         return self.basic_lines2program_dump(basic_lines, program_start)
+
+
+#     def parsed_lines2program_dump(self, parsed_lines, program_start):
+#         for line_no, code_objects in sorted(parsed_lines.items()):
+#             for code_object in code_objects:
+                
 
     def program_dump2ascii_lines(self, dump, program_start):
         basic_lines = self.dump2basic_lines(dump, program_start)

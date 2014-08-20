@@ -16,6 +16,8 @@ class BaseTestCase(unittest.TestCase):
     """
     Only some special assertments.
     """
+    maxDiff=3000
+    
     def assertHexList(self, first, second, msg=None):
         first = ["$%x" % value for value in first]
         second = ["$%x" % value for value in second]
