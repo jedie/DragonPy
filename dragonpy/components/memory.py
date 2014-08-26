@@ -209,9 +209,13 @@ class Memory(object):
         self.cpu.cycles += 1
 
         if address in self._read_byte_callbacks:
-            return self._read_byte_callbacks[address](
+            byte = self._read_byte_callbacks[address](
                 self.cpu.cycles, self.cpu.last_op_address, address
             )
+            assert byte is not None, "Error: Callback for $%04x func %r has return None!" % (
+                address, self._read_byte_callbacks[address].__name__
+            )
+            return byte
 
         if address < self.cfg.RAM_END:
             byte = self.ram.read_byte(address)
@@ -229,6 +233,9 @@ class Memory(object):
             byte = self._read_byte_middleware[address](
                 self.cpu.cycles, self.cpu.last_op_address, address, byte
             )
+            assert byte is not None, "Error: Middleware for $%04x func %r has return None!" % (
+                address, self._read_byte_middleware[address].__name__
+            )
 
 #        log.log(5, "%04x| (%i) read byte $%x from $%x",
 #            self.cpu.last_op_address, self.cpu.cycles,
@@ -238,9 +245,13 @@ class Memory(object):
 
     def read_word(self, address):
         if address in self._read_word_callbacks:
-            return self._read_word_callbacks[address](
+            word = self._read_word_callbacks[address](
                 self.cpu.cycles, self.cpu.last_op_address, address
             )
+            assert word is not None, "Error: Callback for $%04x func %r has return None!" % (
+                address, self._read_word_callbacks[address].__name__
+            )
+            return word
 
         # 6809 is Big-Endian
         return (self.read_byte(address) << 8) + self.read_byte(address + 1)
