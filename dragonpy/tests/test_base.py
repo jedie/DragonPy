@@ -146,7 +146,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
         super(Test6809_BASIC_simple6809_Base, cls).setUpClass()
 
         print "CPU state pickle file: %r" % cls.TEMP_FILE
-#         os.remove(cls.TEMP_FILE);print "Delete CPU date file!"
+#         if os.path.isfile(cls.TEMP_FILE):os.remove(cls.TEMP_FILE);print "Delete CPU data file!"
 
         cfg = Simple6809Cfg(cls.UNITTEST_CFG_DICT)
 
@@ -354,9 +354,11 @@ class UnittestCommunicatorRequest(CommunicatorRequest):
         return self.response_queue.get(block=False)
 
 
-DRAGON32ROM_EXISTS = os.path.isfile(Dragon32Cfg.DEFAULT_ROM)
 
-@unittest.skipUnless(DRAGON32ROM_EXISTS, "No Dragon 32 ROM file: %r" % Dragon32Cfg.DEFAULT_ROM)
+DRAGON32ROM_FILENAME = Dragon32Cfg.DEFAULT_ROMS[0].filepath
+DRAGON32ROM_EXISTS = os.path.isfile(DRAGON32ROM_FILENAME)
+
+@unittest.skipUnless(DRAGON32ROM_EXISTS, "No Dragon 32 ROM file: %r" % DRAGON32ROM_FILENAME)
 class Test6809_Dragon32_Base(BaseCPUTestCase):
     """
     Run tests with the Dragon32 ROM.

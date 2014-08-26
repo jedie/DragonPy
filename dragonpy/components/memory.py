@@ -23,7 +23,7 @@ import logging
 import os
 import sys
 
-from dragonlib.utils.logging_utils import log
+from dragonlib.utils.logging_utils import log, log_hexlist
 
 
 class ROM(object):
@@ -31,15 +31,15 @@ class ROM(object):
     def __init__(self, cfg, memory, start, size):
         self.cfg = cfg
         self.start = start
-        self.end = start + size
+        self.end = start + size - 1
 
         self._mem = [None] * start
         self._mem += memory
 #         self._mem = memory # [0x00] * size
         # assert len(self._mem) == size, "%i != %i" len(self._mem) == size
-        log.critical("init %s Bytes (real: %s) %s ($%04x - $%04x)" % (
-            size, len(self._mem), self.__class__.__name__, start, self.end
-        ))
+        log.critical("init $%04x (dez.:%s) Bytes (real: %s) %s ($%04x - $%04x)",
+            size, size, len(self._mem), self.__class__.__name__, start, self.end
+        )
 
     def load(self, address, data):
         if isinstance(data, basestring):
@@ -50,20 +50,29 @@ class ROM(object):
         for offset, datum in enumerate(data):
             self._mem[address - self.start + offset] = datum
 
-    def command_load_file(self, address, filename):
+    def load_file(self, address, filename, max_size=None):
+        log.critical("Load ROM file %r to $%04x", filename, address)
         with open(filename, "rb") as f:
+            filesize = os.stat(filename).st_size
             for offset, datum in enumerate(f.read()):
+                if max_size and offset > max_size:
+                    log.critical("Load only $%04x (dez.: %i) Bytes - file size is $%04x (dez.: %i) Bytes",
+                        max_size, max_size, filesize, filesize
+                    )
+                    break
+
                 index = address + offset
+#                 log.critical("$%04x - $%02x", index, ord(datum))
                 try:
                     self._mem[index] = ord(datum)
                 except IndexError:
-                    size = os.stat(filename).st_size
-                    log.error("Error: File %s (%sBytes in hex: %s) is bigger than: %s" % (
-                        filename, size, hex(size), hex(index)
+                    log.error("Error: File %s $%04x (dez.: %i) Bytes is bigger than: $%04x" % (
+                        filename, filesize, filesize, index
                     ))
-        log.debug("\tread %sBytes from %s into ROM %s-%s" % (
-            offset, filename, hex(address), hex(address + offset)
-        ))
+                    break
+        log.info("read $%04x (dez.: %i) Bytes from %r into ROM $%04x-$%04x",
+            offset, offset, filename, address, (address + offset)
+        )
 
     def read_byte(self, address):
         try:
@@ -102,8 +111,13 @@ class Memory(object):
             cfg, memory=cfg.get_initial_ROM(),
             start=cfg.ROM_START, size=cfg.ROM_SIZE
         )
-        if cfg and cfg.rom:
-            self.rom.command_load_file(cfg.ROM_START, cfg.rom)
+        if cfg and cfg.rom_cfg:
+            for romfile in cfg.rom_cfg:
+                self.rom.load_file(
+                    address=romfile.address,
+                    filename=romfile.filepath,
+                    max_size=romfile.max_size
+                )
 
         self.ram = RAM(
             cfg, memory=cfg.get_initial_RAM(),
@@ -111,7 +125,7 @@ class Memory(object):
         )
 
         if cfg and cfg.ram:
-            self.ram.command_load_file(cfg.RAM_START, cfg.ram)
+            self.ram.load_file(cfg.RAM_START, cfg.ram)
 
         self._read_byte_callbacks = {}
         self._read_word_callbacks = {}

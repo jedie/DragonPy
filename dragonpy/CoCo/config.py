@@ -19,12 +19,13 @@ from dragonpy.CoCo.mem_info import get_coco_meminfo
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.keyboard_map import get_coco_keymatrix_pia_result
 from dragonpy.core.configs import COCO
+from dragonpy.components.rom import ROMFile
 
 
 class CoCoCfg(Dragon32Cfg):
     CONFIG_NAME = COCO
     MACHINE_NAME = "CoCo"
-    
+
     # How does the keyboard polling routine starts with?
     PIA0B_KEYBOARD_START = 0xfe
 
@@ -42,15 +43,41 @@ class CoCoCfg(Dragon32Cfg):
 #     RAM_END = 0x3FFF # 16KB # usable
     RAM_END = 0x7FFF # 32KB
 
-#     ROM_START = 0x8000 # Extended Basic
-    ROM_START = 0xA000 # Color Basic
+    ROM_START = 0x8000
     ROM_END = 0xFFFF
 
-    DEFAULT_ROM = os.path.join(
-        os.path.abspath(os.path.dirname(__file__)),
-#         "Color Basic v1.2 (1982)(Tandy).rom"
-        "Color Basic v1.3 (1982)(Tandy).rom"
-#         "ExtendedColorBasic1.1.rom"
+#     """
+#     EXTENDED COLOR BASIC
+#     ROM files from "MESS BIOS images" in file "coco2b.zip"
+#
+#     $a000-$bfff - 'bas13.rom'    - size: $1fff (dez.: 8191) Bytes
+#     $8000-$9fff - 'extbas11.rom' - size: $1fff (dez.: 8191) Bytes
+#     """
+#     ROM_START = 0x8000
+#     DEFAULT_ROMS = (
+#         ROMFile(address=0x8000, max_size=0x4000,
+#             filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
+#                 "extbas11.rom"
+#             )
+#         ),
+#         ROMFile(address=0xA000, max_size=0x4000,
+#             filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
+#                 "bas13.rom"
+#             )
+#         ),
+#     )
+
+    """
+    COLOR BASIC
+    $a000-$bfff - Color Basic 1.x - size: $1fff (dez.: 8191) Bytes
+    """
+    ROM_START = 0xA000
+    DEFAULT_ROMS = (
+        ROMFile(address=0xA000, max_size=0x4000,
+            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                "Color Basic v1.3 (1982)(Tandy).rom"
+            )
+        ),
     )
 
     def __init__(self, cmd_args):

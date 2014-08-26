@@ -17,6 +17,7 @@ from dragonlib.utils.logging_utils import log
 from dragonpy.Dragon32.keyboard_map import get_dragon_keymatrix_pia_result
 from dragonpy.Dragon32.mem_info import get_dragon_meminfo
 from dragonpy.core.configs import BaseConfig, DRAGON32
+from dragonpy.components.rom import ROMFile
 
 
 class Dragon32Cfg(BaseConfig):
@@ -49,10 +50,22 @@ class Dragon32Cfg(BaseConfig):
     ROM_END = 0xBFFF
     ROM_SIZE = 0x4000 # 16384 Bytes
 
-    DEFAULT_ROM = os.path.join(
-        os.path.abspath(os.path.dirname(__file__)),
-        "d32.rom"
+    """
+    $8000-$bfff - d32.rom - size: $3fff (dez.: 16383) Bytes
+
+    8000-9FFF Extended Color BASIC
+    A000-BFFF Color BASIC
+    C000-FEFF Program pak memory
+    FF00-FFFF I/O, machine configuration, reset vectors
+    """
+    DEFAULT_ROMS = (
+        ROMFile(address=0x8000, max_size=0x4000,
+            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                "d32.rom"
+            )
+        ),
     )
+
 
     # for unittests init:
     STARTUP_END_ADDR = 0xbbe5 # scan keyboard

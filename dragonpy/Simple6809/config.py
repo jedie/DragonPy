@@ -14,6 +14,7 @@ import os
 from dragonpy.core.configs import BaseConfig, SIMPLE6809
 from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809Periphery
+from dragonpy.components.rom import ROMFile
 
 
 class Simple6809Cfg(BaseConfig):
@@ -43,13 +44,15 @@ class Simple6809Cfg(BaseConfig):
         (0xbff0, 0xbfff, "Interrupt vectors"),
     )
 
+    DEFAULT_ROMS = (
+        ROMFile(address=0xC000, max_size=None,
+            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                "ExBasROM.bin"
+            )
+        ),
+    )
     # Used in unittest for init the BASIC Interpreter:
     STARTUP_END_ADDR = 0xdf2b # == JSR  LA390          GO GET AN INPUT LINE
-
-    DEFAULT_ROM = os.path.join(
-        os.path.abspath(os.path.dirname(__file__)),
-        "ExBasROM.bin"
-    )
 
     def __init__(self, cfg_dict):
         self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1

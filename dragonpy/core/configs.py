@@ -91,6 +91,8 @@ class BaseConfig(object):
     # How many ops should be execute before make a control server update cycle?
     BURST_COUNT = 10000
 
+    DEFAULT_ROMS = {}
+
     def __init__(self, cfg_dict):
         self.cfg_dict = cfg_dict
         self.cfg_dict["cfg_module"] = self.__module__ # FIXME: !
@@ -117,9 +119,10 @@ class BaseConfig(object):
             self.ram = None
 
         if cfg_dict["rom"]:
-            self.rom = cfg_dict["rom"]
+            raw_rom_cfg = cfg_dict["rom"]
+            raise NotImplementedError("TODO: create rom cfg!")
         else:
-            self.rom = self.DEFAULT_ROM
+            self.rom_cfg = self.DEFAULT_ROMS
 
         if cfg_dict["trace"]:
             self.trace = True

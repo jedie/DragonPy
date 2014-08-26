@@ -15,12 +15,13 @@ import logging
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon64.mem_info import get_dragon_meminfo
 from dragonpy.core.configs import DRAGON64
+from dragonpy.components.rom import ROMFile
 
 
 class Dragon64Cfg(Dragon32Cfg):
     CONFIG_NAME = DRAGON64
     MACHINE_NAME = "Dragon 64"
-    
+
     RAM_START = 0x0000
 
     # 1KB RAM is not runnable and raise a error
@@ -39,9 +40,21 @@ class Dragon64Cfg(Dragon32Cfg):
     ROM_END = 0xFFFF
     ROM_SIZE = 0x8000 # 32768 Bytes
 
-    DEFAULT_ROM = os.path.join(
-        os.path.abspath(os.path.dirname(__file__)),
-        "d64.rom"
+    """
+    $8000-$bfff - d64_ic17.rom - size: $3fff (dez.: 16383) Bytes
+    $c000-$ffff - d64_ic18.rom - size: $3fff (dez.: 16383) Bytes
+    """
+    DEFAULT_ROMS = (
+        ROMFile(address=0x8000, max_size=0x4000,
+            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                "d64_ic17.rom"
+            )
+        ),
+        ROMFile(address=0xC000, max_size=0x4000,
+            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                "d64_ic18.rom"
+            )
+        ),
     )
 
     def __init__(self, cmd_args):

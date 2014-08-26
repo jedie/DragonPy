@@ -142,7 +142,8 @@ class Test_sbc09(Test6809_sbc09_Base):
         data = extract_s_record_data(srec)
 
         # get the reference from the used ROM file:
-        with open(self.cpu.cfg.DEFAULT_ROM, "rb") as f:
+        ROM_FILE = self.cpu.cfg.DEFAULT_ROMS[0].filepath
+        with open(ROM_FILE, "rb") as f:
             f.seek(start_addr - 0x8000)
             reference = f.read(byte_count)
 
@@ -201,17 +202,17 @@ class Test_sbc09(Test6809_sbc09_Base):
 
 
 if __name__ == '__main__':
-    import doctest
-    print doctest.testmod(verbose=0)
-
     setup_logging(log,
-#        level=1 # hardcore debug ;)
+        level=1 # hardcore debug ;)
 #        level=10 # DEBUG
-#        level=20 # INFO
+#         level=20 # INFO
 #        level=30 # WARNING
 #         level=40 # ERROR
-        level=50 # CRITICAL/FATAL
+#         level=50 # CRITICAL/FATAL
     )
+
+    import doctest
+    print doctest.testmod(verbose=0)
 
     unittest.main(
         argv=(
