@@ -30,7 +30,7 @@ class PIA_register(object):
     def __init__(self, name):
         self.name = name
         self.reset()
-        self.value = None
+        self.value = 0x00
 
     def reset(self):
         self._pdr_selected = False  # pdr = Peripheral Data Register
