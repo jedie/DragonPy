@@ -34,11 +34,11 @@ class PIA_register(object):
 
     def reset(self):
         self._pdr_selected = False  # pdr = Peripheral Data Register
-        self.control_register = 0x0
-        self.direction_register = 0x0
-        self.output_register = 0x0
-        self.interrupt_received = 0x0
-        self.irq = 0x0
+        self.control_register = 0x00
+        self.direction_register = 0x00
+        self.output_register = 0x00
+        self.interrupt_received = 0x00
+        self.irq = 0x00
 
     def set(self, value):
 #        log.debug("\t set %s to $%02x", self.name, value)

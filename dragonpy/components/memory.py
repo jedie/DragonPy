@@ -127,12 +127,12 @@ class Memory(object):
         for addr_range, functions in cfg.memory_byte_middlewares.items():
             start_addr, end_addr = addr_range
             read_func, write_func = functions
-            
+
             if read_func:
-                self.add_read_byte_middleware(read_func,start_addr, end_addr)
-                
+                self.add_read_byte_middleware(read_func, start_addr, end_addr)
+
             if write_func:
-                self.add_write_byte_middleware(write_func,start_addr, end_addr)
+                self.add_write_byte_middleware(write_func, start_addr, end_addr)
 
         # init read/write word middlewares:
         self._read_word_middleware = {}
@@ -164,18 +164,18 @@ class Memory(object):
         else:
             for addr in xrange(start_addr, end_addr + 1):
                 callbacks_dict[addr] = callback_func
- 
-     #---------------------------------------------------------------------------
+
+    #---------------------------------------------------------------------------
 
     def add_read_byte_callback(self, callback_func, start_addr, end_addr=None):
         self._map_address_range(self._read_byte_callbacks, callback_func, start_addr, end_addr)
-        
+
     def add_read_word_callback(self, callback_func, start_addr, end_addr=None):
         self._map_address_range(self._read_word_callbacks, callback_func, start_addr, end_addr)
-        
+
     def add_write_byte_callback(self, callback_func, start_addr, end_addr=None):
         self._map_address_range(self._write_byte_callbacks, callback_func, start_addr, end_addr)
-        
+
     def add_write_word_callback(self, callback_func, start_addr, end_addr=None):
         self._map_address_range(self._write_word_callbacks, callback_func, start_addr, end_addr)
 
@@ -290,7 +290,7 @@ class Memory(object):
     def write_word(self, address, word):
         assert word >= 0, "Write negative word hex:%04x dez:%i to $%04x" % (word, word, address)
         assert word <= 0xffff, "Write out of range word hex:%04x dez:%i to $%04x" % (word, word, address)
-        
+
         if address in self._write_word_middleware:
             word = self._write_word_middleware[address](
                 self.cpu.cycles, self.cpu.last_op_address, address, word
