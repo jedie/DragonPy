@@ -251,7 +251,9 @@ class MachineThread(threading.Thread):
         log.critical(" *** MachineThread.run() start *** ")
         try:
             self.machine.run()
-        except:
+        except Exception as err:
+            log.critical("MachineThread exception: %s", err)
+            print_exc_plus()
             thread.interrupt_main()
             raise
         log.critical(" *** MachineThread.run() stopped. *** ")
