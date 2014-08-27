@@ -10,12 +10,12 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from dragonpy.Dragon32.machine import run_machine
 from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 from dragonpy.Dragon64.config import Dragon64Cfg
 from dragonpy.core.gui import DragonTkinterGUI
 from dragonlib.utils.logging_utils import log
 from dragonlib.utils.logging_utils import setup_logging
+from dragonpy.core.machine import run_machine
 
 
 CFG_DICT = {

@@ -12,7 +12,7 @@
 
 from dragonpy.CoCo.config import CoCoCfg
 from dragonpy.CoCo.periphery_coco import CoCoPeriphery
-from dragonpy.Dragon32.machine import run_machine
+from dragonpy.core.machine import run_machine
 from dragonpy.core.gui import DragonTkinterGUI
 from dragonlib.utils.logging_utils import log
 from dragonlib.utils.logging_utils import setup_logging
