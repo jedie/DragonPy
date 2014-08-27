@@ -1,10 +1,18 @@
-=== Dragon 32 emulator in Python
+=== Dragon/CoCO emulator written in Python
 
-A Open source (GPL v3 or later) emulator for the 30 years old homecomputer {{{Dragon 32}}}...
+DragonPy is a Open source (GPL v3 or later) emulator for the 30 years old homecomputer {{{Dragon 32}}} and {{{Tandy TRS-80 Color Computer}}} (CoCo)...
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon64_01.png|Dragon 64 screenshot}}
+Dragon 32 and 64 ROMs in Text mode:
 
-A usable Dragon / CoCo emulator is [[http://www.6809.org.uk/dragon/xroar.shtml|XRoar]].
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon64_01.png|screenshot Dragon 64}}
+
+
+CoCo with Extended Color Basic v1.1 in Text mode:
+
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140827_DragonPy_CoCo_ExtendedColorBasic01.png|screenshot CoCo Extended Color BASIC}}
+
+
+DragonPy is written in Python. It's platform independent and runs with normal Python 2.x and PyPy!
 
 DragonPy will not be a second XRoar written in Python.
 This project is primarily to lean and understand.
@@ -12,13 +20,14 @@ This project is primarily to lean and understand.
 Future goals are:
 * Implement a integrated development environment for BASIC programs
 
+A full featured Dragon / CoCo emulator is [[http://www.6809.org.uk/dragon/xroar.shtml|XRoar]].
 
 === Current state
 The Dragon 32 / 64 and CoCo ROMs works in Text mode.
 Also the "single board computer" ROMs sbc09, Simple6809 and Multicomp6809 works well.
 
 There is a rudimentary BASIC editor with save/load BASIC programm listings direct into RAM.
-(Currently only with Dragon 32 and CoCo)
+(Currently only with Dragon and CoCo)
 
 Looks like this:
 
@@ -122,17 +131,7 @@ install [[https://pypi.python.org/pypi/coverage|coverage]] for python 2:
 }}}
 
 
-== screenshots
-
-Dragon 32 and 64 ROMs in Text mode:
-
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon64_01.png|screenshot Dragon 64}}
-
-
-CoCo with Extended Color Basic v1.1 in Text mode:
-
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140827_DragonPy_CoCo_ExtendedColorBasic01.png|screenshot CoCo Extended Color BASIC}}
-
+== more screenshots
 
 "sbc09" ROM in Tkinter window:
 
