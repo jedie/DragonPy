@@ -5,7 +5,12 @@
     =======================================
 
     informations from:
+    
+    * Color BASIC 1.3:
     http://sourceforge.net/p/toolshed/code/ci/default/tree/cocoroms/bas.asm
+    
+    * Extended Color BASIC 1.1:
+    http://sourceforge.net/p/toolshed/code/ci/default/tree/cocoroms/extbas.asm
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
@@ -13,7 +18,8 @@
 """
 
 
-COCO_BASIC_TOKENS = {
+# Revesed word tokens from Color BASIC 1.3:
+COCO_COLOR_BASIC_TOKENS = {
     0x80: "FOR",
     0x81: "GO",
     0x82: "REM",
@@ -91,6 +97,56 @@ COCO_BASIC_TOKENS = {
     0xff92: "INKEY$",
     0xff93: "MEM",
 }
+    
+# Revesed word tokens from Extended Color BASIC 1.1:
+COCO_EXTENDED_COLOR_BASIC_TOKENS = {
+    0xb5: "DEL",
+    0xb6: "EDIT",
+    0xb7: "TRON",
+    0xb8: "TROFF",
+    0xb9: "DEF",
+    0xba: "LET",
+    0xbb: "LINE",
+    0xbc: "PCLS",
+    0xbd: "PSET",
+    0xbe: "PRESET",
+    0xbf: "SCREEN",
+    0xc0: "PCLEAR",
+    0xc1: "COLOR",
+    0xc2: "CIRCLE",
+    0xc3: "PAINT",
+    0xc4: "GET",
+    0xc5: "PUT",
+    0xc6: "DRAW",
+    0xc7: "PCOPY",
+    0xc8: "PMODE",
+    0xc9: "PLAY",
+    0xca: "DLOAD",
+    0xcb: "RENUM",
+    0xcc: "FN",
+    0xcd: "USING",
+    
+    # Function tokens - all proceeded by 0xff to differentiate from operators
+    
+    0xff94: "ATN",
+    0xff95: "COS",
+    0xff96: "TAN",
+    0xff97: "EXP",
+    0xff98: "FIX",
+    0xff99: "LOG",
+    0xff9a: "POS",
+    0xff9b: "SQR",
+    0xff9c: "HEX$",
+    0xff9d: "VARPTR",
+    0xff9e: "INSTR",
+    0xff9f: "TIMER",
+    0xffa0: "PPOINT",
+    0xffa1: "STRING$",
+}
+
+# Merged tokens:
+COCO_BASIC_TOKENS = COCO_COLOR_BASIC_TOKENS.copy()
+COCO_BASIC_TOKENS.update(COCO_EXTENDED_COLOR_BASIC_TOKENS)
 
 
 if __name__ == '__main__':
@@ -102,19 +158,24 @@ if __name__ == '__main__':
     # http://archive.worldofdragon.org/index.php?title=Tokens
 
     print """
+* "CoCo A": - Tokens from Color BASIC 1.3
+* "CoCo B": - Additional tokens from Extended Color BASIC 1.1 only
 {| class="wikitable" style="font-family: monospace; background-color:#ffffcc;" cellpadding="10"
 |-
 ! value
 ! Dragon
 token
-! CoCo
+! CoCo A
+token
+! CoCo B
 token
 """
     for value in values:
-        coco_statement = COCO_BASIC_TOKENS.get(value, "")
+        coco_basic_statement = COCO_COLOR_BASIC_TOKENS.get(value, "")
+        coco_extended_basic_statement = COCO_EXTENDED_COLOR_BASIC_TOKENS.get(value, "")
         dragon_statement = DRAGON32_BASIC_TOKENS.get(value, "")
 
-        if coco_statement == "" and dragon_statement == "":
+        if coco_basic_statement == "" and coco_extended_basic_statement=="" and dragon_statement == "":
             continue
 
         if value > 0xff:
@@ -125,6 +186,8 @@ token
         print "|-"
         print "| %s" % value
         print "| %s" % dragon_statement
-        print "| %s" % coco_statement
+        print "| %s" % coco_basic_statement
+        print "| %s" % coco_extended_basic_statement
+        
     print "|-"
     print "|}"
