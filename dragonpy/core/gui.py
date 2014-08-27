@@ -166,7 +166,7 @@ class DragonTkinterGUI(object):
         self._editor_window = None
 
     def open_basic_editor(self):
-        self._editor_window = EditorWindow(self.cfg, self.root, self.request_comm)
+        self._editor_window = EditorWindow(self.cfg, self)
 
     def dump_rnd(self):
         start_addr = 0x0019
@@ -203,6 +203,22 @@ class DragonTkinterGUI(object):
         except:
             pass
 
+    def add_user_input(self, txt):
+        for char in txt:
+            self.user_input_queue.put(char)
+            
+    def wait_until_input_queue_empty(self):
+        for count in xrange(4):
+            if self.user_input_queue.empty():
+                log.critical("user_input_queue is empty, after %.1f Sec., ok.", (0.1*count))
+                return
+            time.sleep(0.25)
+        log.critical("user_input_queue not empty, after %.1f Sec.!", (0.1*count))
+
+    def add_user_input_and_wait(self, txt):
+        self.add_user_input(txt)
+        self.wait_until_input_queue_empty()
+
     def paste_clipboard(self, event):
         """
         Send the clipboard content as user input to the CPU.
@@ -211,9 +227,7 @@ class DragonTkinterGUI(object):
         clipboard = self.root.clipboard_get()
         for line in clipboard.splitlines():
             log.critical("paste line: %s", repr(line))
-            for char in line:
-                self.user_input_queue.put(char)
-            self.user_input_queue.put("\r")
+            self.add_user_input(line + "\r")
 
     def event_key_pressed(self, event):
         char_or_code = event.char or event.keycode

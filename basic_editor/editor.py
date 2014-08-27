@@ -21,13 +21,12 @@ from dragonlib.utils.logging_utils import log, pformat_program_dump
 
 
 class EditorWindow(object):
-    def __init__(self, cfg, parent=None, request_comm=None):
+    def __init__(self, cfg, gui=None):
         self.cfg = cfg
-        if parent is None:
+        if gui is None:
             self.standalone_run = True
         else:
-            self.parent = parent
-            self.request_comm = request_comm
+            self.gui=gui
             self.standalone_run = False
 
         self.machine_api = self.cfg.machine_api
@@ -36,9 +35,9 @@ class EditorWindow(object):
             self.root = Tkinter.Tk()
         else:
             # As sub window in DragonPy Emulator
-            self.root = Tkinter.Toplevel(self.parent)
-            self.root.geometry("+%d+%d" % (self.parent.winfo_rootx() + 30,
-                self.parent.winfo_rooty() + 40))
+            self.root = Tkinter.Toplevel(self.gui.root)
+            self.root.geometry("+%d+%d" % (self.gui.root.winfo_rootx() + 30,
+                self.gui.root.winfo_rooty() + 40))
 
         self.root.title("%s - BASIC Editor" % self.cfg.MACHINE_NAME)
 
@@ -70,8 +69,9 @@ class EditorWindow(object):
 
         if not self.standalone_run: # As sub window in DragonPy Emulator
             editmenu = Tkinter.Menu(menubar, tearoff=0)
-            editmenu.add_command(label="load from DragonPy", command=self.load_from_DragonPy)
-            editmenu.add_command(label="inject into DragonPy", command=self.inject_into_DragonPy)
+            editmenu.add_command(label="load from DragonPy", command=self.command_load_from_DragonPy)
+            editmenu.add_command(label="inject into DragonPy", command=self.command_inject_into_DragonPy)
+            editmenu.add_command(label="inject + RUN into DragonPy", command=self.command_inject_and_run_into_DragonPy)
             menubar.add_cascade(label="DragonPy", menu=editmenu)
 
         editmenu = Tkinter.Menu(menubar, tearoff=0)
@@ -121,14 +121,28 @@ class EditorWindow(object):
             outfile.write(content)
             outfile.close()
 
-    def load_from_DragonPy(self):
-        listing_ascii = self.request_comm.get_basic_program()
-        self.set_content(listing_ascii)
+    ###########################################################################
+    # For DragonPy Emulator:
 
-    def inject_into_DragonPy(self):
+    def command_load_from_DragonPy(self):
+        self.gui.add_user_input_and_wait("'SAVE TO EDITOR")
+        listing_ascii = self.gui.request_comm.get_basic_program()
+        self.set_content(listing_ascii)
+        self.gui.add_user_input_and_wait("\r")
+
+    def command_inject_into_DragonPy(self):
+        self.gui.add_user_input_and_wait("'LOAD FROM EDITOR")
         content = self.get_content()
-        result = self.request_comm.inject_basic_program(content)
+        result = self.gui.request_comm.inject_basic_program(content)
         log.critical("program loaded: %s", result)
+        self.gui.add_user_input_and_wait("\r")
+
+    def command_inject_and_run_into_DragonPy(self):
+        self.command_inject_into_DragonPy()
+        self.gui.add_user_input_and_wait("\r") # FIXME: Sometimes this input will be "ignored"
+        self.gui.add_user_input_and_wait("RUN\r")
+
+    ###########################################################################
 
     def debug_display_tokens(self):
         content = self.get_content()
