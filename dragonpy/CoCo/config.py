@@ -9,17 +9,16 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import os
 import logging
+import os
 
 from dragonlib.api import CoCoAPI
 from dragonlib.utils.logging_utils import log
-
 from dragonpy.CoCo.mem_info import get_coco_meminfo
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.keyboard_map import get_coco_keymatrix_pia_result
-from dragonpy.core.configs import COCO
 from dragonpy.components.rom import ROMFile
+from dragonpy.core.configs import COCO
 
 
 class CoCoCfg(Dragon32Cfg):
@@ -46,36 +45,22 @@ class CoCoCfg(Dragon32Cfg):
     ROM_START = 0x8000
     ROM_END = 0xFFFF
 
-#     """
-#     EXTENDED COLOR BASIC
-#     ROM files from "MESS BIOS images" in file "coco2b.zip"
-#
-#     $a000-$bfff - 'bas13.rom'    - size: $1fff (dez.: 8191) Bytes
-#     $8000-$9fff - 'extbas11.rom' - size: $1fff (dez.: 8191) Bytes
-#     """
-#     ROM_START = 0x8000
-#     DEFAULT_ROMS = (
-#         ROMFile(address=0x8000, max_size=0x4000,
-#             filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
-#                 "extbas11.rom"
-#             )
-#         ),
-#         ROMFile(address=0xA000, max_size=0x4000,
-#             filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
-#                 "bas13.rom"
-#             )
-#         ),
-#     )
+    """
+    EXTENDED COLOR BASIC
 
+    $a000-$bfff - 'bas13.rom'    - size: $1fff (dez.: 8191) Bytes
+    $8000-$9fff - 'extbas11.rom' - size: $1fff (dez.: 8191) Bytes
     """
-    COLOR BASIC
-    $a000-$bfff - Color Basic 1.x - size: $1fff (dez.: 8191) Bytes
-    """
-    ROM_START = 0xA000
+    ROM_START = 0x8000
     DEFAULT_ROMS = (
+        ROMFile(address=0x8000, max_size=0x4000,
+            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                "extbas11.rom"
+            )
+        ),
         ROMFile(address=0xA000, max_size=0x4000,
             filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                "Color Basic v1.3 (1982)(Tandy).rom"
+                "bas13.rom"
             )
         ),
     )
