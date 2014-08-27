@@ -129,9 +129,9 @@ Dragon 32 and 64 ROMs in Text mode:
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon64_01.png|screenshot Dragon 64}}
 
 
-CoCo Color Basic v1.3 in Text mode:
+CoCo with Extended Color Basic v1.1 in Text mode:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_CoCo_ColorBasic.png|screenshot CoCo BASIC}}
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140827_DragonPy_CoCo_ExtendedColorBasic01.png|screenshot CoCo Extended Color BASIC}}
 
 
 "sbc09" ROM in Tkinter window:
