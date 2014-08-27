@@ -10,12 +10,12 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+from dragonlib.CoCo.basic_tokens import COCO_BASIC_TOKENS
 from dragonlib.core.basic import BasicListing, RenumTool, BasicTokenUtil,\
     BasicLine
 from dragonlib.core.basic_parser import BASICParser
 from dragonlib.dragon32.basic_tokens import DRAGON32_BASIC_TOKENS
 from dragonlib.utils.logging_utils import log
-from dragonlib.CoCo.basic_tokens import COCO_BASIC_TOKENS
 
 
 DRAGON32 = "Dragon32"
@@ -110,5 +110,3 @@ class CoCoAPI(Dragon32API):
     MACHINE_NAME = "CoCo"
     BASIC_TOKENS = COCO_BASIC_TOKENS
 
-    # Default memory location of BASIC listing start
-    DEFAULT_PROGRAM_START = 0x0601
