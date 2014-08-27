@@ -2,20 +2,18 @@
 # encoding:utf-8
 
 """
-    Dragon 64 console
-    ~~~~~~~~~~~~~~~~~
+    Dragon 64
+    ~~~~~~~~~
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
-from dragonpy.Dragon64.config import Dragon64Cfg
-from dragonpy.core.gui import DragonTkinterGUI
-from dragonlib.utils.logging_utils import log
-from dragonlib.utils.logging_utils import setup_logging
-from dragonpy.core.machine import run_machine
+
+from dragonlib.utils.logging_utils import log, setup_logging
+
+from dragonpy.Dragon64.machine import run_machine
 
 
 CFG_DICT = {
@@ -50,9 +48,4 @@ if __name__ == '__main__':
         level=50  # CRITICAL/FATAL
     )
 
-    run_machine(
-        ConfigClass=Dragon64Cfg,
-        cfg_dict=CFG_DICT,
-        PeripheryClass=Dragon32Periphery,
-        GUI_Class=DragonTkinterGUI,
-    )
+    run_machine(CFG_DICT)

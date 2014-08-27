@@ -2,19 +2,18 @@
 # encoding:utf-8
 
 """
-    Dragon 32 console
-    ~~~~~~~~~~~~~~~~~
+    Dragon 32
+    ~~~~~~~~~
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from dragonpy.Dragon32.config import Dragon32Cfg
-from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
-from dragonpy.core.gui import DragonTkinterGUI
+
 from dragonlib.utils.logging_utils import log, setup_logging
-from dragonpy.core.machine import run_machine
+
+from dragonpy.Dragon32.machine import run_machine
 
 
 CFG_DICT = {
@@ -48,9 +47,4 @@ if __name__ == '__main__':
         level=50  # CRITICAL/FATAL
     )
 
-    run_machine(
-        ConfigClass=Dragon32Cfg,
-        cfg_dict=CFG_DICT,
-        PeripheryClass=Dragon32Periphery,
-        GUI_Class=DragonTkinterGUI,
-    )
+    run_machine(CFG_DICT)

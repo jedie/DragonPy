@@ -10,12 +10,8 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from dragonpy.CoCo.config import CoCoCfg
-from dragonpy.CoCo.periphery_coco import CoCoPeriphery
-from dragonpy.core.machine import run_machine
-from dragonpy.core.gui import DragonTkinterGUI
-from dragonlib.utils.logging_utils import log
-from dragonlib.utils.logging_utils import setup_logging
+from dragonlib.utils.logging_utils import log, setup_logging
+from dragonpy.CoCo.machine import run_machine
 
 
 CFG_DICT = {
@@ -49,9 +45,4 @@ if __name__ == '__main__':
         level=50  # CRITICAL/FATAL
     )
 
-    run_machine(
-        ConfigClass=CoCoCfg,
-        cfg_dict=CFG_DICT,
-        PeripheryClass=CoCoPeriphery,
-        GUI_Class=DragonTkinterGUI,
-    )
+    run_machine(CFG_DICT)

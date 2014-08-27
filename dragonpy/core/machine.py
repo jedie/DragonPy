@@ -283,47 +283,55 @@ class ThreadedMachine(object):
         self.cpu_thread.quit()
 
 
-def run_machine(ConfigClass, cfg_dict, PeripheryClass, GUI_Class):
-    cfg = ConfigClass(cfg_dict)
-    log.log(99, "Startup '%s' machine...", cfg.MACHINE_NAME)
+class ThreadedMachineGUI(object):
+    def __init__(self, cfg):
+        self.cfg = cfg
 
-    # LifoQueue filles in CPU Thread with CPU-Cycles information:
-    # Use a LifoQueue to get the most recently added status first.
-    cpu_status_queue = Queue.LifoQueue(maxsize=1)  # CPU cyltes/sec information
+        # LifoQueue filles in CPU Thread with CPU-Cycles information:
+        # Use a LifoQueue to get the most recently added status first.
+        self.cpu_status_queue = Queue.LifoQueue(maxsize=1)  # CPU cyltes/sec information
 
-    # Queue to send keyboard inputs from GUI to CPU Thread:
-    user_input_queue = Queue.Queue(maxsize=1024)
+        # Queue to send keyboard inputs from GUI to CPU Thread:
+        self.user_input_queue = Queue.Queue(maxsize=1024)
 
-    # Queue which contains "write into Display RAM" information
-    # for render them in DragonTextDisplayCanvas():
-    display_queue = Queue.Queue(maxsize=64)
+        # Queue which contains "write into Display RAM" information
+        # for render them in DragonTextDisplayCanvas():
+        self.display_queue = Queue.Queue(maxsize=64)
 
-    # Queue to send from GUI a request to the CPU/Memory
-    # and send the response back to the GUI
-    request_comm = CommunicatorRequest(cfg)
-    request_queue, response_queue = request_comm.get_queues()
-    response_comm = CommunicatorResponse(request_queue, response_queue)
+        # Queue to send from GUI a request to the CPU/Memory
+        # and send the response back to the GUI
+        self.request_comm = CommunicatorRequest(cfg)
+        request_queue, response_queue = self.request_comm.get_queues()
+        self.response_comm = CommunicatorResponse(request_queue, response_queue)
 
-    log.critical("init GUI")
-    # e.g. TkInter GUI
-    gui = GUI_Class(
-        cfg, display_queue, user_input_queue, cpu_status_queue, request_comm
-    )
+    def run(self, PeripheryClass, GUI_Class):
+        log.log(99, "Startup '%s' machine...", self.cfg.MACHINE_NAME)
 
-    log.critical("init machine")
-    # start CPU+Memory+Periphery in a separate thread
-    machine = ThreadedMachine(
-        cfg, PeripheryClass, display_queue, user_input_queue, cpu_status_queue, response_comm
-    )
+        log.critical("init GUI")
+        # e.g. TkInter GUI
+        gui = GUI_Class(
+            self.cfg,
+            self.display_queue, self.user_input_queue, self.cpu_status_queue,
+            self.request_comm
+        )
 
-    try:
-        gui.mainloop()
-    except Exception as err:
-        log.critical("GUI exception: %s", err)
-        print_exc_plus()
-    machine.quit()
+        log.critical("init machine")
+        # start CPU+Memory+Periphery in a separate thread
+        machine = ThreadedMachine(
+            self.cfg,
+            PeripheryClass,
+            self.display_queue, self.user_input_queue, self.cpu_status_queue,
+            self.response_comm
+        )
 
-    log.log(99, " --- END ---")
+        try:
+            gui.mainloop()
+        except Exception as err:
+            log.critical("GUI exception: %s", err)
+            print_exc_plus()
+        machine.quit()
+
+        log.log(99, " --- END ---")
 
 
 def test_run_direct():
