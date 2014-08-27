@@ -82,6 +82,9 @@ class CoCoCfg(Dragon32Cfg):
 #             (0x0152, 0x0159): (None, self.keyboard_matrix_state),
             (0x0115, 0x0119): (self.rnd_seed_read, self.rnd_seed_write)
         }
+        self.memory_word_middlewares = {
+            (0x0019, 0x0027): (None, self.basic_addresses_write),
+        }
 
     def rnd_seed_read(self, cycles, last_op_address, address, byte):
         log.critical("%04x| read $%02x RND() seed from: $%04x", last_op_address, byte, address)
@@ -90,6 +93,20 @@ class CoCoCfg(Dragon32Cfg):
     def rnd_seed_write(self, cycles, last_op_address, address, byte):
         log.critical("%04x| write $%02x RND() seed to: $%04x", last_op_address, byte, address)
         return byte
+
+    def basic_addresses_write(self, cycles, last_op_address, address, word):
+        """
+        0113 0019 TXTTAB RMB 2 *PV BEGINNING OF BASIC PROGRAM
+        0114 001B VARTAB RMB 2 *PV START OF VARIABLES
+        0115 001D ARYTAB RMB 2 *PV START OF ARRAYS
+        0116 001F ARYEND RMB 2 *PV END OF ARRAYS (+1)
+        0117 0021 FRETOP RMB 2 *PV START OF STRING STORAGE (TOP OF FREE RAM)
+        0118 0023 STRTAB RMB 2 *PV START OF STRING VARIABLES
+        0119 0025 FRESPC RMB 2 UTILITY STRING POINTER
+        0120 0027 MEMSIZ RMB 2 *PV TOP OF STRING SPACE
+        """
+        log.critical("%04x| write $%04x to $%04x", last_op_address, word, address)
+        return word
 
     def get_initial_RAM(self):
         """
