@@ -2521,11 +2521,11 @@ def test_run():
 #
 #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
 #
-#         "--cfg=sbc09",
-#          "--cfg=Simple6809",
-#        "--cfg=Dragon32",
+#         "--machine=sbc09",
+#          "--machine=Simple6809",
+#        "--machine=Dragon32",
 
-         "--cfg=Multicomp6809",
+         "--machine=Multicomp6809",
 
 #         "--max=15000",
 #        "--max=1",

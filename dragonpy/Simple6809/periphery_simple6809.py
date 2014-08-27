@@ -131,7 +131,7 @@ def test_run():
 #         "--verbosity=40", # ERROR
         "--verbosity=50", # CRITICAL/FATAL
 
-        "--cfg=Simple6809",
+        "--machine=Simple6809",
 #         "--max=500000",
 #         "--max=20000",
 #         "--max=1",

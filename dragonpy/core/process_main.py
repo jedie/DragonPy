@@ -161,10 +161,10 @@ def test_run():
 #         "--verbosity=30", # WARNING
 #         "--verbosity=40", # ERROR
         "--verbosity=50", # CRITICAL/FATAL
-#         "--cfg=sbc09",
-        "--cfg=Simple6809",
-#         "--cfg=Dragon32",
-#         "--cfg=Multicomp6809",
+#         "--machine=sbc09",
+        "--machine=Simple6809",
+#         "--machine=Dragon32",
+#         "--machine=Multicomp6809",
 #         "--max=100000",
         "--display_cycle",
     ]

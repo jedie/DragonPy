@@ -19,7 +19,7 @@ from dragonlib.utils.logging_utils import log
 
 
 DRAGON32 = "Dragon32"
-COCO = "CoCo"
+COCO2B = "CoCo"
 
 
 class BaseAPI(object):
@@ -106,7 +106,7 @@ class CoCoAPI(Dragon32API):
     """
     http://sourceforge.net/p/toolshed/code/ci/default/tree/cocoroms/dragon_equivs.asm
     """
-    CONFIG_NAME = COCO
+    CONFIG_NAME = COCO2B
     MACHINE_NAME = "CoCo"
     BASIC_TOKENS = COCO_BASIC_TOKENS
 

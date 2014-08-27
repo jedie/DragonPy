@@ -106,8 +106,8 @@ def test_run():
 
         "--trace",
 
-#        "--cfg=Simple6809",
-        "--cfg=sbc09",
+#        "--machine=Simple6809",
+        "--machine=sbc09",
 #         "--max=500000",
 #         "--max=20000",
         "--max=1",

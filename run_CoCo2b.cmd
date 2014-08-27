@@ -10,10 +10,6 @@ if NOT exist %python% (
     exit 1
 )
 
-:loop
-    cls
-    echo on
-    %python% Dragon64_test.py
-    @echo off
-    pause
-goto:loop
+echo on
+%python% DragonPy_CLI.py --machine=CoCo2b
+@pause

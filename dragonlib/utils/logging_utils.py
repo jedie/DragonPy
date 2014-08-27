@@ -52,6 +52,7 @@ def setup_logging(log, level, handler=None, log_formatter=None):
         sys.stderr.write("Log to handler: %s\n" % repr(handler))
     log.handlers = (handler,)
 
+
 def disable_logging(log):
     """
     e.g.: for run all unittests.
@@ -60,6 +61,7 @@ def disable_logging(log):
     log.log(99, "Disable all logging output.")
     log.setLevel(level=100)
     log.handlers = ()
+
 
 def log_memory_dump(memory, start, end, mem_info, level=99):
     log.log(level, "Memory dump from $%04x to $%04x:", start, end)

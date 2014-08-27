@@ -66,26 +66,25 @@ There is a simple shell script to automatic download and extract the Dragon ROMs
 # Download all ROM files:
 ~/DragonPy$ ./download_ROMs.sh
 
-# start with Dragon 32 ROM:
-~/DragonPy$ python2 ./Dragon32_test.py
-
-# start with CoCo Color BASIC 1.3 ROM:
-~/DragonPy$ python2 ./CoCo_test.py
+# Start Dragon 32
+~/DragonPy$ python2 DragonPy_CLI.py --machine=Dragon32
 }}}
 
 == example
 
-**Note:** Currently the CLI is broken! Until it is fix, use only this:
+start Dragon 32:
 {{{
-...path/to/DragonPy$ python2 ./Dragon32_test.py
+...path/to/DragonPy$ DragonPy_CLI.py --machine=Dragon32
 }}}
-or:
+
+start Dragon 64:
 {{{
-...path/to/DragonPy$ python2 ./Dragon64_test.py
+...path/to/DragonPy$ DragonPy_CLI.py --machine=Dragon64
 }}}
-or:
+
+start CoCo with Extended Color Basic v1.1:
 {{{
-...path/to/DragonPy$ python2 ./CoCo_test.py
+...path/to/DragonPy$ python2 DragonPy_CLI.py --machine=CoCo2b
 }}}
 
 == unittests ==
@@ -226,7 +225,9 @@ e.g. The Dragon 32 6809 machine with a 14.31818 MHz crystal runs with:
 
 == TODO:
 
-# Reimplement the CLI
+# Add hard-/soft-reset in GUI
+# Test multiprocessing solution, again
+# Add sbc variants to CLI
 # Use bottle for http control server part
 # implement more Dragon 32 periphery
 

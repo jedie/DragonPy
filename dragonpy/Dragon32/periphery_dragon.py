@@ -189,8 +189,8 @@ def test_run_cli():
         #
         #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
         #
-        #         "--cfg=Dragon32",
-        "--cfg=Dragon64",
+        #         "--machine=Dragon32",
+        "--machine=Dragon64",
         #
         "--dont_open_webbrowser",
         "--display_cycle",  # print CPU cycle/sec while running.

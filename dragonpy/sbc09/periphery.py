@@ -142,7 +142,7 @@ def test_run():
 
 #         "--trace",
 
-        "--cfg=sbc09",
+        "--machine=sbc09",
 #         "--max=500000",
 #         "--max=30000",
 #         "--max=20000",

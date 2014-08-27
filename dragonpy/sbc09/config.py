@@ -76,7 +76,7 @@ def test_run():
 #         "--verbosity=40", # ERROR
         "--verbosity=50", # CRITICAL/FATAL
 
-        "--cfg=sbc09",
+        "--machine=sbc09",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()

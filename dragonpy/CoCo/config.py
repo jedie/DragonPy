@@ -18,11 +18,11 @@ from dragonpy.CoCo.mem_info import get_coco_meminfo
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.keyboard_map import get_coco_keymatrix_pia_result
 from dragonpy.components.rom import ROMFile
-from dragonpy.core.configs import COCO
+from dragonpy.core.configs import COCO2B
 
 
 class CoCoCfg(Dragon32Cfg):
-    CONFIG_NAME = COCO
+    CONFIG_NAME = COCO2B
     MACHINE_NAME = "CoCo"
 
     # How does the keyboard polling routine starts with?

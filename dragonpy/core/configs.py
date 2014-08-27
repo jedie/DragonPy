@@ -19,13 +19,13 @@ from dragonlib.utils.logging_utils import log
 
 DRAGON32 = "Dragon32"
 DRAGON64 = "Dragon64"
-COCO = "COCO"
+COCO2B = "COCO2B"
 SBC09 = "sbc09"
 SIMPLE6809 = "Simple6809"
 MULTICOMP6809 = "Multicomp6809"
 
 
-class ConfigDict(dict):
+class MachineDict(dict):
     DEFAULT = None
     def register(self, name, cls, default=False):
         dict.__setitem__(self, name, cls)
@@ -33,7 +33,7 @@ class ConfigDict(dict):
             assert self.DEFAULT is None
             self.DEFAULT = name
 
-configs = ConfigDict()
+machine_dict = MachineDict()
 
 
 class DummyMemInfo(object):
@@ -62,31 +62,9 @@ class AddressAreas(dict):
 
 
 class BaseConfig(object):
-
-    # XXX: use multiprocessing send instead of struct
-    # for sending a bytes/words via socket bus I/O:
-    STRUCT_TO_PERIPHERY_FORMAT = (# For sending data to periphery
-        "<" # little-endian byte order
-        "I" # CPU cycles - unsigned int (integer with size: 4)
-        "I" # op code address - unsigned int (integer with size: 4)
-        "B" # action: 0 = read, 1 = write - unsigned char (integer with size: 1)
-        "B" # structure: 0 = byte, 1 = word - unsigned char (integer with size: 1)
-        "H" # Address - unsigned short (integer with size: 2)
-        "H" # Bytes/Word to write - unsigned short (integer with size: 2)
-    )
-    BUS_ACTION_READ = 0
-    BUS_ACTION_WRITE = 1
-    BUS_STRUCTURE_BYTE = 0
-    BUS_STRUCTURE_WORD = 1
-    STRUCT_TO_PERIPHERY_LEN = struct.calcsize(STRUCT_TO_PERIPHERY_FORMAT)
-
-    # Sending responses from periphery back to memory/cpu
-    STRUCT_TO_MEMORY_FORMAT = "<H"
-    STRUCT_MEMORY_LEN = struct.calcsize(STRUCT_TO_MEMORY_FORMAT)
-
-    # http address/port number for the CPU control server
-    CPU_CONTROL_ADDR = "127.0.0.1"
-    CPU_CONTROL_PORT = 6809
+#     # http address/port number for the CPU control server
+#     CPU_CONTROL_ADDR = "127.0.0.1"
+#     CPU_CONTROL_PORT = 6809
 
     # How many ops should be execute before make a control server update cycle?
     BURST_COUNT = 10000
@@ -102,27 +80,21 @@ class BaseConfig(object):
 
         log.debug("cfg_dict: %s", repr(cfg_dict))
 
-        # print CPU cycle/sec while running
-        self.display_cycle = cfg_dict["display_cycle"]
+#         # socket address for internal bus I/O:
+#         if cfg_dict["bus_socket_host"] and cfg_dict["bus_socket_port"]:
+#             self.bus = True
+#             self.bus_socket_host = cfg_dict["bus_socket_host"]
+#             self.bus_socket_port = cfg_dict["bus_socket_port"]
+#         else:
+#             self.bus = None # Will be set in cpu6809.start_CPU()
 
-        # socket address for internal bus I/O:
-        if cfg_dict["bus_socket_host"] and cfg_dict["bus_socket_port"]:
-            self.bus = True
-            self.bus_socket_host = cfg_dict["bus_socket_host"]
-            self.bus_socket_port = cfg_dict["bus_socket_port"]
-        else:
-            self.bus = None # Will be set in cpu6809.start_CPU()
+        self.ram = cfg_dict.get("ram", None)
 
-        if cfg_dict["ram"]:
-            self.ram = cfg_dict["ram"]
-        else:
-            self.ram = None
-
-        if cfg_dict["rom"]:
-            raw_rom_cfg = cfg_dict["rom"]
-            raise NotImplementedError("TODO: create rom cfg!")
-        else:
-            self.rom_cfg = self.DEFAULT_ROMS
+#         if cfg_dict["rom"]:
+#             raw_rom_cfg = cfg_dict["rom"]
+#             raise NotImplementedError("TODO: create rom cfg!")
+#         else:
+        self.rom_cfg = self.DEFAULT_ROMS
 
         if cfg_dict["trace"]:
             self.trace = True
@@ -179,8 +151,8 @@ def test_run():
 #         "--verbosity=40", # ERROR
 #         "--verbosity=50", # CRITICAL/FATAL
 
-#         "--cfg=Simple6809",
-        "--cfg=sbc09",
+#         "--machine=Simple6809",
+        "--machine=sbc09",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd=".").wait()

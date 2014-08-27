@@ -6,7 +6,7 @@
     ==========================
 
     :created: 2013 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -29,7 +29,8 @@ class Base_CLI(object):
     DESCRIPTION = None
     EPOLOG = None
     VERSION = None
-    DEFAULT_LOG_FORMATTER = "%(message)s"
+#     DEFAULT_LOG_FORMATTER = "%(message)s"
+    DEFAULT_LOG_FORMATTER = "%(processName)s/%(threadName)s %(message)s"
 
     def __init__(self):
         self.logfilename = None
@@ -74,12 +75,11 @@ class Base_CLI(object):
         return args
 
     def setup_logging(self, args):
-        self.verbosity = args.verbosity
-        log_formatter = logging.Formatter(
-            args.log_formatter or self.DEFAULT_LOG_FORMATTER
+        setup_logging(log,
+            level=args.verbosity,
+            handler=None,
+            log_formatter=args.log_formatter
         )
-
-        setup_logging(log, self.verbosity, log_formatter=log_formatter)
 
 
 if __name__ == "__main__":

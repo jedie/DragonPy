@@ -13,7 +13,7 @@ if NOT exist %python% (
 :loop
     cls
     echo on
-    %python% Dragon32_test.py
+    %python% DragonPy_CLI.py --machine=Dragon64
     @echo off
     pause
 goto:loop

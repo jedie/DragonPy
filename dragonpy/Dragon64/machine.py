@@ -18,7 +18,7 @@ from dragonpy.core.gui import DragonTkinterGUI
 from dragonpy.core.machine import ThreadedMachineGUI
 
 
-def run_machine(cfg_dict):
+def run_Dragon64(cfg_dict):
     machine = ThreadedMachineGUI(
         cfg=Dragon64Cfg(cfg_dict)
     )
@@ -57,6 +57,6 @@ if __name__ == '__main__':
 
         "use_bus": False,
     }
-    run_machine(CFG_DICT)
+    run_Dragon64(CFG_DICT)
 
 

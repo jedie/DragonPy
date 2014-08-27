@@ -102,7 +102,6 @@ class RAM(ROM):
 class Memory(object):
     def __init__(self, cfg, read_bus_request_queue=None, read_bus_response_queue=None, write_bus_queue=None):
         self.cfg = cfg
-        self.use_bus = cfg.cfg_dict["use_bus"]
         self.read_bus_request_queue = read_bus_request_queue
         self.read_bus_response_queue = read_bus_response_queue
         self.write_bus_queue = write_bus_queue
@@ -349,7 +348,7 @@ def test_run():
 #         "--verbosity=30",
 #         "--verbosity=40",
         "--verbosity=50",
-        "--cfg=Simple6809",
+        "--machine=Simple6809",
 #         "--max=100000",
 #         "--max=30000",
 #         "--max=20000",

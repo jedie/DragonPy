@@ -126,7 +126,7 @@ def test_run():
 #                       "--max=1660000",
 #         "--max=1000",
 
-        "--cfg=Multicomp6809",
+        "--machine=Multicomp6809",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()

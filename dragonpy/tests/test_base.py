@@ -20,8 +20,6 @@ import cPickle as pickle
 from dragonlib.tests.test_base import BaseTestCase
 from dragonlib.utils.logging_utils import log
 from dragonpy.Dragon32.config import Dragon32Cfg
-from dragonpy.Dragon32.machine import Machine, CommunicatorRequest, \
-    CommunicatorResponse
 from dragonpy.Dragon32.periphery_dragon import Dragon32PeripheryUnittest
 from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809TestPeriphery
@@ -31,6 +29,8 @@ from dragonpy.cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStor
 from dragonpy.sbc09.config import SBC09Cfg
 from dragonpy.sbc09.periphery import SBC09PeripheryUnittest
 from dragonpy.tests.test_config import TestCfg
+from dragonpy.core.machine import CommunicatorRequest, CommunicatorResponse, \
+    Machine
 
 
 class BaseCPUTestCase(BaseTestCase):
@@ -120,7 +120,7 @@ def print_cpu_state_data(state):
     print "cpu state data %r (ID:%i):" % (state.__class__.__name__, id(state))
     for k, v in sorted(state.items()):
         if k == "RAM":
-            #v = ",".join(["$%x" % i for i in v])
+            # v = ",".join(["$%x" % i for i in v])
             print "\tSHA from RAM:", hashlib.sha224(repr(v)).hexdigest()
             continue
         if isinstance(v, int):
@@ -244,12 +244,12 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
 #         os.remove(cls.TEMP_FILE);print "Delete CPU date file!"
 
         cfg = SBC09Cfg(cls.UNITTEST_CFG_DICT)
-        
+
         memory = Memory(cfg)
 
         cls.periphery = SBC09PeripheryUnittest(cfg, memory)
         cfg.periphery = cls.periphery
-        
+
         cpu = CPU(memory, cfg)
         memory.cpu = cpu # FIXME
         cpu.reset()
