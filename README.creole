@@ -1,6 +1,6 @@
 === Dragon 32 emulator in Python
 
-A Open source (GPL v3 or later) emulator for the 30years old homecomputer {{{Dragon 32}}}...
+A Open source (GPL v3 or later) emulator for the 30 years old homecomputer {{{Dragon 32}}}...
 
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon64_01.png|Dragon 64 screenshot}}
 
@@ -315,7 +315,7 @@ Motorola S-Record utilities
 
 == History
 
-* 27.08.2014 - Run CoCo with Extended Color Basic v1.1, bugfix transfere BASIC Listing with [[https://github.com/jedie/DragonPy/compare/8fe24e5...697d39e|8fe24e5...697d39e]] see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=90#p11696|Forum post]].
+* 27.08.2014 - Run CoCo with Extended Color Basic v1.1, bugfix transfer BASIC Listing with [[https://github.com/jedie/DragonPy/compare/8fe24e5...697d39e|8fe24e5...697d39e]] see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=90#p11696|Forum post]].
 * 20.08.2014 - rudimenary BASIC IDE works with [[https://github.com/jedie/DragonPy/compare/7e0f16630...ce12148|7e0f16630...ce12148]], see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4439#p11645|Forum post]].
 * 05.08.2014 - Start to support CoCo, too with [[https://github.com/jedie/DragonPy/commit/0df724b3ee9d87088b524c3623040a41e9772eb4|0df724b]], see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=80#p11573|Forum post]].
 * 04.08.2014 - Use the origin Pixel-Font with Tkinter GUI, see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4909|Forum post 1]] and [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=80#p11570|Forum post 2]].
