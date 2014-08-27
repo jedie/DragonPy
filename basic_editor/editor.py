@@ -12,9 +12,11 @@
 
 import ScrolledText
 import Tkinter
+import string
 import tkFileDialog
 import tkMessageBox
 
+from dragonlib.utils.auto_shift import invert_shift
 from dragonlib.utils.logging_utils import log, pformat_program_dump
 
 
@@ -52,9 +54,8 @@ class EditorWindow(object):
 #            state=Tkinter.DISABLED # FIXME: make textbox "read-only"
         )
 
-        # TODO:
-        self.auto_shift = True # use invert shift for letters?
-#        self.root.bind("<Key>", self.event_key_pressed)
+        #self.auto_shift = True # use invert shift for letters?
+        self.root.bind("<Key>", self.event_key_pressed)
 
         self.text.pack(side=Tkinter.LEFT, fill=Tkinter.Y)
 
@@ -88,15 +89,21 @@ class EditorWindow(object):
         self.root.config(menu=menubar)
         self.root.update()
 
-#    def event_key_pressed(self, event):
-#        keycode = event.keycode
-#        char = event.char
-#        log.critical("keycode %s - char %s", keycode, repr(char))
-#        self.text.config(state=Tkinter.NORMAL)
-#        char = invert_shift(char)
-#        self.text.insert("end", char)
-#        self.text.see("end")
-#        self.text.config(state=Tkinter.DISABLED)
+    def event_key_pressed(self, event):
+        """
+        So a "invert shift" for user inputs:
+        Convert all lowercase letters to uppercase and vice versa.
+        """
+        char = event.char
+        if not char or char not in string.letters:
+            # ignore all non letter inputs
+            return
+        
+        converted_char = invert_shift(char)
+        log.debug("convert keycode %s - char %s to %s", event.keycode, repr(char), converted_char)
+        self.text.delete("insert-1c") # Delete last input char
+        self.text.insert(Tkinter.INSERT, converted_char) # Insert converted char
+        return "break"
 
     def command_load_file(self):
         infile = tkFileDialog.askopenfile(parent=self.root, mode="r", title="Select a BASIC file to load")
