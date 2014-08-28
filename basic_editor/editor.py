@@ -42,6 +42,45 @@ class MultiStatusBar(Tkinter.Frame):
         label.config(text=text)
 
 
+class BaseExtension(object):
+    def __init__(self, editor):
+        self.editor = editor
+        
+        self.cfg=editor.cfg
+        self.root = editor.root
+        self.text = editor.text # ScrolledText() instance
+
+class TkTextHighlightCurrentLine(BaseExtension):
+    after_id = None
+    TAG_CURRENT_LINE="current_line"
+    def __init__(self, editor):
+        super(TkTextHighlightCurrentLine, self).__init__(editor)
+        
+        self.current_line=None
+        self.text.tag_config(self.TAG_CURRENT_LINE, background="#eeeeee")
+        
+        self.update_interval()      
+        
+    def force_update(self):
+        self.current_line=None
+        self.update()
+        
+    def update(self):
+        """ highligth the current line_no """
+        line_no = self.text.index(Tkinter.INSERT).split('.')[0]
+        if line_no != self.current_line:
+            #log.critical("highlight line_no: %s" % line_no)        
+            self.current_line = line_no
+            
+            self.text.tag_remove(self.TAG_CURRENT_LINE, "1.0", "end")
+            self.text.tag_add(self.TAG_CURRENT_LINE, "%s.0" % line_no, "%s.0+1lines" % line_no)
+        
+    def update_interval(self):
+        """ highligth the current line_no """
+        self.update()
+        self.after_id = self.text.after(10, self.update_interval)
+        
+
 class EditorWindow(object):
     def __init__(self, cfg, gui=None):
         self.cfg = cfg
@@ -79,6 +118,7 @@ class EditorWindow(object):
         bold_font = tkFont.Font(self.text, self.text.cget("font"))
         bold_font.configure(weight="bold")
         self.text.tag_configure("bold", font=bold_font)
+        self.highligth_currentline = TkTextHighlightCurrentLine(self)
 
         #self.auto_shift = True # use invert shift for letters?
 
@@ -224,6 +264,7 @@ class EditorWindow(object):
 #        self.text.config(state=Tkinter.DISABLED)
         self.text.mark_set(Tkinter.INSERT, '1.0') # Set cursor at start
         self.text.focus()
+        self.highligth_currentline.force_update()
 
     def mainloop(self):
         """ for standalone usage """
