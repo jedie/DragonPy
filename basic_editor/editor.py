@@ -323,7 +323,7 @@ def test():
     
     
     filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-        "..", "BASIC test programms",
+        "..", "BASIC examples",
         "hex_view01.bas" 
     )
     
