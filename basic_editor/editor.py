@@ -54,7 +54,6 @@ class EditorWindow(object):
         )
 
         #self.auto_shift = True # use invert shift for letters?
-        self.root.bind("<Key>", self.event_key_pressed)
 
         self.text.pack(side=Tkinter.LEFT, fill=Tkinter.Y)
 
@@ -85,6 +84,7 @@ class EditorWindow(object):
 #        helpmenu.add_command(label="about", command=self.menu_event_about)
         menubar.add_cascade(label="help", menu=helpmenu)
 
+        self.text.bind("<Key>", self.event_text_key)
         # display the menu
         self.root.config(menu=menubar)
         self.root.update()
@@ -101,7 +101,7 @@ class EditorWindow(object):
         
         converted_char = invert_shift(char)
         log.debug("convert keycode %s - char %s to %s", event.keycode, repr(char), converted_char)
-        self.text.delete("insert-1c") # Delete last input char
+#         self.text.delete(Tkinter.INSERT + "-1c") # Delete last input char
         self.text.insert(Tkinter.INSERT, converted_char) # Insert converted char
         return "break"
 
