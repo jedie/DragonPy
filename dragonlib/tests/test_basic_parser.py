@@ -259,20 +259,41 @@ class TestBASICParser(unittest.TestCase):
             #             print_parsed_lines=True
         )
 
+    def test_spaces_after_line_no(self):
+        ascii_listing = """
+            10 FOR I=1 TO 3:
+            20     PRINT I
+            30 NEXT
+        """
+        self.assertParser(ascii_listing,
+            {
+                10: [
+                    """<CODE:FOR I=1 TO 3:>""",
+                ],
+                20: [
+                    """<CODE:    PRINT I>""",
+                ],
+                30: [
+                    """<CODE:NEXT>""",
+                ],
+            },
+#             print_parsed_lines=True
+        )
+
 if __name__ == "__main__":
     setup_logging(log,
-#        level=1 # hardcore debug ;)
+#         level=1 # hardcore debug ;)
 #         level=10  # DEBUG
 #         level=20  # INFO
-        level=30  # WARNING
+#         level=30  # WARNING
 #         level=40 # ERROR
-#         level=50 # CRITICAL/FATAL
+        level=50 # CRITICAL/FATAL
     )
 
     unittest.main(
         argv=(
             sys.argv[0],
-            #             "TestBASICParser.test_data_string_colon",
+#             "TestBASICParser.test_spaces_after_line_no",
         ),
         #         verbosity=1,
         verbosity=2,

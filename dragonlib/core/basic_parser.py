@@ -65,7 +65,7 @@ class ParsedBASIC(dict):
         indent1 = " " * 4
         indent2 = " " * 8
         for line_no, code_objects in sorted(self.items()):
-            result += '%s"%s": [\n' % (indent1, line_no)
+            result += '%s%i: [\n' % (indent1, line_no)
             for code_object in code_objects:
                 result += '%s"""<%s:%s>""",\n' % (
                     indent2, code_object.PART_TYPE, code_object.content
@@ -91,7 +91,7 @@ class BASICParser(object):
     def __init__(self):
         self.regex_line_no = re.compile(
             # Split the line number from the code
-            "^\s*(?P<no>\d+)\s*(?P<content>.+)\s*$",
+            "^\s*(?P<no>\d+)\s?(?P<content>.+)\s*$",
             re.MULTILINE
         )
         self.regex_split_all = re.compile(
