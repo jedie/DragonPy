@@ -4,6 +4,8 @@
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
+    
+    Some code borrowed from Python IDLE
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
@@ -13,11 +15,31 @@
 import ScrolledText
 import Tkinter
 import string
+import sys
 import tkFileDialog
+import tkFont
 import tkMessageBox
 
 from dragonlib.utils.auto_shift import invert_shift
 from dragonlib.utils.logging_utils import log, pformat_program_dump
+
+
+class MultiStatusBar(Tkinter.Frame):
+    """
+    code from idlelib.MultiStatusBar.MultiStatusBar
+    """
+    def __init__(self, master, **kw):
+        Tkinter.Frame.__init__(self, master, **kw)
+        self.labels = {}
+
+    def set_label(self, name, text='', side=Tkinter.LEFT):
+        if name not in self.labels:
+            label = Tkinter.Label(self, bd=1, relief=Tkinter.SUNKEN, anchor=Tkinter.W)
+            label.pack(side=side)
+            self.labels[name] = label
+        else:
+            label = self.labels[name]
+        label.config(text=text)
 
 
 class EditorWindow(object):
@@ -52,10 +74,13 @@ class EditorWindow(object):
 #            yscrollcommand=scollbar.set, # FIXME
 #            state=Tkinter.DISABLED # FIXME: make textbox "read-only"
         )
+        self.text.grid(row=0, column=0)  # , rowspan=2)
+
+        bold_font = tkFont.Font(self.text, self.text.cget("font"))
+        bold_font.configure(weight="bold")
+        self.text.tag_configure("bold", font=bold_font)
 
         #self.auto_shift = True # use invert shift for letters?
-
-        self.text.pack(side=Tkinter.LEFT, fill=Tkinter.Y)
 
         menubar = Tkinter.Menu(self.root)
 
@@ -84,12 +109,37 @@ class EditorWindow(object):
 #        helpmenu.add_command(label="about", command=self.menu_event_about)
         menubar.add_cascade(label="help", menu=helpmenu)
 
+        self.set_status_bar() # Create widget, add bindings and after_idle() update
+        
         self.text.bind("<Key>", self.event_text_key)
         # display the menu
         self.root.config(menu=menubar)
         self.root.update()
 
-    def event_key_pressed(self, event):
+    ###########################################################################
+    # Status bar
+
+    def set_status_bar(self):
+        self.status_bar = MultiStatusBar(self.root)
+        if sys.platform == "darwin":
+            # Insert some padding to avoid obscuring some of the statusbar
+            # by the resize widget.
+            self.status_bar.set_label('_padding1', '    ', side=Tkinter.RIGHT)
+        self.status_bar.grid(row=1, column=0)
+        
+        self.text.bind("<<set-line-and-column>>", self.set_line_and_column)
+        self.text.event_add("<<set-line-and-column>>",
+                            "<KeyRelease>", "<ButtonRelease>")
+        self.text.after_idle(self.set_line_and_column)
+
+    def set_line_and_column(self, event=None):
+        line, column = self.text.index(Tkinter.INSERT).split('.')
+        self.status_bar.set_label('column', 'Column: %s' % column)
+        self.status_bar.set_label('line', 'Line: %s' % line)
+
+    ###########################################################################
+
+    def event_text_key(self, event):
         """
         So a "invert shift" for user inputs:
         Convert all lowercase letters to uppercase and vice versa.
