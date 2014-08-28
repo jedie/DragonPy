@@ -256,7 +256,7 @@ class EditorWindow(object):
         self.set_status_bar() # Create widget, add bindings and after_idle() update
         
         self.text.bind("<Key>", self.event_text_key)
-        self.text.bind("<space>", self.event_syntax_check)
+#         self.text.bind("<space>", self.event_syntax_check)
 
         # display the menu
         self.root.config(menu=menubar)
@@ -301,15 +301,15 @@ class EditorWindow(object):
         self.text.insert(Tkinter.INSERT, converted_char) # Insert converted char
         return "break"
 
-    def event_syntax_check(self, event):
-        index = self.text.search(r'\s', "insert", backwards=True, regexp=True)
-        if index == "":
-            index ="1.0"
-        else:
-            index = self.text.index("%s+1c" % index)
-        word = self.text.get(index, "insert")
-        log.critical("inserted word: %r", word)
-        print self.machine_api.parse_ascii_listing(word)
+#     def event_syntax_check(self, event):
+#         index = self.text.search(r'\s', "insert", backwards=True, regexp=True)
+#         if index == "":
+#             index ="1.0"
+#         else:
+#             index = self.text.index("%s+1c" % index)
+#         word = self.text.get(index, "insert")
+#         log.critical("inserted word: %r", word)
+#         print self.machine_api.parse_ascii_listing(word)
 
     def command_load_file(self):
         infile = tkFileDialog.askopenfile(parent=self.root, mode="r", title="Select a BASIC file to load")
