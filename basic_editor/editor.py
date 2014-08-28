@@ -20,6 +20,7 @@ import tkFileDialog
 import tkFont
 import tkMessageBox
 
+from dragonlib.core import basic_parser
 from dragonlib.utils.auto_shift import invert_shift
 from dragonlib.utils.logging_utils import log, pformat_program_dump
 
@@ -50,36 +51,128 @@ class BaseExtension(object):
         self.root = editor.root
         self.text = editor.text # ScrolledText() instance
 
+
+class TkTextHighlighting(BaseExtension):
+    """
+    code based on idlelib.ColorDelegator.ColorDelegator
+    """
+    after_id = None
+    def __init__(self, editor):
+        super(TkTextHighlighting, self).__init__(editor)
+        
+        self.machine_api = editor.machine_api
+
+        bold_font = tkFont.Font(self.text, self.text.cget("font"))
+        bold_font.configure(weight="bold")
+        self.text.tag_configure("bold", font=bold_font)
+        
+        self.tagdefs={
+            "lineno": {"foreground": "#b4b4b4", "background":"#555555", "font":bold_font},
+            
+            basic_parser.CODE_TYPE_CODE: {"foreground":"#222222", "font":bold_font},
+            basic_parser.CODE_TYPE_DATA: {"foreground":"#ddaaff", "font":bold_font},
+            basic_parser.CODE_TYPE_STRING: {"foreground":"#aaddee", "font":bold_font},
+            basic_parser.CODE_TYPE_COMMENT: {"foreground":"#07aa00"},
+        }
+        for tag, args in self.tagdefs.items():
+            self.text.tag_configure(tag, **args)
+        
+#         self.notify_range("1.0", "end")
+        
+        self.old_pos=None
+        self.__update_interval()  
+        
+    def update(self, force=False):
+        pos = self.text.index(Tkinter.INSERT)
+        
+        if not force:
+            if pos==self.old_pos:
+#                 log.critical("No recolorize needed.")
+                return
+        
+        self.recolorize()
+        self.old_pos=pos
+   
+    def __update_interval(self):
+        """ highlight the current line_no """
+        self.update()
+        self.after_id = self.text.after(10, self.__update_interval)
+   
+#     def notify_range(self, index1, index2=None):
+#         self.text.tag_add("TODO", index1, index2)
+   
+    def colorize(self, part_type, start, end):
+#         print "colorize", part_type, start, end
+        self.text.tag_add(part_type, start, end)
+   
+    def recolorize(self):
+        self.removecolors()
+        
+        line_max = self.text.index(Tkinter.END).split('.')[0]
+        line_max = int(line_max)
+        for line_no in xrange(line_max):
+            line_content = self.text.get("%s.0" % line_no, "%s.0+1lines" % line_no)
+#             print "line:", repr(line_content)
+            if not line_content.strip():
+                continue
+
+            parsed_lines = self.machine_api.parse_ascii_listing(line_content)
+            try:
+                code_line_no, code_objects = parsed_lines.items()[0]
+            except IndexError:
+                continue
+#             print "parsed line:", code_line_no, code_objects
+            
+            index = len(str(code_line_no)+" ")
+            for code_object in code_objects:
+                end=index + len(code_object.content)
+                self.colorize(code_object.PART_TYPE,
+                     start="%s.%s" % (line_no,index),
+                     end="%s.%s" % (line_no,end),
+                )
+                index=end
+                
+#             print
+        
+#         line, column = self.text.index(Tkinter.INSERT).split('.')
+#         print "recolorize lines %s" % line
+        
+    def removecolors(self):
+        for tag in self.tagdefs:
+            self.text.tag_remove(tag, "1.0", "end")
+
+
 class TkTextHighlightCurrentLine(BaseExtension):
     after_id = None
     TAG_CURRENT_LINE="current_line"
     def __init__(self, editor):
         super(TkTextHighlightCurrentLine, self).__init__(editor)
         
-        self.current_line=None
-        self.text.tag_config(self.TAG_CURRENT_LINE, background="#eeeeee")
+        self.text.tag_config(self.TAG_CURRENT_LINE, background="#e8f2fe")
         
-        self.update_interval()      
+        self.current_line=None        
+        self.__update_interval()      
         
-    def force_update(self):
-        self.current_line=None
-        self.update()
-        
-    def update(self):
-        """ highligth the current line_no """
+    def update(self, force=False):
+        """ highlight the current line """
         line_no = self.text.index(Tkinter.INSERT).split('.')[0]
-        if line_no != self.current_line:
-            #log.critical("highlight line_no: %s" % line_no)        
-            self.current_line = line_no
-            
-            self.text.tag_remove(self.TAG_CURRENT_LINE, "1.0", "end")
-            self.text.tag_add(self.TAG_CURRENT_LINE, "%s.0" % line_no, "%s.0+1lines" % line_no)
         
-    def update_interval(self):
-        """ highligth the current line_no """
+        if not force:
+            if line_no == self.current_line:
+#                 log.critical("no highlight line needed.")
+                return
+                
+#         log.critical("highlight line: %s" % line_no)        
+        self.current_line = line_no
+        
+        self.text.tag_remove(self.TAG_CURRENT_LINE, "1.0", "end")
+        self.text.tag_add(self.TAG_CURRENT_LINE, "%s.0" % line_no, "%s.0+1lines" % line_no)
+        
+    def __update_interval(self):
+        """ highlight the current line """
         self.update()
-        self.after_id = self.text.after(10, self.update_interval)
-        
+        self.after_id = self.text.after(10, self.__update_interval)
+                    
 
 class EditorWindow(object):
     def __init__(self, cfg, gui=None):
@@ -106,19 +199,14 @@ class EditorWindow(object):
             master=self.root, height=30, width=80
         )
         self.text.config(
-            background="#08ff08", # nearly green
-            foreground="#004100", # nearly black
+            background="#ffffff", foreground="#000000", 
             highlightthickness=0,
-            font=('courier', 11, 'bold'),
-#            yscrollcommand=scollbar.set, # FIXME
-#            state=Tkinter.DISABLED # FIXME: make textbox "read-only"
+            font=('courier', 11),
         )
         self.text.grid(row=0, column=0)  # , rowspan=2)
-
-        bold_font = tkFont.Font(self.text, self.text.cget("font"))
-        bold_font.configure(weight="bold")
-        self.text.tag_configure("bold", font=bold_font)
-        self.highligth_currentline = TkTextHighlightCurrentLine(self)
+        
+        self.highlighting=TkTextHighlighting(self)
+        self.highlight_currentline = TkTextHighlightCurrentLine(self)
 
         #self.auto_shift = True # use invert shift for letters?
 
@@ -152,6 +240,8 @@ class EditorWindow(object):
         self.set_status_bar() # Create widget, add bindings and after_idle() update
         
         self.text.bind("<Key>", self.event_text_key)
+        self.text.bind("<space>", self.event_syntax_check)
+
         # display the menu
         self.root.config(menu=menubar)
         self.root.update()
@@ -194,6 +284,16 @@ class EditorWindow(object):
 #         self.text.delete(Tkinter.INSERT + "-1c") # Delete last input char
         self.text.insert(Tkinter.INSERT, converted_char) # Insert converted char
         return "break"
+
+    def event_syntax_check(self, event):
+        index = self.text.search(r'\s', "insert", backwards=True, regexp=True)
+        if index == "":
+            index ="1.0"
+        else:
+            index = self.text.index("%s+1c" % index)
+        word = self.text.get(index, "insert")
+        log.critical("inserted word: %r", word)
+        print self.machine_api.parse_ascii_listing(word)
 
     def command_load_file(self):
         infile = tkFileDialog.askopenfile(parent=self.root, mode="r", title="Select a BASIC file to load")
@@ -264,7 +364,8 @@ class EditorWindow(object):
 #        self.text.config(state=Tkinter.DISABLED)
         self.text.mark_set(Tkinter.INSERT, '1.0') # Set cursor at start
         self.text.focus()
-        self.highligth_currentline.force_update()
+        self.highlight_currentline.update(force=True)
+        self.highlighting.update(force=True)
 
     def mainloop(self):
         """ for standalone usage """
@@ -294,8 +395,8 @@ def test():
     cfg = Dragon32Cfg(CFG_DICT)
     listing_ascii = (
         "10 CLS\n"
-        "20 FOR I = 0 TO 255:\n"
-        "30 POKE 1024+(I*2),I\n"
+        "20 FOR I = 0 TO 255: ' A LOOP\n"
+        "30     POKE 1024+(I*2),I ' DISPLAY ONE CHAR\n"
         "40 NEXT I\n"
         "50 I$ = INKEY$:IF I$="" THEN 50\n"
     )

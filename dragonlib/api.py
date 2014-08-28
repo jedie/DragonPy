@@ -42,6 +42,16 @@ class BaseAPI(object):
         if program_start is None:
             program_start = self.DEFAULT_PROGRAM_START
         return self.listing.program_dump2ascii_lines(dump, program_start)
+    
+    def parse_ascii_listing(self, basic_program_ascii):
+        parser = BASICParser()
+        parsed_lines = parser.parse(basic_program_ascii)
+        if not parsed_lines:
+            log.critical("No parsed lines %s from %s ?!?" % (
+                repr(parsed_lines), repr(basic_program_ascii)
+            ))
+        log.info("Parsed BASIC: %s", repr(parsed_lines))
+        return parsed_lines
 
     def ascii_listing2program_dump(self, basic_program_ascii, program_start=None):
         """
@@ -52,13 +62,7 @@ class BaseAPI(object):
         if program_start is None:
             program_start = self.DEFAULT_PROGRAM_START
             
-        parser = BASICParser()
-        parsed_lines = parser.parse(basic_program_ascii)
-        if not parsed_lines:
-            log.critical("No parsed lines %s from %s ?!?" % (
-                repr(parsed_lines), repr(basic_program_ascii)
-            ))
-        log.info("Parsed BASIC: %s", repr(parsed_lines))
+        parsed_lines = self.parse_ascii_listing(basic_program_ascii)
          
         basic_lines = []       
         for line_no, code_objects in sorted(parsed_lines.items()):
