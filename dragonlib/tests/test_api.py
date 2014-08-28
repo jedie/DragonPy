@@ -452,6 +452,22 @@ class RenumTests(BaseDragon32ApiTestCase):
             20 ?"A"
         """))
 
+    def test_get_destinations_1(self):
+        listing = self._prepare_text("""
+            10 PRINT "ONE"
+            20 GOTO 30
+            30 PRINT "FOO":GOSUB 50
+            40 IF A=1 THEN 20 ELSE 10
+            50 PRINT "BAR"
+            60 RESUME
+            70 PRINT "END?"
+            80 ON X GOTO 10, 20, 30 ,40 ,50
+            90 ON X GOSUB 10, 70, 999
+        """)
+        destinations = self.dragon32api.renum_tool.get_destinations(listing)
+        self.assertEqual(destinations, 
+            [10, 20, 30, 40, 50, 70, 999]
+        )
 
 if __name__ == '__main__':
     setup_logging(log,

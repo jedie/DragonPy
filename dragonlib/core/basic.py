@@ -350,14 +350,38 @@ class RenumTool(object):
             ])
         )
         new_listing = []
-        lines = ascii_listing.splitlines()
-        lines = [line.strip() for line in lines if line.strip()]
-        for new_number, line in enumerate(lines, 1):
+        for new_number, line in enumerate(self._iter_lines(ascii_listing),1):
             new_number *= 10
             line = self.line_no_regex.sub("%s\g<code>" % new_number, line)
             new_line = self.renum_regex.sub(self.renum_inline, line)
             new_listing.append(new_line)
         return "\n".join(new_listing)
+
+    def get_destinations(self, ascii_listing):
+        """
+        returns all line numbers that are used in a jump.
+        """
+        self.destinations=set()
+        def collect_destinations(matchobj):
+            numbers = matchobj.group("on_goto_no")
+            if numbers:
+                self.destinations.update(set(
+                    [n.strip() for n in numbers.split(",")]
+                ))
+            number = matchobj.group("no")
+            if number:
+                self.destinations.add(number)
+            
+        for line in self._iter_lines(ascii_listing):
+            self.renum_regex.sub(collect_destinations, line)
+            
+        return sorted([int(no) for no in self.destinations])
+
+    def _iter_lines(self, ascii_listing):
+        lines = ascii_listing.splitlines()
+        lines = [line.strip() for line in lines if line.strip()]
+        for line in lines:
+            yield line
 
     def _get_new_line_number(self, line, old_number):
         try:
@@ -410,8 +434,7 @@ class RenumTool(object):
         for new_number, old_number in enumerate(old_numbers, 1):
             new_number *= 10
             renum_dict[old_number] = new_number
-        return renum_dict
-
+        return renum_dict 
 
 if __name__ == "__main__":
     from dragonlib.api import Dragon32API
@@ -431,3 +454,6 @@ if __name__ == "__main__":
     print listing
     print "-" * 79
     print api.renum_ascii_listing(listing)
+    print "-" * 79
+    print api.renum_tool.get_destinations(listing)
+    print "-" * 79

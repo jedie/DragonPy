@@ -51,7 +51,8 @@ class BaseExtension(object):
         self.root = editor.root
         self.text = editor.text # ScrolledText() instance
 
-
+TAG_LINE_NUMBER="lineno"
+TAG_JUMP_ADDESS="jump"
 class TkTextHighlighting(BaseExtension):
     """
     code based on idlelib.ColorDelegator.ColorDelegator
@@ -67,7 +68,8 @@ class TkTextHighlighting(BaseExtension):
         self.text.tag_configure("bold", font=bold_font)
         
         self.tagdefs={
-            "lineno": {"foreground": "#b4b4b4", "background":"#555555", "font":bold_font},
+            TAG_LINE_NUMBER: {"foreground": "#333333", "background":"#f4f4f4"},
+            TAG_JUMP_ADDESS: {"foreground":"#0000aa", "background":"#f4f4f4", "font":bold_font},
             
             basic_parser.CODE_TYPE_CODE: {"foreground":"#222222", "font":bold_font},
             basic_parser.CODE_TYPE_DATA: {"foreground":"#ddaaff", "font":bold_font},
@@ -108,6 +110,9 @@ class TkTextHighlighting(BaseExtension):
     def recolorize(self):
         self.removecolors()
         
+        listing = self.editor.get_content()
+        destinations = self.machine_api.renum_tool.get_destinations(listing)
+        
         line_max = self.text.index(Tkinter.END).split('.')[0]
         line_max = int(line_max)
         for line_no in xrange(line_max):
@@ -124,6 +129,17 @@ class TkTextHighlighting(BaseExtension):
 #             print "parsed line:", code_line_no, code_objects
             
             index = len(str(code_line_no)+" ")
+            
+            if code_line_no in destinations:
+                # The current line number is used as a jump address
+                part_type=TAG_JUMP_ADDESS
+            else:
+                part_type=TAG_LINE_NUMBER
+            self.colorize(part_type, 
+                start="%s.0" % line_no,
+                end="%s.%s" % (line_no,index)
+            )
+            
             for code_object in code_objects:
                 end=index + len(code_object.content)
                 self.colorize(code_object.PART_TYPE,
