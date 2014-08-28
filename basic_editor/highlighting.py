@@ -41,8 +41,8 @@ class TkTextHighlighting(BaseExtension):
             
             basic_parser.CODE_TYPE_CODE: {"foreground":"#222222", "font":bold_font},
             basic_parser.CODE_TYPE_DATA: {"foreground":"#ddaaff", "font":bold_font},
-            basic_parser.CODE_TYPE_STRING: {"foreground":"#aaddee", "font":bold_font},
-            basic_parser.CODE_TYPE_COMMENT: {"foreground":"#07aa00"},
+            basic_parser.CODE_TYPE_STRING: {"foreground":"#0000ff"},# , "font":bold_font},
+            basic_parser.CODE_TYPE_COMMENT: {"foreground":"#00aa00"},
         }
         for tag, args in self.tagdefs.items():
             self.text.tag_configure(tag, **args)
