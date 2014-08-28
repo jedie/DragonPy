@@ -208,7 +208,9 @@ class EditorWindow(object):
             self.root = Tkinter.Toplevel(self.gui.root)
             self.root.geometry("+%d+%d" % (self.gui.root.winfo_rootx() + 30,
                 self.gui.root.winfo_rooty() + 40))
-
+            
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
         self.root.title("%s - BASIC Editor" % self.cfg.MACHINE_NAME)
 
         self.text = ScrolledText.ScrolledText(
@@ -219,7 +221,7 @@ class EditorWindow(object):
             highlightthickness=0,
             font=('courier', 11),
         )
-        self.text.grid(row=0, column=0)  # , rowspan=2)
+        self.text.grid(row=0, column=0, sticky=Tkinter.NSEW)
         
         self.highlighting=TkTextHighlighting(self)
         self.highlight_currentline = TkTextHighlightCurrentLine(self)
