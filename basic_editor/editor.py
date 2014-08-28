@@ -12,8 +12,10 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+
 import ScrolledText
 import Tkinter
+import os
 import string
 import sys
 import tkFileDialog
@@ -73,6 +75,20 @@ class TkTextHighlightCurrentLine(BaseExtension):
         """ highlight the current line """
         self.update()
         self.after_id = self.text.after(10, self.__update_interval)
+
+
+class ScrolledText2(ScrolledText.ScrolledText):
+    def save_position(self):
+        # save text cursor position:
+        self.old_text_pos = self.index(Tkinter.INSERT)
+        # save scroll position:
+        self.old_first, self.old_last = self.yview()
+        
+    def restore_position(self):
+        # restore text cursor position:
+        self.mark_set(Tkinter.INSERT, self.old_text_pos)
+        # restore scroll position:
+        self.yview_moveto(self.old_first)
                     
 
 class EditorWindow(object):
@@ -98,7 +114,7 @@ class EditorWindow(object):
         self.root.rowconfigure(0, weight=1)
         self.root.title("%s - BASIC Editor" % self.cfg.MACHINE_NAME)
 
-        self.text = ScrolledText.ScrolledText(
+        self.text = ScrolledText2(
             master=self.root, height=30, width=80
         )
         self.text.config(
@@ -244,9 +260,16 @@ class EditorWindow(object):
         tkMessageBox.showinfo("Program Dump:", msg, parent=self.root)
 
     def renumber_listing(self):
+        # save text cursor and scroll position
+        self.text.save_position()
+
+        # renumer the content
         content = self.get_content()
         content = self.machine_api.renum_ascii_listing(content)
         self.set_content(content)
+
+        # restore text cursor and scroll position
+        self.text.restore_position()
 
     def get_content(self):
         content = self.text.get("1.0", Tkinter.END)
@@ -296,13 +319,17 @@ def test():
     }
     from dragonpy.Dragon32.config import Dragon32Cfg
     cfg = Dragon32Cfg(CFG_DICT)
-    listing_ascii = (
-        "10 CLS\n"
-        "20 FOR I = 0 TO 255: ' A LOOP\n"
-        "30     POKE 1024+(I*2),I ' DISPLAY ONE CHAR\n"
-        "40 NEXT I\n"
-        "50 I$ = INKEY$:IF I$="" THEN 50\n"
+    
+    
+    
+    filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+        "..", "BASIC test programms",
+        "hex_view01.bas" 
     )
+    
+    with open(filepath, "r") as f:
+        listing_ascii = f.read()
+
     run_basic_editor(cfg, default_content=listing_ascii)
 
 
