@@ -27,12 +27,11 @@ The Dragon 32 / 64 and CoCo ROMs works in Text mode.
 Also the "single board computer" ROMs sbc09, Simple6809 and Multicomp6809 works well.
 
 There is a rudimentary BASIC editor with save/load BASIC programm listings direct into RAM.
-(Currently only with Dragon and CoCo)
 
 Looks like this:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140820_DragonPy_BASIC_Editor_01.png|screenshot BASIC Editor}}
-
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140820_DragonPy_BASIC_Editor_01.png|old screenshot BASIC Editor}}
+(older version of the editor)
 
 === BASIC Editor
 
@@ -50,6 +49,19 @@ You can also run the BASIC Editor without the Emulator:
 ...path/to/DragonPy$ DragonPy_CLI.py editor
 }}}
 
+A rudimentary BASIC source code highlighting is available and looks like this:
+
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140826_DragonPy_BASIC_Editor_01.png|screenshot BASIC Editor}}
+
+Special feature: The Line number that are used in GOTO, SOGUB etc. are extra marked on the left side.
+
+Currently the code are only differate into:
+* DATA
+* Strings
+* Comments
+* Code
+
+TODO: parse the code, to coloring it differently.
 
 === ROMs
 
