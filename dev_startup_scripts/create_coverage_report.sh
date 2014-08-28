@@ -20,6 +20,8 @@ fi
 
 set -x
 
+cd ..
+
 # delete old results
 ${coverage2} erase
 

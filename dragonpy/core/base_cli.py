@@ -46,7 +46,7 @@ class Base_CLI(object):
         self.parser = argparse.ArgumentParser(**arg_kwargs)
 
         self.parser.add_argument(
-            "--verbosity", type=int, choices=LOG_LEVELS, default=logging.WARNING,
+            "--verbosity", type=int, choices=LOG_LEVELS, default=logging.CRITICAL,
             help=(
                 "verbosity level to stdout (lower == more output!)"
                 " (default: %s)" % logging.INFO

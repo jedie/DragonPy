@@ -10,6 +10,12 @@ if NOT exist %python% (
     exit 1
 )
 
-echo on
-%python% DragonPy_CLI.py --machine=CoCo2b run
-@pause
+cd..
+
+:loop
+    cls
+    echo on
+    %python% DragonPy_CLI.py editor
+    @echo off
+    pause
+goto:loop

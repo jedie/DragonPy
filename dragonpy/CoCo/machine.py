@@ -12,7 +12,7 @@
 
 from dragonlib.utils.logging_utils import log, setup_logging
 
-from dragonpy.CoCo.config import CoCoCfg
+from dragonpy.CoCo.config import CoCo2bCfg
 from dragonpy.CoCo.periphery_coco import CoCoPeriphery
 from dragonpy.core.gui import DragonTkinterGUI
 from dragonpy.core.machine import ThreadedMachineGUI
@@ -20,7 +20,7 @@ from dragonpy.core.machine import ThreadedMachineGUI
 
 def run_CoCo2b(cfg_dict):
     machine = ThreadedMachineGUI(
-        cfg=CoCoCfg(cfg_dict)
+        cfg=CoCo2bCfg(cfg_dict)
     )
     machine.run(
         PeripheryClass=CoCoPeriphery,

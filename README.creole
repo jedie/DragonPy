@@ -34,6 +34,8 @@ Looks like this:
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140820_DragonPy_BASIC_Editor_01.png|screenshot BASIC Editor}}
 
 
+=== BASIC Editor
+
 Use "BASIC editor / open" in the main menu to open the editor.
 
 You can load/save ASCII .bas files from you local drive or just type a BASIC listing ;)
@@ -41,6 +43,12 @@ With "inject into DragonPy" you send the current listing from the Editor to the 
 Note: The is currently no "warning" that un-saved content will be "overwritten" and there is no "auto-backup" ;)
 
 The "renumbering" tool can be found in the editor window under "tools"
+
+You can also run the BASIC Editor without the Emulator:
+
+{{{
+...path/to/DragonPy$ DragonPy_CLI.py editor
+}}}
 
 
 === ROMs
@@ -67,24 +75,24 @@ There is a simple shell script to automatic download and extract the Dragon ROMs
 ~/DragonPy$ ./download_ROMs.sh
 
 # Start Dragon 32
-~/DragonPy$ python2 DragonPy_CLI.py --machine=Dragon32
+~/DragonPy$ python2 DragonPy_CLI.py --machine=Dragon32 run
 }}}
 
 == example
 
 start Dragon 32:
 {{{
-...path/to/DragonPy$ DragonPy_CLI.py --machine=Dragon32
+...path/to/DragonPy$ DragonPy_CLI.py --machine=Dragon32 run
 }}}
 
 start Dragon 64:
 {{{
-...path/to/DragonPy$ DragonPy_CLI.py --machine=Dragon64
+...path/to/DragonPy$ DragonPy_CLI.py --machine=Dragon64 run
 }}}
 
 start CoCo with Extended Color Basic v1.1:
 {{{
-...path/to/DragonPy$ python2 DragonPy_CLI.py --machine=CoCo2b
+...path/to/DragonPy$ python2 DragonPy_CLI.py --machine=CoCo2b run
 }}}
 
 == unittests ==

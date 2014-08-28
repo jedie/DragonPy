@@ -23,6 +23,8 @@ if NOT exist %coverage2% (
 
 echo on
 
+cd ..
+
 REM delete old results
 %coverage2% erase
 

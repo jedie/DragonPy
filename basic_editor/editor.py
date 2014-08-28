@@ -180,6 +180,13 @@ class EditorWindow(object):
         self.root.mainloop()
 
 
+def run_basic_editor(cfg, default_content=None):
+    editor = EditorWindow(cfg)
+    if default_content is not None:
+        editor.set_content(default_content)
+    editor.mainloop()
+
+
 def test():
     CFG_DICT = {
         "verbosity": None,
@@ -194,18 +201,15 @@ def test():
     }
     from dragonpy.Dragon32.config import Dragon32Cfg
     cfg = Dragon32Cfg(CFG_DICT)
-
-    editor = EditorWindow(cfg)
-
     listing_ascii = (
-        "10 CLS",
-        "20 FOR I = 0 TO 255:",
-        "30 POKE 1024+(I*2),I",
-        "40 NEXT I",
-        "50 I$ = INKEY$:IF I$="" THEN 50",
+        "10 CLS\n"
+        "20 FOR I = 0 TO 255:\n"
+        "30 POKE 1024+(I*2),I\n"
+        "40 NEXT I\n"
+        "50 I$ = INKEY$:IF I$="" THEN 50\n"
     )
-    editor.set_content(listing_ascii)
-    editor.mainloop()
+    run_basic_editor(cfg, default_content=listing_ascii)
+
 
 if __name__ == "__main__":
     test()

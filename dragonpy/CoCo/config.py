@@ -21,7 +21,7 @@ from dragonpy.components.rom import ROMFile
 from dragonpy.core.configs import COCO2B
 
 
-class CoCoCfg(Dragon32Cfg):
+class CoCo2bCfg(Dragon32Cfg):
     CONFIG_NAME = COCO2B
     MACHINE_NAME = "CoCo"
 
@@ -68,7 +68,7 @@ class CoCoCfg(Dragon32Cfg):
     def __init__(self, cmd_args):
         self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
         self.RAM_SIZE = (self.RAM_END - self.RAM_START) + 1
-        super(CoCoCfg, self).__init__(cmd_args)
+        super(CoCo2bCfg, self).__init__(cmd_args)
 
         self.machine_api = CoCoAPI()
 
@@ -127,7 +127,7 @@ class CoCoCfg(Dragon32Cfg):
         return get_coco_keymatrix_pia_result(char_or_code, pia0b, auto_shift=True)
 
 
-config = CoCoCfg
+config = CoCo2bCfg
 
 
 def test_run():

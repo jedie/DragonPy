@@ -10,10 +10,12 @@ if NOT exist %python% (
     exit 1
 )
 
+cd..
+
 :loop
     cls
     echo on
-    %python% DragonPy_CLI.py --machine=Dragon32
+    %python% DragonPy_CLI.py --machine=Dragon32 run
     @echo off
     pause
 goto:loop

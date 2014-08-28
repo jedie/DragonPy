@@ -12,20 +12,24 @@
 
 import atexit
 import sys
-import webbrowser
 import threading
+import webbrowser
 
+from basic_editor.editor import run_basic_editor
+from dragonlib.utils.logging_utils import log, setup_logging
+from dragonpy.CoCo.config import CoCo2bCfg
+from dragonpy.CoCo.machine import run_CoCo2b
+from dragonpy.Dragon32.config import Dragon32Cfg
+from dragonpy.Dragon32.machine import run_Dragon32
+from dragonpy.Dragon64.config import Dragon64Cfg
+from dragonpy.Dragon64.machine import run_Dragon64
 from dragonpy.core.base_cli import Base_CLI
 from dragonpy.core.configs import machine_dict
-from dragonlib.utils.logging_utils import log, setup_logging
-from dragonpy.CoCo.machine import run_CoCo2b
-from dragonpy.Dragon64.machine import run_Dragon64
-from dragonpy.Dragon32.machine import run_Dragon32
 
 
-machine_dict.register("Dragon32", run_Dragon32, default=True)
-machine_dict.register("Dragon64", run_Dragon64)
-machine_dict.register("CoCo2b", run_CoCo2b)
+machine_dict.register("Dragon32", (run_Dragon32, Dragon32Cfg), default=True)
+machine_dict.register("Dragon64", (run_Dragon64, Dragon64Cfg))
+machine_dict.register("CoCo2b", (run_CoCo2b,CoCo2bCfg))
 # machine_dict.register("sbc09", SBC09Cfg)
 # machine_dict.register("Simple6809", Simple6809Cfg)
 # machine_dict.register("Multicomp6809", Multicomp6809Cfg)
@@ -34,12 +38,6 @@ machine_dict.register("CoCo2b", run_CoCo2b)
 @atexit.register
 def goodbye():
     print "\n --- END --- \n"
-    try:
-        # for Eclipse :(
-        sys.stdout.flush()
-        sys.stderr.flush()
-    except:
-        pass
 
 
 class DragonPyCLI(Base_CLI):
@@ -54,30 +52,51 @@ class DragonPyCLI(Base_CLI):
         self.parser.add_argument("--machine",
             choices=self.machine_dict.keys(),
             default=machine_dict.DEFAULT,
-            help="Used machine configuration"
+            help="Used machine configuration (Default: %s)" % machine_dict.DEFAULT
         )
-        self.parser.add_argument('--trace', action='store_true',
+
+        self.subparsers = self.parser.add_subparsers(title="commands",
+            help="Help for commands, e.g.: '%s run --help'" % self.parser.prog
+        )
+        
+        # The run Emulator command:
+        
+        self.parser_run_machine = self.subparsers.add_parser(name="run",
+            help="Start the Emulator",
+            epilog="e.g.: to run CoCo do: '%s --machine CoCo2b' run" % self.parser.prog
+        )
+        self.parser_run_machine.set_defaults(func=self.run_machine)
+
+        self.parser_run_machine.add_argument('--trace', action='store_true',
             help="Create trace lines."
         )
-#         self.parser.add_argument('--dont_open_webbrowser', action='store_true',
+#         self.parser_run_machine.add_argument('--dont_open_webbrowser', action='store_true',
 #             help="Don't open the Webbrowser on CPU http control Server"
 #         )
 
-#         self.parser.add_argument("--bus_socket_host",
+#         self.parser_run_machine.add_argument("--bus_socket_host",
 #             help="Host internal socket bus I/O (do not set manually!)"
 #         )
-#         self.parser.add_argument("--bus_socket_port", type=int,
+#         self.parser_run_machine.add_argument("--bus_socket_port", type=int,
 #             help="Port for internal socket bus I/O (do not set manually!)"
 #         )
-        self.parser.add_argument("--ram",
+        self.parser_run_machine.add_argument("--ram",
             help="RAM file to load (default none)"
         )
-#         self.parser.add_argument("--rom",
+#         self.parser_run_machine.add_argument("--rom",
 #             help="ROM file to use (default set by machine configuration)"
 #         )
-        self.parser.add_argument("--max_ops", type=int,
+        self.parser_run_machine.add_argument("--max_ops", type=int,
             help="If given: Stop CPU after given cycles else: run forever"
+        )       
+
+        # The run BASIC Editor command:
+
+        self.parser_editor = self.subparsers.add_parser(name="editor",
+            help="Start only the BASIC Editor",
+            epilog="e.g.: CoCo Editor do: '%s --machine CoCo2b' editor" % self.parser.prog
         )
+        self.parser_editor.set_defaults(func=self.run_editor)
 
     def setup_cfg(self):
         self.args = self.parse_args()
@@ -85,32 +104,45 @@ class DragonPyCLI(Base_CLI):
 
         self.cfg_dict = {
             "verbosity":self.args.verbosity,
-            "trace":self.args.trace,
-#             "bus_socket_host":self.args.bus_socket_host,
-#             "bus_socket_port":self.args.bus_socket_port,
-            "ram":self.args.ram,
-#             "rom":self.args.rom,
-            "max_ops":self.args.max_ops,
+            "trace":None,
         }
+        machine_name = self.args.machine
+        self.machine_run_func, self.machine_cfg = self.machine_dict[machine_name]
 
 #     def open_webbrowser(self):
 #         url = "http://%s:%s" % (self.cfg.CPU_CONTROL_ADDR, self.cfg.CPU_CONTROL_PORT)
 #         webbrowser.open(url)
 
     def run(self): # Called from ../DragonPy_CLI.py
+        log.critical("run func: %s", self.args.func.__name__)
+        self.args.func()
+
+    def run_machine(self):
 #         if not self.args.dont_open_webbrowser:
 #             threading.Timer(interval=1.0, function=self.open_webbrowser).start()
 
-        machine_name = self.args.machine
-        run_func = self.machine_dict[machine_name]
-
-        run_func(self.cfg_dict)
+        log.critical("Use machine func: %s", self.machine_run_func.__name__)
+        self.cfg_dict.update({
+            "trace":self.args.trace,
+#             "bus_socket_host":self.args.bus_socket_host,
+#             "bus_socket_port":self.args.bus_socket_port,
+            "ram":self.args.ram,
+#             "rom":self.args.rom,
+            "max_ops":self.args.max_ops,
+        })
+        self.machine_run_func(self.cfg_dict)
+        
+    def run_editor(self):
+        log.critical("Use machine cfg: %s", self.machine_cfg.__name__)
+        cfg = self.machine_cfg(self.cfg_dict)
+        run_basic_editor(cfg)
 
 
 def get_cli():
     cli = DragonPyCLI(machine_dict)
     cli.setup_cfg()
     return cli
+
 
 def test_run():
     import os, subprocess
