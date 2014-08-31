@@ -33,6 +33,19 @@ Looks like this:
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140820_DragonPy_BASIC_Editor_01.png|old screenshot BASIC Editor}}
 (older version of the editor)
 
+
+==== Vectrex
+
+The [[https://en.wikipedia.org/wiki/Vectrex|Vectrex]] is a vector display-based video game console.
+The Hardware are //only// the 6809 CPU, a 6522 Versatile Interface Adapter and the AY-3-8912 sound chip.
+
+Current state is completely not usable. The 6522 is only a dummy implementation.
+It makes only sense to display some trace lines, e.g.:
+{{{
+...path/to/DragonPy$ python2 DragonPy_CLI.py --verbosity 5 --machine=Vectrex run --trace --max_ops 1
+}}}
+
+
 === BASIC Editor
 
 Use "BASIC editor / open" in the main menu to open the editor.
@@ -46,7 +59,7 @@ The "renumbering" tool can be found in the editor window under "tools"
 You can also run the BASIC Editor without the Emulator:
 
 {{{
-...path/to/DragonPy$ DragonPy_CLI.py editor
+...path/to/DragonPy$ python2 DragonPy_CLI.py editor
 }}}
 
 A rudimentary BASIC source code highlighting is available and looks like this:
@@ -94,12 +107,12 @@ There is a simple shell script to automatic download and extract the Dragon ROMs
 
 start Dragon 32:
 {{{
-...path/to/DragonPy$ DragonPy_CLI.py --machine=Dragon32 run
+...path/to/DragonPy$ python2 DragonPy_CLI.py --machine=Dragon32 run
 }}}
 
 start Dragon 64:
 {{{
-...path/to/DragonPy$ DragonPy_CLI.py --machine=Dragon64 run
+...path/to/DragonPy$ python2 DragonPy_CLI.py --machine=Dragon64 run
 }}}
 
 start CoCo with Extended Color Basic v1.1:

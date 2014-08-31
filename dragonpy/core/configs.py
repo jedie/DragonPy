@@ -23,6 +23,7 @@ COCO2B = "COCO2B"
 SBC09 = "sbc09"
 SIMPLE6809 = "Simple6809"
 MULTICOMP6809 = "Multicomp6809"
+VECTREX = "Vectrex"
 
 
 class MachineDict(dict):

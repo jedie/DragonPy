@@ -102,7 +102,7 @@ class MC6847_TextModeCanvas(object):
         self.canvas.itemconfigure(image_id, image=image)
 
 
-class DragonTkinterGUI(object):
+class BaseTkinterGUI(object):
     """
     The complete Tkinter GUI window
     """
@@ -125,64 +125,26 @@ class DragonTkinterGUI(object):
         self.last_cpu_cycle_update = time.time()
 
         self.root = Tkinter.Tk(className="DragonPy")
-        machine_name = self.cfg.MACHINE_NAME
-        self.root.title(
-            "%s - Text Display 32 columns x 16 rows" % machine_name)
 
         self.root.bind("<Key>", self.event_key_pressed)
         self.root.bind("<<Paste>>", self.paste_clipboard)
-
-        self.display = MC6847_TextModeCanvas(self.root)
-        self.display.canvas.grid(row=0, column=0, columnspan=2)  # , rowspan=2)
 
         self.status = Tkinter.StringVar()
         self.status_widget = Tkinter.Label(
             self.root, textvariable=self.status, text="Info:", borderwidth=1)
         self.status_widget.grid(row=1, column=0, columnspan=2)
 
-        menubar = Tkinter.Menu(self.root)
+        self.menubar = Tkinter.Menu(self.root)
 
-        filemenu = Tkinter.Menu(menubar, tearoff=0)
+        filemenu = Tkinter.Menu(self.menubar, tearoff=0)
         filemenu.add_command(label="Exit", command=self.exit)
-        menubar.add_cascade(label="File", menu=filemenu)
-
-        editmenu = Tkinter.Menu(menubar, tearoff=0)
-#        editmenu.add_command(label="load BASIC program", command=self.load_program)
-#        editmenu.add_command(label="dump BASIC program", command=self.dump_program)
-        editmenu.add_command(label="open", command=self.open_basic_editor)
-        menubar.add_cascade(label="BASIC editor", menu=editmenu)
+        self.menubar.add_cascade(label="File", menu=filemenu)
 
         # help menu
-        helpmenu = Tkinter.Menu(menubar, tearoff=0)
+        helpmenu = Tkinter.Menu(self.menubar, tearoff=0)
         helpmenu.add_command(label="help", command=self.menu_event_help)
         helpmenu.add_command(label="about", command=self.menu_event_about)
-        menubar.add_cascade(label="help", menu=helpmenu)
-
-        # display the menu
-        self.root.config(menu=menubar)
-        self.root.update()
-
-        self.editor_content = None
-        self._editor_window = None
-
-    def open_basic_editor(self):
-        self._editor_window = EditorWindow(self.cfg, self)
-
-    def dump_rnd(self):
-        start_addr = 0x0019
-        end_addr = 0x0020
-        dump, start_addr, end_addr = self.request_comm.request_memory_dump(
-#            start_addr=0x0115, end_addr=0x0119 # RND seed
-            start_addr, end_addr
-        )
-        def format_dump(dump, start_addr, end_addr):
-            lines = []
-            for addr, value in zip(xrange(start_addr, end_addr + 1), dump):
-                log.critical("$%04x: $%02x (dez.: %i)", addr, value, value)
-                lines.append("$%04x: $%02x (dez.: %i)" % (addr, value, value))
-            return lines
-        lines = format_dump(dump, start_addr, end_addr)
-        tkMessageBox.showinfo("TODO", "dump_program:\n%s" % "\n".join(lines))
+        self.menubar.add_cascade(label="help", menu=helpmenu)
 
     def menu_event_about(self):
         tkMessageBox.showinfo("DragonPy",
@@ -206,14 +168,14 @@ class DragonTkinterGUI(object):
     def add_user_input(self, txt):
         for char in txt:
             self.user_input_queue.put(char)
-            
+
     def wait_until_input_queue_empty(self):
         for count in xrange(4):
             if self.user_input_queue.empty():
-                log.critical("user_input_queue is empty, after %.1f Sec., ok.", (0.1*count))
+                log.critical("user_input_queue is empty, after %.1f Sec., ok.", (0.1 * count))
                 return
             time.sleep(0.25)
-        log.critical("user_input_queue not empty, after %.1f Sec.!", (0.1*count))
+        log.critical("user_input_queue not empty, after %.1f Sec.!", (0.1 * count))
 
     def add_user_input_and_wait(self, txt):
         self.add_user_input(txt)
@@ -301,6 +263,53 @@ class DragonTkinterGUI(object):
         except KeyboardInterrupt:
             self.exit()
         log.critical("root.mainloop() has quit!")
+
+
+class DragonTkinterGUI(BaseTkinterGUI):
+    """
+    The complete Tkinter GUI window
+    """
+    def __init__(self, *args, **kwargs):
+        super(DragonTkinterGUI, self).__init__(*args, **kwargs)
+
+        machine_name = self.cfg.MACHINE_NAME
+        self.root.title(
+            "%s - Text Display 32 columns x 16 rows" % machine_name)
+
+        self.display = MC6847_TextModeCanvas(self.root)
+        self.display.canvas.grid(row=0, column=0, columnspan=2)  # , rowspan=2)
+
+        self.editor_content = None
+        self._editor_window = None
+
+        editmenu = Tkinter.Menu(self.menubar, tearoff=0)
+#        editmenu.add_command(label="load BASIC program", command=self.load_program)
+#        editmenu.add_command(label="dump BASIC program", command=self.dump_program)
+        editmenu.add_command(label="open", command=self.open_basic_editor)
+        self.menubar.add_cascade(label="BASIC editor", menu=editmenu)
+
+        # display the menu
+        self.root.config(menu=self.menubar)
+        self.root.update()
+
+    def open_basic_editor(self):
+        self._editor_window = EditorWindow(self.cfg, self)
+
+    def dump_rnd(self):
+        start_addr = 0x0019
+        end_addr = 0x0020
+        dump, start_addr, end_addr = self.request_comm.request_memory_dump(
+#            start_addr=0x0115, end_addr=0x0119 # RND seed
+            start_addr, end_addr
+        )
+        def format_dump(dump, start_addr, end_addr):
+            lines = []
+            for addr, value in zip(xrange(start_addr, end_addr + 1), dump):
+                log.critical("$%04x: $%02x (dez.: %i)", addr, value, value)
+                lines.append("$%04x: $%02x (dez.: %i)" % (addr, value, value))
+            return lines
+        lines = format_dump(dump, start_addr, end_addr)
+        tkMessageBox.showinfo("TODO", "dump_program:\n%s" % "\n".join(lines))
 
 
 def test_run_direct():

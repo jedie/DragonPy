@@ -23,16 +23,20 @@ from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.machine import run_Dragon32
 from dragonpy.Dragon64.config import Dragon64Cfg
 from dragonpy.Dragon64.machine import run_Dragon64
+from dragonpy.core import configs
 from dragonpy.core.base_cli import Base_CLI
 from dragonpy.core.configs import machine_dict
+from dragonpy.vectrex.config import VectrexCfg
+from dragonpy.vectrex.machine import run_Vectrex
 
 
-machine_dict.register("Dragon32", (run_Dragon32, Dragon32Cfg), default=True)
-machine_dict.register("Dragon64", (run_Dragon64, Dragon64Cfg))
-machine_dict.register("CoCo2b", (run_CoCo2b,CoCo2bCfg))
-# machine_dict.register("sbc09", SBC09Cfg)
-# machine_dict.register("Simple6809", Simple6809Cfg)
-# machine_dict.register("Multicomp6809", Multicomp6809Cfg)
+machine_dict.register(configs.DRAGON32, (run_Dragon32, Dragon32Cfg), default=True)
+machine_dict.register(configs.DRAGON64, (run_Dragon64, Dragon64Cfg))
+machine_dict.register(configs.COCO2B, (run_CoCo2b, CoCo2bCfg))
+# machine_dict.register(SBC09, SBC09Cfg)
+# machine_dict.register(SIMPLE6809, Simple6809Cfg)
+# machine_dict.register(MULTICOMP6809, Multicomp6809Cfg)
+machine_dict.register(configs.VECTREX, (run_Vectrex, VectrexCfg))
 
 
 @atexit.register
