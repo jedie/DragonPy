@@ -22,10 +22,10 @@ from dragonpy.utils.simple_debugger import print_exc_plus
 
 
 class BaseCommunicator(object):
-    MEMORY_DUMP="dump_program"
-    MEMORY_LOAD="load"
+    MEMORY_DUMP = "dump_program"
+    MEMORY_LOAD = "load"
     MEMORY_WORD = "word"
-    MEMORY_WORDS="words"
+    MEMORY_WORDS = "words"
     MEMORY_WRITE_WORDS = "write_words"
 
 
@@ -42,19 +42,19 @@ class CommunicatorRequest(BaseCommunicator):
 
     def get_queues(self):
         return self.request_queue, self.response_queue
-    
+
     def _request(self, *args):
-        log.critical("request: %s",repr(args))
+        log.critical("request: %s", repr(args))
         self.request_queue.put(args)
         log.critical("\twait for response")
         result = self.response_queue.get(block=True, timeout=10)
         log.critical("\tget response, result: %s", repr(result))
         return result
-    
-    def request_memory_dump(self, start_addr,end_addr):
+
+    def request_memory_dump(self, start_addr, end_addr):
         log.critical("request memory dump from $%04x-$%04x", start_addr, end_addr)
         return self._request(self.MEMORY_DUMP, start_addr, end_addr)
-    
+
     def request_memory_load(self, address, data):
         log.critical("request memory load %iBytes to $%04s", len(data), address)
         return self._request(self.MEMORY_LOAD, address, data)
@@ -70,7 +70,7 @@ class CommunicatorRequest(BaseCommunicator):
     def request_write_words(self, words_dict):
         """ writes words into memory """
         return self._request(self.MEMORY_WRITE_WORDS, words_dict)
-        
+
     def get_basic_program(self):
         addresses = (
             self.machine_api.PROGRAM_START_ADDR,
@@ -100,7 +100,7 @@ class CommunicatorRequest(BaseCommunicator):
         listing = self.machine_api.program_dump2ascii_lines(dump, program_start)
         log.critical("Listing in ASCII:\n%s", "\n".join(listing))
         return listing
-    
+
     def inject_basic_program(self, ascii_listing):
         """
         save the given ASCII BASIC program listing into the emulator RAM.
@@ -202,7 +202,7 @@ class Machine(object):
 
         self.response_comm = response_comm
 
-        self.burst_count=1000
+        self.burst_count = 1000
 
         memory = Memory(self.cfg)
         self.periphery = self.periphery_class(
@@ -219,17 +219,18 @@ class Machine(object):
 
     def run(self):
         cpu = self.cpu
-        op_count=0
+        op_count = 0
         while cpu.running:
             for __ in xrange(self.burst_count):
                 cpu.get_and_call_next_op()
-            
+
             self.response_comm.do_response()
-                
+
             if self.max_ops:
                 op_count += self.burst_count
                 if op_count >= self.max_ops:
                     log.critical("Quit CPU after given 'max_ops' %i ops.", self.max_ops)
+                    self.quit()
                     break
 
     def quit(self):
@@ -334,22 +335,24 @@ class ThreadedMachineGUI(object):
         log.log(99, " --- END ---")
 
 
-def test_run_direct():
-    import subprocess
+#------------------------------------------------------------------------------
+
+
+def test_run():
     import sys
     import os
+    import subprocess
     cmd_args = [
         sys.executable,
-        #         "/usr/bin/pypy",
-        os.path.join("..",
-            "Dragon32_test.py"
-#             "Dragon64_test.py"
-        ),
+        os.path.join("..", "DragonPy_CLI.py"),
+#        "--verbosity", "5",
+        "--machine", "Dragon32", "run",
+#        "--machine", "Vectrex", "run",
+#        "--max_ops", "1",
+#        "--trace",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()
 
-
 if __name__ == "__main__":
-    #     test_run_cli()
-    test_run_direct()
+    test_run()

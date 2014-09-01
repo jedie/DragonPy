@@ -14,13 +14,13 @@
 import logging
 import os
 
-# from dragonlib.api import VectrexAPI
 from dragonlib.utils.logging_utils import log
-from dragonpy.core.configs import BaseConfig, VECTREX
 from dragonpy.components.rom import ROMFile
+from dragonpy.core.configs import BaseConfig, VECTREX
 from dragonpy.vectrex.mem_info import VectrexMemInfo
 
 
+# from dragonlib.api import VectrexAPI
 class VectrexCfg(BaseConfig):
     """
     http://www.playvectrex.com/designit/chrissalo/toc.htm
@@ -72,6 +72,9 @@ class VectrexCfg(BaseConfig):
 config = VectrexCfg
 
 
+#------------------------------------------------------------------------------
+
+
 def test_run():
     import sys
     import os
@@ -79,7 +82,10 @@ def test_run():
     cmd_args = [
         sys.executable,
         os.path.join("..", "DragonPy_CLI.py"),
+        "--verbosity", "5",
         "--machine", "Vectrex", "run",
+        "--max_ops", "1",
+        "--trace",
     ]
     print "Startup CLI with: %s" % " ".join(cmd_args[1:])
     subprocess.Popen(cmd_args, cwd="..").wait()

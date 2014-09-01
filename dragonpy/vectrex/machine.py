@@ -10,11 +10,10 @@
 """
 
 from dragonlib.utils.logging_utils import log, setup_logging
-
 from dragonpy.core.machine import ThreadedMachineGUI
-from dragonpy.vectrex.vectrex_gui import VectrexGUI
 from dragonpy.vectrex.config import VectrexCfg
 from dragonpy.vectrex.periphery import VectrexPeriphery
+from dragonpy.vectrex.vectrex_gui import VectrexGUI
 
 
 def run_Vectrex(cfg_dict):
@@ -27,35 +26,25 @@ def run_Vectrex(cfg_dict):
     )
 
 
-if __name__ == '__main__':
-    setup_logging(log,
-        level=1 # hardcore debug ;)
-#         level=10 # DEBUG
-#         level=20 # INFO
-#         level=30 # WARNING
-#         level=40 # ERROR
-#         level=50  # CRITICAL/FATAL
-    )
+#------------------------------------------------------------------------------
 
-    CFG_DICT = {
-        "verbosity": None,
-        #     "display_cycle":True,
-        "display_cycle": False,
 
-#         "trace": None,
-        "trace":True,
+def test_run():
+    import sys
+    import os
+    import subprocess
+    cmd_args = [
+        sys.executable,
+        os.path.join("..", "DragonPy_CLI.py"),
+        "--verbosity", "5",
+        "--machine", "Vectrex", "run",
+        "--max_ops", "1",
+        "--trace",
+    ]
+    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    subprocess.Popen(cmd_args, cwd="..").wait()
 
-#         "max_ops": None,
-        #     "max_ops":2000,
-            "max_ops":1,
-
-        "bus_socket_host": None,
-        "bus_socket_port": None,
-        "ram": None,
-        "rom": None,
-
-        "use_bus": False,
-    }
-    run_Vectrex(CFG_DICT)
+if __name__ == "__main__":
+    test_run()
 
 
