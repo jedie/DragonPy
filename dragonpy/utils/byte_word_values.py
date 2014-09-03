@@ -11,6 +11,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+
 def signed5(x):
     """ convert to signed 5-bit """
     if x > 0xf: # 0xf == 2**4-1 == 15

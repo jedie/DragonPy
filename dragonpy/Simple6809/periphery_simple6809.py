@@ -10,15 +10,15 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import sys
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import os
-import queue
+import sys
 
 try:
-    import tkinter
-except Exception as err:
-    print("Error importing Tkinter: %s" % err)
-    Tkinter = None
+    import queue # Python 3
+except ImportError:
+    import Queue as queue # Python 2
 
 try:
     import pty # only available under Linux
@@ -26,20 +26,27 @@ try:
 except ImportError:
     pass
 
+from dragonlib.utils.logging_utils import log
 from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase, \
     PeripheryUnittestBase
 
-
-from dragonlib.utils.logging_utils import log
+try:
+    import tkinter # Python 3
+except ImportError:
+    try:
+        import Tkinter as tkinter # Python 2
+    except ImportError:
+        log.critical("Error importing Tkinter!")
+        tkinter = None
 
 
 class Simple6809PeripheryBase(PeripheryBase):
     def __init__(self, cfg, memory):
         super(Simple6809PeripheryBase, self).__init__(cfg, memory)
-        
+
         self.memory.add_read_byte_callback(self.read_acia_status, 0xa000) #  Control/status port of ACIA
         self.memory.add_read_byte_callback(self.read_acia_data, 0xa001) #  Data port of ACIA
-        
+
         self.memory.add_write_byte_callback(self.write_acia_status, 0xa000) #  Control/status port of ACIA
         self.memory.add_write_byte_callback(self.write_acia_data, 0xa001) #  Data port of ACIA
 

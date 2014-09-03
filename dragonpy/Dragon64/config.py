@@ -9,13 +9,15 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import os
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import logging
+import os
 
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon64.mem_info import get_dragon_meminfo
-from dragonpy.core.configs import DRAGON64
 from dragonpy.components.rom import ROMFile
+from dragonpy.core.configs import DRAGON64
 
 
 class Dragon64Cfg(Dragon32Cfg):
@@ -76,7 +78,7 @@ class Dragon64Cfg(Dragon32Cfg):
         mem_00 = [0x00 for _ in range(4)]
 
         mem = []
-        for _ in range(self.RAM_SIZE / 8):
+        for _ in range(self.RAM_SIZE // 8):
             mem += mem_FF
             mem += mem_00
 

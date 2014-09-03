@@ -16,20 +16,25 @@
     more info, see README
 """
 
-import http.server
+
+try:
+    from http.server import BaseHTTPRequestHandler # Python 3
+except ImportError:
+    from BaseHTTPServer import BaseHTTPRequestHandler # Python 2
+
 import json
-import re
 import logging
-import traceback
+import os
+import re
+import select
 import sys
 import threading
-import select
-import os
+import traceback
 
 from dragonlib.utils.logging_utils import log
 
 
-class ControlHandler(http.server.BaseHTTPRequestHandler):
+class ControlHandler(BaseHTTPRequestHandler):
 
     def __init__(self, request, client_address, server, cpu):
         log.error("ControlHandler %s %s %s", request, client_address, server)
@@ -51,7 +56,7 @@ class ControlHandler(http.server.BaseHTTPRequestHandler):
             r"/debug/$": self.post_debug,
         }
 
-        http.server.BaseHTTPRequestHandler.__init__(self, request, client_address, server)
+        BaseHTTPRequestHandler.__init__(self, request, client_address, server)
 
     def log_message(self, format, *args):
         msg = "%s - - [%s] %s\n" % (

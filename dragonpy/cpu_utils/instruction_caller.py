@@ -8,6 +8,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+
 import inspect
 
 from dragonpy.MC6809data.MC6809_data_utils import MC6809OP_DATA_DICT

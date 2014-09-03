@@ -18,13 +18,21 @@
     Based on: XRoar emulator by Ciaran Anscomb (GPL license) more info, see README
 """
 
-import queue
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import os
 
+try:
+    import queue # Python 3
+except ImportError:
+    import Queue as queue # Python 2
+
+from dragonlib.utils.logging_utils import log
 from dragonpy.core.configs import COCO2B
 from dragonpy.utils.bits import is_bit_set, invert_byte, clear_bit
 from dragonpy.utils.humanize import byte2bit_string
-from dragonlib.utils.logging_utils import log
+
+
 class PIA_register(object):
 
     def __init__(self, name):

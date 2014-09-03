@@ -2,20 +2,24 @@
 # coding: utf-8
 
 """
-borrowed from http://code.activestate.com/recipes/52215/
+    borrowed from http://code.activestate.com/recipes/52215/
 
-usage:
+    usage:
 
-try:
-    # ...do something...
-except:
-    print_exc_plus()
+    try:
+        # ...do something...
+    except:
+        print_exc_plus()
 """
+
+from __future__ import absolute_import, division, print_function, unicode_literals
 
 import sys
 import traceback
 
+
 MAX_CHARS = 256
+
 
 class ColorOut(object):
     """
@@ -33,13 +37,14 @@ class ColorOut(object):
     >>> c.colorize("colors!", foreground="red", background="blue", opts=("bold", "blink"))
     '\\x1b[31;44;1;5mcolors!\\x1b[0m'
     """
-    color_names = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white')
-    foreground_colors = dict([(color_names[x], '3%s' % x) for x in range(8)])
-    background_colors = dict([(color_names[x], '4%s' % x) for x in range(8)])
-    opt_dict = {'bold': '1', 'underscore': '4', 'blink': '5', 'reverse': '7', 'conceal': '8'}
+    COLOR_NAMES = ('black', 'red', 'green', 'yellow', 'blue', 'magenta', 'cyan', 'white')
+    OPT_DICT = {'bold': '1', 'underscore': '4', 'blink': '5', 'reverse': '7', 'conceal': '8'}
 
     def __init__(self):
         self.color_support = self.supports_colors()
+
+        self.foreground_colors = dict([(self.COLOR_NAMES[x], '3%s' % x) for x in range(8)])
+        self.background_colors = dict([(self.COLOR_NAMES[x], '4%s' % x) for x in range(8)])
 
     def supports_colors(self):
         if sys.platform in ('win32', 'Pocket PC'):
@@ -66,7 +71,7 @@ class ColorOut(object):
             code_list.append(self.background_colors[background])
 
         for option in opts:
-            code_list.append(self.opt_dict[option])
+            code_list.append(self.OPT_DICT[option])
 
         if not code_list:
             return text

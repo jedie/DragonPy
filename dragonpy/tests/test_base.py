@@ -8,7 +8,10 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import queue
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+
 import hashlib
 import os
 import pprint
@@ -16,7 +19,12 @@ import tempfile
 import time
 import unittest
 
-import pickle as pickle
+try:
+    import queue # Python 3
+except ImportError:
+    import Queue as queue # Python 2
+
+
 from dragonlib.tests.test_base import BaseTestCase
 from dragonlib.utils.logging_utils import log
 from dragonpy.Dragon32.config import Dragon32Cfg
@@ -25,12 +33,13 @@ from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809TestPeriphery
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
+from dragonpy.core.machine import CommunicatorRequest, CommunicatorResponse, \
+    Machine
 from dragonpy.cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
 from dragonpy.sbc09.config import SBC09Cfg
 from dragonpy.sbc09.periphery import SBC09PeripheryUnittest
 from dragonpy.tests.test_config import TestCfg
-from dragonpy.core.machine import CommunicatorRequest, CommunicatorResponse, \
-    Machine
+import pickle as pickle
 
 
 class BaseCPUTestCase(BaseTestCase):

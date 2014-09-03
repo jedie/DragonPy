@@ -15,14 +15,16 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import os
 import sys
 
+from dragonlib.utils.logging_utils import log
 from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.components.periphery import PeripheryBase
-from dragonlib.utils.logging_utils import log
 
 
 class Dragon32PeripheryBase(PeripheryBase):
@@ -60,7 +62,7 @@ class Dragon32PeripheryBase(PeripheryBase):
 class Dragon32Periphery(Dragon32PeripheryBase):
     def __init__(self, cfg, memory, display_queue, user_input_queue):
         super(Dragon32Periphery, self).__init__(cfg, memory, user_input_queue)
-        
+
         # redirect writes to display RAM area 0x0400-0x0600 into display_queue:
         DragonDisplayOutputHandler(display_queue, memory)
 

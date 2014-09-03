@@ -10,11 +10,17 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import tkinter
-import math
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-from dragonpy.Dragon32.dragon_charmap import NORMAL, get_hex_color, COLORS, INVERTED
+import math
+try:
+    import tkinter # python 3
+except ImportError:
+    import Tkinter as tkinter # Python 2
+
 from dragonlib.utils.logging_utils import log
+from dragonpy.Dragon32.dragon_charmap import NORMAL, get_hex_color, COLORS, INVERTED
+
 
 BACKGROUND_CHAR = "."
 FOREGROUND_CHAR = "X"
@@ -1270,6 +1276,7 @@ class TkFont(object):
 
 
 class TestTkFont(object):
+    CACHE = {}
     def __init__(self, row_count, tk_font, colors):
         self.row_count = row_count
         self.tk_font = tk_font
@@ -1301,6 +1308,7 @@ class TestTkFont(object):
         )
         self.canvas.pack()
         self.add_chars()
+        self.root.update()
 
     def add_chars(self):
         print("Fill with", self.current_color)
@@ -1312,13 +1320,13 @@ class TestTkFont(object):
 #                 repr(char), self.current_color, x, y
 #             )
             img = self.tk_font.get_char(char, self.current_color)
+            self.CACHE[(char, self.current_color)] = img # avoid garbage collection
 
             self.canvas.create_image(x, y,
                 image=img,
                 state="normal",
                 anchor=tkinter.NW  # NW == NorthWest
             )
-            # self.root.update() # Not needed here!
 
     def event_arrow_up(self, event):
         self.color_index += 1

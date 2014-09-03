@@ -10,8 +10,18 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import queue
-import _thread
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+
+try:
+    # Python 3
+    import queue
+    import _thread
+except ImportError:
+    # Python 2
+    import Queue as queue
+    import thread as _thread
+
 import threading
 
 from dragonlib.core.basic import log_program_dump

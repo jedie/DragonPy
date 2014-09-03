@@ -22,6 +22,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+
 # this file was generated with MC6809_data2.py
 
 BYTE = "8"

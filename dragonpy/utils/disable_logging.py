@@ -6,6 +6,9 @@
     :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
+
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import os
 
 # sourcefile = r"../cpu6809.py"

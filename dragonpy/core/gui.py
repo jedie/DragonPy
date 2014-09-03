@@ -10,20 +10,37 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import queue
-import tkinter
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import os
 import sys
 import time
-import tkinter.messagebox
 
 from basic_editor.editor import EditorWindow
-
 from dragonlib.utils.logging_utils import log
-
 from dragonpy.Dragon32 import dragon_charmap
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
+
+try:
+    # Python 3
+    import queue
+    import tkinter
+    from tkinter import filedialog
+    from tkinter import messagebox
+    from tkinter import scrolledtext
+except ImportError:
+    # Python 2
+    import Queue as queue
+    import Tkinter as tkinter
+    import tkFileDialog as filedialog
+    import tkMessageBox as __messagebox
+    tkinter.messagebox = __messagebox
+    del(__messagebox)
+    import ScrolledText as scrolledtext
+
+
+
 
 
 class MC6847_TextModeCanvas(object):

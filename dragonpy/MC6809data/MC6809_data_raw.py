@@ -11,6 +11,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+
 OP_CATEGORIES =  {
     0: '8-Bit Accumulator and Memory Instructions',
     1: '16-Bit Accumulator and Memory Instructions Instruction',

@@ -16,6 +16,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+
 
 from dragonlib.utils.logging_utils import log
 
@@ -30,8 +33,8 @@ ALG_MAX_Y = 41000
 SCREEN_X_DEFAULT = 330 # in pixel
 SCREEN_Y_DEFAULT = 410 # in pixel
 
-FCYCLES_INIT = VECTREX_MHZ / VECTREX_PDECAY >> 0
-VECTOR_CNT = VECTREX_MHZ / VECTREX_PDECAY >> 0
+FCYCLES_INIT = VECTREX_MHZ // VECTREX_PDECAY >> 0
+VECTOR_CNT = VECTREX_MHZ // VECTREX_PDECAY >> 0
 
 
 class MOS6522VIA(object):

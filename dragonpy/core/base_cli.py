@@ -10,6 +10,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+
 import argparse
 import logging
 import os
@@ -19,7 +22,14 @@ from dragonlib.utils.logging_utils import log, setup_logging
 
 def get_log_levels():
     levels = [5, 7] # FIXME
-    levels += [level for level in logging._levelNames if isinstance(level, int)]
+    try:
+        # Python 3
+        levels += logging._nameToLevel.values()
+    except AttributeError:
+        # Python 2
+        levels += [level for level in logging._levelNames if isinstance(level, int)]
+
+
     return levels
 
 LOG_LEVELS = get_log_levels()

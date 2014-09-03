@@ -10,22 +10,36 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import queue
-import http.client
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import sys
-import _thread
 import threading
 import time
 
-from dragonpy.utils import pager
+try:
+    # Python 3
+    import queue
+    import _thread
+#    import http.client
+except ImportError:
+    # Python 2
+    import Queue as queue
+    import thread as _thread
+#    import httplib
+
 from dragonlib.utils.logging_utils import log
+from dragonpy.utils import pager
+
 
 
 try:
-    import tkinter
-except Exception as err:
-    print("Error importing Tkinter: %s" % err)
-    Tkinter = None
+    import tkinter # Python 3
+except ImportError:
+    try:
+        import Tkinter as tkinter # Python 2
+    except ImportError:
+        log.critical("Error importing Tkinter!")
+        tkinter = None
 
 
 
@@ -102,7 +116,7 @@ class TkPeripheryBase(PeripheryBase):
 
     def __init__(self, cfg):
         super(TkPeripheryBase, self).__init__(cfg)
-        assert Tkinter is not None, "ERROR: Tkinter can't be used, see import error above!"
+        assert tkinter is not None, "ERROR: Tkinter is not available!"
         self.root = tkinter.Tk()
 
         self.root.title(self.TITLE)

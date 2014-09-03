@@ -4,7 +4,7 @@
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
-    
+
     Some code borrowed from Python IDLE
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
@@ -12,19 +12,30 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+from __future__ import absolute_import, division, print_function, unicode_literals
 
-import tkinter.scrolledtext
-import tkinter
 import os
 import string
 import sys
-import tkinter.filedialog
-import tkinter.messagebox
 
 from basic_editor.editor_base import BaseExtension
 from basic_editor.highlighting import TkTextHighlighting
 from dragonlib.utils.auto_shift import invert_shift
 from dragonlib.utils.logging_utils import log, pformat_program_dump
+
+
+try:
+    # Python 3
+    import tkinter
+    from tkinter import filedialog
+    from tkinter import messagebox
+    from tkinter import scrolledtext
+except ImportError:
+    # Python 2
+    import Tkinter as tkinter
+    import tkFileDialog as filedialog
+    import tkMessageBox as messagebox
+    import ScrolledText as scrolledtext
 
 
 class MultiStatusBar(tkinter.Frame):
@@ -47,49 +58,49 @@ class MultiStatusBar(tkinter.Frame):
 
 class TkTextHighlightCurrentLine(BaseExtension):
     after_id = None
-    TAG_CURRENT_LINE="current_line"
+    TAG_CURRENT_LINE = "current_line"
     def __init__(self, editor):
         super(TkTextHighlightCurrentLine, self).__init__(editor)
-        
+
         self.text.tag_config(self.TAG_CURRENT_LINE, background="#e8f2fe")
-        
-        self.current_line=None        
-        self.__update_interval()      
-        
+
+        self.current_line = None
+        self.__update_interval()
+
     def update(self, force=False):
         """ highlight the current line """
         line_no = self.text.index(tkinter.INSERT).split('.')[0]
-        
+
         if not force:
             if line_no == self.current_line:
 #                 log.critical("no highlight line needed.")
                 return
-                
-#         log.critical("highlight line: %s" % line_no)        
+
+#         log.critical("highlight line: %s" % line_no)
         self.current_line = line_no
-        
+
         self.text.tag_remove(self.TAG_CURRENT_LINE, "1.0", "end")
         self.text.tag_add(self.TAG_CURRENT_LINE, "%s.0" % line_no, "%s.0+1lines" % line_no)
-        
+
     def __update_interval(self):
         """ highlight the current line """
         self.update()
         self.after_id = self.text.after(10, self.__update_interval)
 
 
-class ScrolledText2(tkinter.scrolledtext.ScrolledText):
+class ScrolledText2(scrolledtext.ScrolledText):
     def save_position(self):
         # save text cursor position:
         self.old_text_pos = self.index(tkinter.INSERT)
         # save scroll position:
         self.old_first, self.old_last = self.yview()
-        
+
     def restore_position(self):
         # restore text cursor position:
         self.mark_set(tkinter.INSERT, self.old_text_pos)
         # restore scroll position:
         self.yview_moveto(self.old_first)
-                    
+
 
 class EditorWindow(object):
     def __init__(self, cfg, gui=None):
@@ -97,7 +108,7 @@ class EditorWindow(object):
         if gui is None:
             self.standalone_run = True
         else:
-            self.gui=gui
+            self.gui = gui
             self.standalone_run = False
 
         self.machine_api = self.cfg.machine_api
@@ -109,7 +120,7 @@ class EditorWindow(object):
             self.root = tkinter.Toplevel(self.gui.root)
             self.root.geometry("+%d+%d" % (self.gui.root.winfo_rootx() + 30,
                 self.gui.root.winfo_rooty() + 40))
-            
+
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
         self.root.title("%s - BASIC Editor" % self.cfg.MACHINE_NAME)
@@ -118,13 +129,13 @@ class EditorWindow(object):
             master=self.root, height=30, width=80
         )
         self.text.config(
-            background="#ffffff", foreground="#000000", 
+            background="#ffffff", foreground="#000000",
             highlightthickness=0,
             font=('courier', 11),
         )
         self.text.grid(row=0, column=0, sticky=tkinter.NSEW)
-        
-        self.highlighting=TkTextHighlighting(self)
+
+        self.highlighting = TkTextHighlighting(self)
         self.highlight_currentline = TkTextHighlightCurrentLine(self)
 
         #self.auto_shift = True # use invert shift for letters?
@@ -157,7 +168,7 @@ class EditorWindow(object):
         menubar.add_cascade(label="help", menu=helpmenu)
 
         self.set_status_bar() # Create widget, add bindings and after_idle() update
-        
+
         self.text.bind("<Key>", self.event_text_key)
 #         self.text.bind("<space>", self.event_syntax_check)
 
@@ -175,7 +186,7 @@ class EditorWindow(object):
             # by the resize widget.
             self.status_bar.set_label('_padding1', '    ', side=tkinter.RIGHT)
         self.status_bar.grid(row=1, column=0)
-        
+
         self.text.bind("<<set-line-and-column>>", self.set_line_and_column)
         self.text.event_add("<<set-line-and-column>>",
                             "<KeyRelease>", "<ButtonRelease>")
@@ -197,7 +208,7 @@ class EditorWindow(object):
         if not char or char not in string.letters:
             # ignore all non letter inputs
             return
-        
+
         converted_char = invert_shift(char)
         log.debug("convert keycode %s - char %s to %s", event.keycode, repr(char), converted_char)
 #         self.text.delete(Tkinter.INSERT + "-1c") # Delete last input char
@@ -215,7 +226,7 @@ class EditorWindow(object):
 #         print self.machine_api.parse_ascii_listing(word)
 
     def command_load_file(self):
-        infile = tkinter.filedialog.askopenfile(parent=self.root, mode="r", title="Select a BASIC file to load")
+        infile = filedialog.askopenfile(parent=self.root, mode="r", title="Select a BASIC file to load")
         if infile is not None:
             content = infile.read()
             infile.close()
@@ -224,7 +235,7 @@ class EditorWindow(object):
             self.set_content(listing_ascii)
 
     def command_save_file(self):
-        outfile = tkinter.filedialog.asksaveasfile(parent=self.root, mode="w")
+        outfile = filedialog.asksaveasfile(parent=self.root, mode="w")
         if outfile is not None:
             content = self.get_content()
             outfile.write(content)
@@ -257,7 +268,7 @@ class EditorWindow(object):
         content = self.get_content()
         program_dump = self.machine_api.ascii_listing2program_dump(content)
         msg = pformat_program_dump(program_dump)
-        tkinter.messagebox.showinfo("Program Dump:", msg, parent=self.root)
+        messagebox.showinfo("Program Dump:", msg, parent=self.root)
 
     def renumber_listing(self):
         # save text cursor and scroll position
@@ -319,14 +330,14 @@ def test():
     }
     from dragonpy.Dragon32.config import Dragon32Cfg
     cfg = Dragon32Cfg(CFG_DICT)
-    
-    
-    
+
+
+
     filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
         "..", "BASIC examples",
-        "hex_view01.bas" 
+        "hex_view01.bas"
     )
-    
+
     with open(filepath, "r") as f:
         listing_ascii = f.read()
 

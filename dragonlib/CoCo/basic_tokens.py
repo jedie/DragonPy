@@ -17,6 +17,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
+
 
 # Revesed word tokens from Color BASIC 1.3:
 COCO_COLOR_BASIC_TOKENS = {

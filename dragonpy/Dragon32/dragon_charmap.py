@@ -12,6 +12,8 @@
     blocks: http://www.pylucid.org/de/contribute/developer-documentation/unicode-test/decode_unicode/block-elements/#9600
 """
 
+from __future__ import absolute_import, division, print_function, unicode_literals
+
 import unicodedata
 
 
@@ -284,4 +286,4 @@ if __name__ == "__main__":
     ))
 
 #     create_wiki_page()
-#     create_dict()
+    create_dict()
