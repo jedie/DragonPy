@@ -25,6 +25,8 @@ from dragonpy.tests.test_base import TextTestRunner2, BaseStackTestCase
 
 
 log = logging.getLogger("DragonPy")
+PY3 = sys.version_info[0] == 3
+
 
 
 class Test6809_Program(BaseStackTestCase):
@@ -145,6 +147,8 @@ class Test6809_Program(BaseStackTestCase):
         return crc32 ^ 0xFFFFFFFF
 
     def _test_crc32(self, txt):
+        if PY3:
+            txt = bytes(txt, encoding="UTF-8")
         crc32 = self._crc32(txt)
         excpected_crc32 = binascii.crc32(txt) & 0xffffffff
         hex1 = "$%08x" % crc32
@@ -398,7 +402,7 @@ if __name__ == '__main__':
     unittest.main(
         argv=(
             sys.argv[0],
-            "Test6809_Program.test_clear_loop",
+#            "Test6809_Program.test_clear_loop",
 #            "Test6809_Program.test_crc16_01",
 #            "Test6809_Program.test_crc32_01",
 #             "Test6809_Program.test_division",
@@ -407,5 +411,5 @@ if __name__ == '__main__':
         testRunner=TextTestRunner2,
 #         verbosity=1,
         verbosity=2,
-#         failfast=True,
+        failfast=True,
     )

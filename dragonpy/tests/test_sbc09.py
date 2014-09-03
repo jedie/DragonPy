@@ -19,18 +19,24 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-
 import logging
 import pprint
 import sys
 import unittest
 
-from dragonpy.tests.test_base import TextTestRunner2, Test6809_sbc09_Base
 from dragonlib.utils.logging_utils import setup_logging
+from dragonpy.tests.test_base import TextTestRunner2, Test6809_sbc09_Base
 from dragonpy.utils import srecord_utils
 
 
 log = logging.getLogger("DragonPy")
+
+PY2 = sys.version_info[0] == 2
+
+if PY2:
+    string_type = basestring
+else:
+    string_type = str
 
 
 def extract_s_record_data(srec):
@@ -38,7 +44,7 @@ def extract_s_record_data(srec):
     Verify checksum and return the data from a srecord.
     If checksum failed, a Error will be raised.
     """
-    assert isinstance(srec, str)
+    assert isinstance(srec, string_type)
     blocks = ["S%s" % b for b in srec.split("S") if b]
 
     result = []
@@ -151,7 +157,10 @@ class Test_sbc09(Test6809_sbc09_Base):
             reference = f.read(byte_count)
 
         #reference = [ord(char) for char in reference]
-        reference = "".join(["%02X" % ord(byte) for byte in reference])
+        if PY2:
+            reference = "".join(["%02X" % ord(byte) for byte in reference])
+        else:
+            reference = "".join(["%02X" % byte for byte in reference])
 
         # split into chunks of 32 bytes (same a extraced S-Record)
         # for better error messages in assertEqual() ;)

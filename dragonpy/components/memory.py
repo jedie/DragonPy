@@ -19,10 +19,10 @@
     more info, see README
 """
 
-import logging
 import os
 import sys
 
+from dragonlib.utils import lib2and3
 from dragonlib.utils.logging_utils import log, log_hexlist
 
 
@@ -42,8 +42,9 @@ class ROM(object):
         )
 
     def load(self, address, data):
-        if isinstance(data, str):
+        if isinstance(data, lib2and3.string_types):
             data = [ord(c) for c in data]
+
         log.debug("ROM load at $%04x: %s", address,
             ", ".join(["$%02x" % i for i in data])
         )
@@ -62,9 +63,12 @@ class ROM(object):
                     break
 
                 index = address + offset
-#                 log.critical("$%04x - $%02x", index, ord(datum))
+                if lib2and3.PY2:
+                    datum = ord(datum)
+
+#                 log.critical("$%04x - $%02x", index, datum)
                 try:
-                    self._mem[index] = ord(datum)
+                    self._mem[index] = datum
                 except IndexError:
                     log.error("Error: File %s $%04x (dez.: %i) Bytes is bigger than: $%04x" % (
                         filename, filesize, filesize, index

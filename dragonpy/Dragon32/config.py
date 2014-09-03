@@ -11,7 +11,6 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-
 import logging
 import os
 
@@ -19,8 +18,8 @@ from dragonlib.api import Dragon32API
 from dragonlib.utils.logging_utils import log
 from dragonpy.Dragon32.keyboard_map import get_dragon_keymatrix_pia_result
 from dragonpy.Dragon32.mem_info import get_dragon_meminfo
-from dragonpy.core.configs import BaseConfig, DRAGON32
 from dragonpy.components.rom import ROMFile
+from dragonpy.core.configs import BaseConfig, DRAGON32
 
 
 class Dragon32Cfg(BaseConfig):
@@ -80,7 +79,7 @@ class Dragon32Cfg(BaseConfig):
 
         self.machine_api = Dragon32API()
 
-        if self.verbosity <= logging.ERROR:
+        if self.verbosity and self.verbosity <= logging.ERROR:
             self.mem_info = get_dragon_meminfo()
 
         self.periphery_class = None# Dragon32Periphery
@@ -129,7 +128,7 @@ class Dragon32Cfg(BaseConfig):
         mem_00 = [0x00 for _ in range(4)]
 
         mem = []
-        for _ in range(self.RAM_SIZE / 8):
+        for _ in range(self.RAM_SIZE // 8):
             mem += mem_FF
             mem += mem_00
 

@@ -12,13 +12,12 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-
-
 import re
 
 from dragonlib.core import basic_parser
+from dragonlib.utils import lib2and3
 from dragonlib.utils.iter_utils import list_replace
-from dragonlib.utils.logging_utils import log, log_program_dump,\
+from dragonlib.utils.logging_utils import log, log_program_dump, \
     pformat_byte_hex_list
 from dragonpy.utils.byte_word_values import word2bytes
 
@@ -45,7 +44,12 @@ class BasicTokenUtil(object):
                 log.critical("ERROR: Token $%04x is not in BASIC_TOKENS!", value)
                 return ""
             result = chr(value)
-        return result
+        if lib2and3.PY2:
+            # Only for unittest, to avoid token representation as u"..."
+            # There is only ASCII characters possible
+            return str(result)
+        else:
+            return result
 
     def chars2tokens(self, chars):
         return [ord(char) for char in chars]
@@ -75,7 +79,7 @@ class BasicTokenUtil(object):
         return tokens
 
     def code_objects2token(self, code_objects):
-        tokens=[]
+        tokens = []
         for code_object in code_objects:
             if code_object.PART_TYPE == basic_parser.CODE_TYPE_CODE:
                 # Code part
@@ -85,13 +89,13 @@ class BasicTokenUtil(object):
                 internaly:
                    "'" <-> ":'"
                 "ELSE" <-> ":ELSE"
-                
+
                 See also:
                 http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4310&p=11632#p11630
                 """
                 log.info("replace ' and ELSE with :' and :ELSE")
-                content=content.replace("'", ":'")
-                content=content.replace("ELSE", ":ELSE")
+                content = content.replace("'", ":'")
+                content = content.replace("ELSE", ":ELSE")
                 tokens += self.ascii2token(content)
             else:
                 # Strings, Comments or DATA
@@ -130,7 +134,7 @@ class BasicLine(object):
         self.token_util = token_util
         self.line_number = None
         self.line_code = None
-        
+
         try:
             colon_token = self.token_util.ascii2token_dict[":"]
         except KeyError: # XXX: Always not defined as token?
@@ -147,13 +151,13 @@ class BasicLine(object):
         assert tokens[-1] == 0x00, "line code %s doesn't ends with \\x00: %s" % (
             repr(tokens), repr(tokens[-1])
         )
-        
+
         """
         NOTE: The BASIC interpreter changed REM shortcut and ELSE
         internaly:
            "'" <-> ":'"
         "ELSE" <-> ":ELSE"
-        
+
         See also:
         http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4310&p=11632#p11630
         """
@@ -161,10 +165,10 @@ class BasicLine(object):
             log.info("Relace tokens %s with $%02x",
                 pformat_byte_hex_list(src), dst
             )
-            log.debug("Before..: %s", pformat_byte_hex_list(tokens) )
+            log.debug("Before..: %s", pformat_byte_hex_list(tokens))
             tokens = list_replace(tokens, src, dst)
-            log.debug("After...: %s", pformat_byte_hex_list(tokens) )
-        
+            log.debug("After...: %s", pformat_byte_hex_list(tokens))
+
         self.line_code = tokens[:-1] # rstrip \x00
 
     def ascii_load(self, line_ascii):
@@ -224,11 +228,11 @@ class BasicListing(object):
             # program end
             log.critical("return: %s", repr(basic_lines))
             return basic_lines
-        
-        assert next_address>program_start, "Next address $%04x not bigger than program start $%04x ?!?" % (
-            next_address,program_start
+
+        assert next_address > program_start, "Next address $%04x not bigger than program start $%04x ?!?" % (
+            next_address, program_start
         )
-        
+
         line_number = (dump[2] << 8) + dump[3]
         log.critical("line_number: %i", line_number)
         length = next_address - program_start
@@ -286,13 +290,13 @@ class BasicListing(object):
                 "Can't get next address from: %s program start: $%04x (Origin error: %s)" % (
                     repr(program_dump), program_start, err
             ))
-                  
+
         if next_address == 0x0000:
             formated_dump.append("$%04x -> end address" % next_address)
             return formated_dump
 
-        assert next_address>program_start, "Next address $%04x not bigger than program start $%04x ?!?" % (
-            next_address,program_start
+        assert next_address > program_start, "Next address $%04x not bigger than program start $%04x ?!?" % (
+            next_address, program_start
         )
 
         length = next_address - program_start
@@ -325,7 +329,7 @@ class BasicListing(object):
 #     def parsed_lines2program_dump(self, parsed_lines, program_start):
 #         for line_no, code_objects in sorted(parsed_lines.items()):
 #             for code_object in code_objects:
-                
+
 
     def program_dump2ascii_lines(self, dump, program_start):
         basic_lines = self.dump2basic_lines(dump, program_start)
@@ -353,7 +357,7 @@ class RenumTool(object):
             ])
         )
         new_listing = []
-        for new_number, line in enumerate(self._iter_lines(ascii_listing),1):
+        for new_number, line in enumerate(self._iter_lines(ascii_listing), 1):
             new_number *= 10
             line = self.line_no_regex.sub("%s\g<code>" % new_number, line)
             new_line = self.renum_regex.sub(self.renum_inline, line)
@@ -364,7 +368,7 @@ class RenumTool(object):
         """
         returns all line numbers that are used in a jump.
         """
-        self.destinations=set()
+        self.destinations = set()
         def collect_destinations(matchobj):
             numbers = matchobj.group("on_goto_no")
             if numbers:
@@ -374,10 +378,10 @@ class RenumTool(object):
             number = matchobj.group("no")
             if number:
                 self.destinations.add(number)
-            
+
         for line in self._iter_lines(ascii_listing):
             self.renum_regex.sub(collect_destinations, line)
-            
+
         return sorted([int(no) for no in self.destinations])
 
     def _iter_lines(self, ascii_listing):
@@ -437,7 +441,7 @@ class RenumTool(object):
         for new_number, old_number in enumerate(old_numbers, 1):
             new_number *= 10
             renum_dict[old_number] = new_number
-        return renum_dict 
+        return renum_dict
 
 if __name__ == "__main__":
     from dragonlib.api import Dragon32API
