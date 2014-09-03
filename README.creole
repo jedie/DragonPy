@@ -12,7 +12,9 @@ CoCo with Extended Color Basic v1.1 in Text mode:
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140827_DragonPy_CoCo_ExtendedColorBasic01.png|screenshot CoCo Extended Color BASIC}}
 
 
-DragonPy is written in Python. It's platform independent and runs with normal Python 2.x and PyPy!
+DragonPy is written in Python.
+It's platform independent and runs with Python v2 and v3 and PyPy.
+It's tested with Python 2.7.x and 3.4 and PyPy2.
 
 DragonPy will not be a second XRoar written in Python.
 This project is primarily to lean and understand.
@@ -32,7 +34,6 @@ Looks like this:
 
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140820_DragonPy_BASIC_Editor_01.png|old screenshot BASIC Editor}}
 (older version of the editor)
-
 
 ==== Vectrex
 
@@ -127,24 +128,17 @@ start CoCo with Extended Color Basic v1.1:
 
 === run unittests ===
 
-You should use PyPy to run all tests. It's around 10 time faster.
+You can run tests with PyPy, Python 2 and Python 3:
 
 {{{
-...path/to/DragonPy$ pypy -m unittest discover
-}}}
-or:
-{{{
-...path/to/DragonPy$ pypy setup.py test
+...path/to/DragonPy$ python -m unittest discover
 }}}
 
-Use normal Python:
-
+All variants:
 {{{
 ...path/to/DragonPy$ python2 -m unittest discover
-}}}
-or:
-{{{
-...path/to/DragonPy$ python2 setup.py test
+...path/to/DragonPy$ python3 -m unittest discover
+...path/to/DragonPy$ pypy -m unittest discover
 }}}
 
 
