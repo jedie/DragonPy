@@ -12,6 +12,15 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 
+def locale_format_number(val):
+    """
+    Depend on users local, so no active doctest here ;)
+
+    > locale_format_number(1234567.89)
+    '1.234.567.890'
+    """
+    return '{:n}'.format(val)
+
 
 def byte2bit_string(data):
     """

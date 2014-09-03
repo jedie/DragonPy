@@ -12,7 +12,6 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import locale
 import os
 import sys
 import time
@@ -22,6 +21,7 @@ from dragonlib.utils.logging_utils import log
 from dragonpy.Dragon32 import dragon_charmap
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
+from dragonpy.utils.humanize import locale_format_number
 
 
 try:
@@ -40,9 +40,6 @@ except ImportError:
     tkinter.messagebox = __messagebox
     del(__messagebox)
     import ScrolledText as scrolledtext
-
-locale.setlocale(locale.LC_ALL, '') # For Formating cycles/sec number
-
 
 
 class MC6847_TextModeCanvas(object):
@@ -234,9 +231,9 @@ class BaseTkinterGUI(object):
 #                 cycles_per_second, new_cycles, duration
 #             )
 
-            # msg = '{:.}'.format(cycles_per_second)
-            msg = locale.format('%d', cycles_per_second, 1)
-            msg += " cycles/sec (Dragon 32 == 895.000cycles/sec)"
+            msg = "%s cycles/sec (Dragon 32 == 895.000cycles/sec)" % (
+                locale_format_number(cycles_per_second)
+            )
 #             log.critical(msg)
             self.status.set(msg)
             self.root.update()
