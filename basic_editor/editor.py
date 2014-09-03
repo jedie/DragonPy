@@ -103,6 +103,13 @@ class ScrolledText2(scrolledtext.ScrolledText):
 
 
 class EditorWindow(object):
+    FILETYPES = [ # For filedialog
+        ("BASIC Listings", "*.bas", "TEXT"),
+        ("Text files", "*.txt", "TEXT"),
+        ("All files", "*"),
+    ]
+    DEFAULTEXTENSION = "*.bas"
+
     def __init__(self, cfg, gui=None):
         self.cfg = cfg
         if gui is None:
@@ -226,7 +233,12 @@ class EditorWindow(object):
 #         print self.machine_api.parse_ascii_listing(word)
 
     def command_load_file(self):
-        infile = filedialog.askopenfile(parent=self.root, mode="r", title="Select a BASIC file to load")
+        infile = filedialog.askopenfile(
+            parent=self.root,
+            mode="r",
+            title="Select a BASIC file to load",
+            filetypes=self.FILETYPES,
+        )
         if infile is not None:
             content = infile.read()
             infile.close()
@@ -235,7 +247,12 @@ class EditorWindow(object):
             self.set_content(listing_ascii)
 
     def command_save_file(self):
-        outfile = filedialog.asksaveasfile(parent=self.root, mode="w")
+        outfile = filedialog.asksaveasfile(
+            parent=self.root,
+            mode="w",
+            filetypes=self.FILETYPES,
+            defaultextension=self.DEFAULTEXTENSION,
+        )
         if outfile is not None:
             content = self.get_content()
             outfile.write(content)
