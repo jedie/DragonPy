@@ -12,8 +12,8 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-
 import atexit
+import locale
 import sys
 import threading
 import webbrowser
@@ -28,6 +28,7 @@ from dragonpy.Dragon64.config import Dragon64Cfg
 from dragonpy.Dragon64.machine import run_Dragon64
 from dragonpy.core import configs
 from dragonpy.core.base_cli import Base_CLI
+from dragonpy.core.bechmark import run_benchmark
 from dragonpy.core.configs import machine_dict
 from dragonpy.vectrex.config import VectrexCfg
 from dragonpy.vectrex.machine import run_Vectrex
@@ -40,6 +41,11 @@ machine_dict.register(configs.COCO2B, (run_CoCo2b, CoCo2bCfg))
 # machine_dict.register(SIMPLE6809, Simple6809Cfg)
 # machine_dict.register(MULTICOMP6809, Multicomp6809Cfg)
 machine_dict.register(configs.VECTREX, (run_Vectrex, VectrexCfg))
+
+
+# use user's preferred locale
+# e.g.: for formating cycles/sec number
+locale.setlocale(locale.LC_ALL, '')
 
 
 @atexit.register
@@ -65,9 +71,9 @@ class DragonPyCLI(Base_CLI):
         self.subparsers = self.parser.add_subparsers(title="commands",
             help="Help for commands, e.g.: '%s run --help'" % self.parser.prog
         )
-        
+
         # The run Emulator command:
-        
+
         self.parser_run_machine = self.subparsers.add_parser(name="run",
             help="Start the Emulator",
             epilog="e.g.: to run CoCo do: '%s --machine CoCo2b' run" % self.parser.prog
@@ -95,7 +101,7 @@ class DragonPyCLI(Base_CLI):
 #         )
         self.parser_run_machine.add_argument("--max_ops", type=int,
             help="If given: Stop CPU after given cycles else: run forever"
-        )       
+        )
 
         # The run BASIC Editor command:
 
@@ -104,6 +110,17 @@ class DragonPyCLI(Base_CLI):
             epilog="e.g.: CoCo Editor do: '%s --machine CoCo2b' editor" % self.parser.prog
         )
         self.parser_editor.set_defaults(func=self.run_editor)
+
+        # The run only Benchmarks
+
+        self.parser_benchmark = self.subparsers.add_parser(name="benchmark",
+            help="Start a benchmark",
+        )
+        default_loops = 5
+        self.parser_benchmark.add_argument("--loops", type=int, default=default_loops,
+            help="How many loops should be run? (default: %i)" % default_loops
+        )
+        self.parser_benchmark.set_defaults(func=self.run_benchmark)
 
     def setup_cfg(self):
         self.args = self.parse_args()
@@ -138,12 +155,15 @@ class DragonPyCLI(Base_CLI):
             "max_ops":self.args.max_ops,
         })
         self.machine_run_func(self.cfg_dict)
-        
+
     def run_editor(self):
         log.critical("Use machine cfg: %s", self.machine_cfg.__name__)
         cfg = self.machine_cfg(self.cfg_dict)
         run_basic_editor(cfg)
 
+    def run_benchmark(self):
+        log.critical("Run a benchmark only...")
+        run_benchmark(self.args.loops)
 
 def get_cli():
     cli = DragonPyCLI(machine_dict)
