@@ -14,19 +14,14 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-
 from decimal import Decimal
 import binascii
-import logging
 import sys
 import unittest
 
+from dragonlib.utils import lib2and3
+from dragonlib.utils.logging_utils import log, setup_logging
 from dragonpy.tests.test_base import TextTestRunner2, BaseStackTestCase
-
-
-log = logging.getLogger("DragonPy")
-PY3 = sys.version_info[0] == 3
-
 
 
 class Test6809_Program(BaseStackTestCase):
@@ -147,7 +142,7 @@ class Test6809_Program(BaseStackTestCase):
         return crc32 ^ 0xFFFFFFFF
 
     def _test_crc32(self, txt):
-        if PY3:
+        if lib2and3.PY3:
             txt = bytes(txt, encoding="UTF-8")
         crc32 = self._crc32(txt)
         excpected_crc32 = binascii.crc32(txt) & 0xffffffff
@@ -389,15 +384,14 @@ class Test6809_Program_Division2(BaseStackTestCase):
 
 
 if __name__ == '__main__':
-    log.setLevel(
-        1
-#        10 # DEBUG
-#         20 # INFO
-#         30 # WARNING
-#         40 # ERROR
-#         50 # CRITICAL/FATAL
+    setup_logging(log,
+#        level=1 # hardcore debug ;)
+#        level=10 # DEBUG
+#        level=20 # INFO
+#        level=30 # WARNING
+#         level=40 # ERROR
+        level=50 # CRITICAL/FATAL
     )
-    log.addHandler(logging.StreamHandler())
 
     unittest.main(
         argv=(

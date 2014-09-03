@@ -14,13 +14,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-import logging
 import sys
 import unittest
 
 from dragonlib.utils import lib2and3
-from dragonlib.utils.logging_utils import log
-from dragonlib.utils.logging_utils import setup_logging
+from dragonlib.utils.logging_utils import log, setup_logging
 from dragonpy.tests.test_base import TextTestRunner2, Test6809_Dragon32_Base
 
 
