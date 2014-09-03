@@ -35,6 +35,6 @@ def invert_shift(chars):
 
 if __name__ == '__main__':
     import doctest
-    print doctest.testmod(
+    print(doctest.testmod(
         # verbose=1
-    )
+    ))

@@ -101,7 +101,7 @@ REGISTER_INFO = {
     REG_CC: (8, "1010", "condition code register as flags"),
     REG_DP: (8, "1011", "direct page register"),
 }
-REGISTERS = REGISTER_INFO.keys()
+REGISTERS = list(REGISTER_INFO.keys())
 
 #------------------------------------------------------------------------------
 
@@ -702,15 +702,15 @@ txt = """ +-----------------------------------------------------------------+
 
 DONT_USE_ORIGIN_ACCESS_MODE = ("NEG")
 
-instr_info_keys = INSTRUCTION_INFO.keys()
+instr_info_keys = list(INSTRUCTION_INFO.keys())
 
 
 def get_instr_info(mnemonic, instruction):
-    for instr_info_key, instr_info in INSTRUCTION_INFO.items():
+    for instr_info_key, instr_info in list(INSTRUCTION_INFO.items()):
         if mnemonic == instr_info_key:
             return instr_info_key, instr_info
 
-    for instr_info_key, instr_info in INSTRUCTION_INFO.items():
+    for instr_info_key, instr_info in list(INSTRUCTION_INFO.items()):
         if not instr_info_key.startswith(instruction):
             continue
 
@@ -722,15 +722,15 @@ def get_instr_info(mnemonic, instruction):
         if mnemonic in source_forms:
             return instr_info_key, instr_info
 
-    for instr_info_key, instr_info in INSTRUCTION_INFO.items():
+    for instr_info_key, instr_info in list(INSTRUCTION_INFO.items()):
         if instr_info_key.startswith(instruction):
-            print "Use %s for %s (%s)" % (instr_info_key, mnemonic, instruction)
+            print("Use %s for %s (%s)" % (instr_info_key, mnemonic, instruction))
             return instr_info_key, instr_info
 
     test_mnemonic = mnemonic[1:]
-    for instr_info_key, instr_info in INSTRUCTION_INFO.items():
+    for instr_info_key, instr_info in list(INSTRUCTION_INFO.items()):
         if instr_info_key == test_mnemonic:
-            print "Use %s for %s (%s)" % (instr_info_key, mnemonic, instruction)
+            print("Use %s for %s (%s)" % (instr_info_key, mnemonic, instruction))
             return instr_info_key, instr_info
 
     return None, None
@@ -752,7 +752,7 @@ for line in txt.splitlines():
     op_dec = int(raw_dec)
     # ~ print hex(opcode), op_dec
     if not opcode == op_dec:
-        print "ERROR!"
+        print("ERROR!")
 
     mnemonic = sections[1]
 
@@ -769,7 +769,7 @@ for line in txt.splitlines():
     try:
         category_id, instr_desc = OpDescriptions[mnemonic_single]
     except KeyError:
-        print "***", mnemonic
+        print("***", mnemonic)
         category_id = 8 # other
         instr_desc = ""
 
@@ -790,7 +790,7 @@ for line in txt.splitlines():
             operand_test = test_mnemonic[len(instruction):]
             if operand_test in REGISTERS:
                 register = operand_test
-            print " **** ", mnemonic, instruction, operand_test, register
+            print(" **** ", mnemonic, instruction, operand_test, register)
             break
 
     instr_info_key, instr_info = get_instr_info(mnemonic, instruction)
@@ -800,17 +800,17 @@ for line in txt.splitlines():
             instr_info = INSTRUCTION_INFO[instruction]
         else:
             instr_info_key = OTHER_INSTRUCTIONS
-            print "no INSTRUCTION_INFO found for %s" % repr(instruction)
+            print("no INSTRUCTION_INFO found for %s" % repr(instruction))
             instr_info = INSTRUCTION_INFO.setdefault(OTHER_INSTRUCTIONS, {})
     elif not (instr_info_key.startswith(instruction) or instruction.endswith(instr_info_key)):
-        print "ERROR:", instr_info_key
+        print("ERROR:", instr_info_key)
         pprint.pprint(instr_info)
-        print "%r - $%x - %r - %s" % (instr_info_key, opcode, instruction, mnemonic)
+        print("%r - $%x - %r - %s" % (instr_info_key, opcode, instruction, mnemonic))
         raise AssertionError
 
     instr_info["instr_desc"] = instr_desc
 
-    print mnemonic, "%02x" % opcode
+    print(mnemonic, "%02x" % opcode)
 
     cc_HNZVC = sections[5]
 
@@ -833,21 +833,21 @@ for line in txt.splitlines():
         if "M" in after and instruction not in NO_MEM_READ:
             read = True
 
-    print mnemonic_desc, "read: %s - write: %s" % (read, write)
+    print(mnemonic_desc, "read: %s - write: %s" % (read, write))
 
 
     raw_cycles = sections[3]
     try:
         cycles = int(raw_cycles)
-    except ValueError, err:
+    except ValueError as err:
         try:
             cycles = int(raw_cycles[0])
-        except ValueError, err:
-            print "Error: %s" % err
-            print line
+        except ValueError as err:
+            print("Error: %s" % err)
+            print(line)
             cycles = -1
         else:
-            print "Use sycles %i from %r" % (cycles, raw_cycles)
+            print("Use sycles %i from %r" % (cycles, raw_cycles))
 
     bytes = int(sections[4])
     mem_access = False
@@ -856,10 +856,10 @@ for line in txt.splitlines():
         operation_example = instr_info['operation']
     except KeyError:
         operation_example = None
-        print "No operation for", mnemonic
+        print("No operation for", mnemonic)
     else:
         if "M" in operation_example:
-            print "mem_access=BYTE, because 'M' in example: %s" % repr(operation_example)
+            print("mem_access=BYTE, because 'M' in example: %s" % repr(operation_example))
             mem_access = MEM_ACCESS_BYTE
 
     addr_mode = ADDRES_MODE_DICT[sections[2].upper()]
@@ -870,7 +870,7 @@ for line in txt.splitlines():
 
     if opcode in OVERWRITE_DATA:
         op_type = OVERWRITE_DATA[opcode]
-        print "overwrite data with:", op_type
+        print("overwrite data with:", op_type)
         mem_access = op_type[0]
         if mem_access == False:
             register = op_type[1]
@@ -936,7 +936,7 @@ for line in txt.splitlines():
     if mem_access == False:
         assert read == False
 
-    print "-"*79
+    print("-"*79)
     opcodes.append(opcode_data)
     categoriesed_opcodes.setdefault(category_id, []).append(opcode_data)
 
@@ -945,12 +945,12 @@ for line in txt.splitlines():
 # sys.exit()
 
 existing_instr = set([o["instr_info_key"] for o in opcodes])
-keys = INSTRUCTION_INFO.keys()
+keys = list(INSTRUCTION_INFO.keys())
 for key in keys:
     if key not in existing_instr:
-        print "Instr.Data %r doesn't habe a op code:" % key
+        print("Instr.Data %r doesn't habe a op code:" % key)
         pprint.pprint(INSTRUCTION_INFO[key])
-        print "remove it!"
+        print("remove it!")
         del(INSTRUCTION_INFO[key])
 
 
@@ -960,8 +960,8 @@ for key, data in sorted(INSTRUCTION_INFO.items()):
 
     try:
         addr_modes = data["addressing mode"]
-    except KeyError, err:
-        print "WARNING: no %s for %s" % (err, key)
+    except KeyError as err:
+        print("WARNING: no %s for %s" % (err, key))
         pprint.pprint(data)
 
     addr_mode_ids = []
@@ -969,9 +969,9 @@ for key, data in sorted(INSTRUCTION_INFO.items()):
         addr_mode = addr_mode.upper()
         try:
             addr_mode_ids.append(ADDRES_MODE_DICT[addr_mode])
-        except KeyError, err:
-            print "ERROR: unknown addr. mode: %s from: %s" % (err, repr(addr_modes))
-            print "data:",
+        except KeyError as err:
+            print("ERROR: unknown addr. mode: %s from: %s" % (err, repr(addr_modes)))
+            print("data:", end=' ')
             pprint.pprint(data)
             continue
 
@@ -981,16 +981,16 @@ for key, data in sorted(INSTRUCTION_INFO.items()):
         if opcode["instr_info_key"] != key:
             continue
         if not opcode["addr_mode"] in addr_mode_ids:
-            print "ERROR: addr mode missmatch: $%x - IDs: %s" % (
+            print("ERROR: addr mode missmatch: $%x - IDs: %s" % (
                 opcode["opcode"], repr(addr_mode_ids)
-            ),
+            ), end=' ')
             if opcode["mnemonic"] in DONT_USE_ORIGIN_ACCESS_MODE:
-                print " - Skip, ok."
+                print(" - Skip, ok.")
             else:
-                print
-                print "data:",
+                print()
+                print("data:", end=' ')
                 pprint.pprint(data)
-                print "opcode:",
+                print("opcode:", end=' ')
                 pprint.pprint(opcode)
                 raise AssertionError
 
@@ -1031,74 +1031,74 @@ sys.stdout = Tee("MC6809_data_raw.py", sys.stdout,
 # ADDRES_MODE_DICT = dict(zip(ADDR_MODES.values(), ADDR_MODES.keys()))
 # ADDRES_MODES = sorted(ADDR_MODES.values())
 
-print '"""%s"""' % __doc__
-print
-print "OP_CATEGORIES = ", pformat(categories)
-print
+print('"""%s"""' % __doc__)
+print()
+print("OP_CATEGORIES = ", pformat(categories))
+print()
 for addr_mode in ADDRES_MODES:
-    print '%s = "%s"' % (addr_mode, addr_mode)
-print
-print '# operands:'
+    print('%s = "%s"' % (addr_mode, addr_mode))
+print()
+print('# operands:')
 for register in REGISTERS:
-    print 'REG_%(op)s = "%(op)s"' % {"op":register}
-print
-print
-print "REGISTER_INFO = {"
-for k, v in REGISTER_INFO.items():
-    print "    REG_%s: %s," % (k, v)
-print "}"
-print
-print "MEM_ACCESS_BYTE = 8"
-print "MEM_ACCESS_WORD = 16"
-print
-print '# illegal opcode:'
-print 'ILLEGAL_OPS = (%s)' % ",".join([hex(i) for i in illegal])
-print
-print '# other instructions'
-print 'OTHER_INSTRUCTIONS = "OTHER_INSTRUCTIONS"'
-print
+    print('REG_%(op)s = "%(op)s"' % {"op":register})
+print()
+print()
+print("REGISTER_INFO = {")
+for k, v in list(REGISTER_INFO.items()):
+    print("    REG_%s: %s," % (k, v))
+print("}")
+print()
+print("MEM_ACCESS_BYTE = 8")
+print("MEM_ACCESS_WORD = 16")
+print()
+print('# illegal opcode:')
+print('ILLEGAL_OPS = (%s)' % ",".join([hex(i) for i in illegal]))
+print()
+print('# other instructions')
+print('OTHER_INSTRUCTIONS = "OTHER_INSTRUCTIONS"')
+print()
 
-print
-print "# instruction info keys:"
+print()
+print("# instruction info keys:")
 for key in sorted(INSTRUCTION_INFO.keys()):
-    print '%s="%s"' % (key, key)
-print
+    print('%s="%s"' % (key, key))
+print()
 
 
-print "INSTRUCTION_INFO = {"
+print("INSTRUCTION_INFO = {")
 for key, data in sorted(INSTRUCTION_INFO.items()):
-    print '    %s: {' % key
-    print " %s" % pprint.pformat(data, indent=8).strip("{}")
-    print '    },'
-print "}"
-print
+    print('    %s: {' % key)
+    print(" %s" % pprint.pformat(data, indent=8).strip("{}"))
+    print('    },')
+print("}")
+print()
 
 
 processed_opcodes = []
-print
-print "OP_DATA = ("
-for category_id, category in categories.items():
-    print
-    print "    #### %s" % category
-    print
+print()
+print("OP_DATA = (")
+for category_id, category in list(categories.items()):
+    print()
+    print("    #### %s" % category)
+    print()
     for opcode in categoriesed_opcodes[category_id]:
 #         print pprint.pformat(opcode, indent=8)
         code = opcode["opcode"]
         assert code not in processed_opcodes, repr(opcode)
         processed_opcodes.append(code)
 
-        print '    {'
-        print '        "opcode": 0x%x, "instruction": "%s", "mnemonic": "%s",' % (
+        print('    {')
+        print('        "opcode": 0x%x, "instruction": "%s", "mnemonic": "%s",' % (
             opcode["opcode"], opcode["instruction"], opcode["mnemonic"]
-        )
+        ))
 
-        print '        "desc": "%s",' % (
+        print('        "desc": "%s",' % (
             opcode["desc"]
-        )
+        ))
 
-        print '        "addr_mode": %s, "cycles": %i, "bytes": %i,' % (
+        print('        "addr_mode": %s, "cycles": %i, "bytes": %i,' % (
             ADDRES_MODE_DICT[opcode["addr_mode"]], opcode["cycles"], opcode["bytes"]
-        )
+        ))
 
 
         mem_access = opcode["mem_access"]
@@ -1108,32 +1108,32 @@ for category_id, category in categories.items():
                 example = ""
             else:
                 example = " # %s" % operation_example.replace("\n", ";")
-            print '        "mem_access": %s,%s' % (
+            print('        "mem_access": %s,%s' % (
                 mem_access, example,
-            )
+            ))
 
-        print '        "mem_read": %s, "mem_write": %s,' % (
+        print('        "mem_read": %s, "mem_write": %s,' % (
             opcode["mem_read"], opcode["mem_write"]
-        )
-        print '        "HNZVC": "%s",' % (
+        ))
+        print('        "HNZVC": "%s",' % (
             opcode["HNZVC"],
-        )
+        ))
 
 
         register = opcode["register"]
         if register:
             register_info = REGISTER_INFO[register]
             # e.g: (16, "0000", "concatenated register (A+B)")
-            print '        "register": REG_%s, # %i Bit %s %s' % (
+            print('        "register": REG_%s, # %i Bit %s %s' % (
                 register, register_info[0], register_info[2], register
-            )
+            ))
 
-        print '        "category": %i, "instr_info_key": %s,' % (
+        print('        "category": %i, "instr_info_key": %s,' % (
             category_id, opcode["instr_info_key"]
-        )
-        print '    },'
-print ")"
+        ))
+        print('    },')
+print(")")
 
 sys.stdout.close()
 
-print "%i opcodes saved." % len(processed_opcodes)
+print("%i opcodes saved." % len(processed_opcodes))

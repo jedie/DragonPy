@@ -63,7 +63,7 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
 
         self.periphery.add_to_input_queue('PRINT "HELLO WORLD!"\r\n')
         op_call_count, cycles, output = self._run_until_OK()
-        print op_call_count, cycles, output
+        print(op_call_count, cycles, output)
 
     def play(self):
         self.setUp() # restore CPU/Periphery state to a fresh startup.
@@ -74,7 +74,7 @@ class Test_simple6809_BASIC(Test6809_BASIC_simple6809_Base):
 #         log2file(filename_suffix="negative_number")
         with stdout_into_file("Simple6809Play_PRINT1.5.log"):
             op_call_count, cycles, output = self._run_until_OK(max_ops=100000)
-        print op_call_count, cycles, output
+        print(op_call_count, cycles, output)
 
 
 
@@ -93,8 +93,8 @@ if __name__ == '__main__':
 
 #     print "-"*79
 #     c.hello_world()
-    print "-"*79
+    print("-"*79)
     c.play()
-    print "-"*79
+    print("-"*79)
 
-    print " --- END --- "
+    print(" --- END --- ")

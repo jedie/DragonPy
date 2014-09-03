@@ -32,11 +32,11 @@ class Test6809_Arithmetic(BaseCPUTestCase):
 
     def test_ADDA_immediate(self):
         # expected values are: 1 up to 255 then wrap around to 0 and up to 4
-        excpected_values = range(1, 256)
-        excpected_values += range(0, 5)
+        excpected_values = list(range(1, 256))
+        excpected_values += list(range(0, 5))
 
         self.cpu.accu_a.set(0x00) # start value
-        for i in xrange(260):
+        for i in range(260):
             self.cpu.cc.set(0x00) # Clear all CC flags
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x8B, 0x01, # ADDA #$1 Immediate
@@ -79,7 +79,7 @@ class Test6809_Arithmetic(BaseCPUTestCase):
                 self.assertEqual(self.cpu.cc.C, 0)
 
     def test_ADDA1(self):
-        for i in xrange(260):
+        for i in range(260):
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x8B, 0x01, # ADDA   #$01
             ])
@@ -110,7 +110,7 @@ class Test6809_Arithmetic(BaseCPUTestCase):
                 self.assertEqual(self.cpu.cc.V, 0)
 
     def test_ADDD1(self):
-        areas = range(0, 3) + ["..."] + range(0x7ffd, 0x8002) + ["..."] + range(0xfffd, 0x10002)
+        areas = list(range(0, 3)) + ["..."] + list(range(0x7ffd, 0x8002)) + ["..."] + list(range(0xfffd, 0x10002))
         for i in areas:
             if i == "...":
 #                 print "..."
@@ -169,9 +169,9 @@ loop:
 000A   0E 03                  JMP   loop
 
         """
-        excpected_values = [0] + range(255, 0, -1)
+        excpected_values = [0] + list(range(255, 0, -1))
 
-        for a in xrange(256):
+        for a in range(256):
             self.cpu.cc.set(0x00)
 
             self.cpu_test_run(start=0x1000, end=None, mem=[
@@ -225,10 +225,10 @@ loop:
                 self.assertEqual(self.cpu.cc.C, 0)
 
     def test_NEG_memory(self):
-        excpected_values = [0] + range(255, 0, -1)
+        excpected_values = [0] + list(range(255, 0, -1))
         address = 0x10
 
-        for a in xrange(256):
+        for a in range(256):
             self.cpu.cc.set(0x00)
 
             self.cpu.memory.write_byte(address, a)
@@ -274,11 +274,11 @@ loop:
 
     def test_INC_memory(self):
         # expected values are: 1 up to 255 then wrap around to 0 and up to 4
-        excpected_values = range(1, 256)
-        excpected_values += range(0, 5)
+        excpected_values = list(range(1, 256))
+        excpected_values += list(range(0, 5))
 
         self.cpu.memory.write_byte(0x4500, 0x0) # start value
-        for i in xrange(260):
+        for i in range(260):
             self.cpu.cc.set(0x00) # Clear all CC flags
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x7c, 0x45, 0x00, # INC $4500
@@ -313,10 +313,10 @@ loop:
 
     def test_INCB(self):
         # expected values are: 1 up to 255 then wrap around to 0 and up to 4
-        excpected_values = range(1, 256)
-        excpected_values += range(0, 5)
+        excpected_values = list(range(1, 256))
+        excpected_values += list(range(0, 5))
 
-        for i in xrange(260):
+        for i in range(260):
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x5c, # INCB
             ])
@@ -382,11 +382,11 @@ loop:
 
     def test_SUBA_immediate(self):
         # expected values are: 254 down to 0 than wrap around to 255 and down to 252
-        excpected_values = range(254, -1, -1)
-        excpected_values += range(255, 250, -1)
+        excpected_values = list(range(254, -1, -1))
+        excpected_values += list(range(255, 250, -1))
 
         self.cpu.accu_a.set(0xff) # start value
-        for i in xrange(260):
+        for i in range(260):
             self.cpu.cc.set(0x00) # Clear all CC flags
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x80, 0x01, # SUBA #$01
@@ -444,12 +444,12 @@ loop:
 
     def test_DEC_extended(self):
         # expected values are: 254 down to 0 than wrap around to 255 and down to 252
-        excpected_values = range(254, -1, -1)
-        excpected_values += range(255, 250, -1)
+        excpected_values = list(range(254, -1, -1))
+        excpected_values += list(range(255, 250, -1))
 
         self.cpu.memory.write_byte(0x4500, 0xff) # start value
         self.cpu.accu_a.set(0xff) # start value
-        for i in xrange(260):
+        for i in range(260):
             self.cpu.cc.set(0x00) # Clear all CC flags
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x7A, 0x45, 0x00, # DEC $4500
@@ -486,7 +486,7 @@ loop:
             self.assertEqual(self.cpu.cc.C, 0)
 
     def test_DECA(self):
-        for a in xrange(256):
+        for a in range(256):
             self.cpu.cc.set(0x00)
             self.cpu.accu_a.set(a)
             self.cpu_test_run(start=0x1000, end=None, mem=[
@@ -555,8 +555,8 @@ loop:
         self.assertEqual(self.cpu.cc.get_info, "EFHI....")
 
     def test_ORCC(self):
-        a_areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
-        b_areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
+        a_areas = list(range(0, 3)) + ["..."] + list(range(0x7e, 0x83)) + ["..."] + list(range(0xfd, 0x100))
+        b_areas = list(range(0, 3)) + ["..."] + list(range(0x7e, 0x83)) + ["..."] + list(range(0xfd, 0x100))
         for a in a_areas:
             if a == "...":
 #                print "..."
@@ -577,8 +577,8 @@ loop:
                 self.assertEqualHex(r, expected_value)
 
     def test_ANDCC(self):
-        a_areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
-        b_areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
+        a_areas = list(range(0, 3)) + ["..."] + list(range(0x7e, 0x83)) + ["..."] + list(range(0xfd, 0x100))
+        b_areas = list(range(0, 3)) + ["..."] + list(range(0x7e, 0x83)) + ["..."] + list(range(0xfd, 0x100))
         for a in a_areas:
             if a == "...":
 #                print "..."
@@ -601,8 +601,8 @@ loop:
     def test_ABX(self):
         self.cpu.cc.set(0xff)
 
-        x_areas = range(0, 3) + ["..."] + range(0x7ffd, 0x8002) + ["..."] + range(0xfffd, 0x10000)
-        b_areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
+        x_areas = list(range(0, 3)) + ["..."] + list(range(0x7ffd, 0x8002)) + ["..."] + list(range(0xfffd, 0x10000))
+        b_areas = list(range(0, 3)) + ["..."] + list(range(0x7e, 0x83)) + ["..."] + list(range(0xfd, 0x100))
 
         for x in x_areas:
             if x == "...":
@@ -628,7 +628,7 @@ loop:
                 self.assertEqualHex(self.cpu.cc.get(), 0xff)
 
     def test_XOR(self):
-        print "TODO!!!"
+        print("TODO!!!")
 
 #    def setUp(self):
 #        cmd_args = UnittestCmdArgs
@@ -647,7 +647,7 @@ loop:
         self.assertEqual(self.cpu.cc.C, 1)
 
     def test_DAA2(self):
-        for add in xrange(0xff):
+        for add in range(0xff):
             self.cpu.cc.set(0x00)
             self.cpu.accu_a.set(0x01)
             self.cpu_test_run(start=0x0100, end=None, mem=[

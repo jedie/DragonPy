@@ -113,11 +113,11 @@ class CoCo2bCfg(Dragon32Cfg):
         init the Dragon RAM
         See: http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4444
         """
-        mem_FF = [0xff for _ in xrange(4)]
-        mem_00 = [0x00 for _ in xrange(4)]
+        mem_FF = [0xff for _ in range(4)]
+        mem_00 = [0x00 for _ in range(4)]
 
         mem = []
-        for _ in xrange(self.RAM_SIZE / 8):
+        for _ in range(self.RAM_SIZE / 8):
             mem += mem_FF
             mem += mem_00
 
@@ -136,7 +136,7 @@ def test_run():
         sys.executable,
         os.path.join("..", "CoCo_test.py"),
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
 if __name__ == "__main__":

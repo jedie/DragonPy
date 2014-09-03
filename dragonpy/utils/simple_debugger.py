@@ -98,22 +98,22 @@ def print_exc_plus():
     txt_lines = txt.splitlines()
     first_line = txt_lines.pop(0)
     last_line = txt_lines.pop(-1)
-    print c.colorize(first_line, foreground="red")
+    print(c.colorize(first_line, foreground="red"))
     for line in txt_lines:
         if line.strip().startswith("File"):
-            print line
+            print(line)
         else:
-            print c.colorize(line, foreground="white", opts=("bold",))
-    print c.colorize(last_line, foreground="red")
+            print(c.colorize(line, foreground="white", opts=("bold",)))
+    print(c.colorize(last_line, foreground="red"))
 
-    print
-    print c.colorize(
+    print()
+    print(c.colorize(
         "Locals by frame, most recent call first:",
         foreground="blue", opts=("bold",)
-    )
+    ))
     for frame in stack:
 
-        print "\n ***", c.colorize(
+        print("\n ***", c.colorize(
             'File "%s", line %i, in %s' % (
                 frame.f_code.co_filename,
                 frame.f_lineno,
@@ -121,10 +121,10 @@ def print_exc_plus():
             ),
             foreground="white",
             opts=("bold", "underscore")
-        )
+        ))
 
-        for key, value in frame.f_locals.items():
-            print "%30s = " % c.colorize(key, opts=("bold",)),
+        for key, value in list(frame.f_locals.items()):
+            print("%30s = " % c.colorize(key, opts=("bold",)), end=' ')
             # We have to be careful not to cause a new error in our error
             # printer! Calling str() on an unknown object could cause an
             # error we don't want.
@@ -137,6 +137,6 @@ def print_exc_plus():
                 value = "%s..." % value[:MAX_CHARS]
 
             try:
-                print value
+                print(value)
             except:
-                print "<ERROR WHILE PRINTING VALUE>"
+                print("<ERROR WHILE PRINTING VALUE>")

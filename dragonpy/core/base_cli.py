@@ -61,10 +61,10 @@ class Base_CLI(object):
 
     def parse_args(self):
         if self.DESCRIPTION is not None:
-            print
-            print self.DESCRIPTION, self.VERSION
-            print "-"*79
-            print
+            print()
+            print(self.DESCRIPTION, self.VERSION)
+            print("-"*79)
+            print()
 
         args = self.parser.parse_args()
 
@@ -84,7 +84,7 @@ class Base_CLI(object):
 
 if __name__ == "__main__":
     import doctest
-    print doctest.testmod(
+    print(doctest.testmod(
         verbose=False
         # verbose=True
-    )
+    ))

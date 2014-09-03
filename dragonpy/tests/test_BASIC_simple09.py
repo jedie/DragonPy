@@ -422,11 +422,11 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
 #        areas = range(0x10000) # Takes very long ;)
 
         # 16 Bit test values
-        areas = range(0, 3)
-        areas += ["..."] + range(0x7f, 0x82) # sign change in 8 Bit range
-        areas += ["..."] + range(0xfe, 0x101) # end of 8 Bit range
-        areas += ["..."] + range(0x7ffe, 0x8003) # sign change in 16 Bit range
-        areas += ["..."] + range(0xfffd, 0x10000) # end of 16 Bit range
+        areas = list(range(0, 3))
+        areas += ["..."] + list(range(0x7f, 0x82)) # sign change in 8 Bit range
+        areas += ["..."] + list(range(0xfe, 0x101)) # end of 8 Bit range
+        areas += ["..."] + list(range(0x7ffe, 0x8003)) # sign change in 16 Bit range
+        areas += ["..."] + list(range(0xfffd, 0x10000)) # end of 16 Bit range
 
         failed = []
         ok = []
@@ -471,11 +471,11 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
 
     def test_FPA0_to_D(self):
         # 16 Bit test values
-        areas = range(0, 2)
-        areas += ["..."] + range(0x7f, 0x82) # sign change in 8 Bit range
-        areas += ["..."] + range(0xfe, 0x101) # end of 8 Bit range
-        areas += ["..."] + range(0x7fff, 0x8002) # sign change in 16 Bit range
-        areas += ["..."] + range(0xfffd, 0x10000) # end of 16 Bit range
+        areas = list(range(0, 2))
+        areas += ["..."] + list(range(0x7f, 0x82)) # sign change in 8 Bit range
+        areas += ["..."] + list(range(0xfe, 0x101)) # end of 8 Bit range
+        areas += ["..."] + list(range(0x7fff, 0x8002)) # sign change in 16 Bit range
+        areas += ["..."] + list(range(0xfffd, 0x10000)) # end of 16 Bit range
 
         for test_value in areas:
             if test_value == "...":
@@ -500,9 +500,9 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
         and compare.
         """
         # 8 Bit test values
-        areas = range(0, 3)
-        areas += ["..."] + range(0x7f, 0x82) # sign change in 8 Bit range
-        areas += ["..."] + range(0xfe, 0x100) # end of 8 Bit range
+        areas = list(range(0, 3))
+        areas += ["..."] + list(range(0x7f, 0x82)) # sign change in 8 Bit range
+        areas += ["..."] + list(range(0xfe, 0x100)) # end of 8 Bit range
 
         for test_value in areas:
             if test_value == "...":
@@ -523,9 +523,9 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
 #        areas = range(0x100) # Takes long ;)
 
         # 8 Bit test values
-        areas = range(0, 3)
-        areas += ["..."] + range(0x7f, 0x82) # sign change in 8 Bit range
-        areas += ["..."] + range(0xfe, 0x100) # end of 8 Bit range
+        areas = list(range(0, 3))
+        areas += ["..."] + list(range(0x7f, 0x82)) # sign change in 8 Bit range
+        areas += ["..."] + list(range(0xfe, 0x100)) # end of 8 Bit range
 
 #        areas = [55]
 

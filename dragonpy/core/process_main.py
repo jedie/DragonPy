@@ -21,8 +21,8 @@ import multiprocessing
 import os
 import sys
 import threading
-import thread
-import Queue
+import _thread
+import queue
 
 from dragonpy.core.process_sub import start_cpu
 from dragonlib.utils.logging_utils import log
@@ -47,7 +47,7 @@ class BusCommunicationThread(threading.Thread):
             cycles, op_address, structure, address = self.read_bus_request_queue.get(
                 block=False, timeout=timeout
             )
-        except Queue.Empty:
+        except queue.Empty:
             return
 
 #        log.critical("%04x| Bus read from $%04x", op_address, address)
@@ -64,7 +64,7 @@ class BusCommunicationThread(threading.Thread):
             cycles, op_address, structure, address, value = self.write_bus_queue.get(
                 block=False, timeout=timeout
             )
-        except Queue.Empty:
+        except queue.Empty:
             return
 
         log.debug("%04x| Bus write $%x to address $%04x", op_address, value, address)
@@ -84,7 +84,7 @@ class BusCommunicationThread(threading.Thread):
         try:
             self.loop()
         except KeyboardInterrupt:
-            thread.interrupt_main()
+            _thread.interrupt_main()
         log.critical(" *** BusCommunicationThread.run() stopped. *** ")
 
 
@@ -151,7 +151,7 @@ def main_process_startup(cfg):
 
 
 def test_run():
-    print "test run..."
+    print("test run...")
     import subprocess
     cmd_args = [sys.executable,
         os.path.join("..", "..", "DragonPy_CLI.py"),
@@ -168,11 +168,11 @@ def test_run():
 #         "--max=100000",
         "--display_cycle",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args).wait()
     sys.exit(0)
 
 if __name__ == '__main__':
-    print "ERROR: Run DragonPy_CLI.py instead!"
+    print("ERROR: Run DragonPy_CLI.py instead!")
     test_run()
     sys.exit(0)

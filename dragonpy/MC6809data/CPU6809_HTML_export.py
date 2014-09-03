@@ -14,7 +14,7 @@
 
 import os
 
-from MC6809_data_raw2 import OP_DATA, BYTE, WORD
+from .MC6809_data_raw2 import OP_DATA, BYTE, WORD
 
 
 OUTFILENAME = "CPU6809_opcodes.html"
@@ -98,7 +98,7 @@ for instruction, instr_data in sorted(OP_DATA.items()):
 
 
 # add rowspan information
-for colum_no in xrange(len(data[0])):
+for colum_no in range(len(data[0])):
     old_cell = None
     same_count = 0
     for row in reversed(data):
@@ -154,5 +154,5 @@ th, td {padding:5px;}
     htmlfile.write("</body></html>")
 
 
-print "file %r written" % OUTFILENAME
-print " -- END -- "
+print("file %r written" % OUTFILENAME)
+print(" -- END -- ")

@@ -12,8 +12,8 @@
 """
 
 
-import Tkinter
-import tkFont
+import tkinter
+import tkinter.font
 
 from basic_editor.editor_base import BaseExtension
 from dragonlib.core import basic_parser
@@ -31,7 +31,7 @@ class TkTextHighlighting(BaseExtension):
         
         self.machine_api = editor.machine_api
 
-        bold_font = tkFont.Font(self.text, self.text.cget("font"))
+        bold_font = tkinter.font.Font(self.text, self.text.cget("font"))
         bold_font.configure(weight="bold")
         self.text.tag_configure("bold", font=bold_font)
         
@@ -44,7 +44,7 @@ class TkTextHighlighting(BaseExtension):
             basic_parser.CODE_TYPE_STRING: {"foreground":"#0000ff"},# , "font":bold_font},
             basic_parser.CODE_TYPE_COMMENT: {"foreground":"#00aa00"},
         }
-        for tag, args in self.tagdefs.items():
+        for tag, args in list(self.tagdefs.items()):
             self.text.tag_configure(tag, **args)
         
 #         self.notify_range("1.0", "end")
@@ -53,7 +53,7 @@ class TkTextHighlighting(BaseExtension):
         self.__update_interval()  
         
     def update(self, force=False):
-        pos = self.text.index(Tkinter.INSERT)
+        pos = self.text.index(tkinter.INSERT)
         
         if not force:
             if pos==self.old_pos:
@@ -81,9 +81,9 @@ class TkTextHighlighting(BaseExtension):
         listing = self.editor.get_content()
         destinations = self.machine_api.renum_tool.get_destinations(listing)
         
-        line_max = self.text.index(Tkinter.END).split('.')[0]
+        line_max = self.text.index(tkinter.END).split('.')[0]
         line_max = int(line_max)
-        for line_no in xrange(line_max):
+        for line_no in range(line_max):
             line_content = self.text.get("%s.0" % line_no, "%s.0+1lines" % line_no)
 #             print "line:", repr(line_content)
             if not line_content.strip():
@@ -91,7 +91,7 @@ class TkTextHighlighting(BaseExtension):
 
             parsed_lines = self.machine_api.parse_ascii_listing(line_content)
             try:
-                code_line_no, code_objects = parsed_lines.items()[0]
+                code_line_no, code_objects = list(parsed_lines.items())[0]
             except IndexError:
                 continue
 #             print "parsed line:", code_line_no, code_objects

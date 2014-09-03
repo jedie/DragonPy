@@ -8,7 +8,7 @@
 import importlib
 import os
 import sys
-import thread
+import _thread
 import threading
 import time
 
@@ -50,7 +50,7 @@ class CPUThread(threading.Thread):
         max_ops = self.cfg.cfg_dict["max_ops"]
         if max_ops:
             log.critical("Running only %i ops!", max_ops)
-            for __ in xrange(max_ops):
+            for __ in range(max_ops):
                 cpu.get_and_call_next_op()
                 if not cpu.running:
                     break
@@ -65,7 +65,7 @@ class CPUThread(threading.Thread):
         try:
             self.loop()
         except KeyboardInterrupt:
-            thread.interrupt_main()
+            _thread.interrupt_main()
         log.critical(" *** CPUThread.run() stopped. *** ")
 
 
@@ -89,14 +89,14 @@ def start_cpu(cfg_dict, read_bus_request_queue, read_bus_response_queue, write_b
         cpu_thread.join()
     except KeyboardInterrupt:
         log.critical("CPU thread stops by keyboard interrupt.")
-        thread.interrupt_main()
+        _thread.interrupt_main()
     else:
         log.critical("CPU thread stopped.")
     cpu.running = False
 
 
 def test_run():
-    print "test run..."
+    print("test run...")
     import subprocess
     cmd_args = [sys.executable,
         os.path.join("..", "..", "DragonPy_CLI.py"),
@@ -113,11 +113,11 @@ def test_run():
 #         "--max=1",
         "--display_cycle",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args).wait()
     sys.exit(0)
 
 if __name__ == '__main__':
-    print "ERROR: Run DragonPy_CLI.py instead!"
+    print("ERROR: Run DragonPy_CLI.py instead!")
     test_run()
     sys.exit(0)

@@ -112,7 +112,7 @@ def test_run():
 #         "--max=20000",
         "--max=1",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
 if __name__ == "__main__":

@@ -152,12 +152,12 @@ COCO_BASIC_TOKENS.update(COCO_EXTENDED_COLOR_BASIC_TOKENS)
 if __name__ == '__main__':
     from dragonlib.dragon32.basic_tokens import DRAGON32_BASIC_TOKENS
 
-    values = range(0x80, 0x100) + range(0x8000, 0x10000)
+    values = list(range(0x80, 0x100)) + list(range(0x8000, 0x10000))
 
     # Generate Wiki Table for:
     # http://archive.worldofdragon.org/index.php?title=Tokens
 
-    print """
+    print("""
 * "CoCo A": - Tokens from Color BASIC 1.3
 * "CoCo B": - Additional tokens from Extended Color BASIC 1.1 only
 {| class="wikitable" style="font-family: monospace; background-color:#ffffcc;" cellpadding="10"
@@ -169,7 +169,7 @@ token
 token
 ! CoCo B
 token
-"""
+""")
     for value in values:
         coco_basic_statement = COCO_COLOR_BASIC_TOKENS.get(value, "")
         coco_extended_basic_statement = COCO_EXTENDED_COLOR_BASIC_TOKENS.get(value, "")
@@ -183,11 +183,11 @@ token
         else:
             value = "$%02x" % value
 
-        print "|-"
-        print "| %s" % value
-        print "| %s" % dragon_statement
-        print "| %s" % coco_basic_statement
-        print "| %s" % coco_extended_basic_statement
+        print("|-")
+        print("| %s" % value)
+        print("| %s" % dragon_statement)
+        print("| %s" % coco_basic_statement)
+        print("| %s" % coco_extended_basic_statement)
         
-    print "|-"
-    print "|}"
+    print("|-")
+    print("|}")

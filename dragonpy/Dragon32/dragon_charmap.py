@@ -118,8 +118,8 @@ chars_map = [
     (28, 92, '\\', INVERTED),
     (29, 93, ']', INVERTED),
 
-    (30, 2191, u'\N{UPWARDS ARROW}', INVERTED),
-    (31, 2190, u'\N{LEFTWARDS ARROW}', INVERTED),
+    (30, 2191, '\N{UPWARDS ARROW}', INVERTED),
+    (31, 2190, '\N{LEFTWARDS ARROW}', INVERTED),
 
     (32, 32, ' ', INVERTED),
     (33, 33, '!', INVERTED),
@@ -156,10 +156,10 @@ chars_map = [
 ]
 
 CHARS = (
-    u"@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]"
-    u"\N{UPWARDS ARROW}"
-    u"\N{LEFTWARDS ARROW}"
-    u" !\"#$%&'()*+,-./0123456789:;<=>?"
+    "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]"
+    "\N{UPWARDS ARROW}"
+    "\N{LEFTWARDS ARROW}"
+    " !\"#$%&'()*+,-./0123456789:;<=>?"
 )
 
 # Add CHARS
@@ -172,22 +172,22 @@ for item_type in (INVERTED, NORMAL):
 
 
 BLOCKS = (
-    u'\N{FULL BLOCK}' # XXX: complete black
-    u'\N{QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER LEFT}'
-    u'\N{QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER RIGHT}'
-    u'\N{UPPER HALF BLOCK}'
-    u'\N{QUADRANT UPPER LEFT AND LOWER LEFT AND LOWER RIGHT}'
-    u'\N{LEFT HALF BLOCK}'
-    u'\N{QUADRANT UPPER LEFT AND LOWER RIGHT}'
-    u'\N{QUADRANT UPPER LEFT}'
-    u'\N{QUADRANT UPPER RIGHT AND LOWER LEFT AND LOWER RIGHT}'
-    u'\N{QUADRANT UPPER RIGHT AND LOWER LEFT}'
-    u'\N{RIGHT HALF BLOCK}'
-    u'\N{QUADRANT UPPER RIGHT}'
-    u'\N{LOWER HALF BLOCK}'
-    u'\N{QUADRANT LOWER LEFT}'
-    u'\N{QUADRANT LOWER RIGHT}'
-    u' ' # XXX: complete filled with color
+    '\N{FULL BLOCK}' # XXX: complete black
+    '\N{QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER LEFT}'
+    '\N{QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER RIGHT}'
+    '\N{UPPER HALF BLOCK}'
+    '\N{QUADRANT UPPER LEFT AND LOWER LEFT AND LOWER RIGHT}'
+    '\N{LEFT HALF BLOCK}'
+    '\N{QUADRANT UPPER LEFT AND LOWER RIGHT}'
+    '\N{QUADRANT UPPER LEFT}'
+    '\N{QUADRANT UPPER RIGHT AND LOWER LEFT AND LOWER RIGHT}'
+    '\N{QUADRANT UPPER RIGHT AND LOWER LEFT}'
+    '\N{RIGHT HALF BLOCK}'
+    '\N{QUADRANT UPPER RIGHT}'
+    '\N{LOWER HALF BLOCK}'
+    '\N{QUADRANT LOWER LEFT}'
+    '\N{QUADRANT LOWER RIGHT}'
+    ' ' # XXX: complete filled with color
 )
 
 # Add BLOCKS in every color to chars_map
@@ -200,15 +200,15 @@ for item_type in COLORS:
 
 def list_chars():
     index = 0
-    for x in xrange(8):
-        line = u""
-        for y in xrange(32):
+    for x in range(8):
+        line = ""
+        for y in range(32):
             try:
                 line += DRAGON_CHARS_MAP[index][0]
             except KeyError:
                 break
             index += 1
-        print line.encode("utf-8")
+        print(line.encode("utf-8"))
 
 
 def create_wiki_page():
@@ -221,36 +221,36 @@ def create_wiki_page():
         ' background-color:#ffffcc;"'
         ' cellpadding="10"'
     )
-    print "|-"
-    print "! POKE"
-    print "value"
-    print "! "
-    print "! unicode"
-    print "codepoint"
-    print "! type"
-    print "|-"
+    print("|-")
+    print("! POKE")
+    print("value")
+    print("! ")
+    print("! unicode")
+    print("codepoint")
+    print("! type")
+    print("|-")
     for no, data in enumerate(DRAGON_CHARS_MAP):
         item, item_type = data
 
         codepoint = ord(item)
-        print u"|%i" % no
+        print("|%i" % no)
 
         foreground, background = get_rgb_color(item_type)
         foreground = "#%02x%02x%02x" % foreground
         background = "#%02x%02x%02x" % background
 
         style = "color: #%s;"
-        print '| style="color:%s; background-color:%s;" | &#x%x;' % (
+        print('| style="color:%s; background-color:%s;" | &#x%x;' % (
             foreground, background, codepoint
-        )
-        print "|%i" % codepoint
-        print "|%s" % item_type
-        print "|-"
-    print "|}"
+        ))
+        print("|%i" % codepoint)
+        print("|%s" % item_type)
+        print("|-")
+    print("|}")
 
 
 def create_dict():
-    print "DRAGON_CHAR_MAP={"
+    print("DRAGON_CHAR_MAP={")
     for no, data in enumerate(DRAGON_CHARS_MAP):
         item, item_type = data
         codepoint = ord(item)
@@ -265,8 +265,8 @@ def create_dict():
         )
         txt = "    %-29s %s" % (txt, name)
 
-        print txt
-    print "}"
+        print(txt)
+    print("}")
 
 
 def get_charmap_dict():
@@ -279,9 +279,9 @@ def get_charmap_dict():
 
 if __name__ == "__main__":
     import doctest
-    print doctest.testmod(
+    print(doctest.testmod(
         # verbose=1
-    )
+    ))
 
 #     create_wiki_page()
 #     create_dict()

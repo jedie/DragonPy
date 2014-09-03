@@ -12,20 +12,20 @@ import unittest
 import logging
 import sys
 
-from test_base import BaseCPUTestCase
+from .test_base import BaseCPUTestCase
 from dragonpy.tests.test_base import TextTestRunner2
 from dragonpy.utils.byte_word_values import signed8
 
 
 class CCTestCase(BaseCPUTestCase):
     def test_set_get(self):
-        for i in xrange(256):
+        for i in range(256):
             self.cpu.cc.set(i)
             status_byte = self.cpu.cc.get()
             self.assertEqual(status_byte, i)
 
     def test_HNZVC_8(self):
-        for i in xrange(280):
+        for i in range(280):
             self.cpu.cc.set(0x00)
             r = i + 1 # e.g. ADDA 1 loop
             self.cpu.cc.update_HNZVC_8(a=i, b=1, r=r)

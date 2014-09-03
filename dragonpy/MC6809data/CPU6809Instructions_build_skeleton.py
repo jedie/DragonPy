@@ -15,7 +15,7 @@ import pprint
 import sys
 import textwrap
 
-from MC6809_data_raw import OP_CATEGORIES, INSTRUCTION_INFO, OP_DATA, ADDRES_MODE_DICT
+from .MC6809_data_raw import OP_CATEGORIES, INSTRUCTION_INFO, OP_DATA, ADDRES_MODE_DICT
 
 HNZVC_FUNC_MAP = {
     "-aa0-": "NZ0",
@@ -66,8 +66,8 @@ class Tee(object):
 sys.stdout = Tee("MC6809_skeleton.py", sys.stdout)
 
 
-print '"""%s"""' % __doc__
-print '''
+print('"""%s"""' % __doc__)
+print('''
 def opcode(*opcodes):
     """A decorator for opcodes"""
     def decorator(func):
@@ -75,8 +75,8 @@ def opcode(*opcodes):
         setattr(func, "_opcodes", opcodes)
         return func
     return decorator
-'''
-print "class CPU6809Skeleton(object):"
+''')
+print("class CPU6809Skeleton(object):")
 
 
 def get_ops_by_instr_key(instr_key):
@@ -94,8 +94,8 @@ def print_doc(instr_data, key, prefix=""):
     )
     txt = w.fill(raw_txt)
     if txt:
-        print txt
-        print
+        print(txt)
+        print()
 
 def print_func(func_name, ops):
     op_info = {}
@@ -114,9 +114,9 @@ def print_func(func_name, ops):
             op_info[mnemonic]["addr_modes"].append(op["addr_mode"])
 
     if "short_desc" in instr_data:
-        print '    @opcode( # %s' % instr_data["short_desc"]
+        print('    @opcode( # %s' % instr_data["short_desc"])
     else:
-        print '    @opcode('
+        print('    @opcode(')
 
 
     for mnemonic, ops in sorted(op_info.items()):
@@ -131,9 +131,9 @@ def print_func(func_name, ops):
             [ADDRES_MODE_DICT[addr_mode].lower() for addr_mode in ops["addr_modes"]]
         )
         line += ")"
-        print line
+        print(line)
 
-    print '    )'
+    print('    )')
 
     func_line = "    def instruction_%s(self, opcode" % func_name
     if has_ea:
@@ -141,15 +141,15 @@ def print_func(func_name, ops):
     if has_operant:
         func_line += ", operand=None"
     func_line += "):"
-    print func_line
+    print(func_line)
 
-    print '        """'
+    print('        """')
     print_doc(instr_data, "description")
     print_doc(instr_data, "comment")
     print_doc(instr_data, "source form", "source code forms: ")
     for line in instr_data.get("HNZVC", "").split("\n"):
-        print '        CC bits "HNZVC": %s' % line
-    print '        """'
+        print('        CC bits "HNZVC": %s' % line)
+    print('        """')
 
 
 added_ops = []
@@ -175,14 +175,14 @@ for instr_key, instr_data in sorted(INSTRUCTION_INFO.items()):
     for func_name, ops in sorted(splitted_ops.items()):
         print_func(func_name, ops)
 
-        print '        raise NotImplementedError("$%%x %s" %% opcode)' % func_name
+        print('        raise NotImplementedError("$%%x %s" %% opcode)' % func_name)
 
         cc_bits = instr_data["HNZVC"]
         try:
             cc_func = HNZVC_FUNC_MAP[cc_bits]
         except KeyError:
             if cc_bits != "-----":
-                print "        # Update CC bits: %s" % cc_bits
+                print("        # Update CC bits: %s" % cc_bits)
         else:
 
             cc_call_line = '        #self.cc.update_%s' % cc_func
@@ -195,16 +195,16 @@ for instr_key, instr_data in sorted(INSTRUCTION_INFO.items()):
                 cc_call_line += "(a, b, r)"
             else:
                 cc_call_line += "()"
-            print cc_call_line
-        print
+            print(cc_call_line)
+        print()
 
-print '"""'
-print "No ops for:"
+print('"""')
+print("No ops for:")
 for instr_key, instr_data in no_ops:
-    print instr_key
+    print(instr_key)
     pprint.pprint(instr_data)
-print '"""'
+print('"""')
 
 sys.stdout.close()
-print "%i opcodes" % len(added_ops)
+print("%i opcodes" % len(added_ops))
 

@@ -22,4 +22,4 @@ with open("Dragon 64 in 32 mode.txt", "r") as f:
 
 
         comment = comment.replace('"','\"')
-        print '        (%s, %s, "%s"),' % (start_addr, end_addr, comment)
+        print('        (%s, %s, "%s"),' % (start_addr, end_addr, comment))

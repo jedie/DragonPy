@@ -230,4 +230,4 @@ if __name__ == "__main__":
         verbosity=2,
         #         failfast=True,
     )
-    print " --- END --- "
+    print(" --- END --- ")

@@ -92,13 +92,13 @@ def func_name_from_op_code(op_code):
 
 def generate_code(f):
     variants = set()
-    for instr_data in OP_DATA.values():
-        for mnemonic, mnemonic_data in instr_data["mnemonic"].items():
+    for instr_data in list(OP_DATA.values()):
+        for mnemonic, mnemonic_data in list(instr_data["mnemonic"].items()):
             read_from_memory = mnemonic_data["read_from_memory"]
             write_to_memory = mnemonic_data["write_to_memory"]
             needs_ea = mnemonic_data["needs_ea"]
             register = mnemonic_data["register"]
-            for op_code, op_data in mnemonic_data["ops"].items():
+            for op_code, op_data in list(mnemonic_data["ops"].items()):
                 addr_mode = op_data["addr_mode"]
 #                print hex(op_code),
                 variants.add(
@@ -106,7 +106,7 @@ def generate_code(f):
                 )
 #                if (addr_mode and  needs_ea and  register and  read_from_memory and  write_to_memory) is None:
                 if addr_mode is None:
-                    print mnemonic, op_data
+                    print(mnemonic, op_data)
 
 #    for no, data in enumerate(sorted(variants)):
 #        print no, data
@@ -192,7 +192,7 @@ def test_run():
 #         "--max=20000",
         "--max=1",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
 

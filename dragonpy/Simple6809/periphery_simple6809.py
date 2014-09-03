@@ -12,12 +12,12 @@
 
 import sys
 import os
-import Queue
+import queue
 
 try:
-    import Tkinter
-except Exception, err:
-    print "Error importing Tkinter: %s" % err
+    import tkinter
+except Exception as err:
+    print("Error importing Tkinter: %s" % err)
     Tkinter = None
 
 try:
@@ -51,7 +51,7 @@ class Simple6809PeripheryBase(PeripheryBase):
     def read_acia_data(self, cpu_cycles, op_address, address):
         try:
             char = self.user_input_queue.get(block=False)
-        except Queue.Empty:
+        except queue.Empty:
             return 0x0
 
         value = ord(char)
@@ -136,7 +136,7 @@ def test_run():
 #         "--max=20000",
 #         "--max=1",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
 if __name__ == "__main__":

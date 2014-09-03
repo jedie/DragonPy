@@ -55,7 +55,7 @@ def test_run_direct():
         #         "/usr/bin/pypy",
         os.path.join("..", "CoCo_test.py"),
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
 

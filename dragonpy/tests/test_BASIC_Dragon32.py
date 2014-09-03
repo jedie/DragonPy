@@ -44,7 +44,7 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
         op_call_count, cycles, output = self._run_until_OK(max_ops=114000)
 #        print op_call_count, cycles, output
         self.assertEqual(output,
-            [u'POKE &H05FF,88', u'OK', u'X']
+            ['POKE &H05FF,88', 'OK', 'X']
         )
     
     def test_code_load01(self):
@@ -59,7 +59,7 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
         op_call_count, cycles, output = self._run_until_OK(max_ops=143000)
 #        print op_call_count, cycles, output
         self.assertEqual(output,
-            [u'10A=1', u'20B=2', u'LIST', u'10 A=1', u'20 B=2', u'OK']
+            ['10A=1', '20B=2', 'LIST', '10 A=1', '20 B=2', 'OK']
         )
         output = self.request_comm.get_basic_program()
         self.assertEqual(output, ['10 A=1', '20 B=2'])
@@ -79,7 +79,7 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
         op_call_count, cycles, output = self._run_until_OK(max_ops=4000000)
 #        print op_call_count, cycles, output
         self.assertEqual(output,
-            [u'LIST', u'10 ?123', u'20 PRINT "FOO"', u'OK']
+            ['LIST', '10 ?123', '20 PRINT "FOO"', 'OK']
         )
 
     @unittest.expectedFailure # TODO:
@@ -90,9 +90,9 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
             'LIST\r\n'
         )
         op_call_count, cycles, output = self._run_until_OK(max_ops=1430000)
-        print op_call_count, cycles, output
+        print(op_call_count, cycles, output)
         self.assertEqual(output,
-            [u'10A=1', u'20B=2', u'LIST', u'10 A=1', u'20 B=2', u'OK']
+            ['10A=1', '20B=2', 'LIST', '10 A=1', '20 B=2', 'OK']
         )
         output = self.request_comm.get_basic_program()
         self.assertEqual(output, ['10 A=1', '20 B=2'])

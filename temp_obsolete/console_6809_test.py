@@ -10,7 +10,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import Queue
+import queue
 import sys
 import threading
 import time
@@ -63,7 +63,7 @@ class Console6809Periphery(Simple6809PeripheryBase):
         while True:
             try:
                 char = self.display_queue.get(block=False)
-            except Queue.Empty:
+            except queue.Empty:
                 break
             else:
                 sys.stdout.write(char)
@@ -74,7 +74,7 @@ class Console6809(object):
     def __init__(self):
         cfg = Simple6809Cfg(CFG_DICT)
 
-        self.user_input_queue = Queue.Queue()
+        self.user_input_queue = queue.Queue()
         self.periphery = Console6809Periphery(self.user_input_queue, cfg)
         cfg.periphery = self.periphery
 
@@ -108,7 +108,7 @@ class Console6809(object):
 
 
 if __name__ == '__main__':
-    print "Startup 6809 machine..."
+    print("Startup 6809 machine...")
 
     setup_logging(log,
 #        level=1 # hardcore debug ;)
@@ -121,4 +121,4 @@ if __name__ == '__main__':
     c = Console6809()
     c.run()
 
-    print " --- END --- "
+    print(" --- END --- ")

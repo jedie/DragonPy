@@ -10,8 +10,8 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import Queue
-import thread
+import queue
+import _thread
 import threading
 
 from dragonlib.core.basic import log_program_dump
@@ -37,8 +37,8 @@ class CommunicatorRequest(BaseCommunicator):
     def __init__(self, cfg):
         self.cfg = cfg
         self.machine_api = self.cfg.machine_api
-        self.request_queue = Queue.Queue(maxsize=1)
-        self.response_queue = Queue.Queue(maxsize=1)
+        self.request_queue = queue.Queue(maxsize=1)
+        self.response_queue = queue.Queue(maxsize=1)
 
     def get_queues(self):
         return self.request_queue, self.response_queue
@@ -142,7 +142,7 @@ class CommunicatorResponse(BaseCommunicator):
     def do_response(self):
         try:
             queue_entry = self.request_queue.get(block=False)
-        except Queue.Empty:
+        except queue.Empty:
             return
 
         func_key = queue_entry[0]
@@ -221,7 +221,7 @@ class Machine(object):
         cpu = self.cpu
         op_count = 0
         while cpu.running:
-            for __ in xrange(self.burst_count):
+            for __ in range(self.burst_count):
                 cpu.get_and_call_next_op()
 
             self.response_comm.do_response()
@@ -255,7 +255,7 @@ class MachineThread(threading.Thread):
         except Exception as err:
             log.critical("MachineThread exception: %s", err)
             print_exc_plus()
-            thread.interrupt_main()
+            _thread.interrupt_main()
             raise
         log.critical(" *** MachineThread.run() stopped. *** ")
 
@@ -290,14 +290,14 @@ class ThreadedMachineGUI(object):
 
         # LifoQueue filles in CPU Thread with CPU-Cycles information:
         # Use a LifoQueue to get the most recently added status first.
-        self.cpu_status_queue = Queue.LifoQueue(maxsize=1)  # CPU cyltes/sec information
+        self.cpu_status_queue = queue.LifoQueue(maxsize=1)  # CPU cyltes/sec information
 
         # Queue to send keyboard inputs from GUI to CPU Thread:
-        self.user_input_queue = Queue.Queue(maxsize=1024)
+        self.user_input_queue = queue.Queue(maxsize=1024)
 
         # Queue which contains "write into Display RAM" information
         # for render them in DragonTextDisplayCanvas():
-        self.display_queue = Queue.Queue(maxsize=64)
+        self.display_queue = queue.Queue(maxsize=64)
 
         # Queue to send from GUI a request to the CPU/Memory
         # and send the response back to the GUI
@@ -351,7 +351,7 @@ def test_run():
 #        "--max_ops", "1",
 #        "--trace",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
 if __name__ == "__main__":

@@ -10,7 +10,7 @@
 
 import unittest
 
-from test_base import BaseCPUTestCase
+from .test_base import BaseCPUTestCase
 
 
 class CC_AccumulatorTestCase(BaseCPUTestCase):

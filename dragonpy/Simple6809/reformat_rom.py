@@ -5,7 +5,7 @@
 
 IN_FILENAME = "ExBasROM.LST"
 
-print "Read %s" % IN_FILENAME
+print("Read %s" % IN_FILENAME)
 lst_file = open(IN_FILENAME, "r")
 
 OUT_FILENAME = IN_FILENAME + "2"
@@ -41,15 +41,15 @@ for line in lst_file:
         dst = dst.split("+", 1)[0]
         dst = dst.split("-", 1)[0]
 
-        print repr(dst), addr_dict.get(dst, "-")
+        print(repr(dst), addr_dict.get(dst, "-"))
 
         if dst in addr_dict:
-            print "%r -> %r" % (dst, addr_dict[dst])
-            print "1:", code
+            print("%r -> %r" % (dst, addr_dict[dst]))
+            print("1:", code)
             new_dst = "%s(%s)" % (addr_dict[dst], dst)
             code = code.replace(dst, new_dst)
-            print "2:", code
-            print
+            print("2:", code)
+            print()
 
         line = "%-70s %s" % (code, desc)
 
@@ -63,4 +63,4 @@ for line in lst_file:
 lst_file.close()
 new_lst_file.close()
 
-print "\nnew file %r written." % OUT_FILENAME
+print("\nnew file %r written." % OUT_FILENAME)

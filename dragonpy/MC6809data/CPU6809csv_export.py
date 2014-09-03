@@ -14,11 +14,11 @@
 import pprint
 import sys
 
-from MC6809_data_raw import INSTRUCTION_INFO, OP_DATA
+from .MC6809_data_raw import INSTRUCTION_INFO, OP_DATA
 from MC6809data.MC6809_data_raw import MEM_ACCESS_BYTE, MEM_ACCESS_WORD
 
 
-keys = OP_DATA[0].keys()
+keys = list(OP_DATA[0].keys())
 keys.insert(3, "opcode_hex")
 keys.sort()
 
@@ -50,7 +50,7 @@ with open('CPU6809_opcodes.csv', 'wb') as csvfile:
             if key == "mem_access" and data != "-":
                 data = MEM_ACCESS_MAP[data]
                 
-            if isinstance(data, basestring):
+            if isinstance(data, str):
                 data = data.replace("\t", "    ")
             row.append(data)
 
@@ -61,7 +61,7 @@ with open('CPU6809_opcodes.csv', 'wb') as csvfile:
                 instr_info.get(key, "").replace("\n", " ").replace("\t", "    ")
             )
 
-        print row
+        print(row)
         w.writerow(row)
 
-print " -- END -- "
+print(" -- END -- ")

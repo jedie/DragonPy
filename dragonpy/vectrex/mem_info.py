@@ -39,7 +39,7 @@ class VectrexMemInfo(BaseMemoryInfo):
 
 
 def print_out(txt):
-    print txt
+    print(txt)
 
 
 def get_vectrex_meminfo():
@@ -77,4 +77,4 @@ if __name__ == "__main__":
         else:
             addr = "%s-%s" % (nice_hex(s), nice_hex(e))
 
-        print "%-11s ; %s" % (addr, txt)
+        print("%-11s ; %s" % (addr, txt))

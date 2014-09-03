@@ -10,10 +10,10 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import Queue
-import httplib
+import queue
+import http.client
 import sys
-import thread
+import _thread
 import threading
 import time
 
@@ -22,9 +22,9 @@ from dragonlib.utils.logging_utils import log
 
 
 try:
-    import Tkinter
-except Exception, err:
-    print "Error importing Tkinter: %s" % err
+    import tkinter
+except Exception as err:
+    print("Error importing Tkinter: %s" % err)
     Tkinter = None
 
 
@@ -37,9 +37,9 @@ class PeripheryBase(object):
         self.memory = memory
         self.running = True
 
-        self.display_queue = Queue.Queue() # Buffer for output from CPU
+        self.display_queue = queue.Queue() # Buffer for output from CPU
         if user_input_queue is None:
-            self.user_input_queue = Queue.Queue() # Buffer for input to send back to the CPU
+            self.user_input_queue = queue.Queue() # Buffer for input to send back to the CPU
         else:
             self.user_input_queue = user_input_queue
 
@@ -63,7 +63,7 @@ class PeripheryBase(object):
         max_ops = self.cfg.cfg_dict["max_ops"]
         if max_ops:
             log.critical("Running only %i ops!", max_ops)
-            for __ in xrange(max_ops):
+            for __ in range(max_ops):
                 cpu.get_and_call_next_op()
                 if not (self.periphery.running and self.cpu.running):
                     break
@@ -103,19 +103,19 @@ class TkPeripheryBase(PeripheryBase):
     def __init__(self, cfg):
         super(TkPeripheryBase, self).__init__(cfg)
         assert Tkinter is not None, "ERROR: Tkinter can't be used, see import error above!"
-        self.root = Tkinter.Tk()
+        self.root = tkinter.Tk()
 
         self.root.title(self.TITLE)
 #         self.root.geometry() # '640x480+500+300') # X*Y + x/y-offset
         self.root.geometry(self.GEOMETRY) # Change initial position
 
         # http://www.tutorialspoint.com/python/tk_text.htm
-        self.text = Tkinter.Text(
+        self.text = tkinter.Text(
             self.root,
             height=20, width=80,
-            state=Tkinter.DISABLED # FIXME: make textbox "read-only"
+            state=tkinter.DISABLED # FIXME: make textbox "read-only"
         )
-        scollbar = Tkinter.Scrollbar(self.root)
+        scollbar = tkinter.Scrollbar(self.root)
         scollbar.config(command=self.text.yview)
 
         self.text.config(
@@ -125,8 +125,8 @@ class TkPeripheryBase(PeripheryBase):
 #            yscrollcommand=scollbar.set, # FIXME
         )
 
-        scollbar.pack(side=Tkinter.RIGHT, fill=Tkinter.Y)
-        self.text.pack(side=Tkinter.LEFT, fill=Tkinter.Y)
+        scollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
+        self.text.pack(side=tkinter.LEFT, fill=tkinter.Y)
 
         self.root.bind("<Return>", self.event_return)
         self.root.bind("<Escape>", self.from_console_break)
@@ -147,8 +147,8 @@ class TkPeripheryBase(PeripheryBase):
 
     def copy_to_clipboard(self, event):
         log.critical("Copy to clipboard")
-        text = self.text.get("1.0", Tkinter.END)
-        print text
+        text = self.text.get("1.0", tkinter.END)
+        print(text)
         self.root.clipboard_clear()
         self.root.clipboard_append(text)
 
@@ -183,20 +183,20 @@ class TkPeripheryBase(PeripheryBase):
             op_address, cpu_cycles, value, value, chr(value)
         ))
         if value == 0x8: # Backspace
-            self.text.config(state=Tkinter.NORMAL)
+            self.text.config(state=tkinter.NORMAL)
             # delete last character
-            self.text.delete("%s - 1 chars" % Tkinter.INSERT, Tkinter.INSERT)
-            self.text.config(state=Tkinter.DISABLED) # FIXME: make textbox "read-only"
+            self.text.delete("%s - 1 chars" % tkinter.INSERT, tkinter.INSERT)
+            self.text.config(state=tkinter.DISABLED) # FIXME: make textbox "read-only"
             return
 
         super(TkPeripheryBase, self).write_acia_data(cpu_cycles, op_address, address, value)
 
     def _new_output_char(self, char):
         """ insert in text field """
-        self.text.config(state=Tkinter.NORMAL)
+        self.text.config(state=tkinter.NORMAL)
         self.text.insert("end", char)
         self.text.see("end")
-        self.text.config(state=Tkinter.DISABLED)
+        self.text.config(state=tkinter.DISABLED)
 
     def add_input_interval(self, cpu_process):
         if not cpu_process.is_alive():
@@ -205,7 +205,7 @@ class TkPeripheryBase(PeripheryBase):
         while True:
             try:
                 char = self.display_queue.get(block=False)
-            except Queue.Empty:
+            except queue.Empty:
                 break
             else:
                 self._new_output_char(char)
@@ -239,10 +239,10 @@ class InputPollThread(threading.Thread):
 #            log.critical("check_cpu_interval()")
             if not cpu_process.is_alive():
                 log.critical("raise SystemExit, because CPU is not alive.")
-                thread.interrupt_main()
+                _thread.interrupt_main()
                 raise SystemExit("Kill pager.getch()")
         except KeyboardInterrupt:
-            thread.interrupt_main()
+            _thread.interrupt_main()
         else:
             t = threading.Timer(1.0, self.check_cpu_interval, args=[cpu_process])
             t.start()
@@ -261,7 +261,7 @@ class InputPollThread(threading.Thread):
         try:
             self._run()
         except KeyboardInterrupt:
-            thread.interrupt_main()
+            _thread.interrupt_main()
         log.critical("InputPollThread.run() ends, because CPU not alive anymore.")
 
 
@@ -302,7 +302,7 @@ class PeripheryUnittestBase(object):
         while True:
             try:
                 char = self.display_queue.get(block=False)
-            except Queue.Empty:
+            except queue.Empty:
                 break
             else:
                 self._new_output_char(char)

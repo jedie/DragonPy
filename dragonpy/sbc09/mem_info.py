@@ -454,7 +454,7 @@ class SBC09MemInfo(BaseMemoryInfo):
 
 
 def print_out(txt):
-    print txt
+    print(txt)
 
 
 def get_sbc09_meminfo():

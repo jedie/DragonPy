@@ -10,12 +10,12 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import Queue
-import Tkinter
+import queue
+import tkinter
 import os
 import sys
 import time
-import tkMessageBox
+import tkinter.messagebox
 
 from basic_editor.editor import EditorWindow
 
@@ -47,7 +47,7 @@ class MC6847_TextModeCanvas(object):
         self.total_width = self.tk_font.width_scaled * self.rows
         self.total_height = self.tk_font.height_scaled * self.columns
 
-        self.canvas = Tkinter.Canvas(root,
+        self.canvas = tkinter.Canvas(root,
             width=self.total_width,
             height=self.total_height,
             bd=0, # no border
@@ -66,14 +66,14 @@ class MC6847_TextModeCanvas(object):
 
         # Create all charachter images on the display and fill self.images_map:
         self.init_img = self.tk_font.get_char(char="?", color=dragon_charmap.INVERTED)
-        for row in xrange(self.rows + 1):
-            for column in xrange(self.columns + 1):
+        for row in range(self.rows + 1):
+            for column in range(self.columns + 1):
                 x = self.tk_font.width_scaled * row
                 y = self.tk_font.height_scaled * column
                 image_id = self.canvas.create_image(x, y,
                     image=self.init_img,
                     state="normal",
-                    anchor=Tkinter.NW  # NW == NorthWest
+                    anchor=tkinter.NW  # NW == NorthWest
                 )
 #                 log.critical("Image ID: %s at %i x %i", image_id, x, y)
                 self.images_map[(x, y)] = image_id
@@ -124,36 +124,36 @@ class BaseTkinterGUI(object):
         self.last_cpu_cycles = 0
         self.last_cpu_cycle_update = time.time()
 
-        self.root = Tkinter.Tk(className="DragonPy")
+        self.root = tkinter.Tk(className="DragonPy")
 
         self.root.bind("<Key>", self.event_key_pressed)
         self.root.bind("<<Paste>>", self.paste_clipboard)
 
-        self.status = Tkinter.StringVar()
-        self.status_widget = Tkinter.Label(
+        self.status = tkinter.StringVar()
+        self.status_widget = tkinter.Label(
             self.root, textvariable=self.status, text="Info:", borderwidth=1)
         self.status_widget.grid(row=1, column=0, columnspan=2)
 
-        self.menubar = Tkinter.Menu(self.root)
+        self.menubar = tkinter.Menu(self.root)
 
-        filemenu = Tkinter.Menu(self.menubar, tearoff=0)
+        filemenu = tkinter.Menu(self.menubar, tearoff=0)
         filemenu.add_command(label="Exit", command=self.exit)
         self.menubar.add_cascade(label="File", menu=filemenu)
 
         # help menu
-        helpmenu = Tkinter.Menu(self.menubar, tearoff=0)
+        helpmenu = tkinter.Menu(self.menubar, tearoff=0)
         helpmenu.add_command(label="help", command=self.menu_event_help)
         helpmenu.add_command(label="about", command=self.menu_event_about)
         self.menubar.add_cascade(label="help", menu=helpmenu)
 
     def menu_event_about(self):
-        tkMessageBox.showinfo("DragonPy",
+        tkinter.messagebox.showinfo("DragonPy",
             "DragonPy the OpenSource emulator written in python.\n"
             "more info: https://github.com/jedie/DragonPy"
         )
 
     def menu_event_help(self):
-        tkMessageBox.showinfo("Help",
+        tkinter.messagebox.showinfo("Help",
             "Please read the README:"
             "https://github.com/jedie/DragonPy#readme"
         )
@@ -170,7 +170,7 @@ class BaseTkinterGUI(object):
             self.user_input_queue.put(char)
 
     def wait_until_input_queue_empty(self):
-        for count in xrange(4):
+        for count in range(4):
             if self.user_input_queue.empty():
                 log.critical("user_input_queue is empty, after %.1f Sec., ok.", (0.1 * count))
                 return
@@ -201,7 +201,7 @@ class BaseTkinterGUI(object):
         """
         try:
             cycles = self.cpu_status_queue.get(block=False)
-        except Queue.Empty:
+        except queue.Empty:
             log.critical("no new cpu_status_queue entry")
             pass
         else:
@@ -229,7 +229,7 @@ class BaseTkinterGUI(object):
         while True:
             try:
                 cpu_cycles, op_address, address, value = self.display_queue.get_nowait()
-            except Queue.Empty:
+            except queue.Empty:
                 #                 log.critical("display_queue empty -> exit loop")
                 break
 #                 log.critical(
@@ -282,7 +282,7 @@ class DragonTkinterGUI(BaseTkinterGUI):
         self.editor_content = None
         self._editor_window = None
 
-        editmenu = Tkinter.Menu(self.menubar, tearoff=0)
+        editmenu = tkinter.Menu(self.menubar, tearoff=0)
 #        editmenu.add_command(label="load BASIC program", command=self.load_program)
 #        editmenu.add_command(label="dump BASIC program", command=self.dump_program)
         editmenu.add_command(label="open", command=self.open_basic_editor)
@@ -304,12 +304,12 @@ class DragonTkinterGUI(BaseTkinterGUI):
         )
         def format_dump(dump, start_addr, end_addr):
             lines = []
-            for addr, value in zip(xrange(start_addr, end_addr + 1), dump):
+            for addr, value in zip(range(start_addr, end_addr + 1), dump):
                 log.critical("$%04x: $%02x (dez.: %i)", addr, value, value)
                 lines.append("$%04x: $%02x (dez.: %i)" % (addr, value, value))
             return lines
         lines = format_dump(dump, start_addr, end_addr)
-        tkMessageBox.showinfo("TODO", "dump_program:\n%s" % "\n".join(lines))
+        tkinter.messagebox.showinfo("TODO", "dump_program:\n%s" % "\n".join(lines))
 
 
 def test_run_direct():
@@ -322,7 +322,7 @@ def test_run_direct():
 #             "Dragon64_test.py"
         ),
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
 

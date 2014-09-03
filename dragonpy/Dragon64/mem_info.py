@@ -3743,7 +3743,7 @@ class Dragon64MemInfo(BaseMemoryInfo):
 
 
 def print_out(txt):
-    print txt
+    print(txt)
 
 
 def get_dragon_meminfo():
@@ -3786,9 +3786,9 @@ if __name__ == "__main__":
     for start_addr, end_addr, comment in Dragon64MemInfo.MEM_INFO:
         comment = comment.replace('"', '\\"')
         comment = comment.replace('$', '\\$')
-        print '\tcomment=0x%x,"%s" \\' % (
+        print('\tcomment=0x%x,"%s" \\' % (
             start_addr, comment
-        )
+        ))
 
 
-    print "\n --- END --- \n"
+    print("\n --- END --- \n")

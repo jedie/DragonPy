@@ -18,7 +18,7 @@
     Based on: XRoar emulator by Ciaran Anscomb (GPL license) more info, see README
 """
 
-import Queue
+import queue
 import os
 
 from dragonpy.core.configs import COCO2B
@@ -228,7 +228,7 @@ class PIA(object):
             if self.input_repead == 7:
                 try:
                     self.current_input_char = self.user_input_queue.get_nowait()
-                except Queue.Empty:
+                except queue.Empty:
                     self.current_input_char = None
                 else:
                     log.critical(
@@ -260,7 +260,7 @@ class PIA(object):
                 else:
                     try:
                         self.current_input_char = self.user_input_queue.get_nowait()
-                    except Queue.Empty:
+                    except queue.Empty:
 #                        log.critical("\tinput_queue is empty"))
                         self.current_input_char = None
                     else:
@@ -416,7 +416,7 @@ def test_run():
             #             "Dragon64_test.py"
         ),
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
 if __name__ == "__main__":

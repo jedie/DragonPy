@@ -37,7 +37,7 @@ class Test6809_Program(BaseStackTestCase):
             0x26, 0xFA,   #                 bne     L_B3BD
 
         ])
-        print "TODO: Check result!"
+        print("TODO: Check result!")
 
     def _crc16(self, data):
         """

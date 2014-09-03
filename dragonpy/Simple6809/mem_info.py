@@ -4239,7 +4239,7 @@ class Simple6809MemInfo(BaseMemoryInfo):
 
 
 def print_out(txt):
-    print txt
+    print(txt)
 
 
 def get_simple6809_meminfo():

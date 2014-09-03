@@ -70,18 +70,18 @@ class Simple6809Cfg(BaseConfig):
         }
 
     def float_accu_write0(self, cpu, addr, value):
-        print "%04x| Write float accu 0 $%x to $%x %s" % (
+        print("%04x| Write float accu 0 $%x to $%x %s" % (
             cpu.last_op_address, value, addr,
             self.mem_info.get_shortest(addr)
-        )
+        ))
         cpu.memory.ram.print_dump(0x004f, 0x0054)
         return value
 
     def float_accu_write1(self, cpu, addr, value):
-        print "%04x| Write float accu 1 $%x to $%x %s" % (
+        print("%04x| Write float accu 1 $%x to $%x %s" % (
             cpu.last_op_address, value, addr,
             self.mem_info.get_shortest(addr)
-        )
+        ))
         cpu.memory.ram.print_dump(0x005c, 0x0061)
         return value
 
@@ -105,7 +105,7 @@ def test_run():
 #         "--max=20000",
         "--max=1",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
 if __name__ == "__main__":

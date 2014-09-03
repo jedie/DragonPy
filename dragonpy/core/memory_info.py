@@ -17,7 +17,7 @@ class BaseMemoryInfo(object):
 
     def get_shortest(self, addr):
         shortest = None
-        size = sys.maxint
+        size = sys.maxsize
         for start, end, txt in self.MEM_INFO:
             if not start <= addr <= end:
                 continue

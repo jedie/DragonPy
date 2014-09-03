@@ -2779,11 +2779,11 @@ for line in txt.splitlines():
         )
 
 for line in sorted(mem_info):
-    print '(%s, %s, "%s"),' % (
+    print('(%s, %s, "%s"),' % (
         nice_hex(line[0]),
         nice_hex(line[1]),
         line[2]
-    )
+    ))
 
 import sys
 sys.exit()

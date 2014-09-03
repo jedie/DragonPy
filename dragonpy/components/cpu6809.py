@@ -21,12 +21,12 @@
     more info, see README
 """
 
-import Queue
+import queue
 import inspect
 import os
 import socket
 import sys
-import thread
+import _thread
 import threading
 import time
 import warnings
@@ -82,7 +82,7 @@ class CPUStatusThread(threading.Thread):
         while self.cpu.running:
             try:
                 self.cpu_status_queue.put(self.cpu.cycles, block=False)
-            except Queue.Full:
+            except queue.Full:
 #                 log.critical("Can't put CPU status: Queue is full.")
                 pass
             time.sleep(0.5)
@@ -92,7 +92,7 @@ class CPUStatusThread(threading.Thread):
             self._run()
         except:
             self.cpu.running = False
-            thread.interrupt_main()
+            _thread.interrupt_main()
             raise
 
 
@@ -279,7 +279,7 @@ class CPU(object):
 #        log.warn("CPU test_run2(): from $%x count: %i" % (start, count))
         self.program_counter.set(start)
 #        log.debug("-"*79)
-        for __ in xrange(count):
+        for __ in range(count):
             self.get_and_call_next_op()
 
     ####
@@ -1020,7 +1020,7 @@ class CPU(object):
         if opcode == 0x0 and ea == 0x0 and m == 0x0:
             self._wrong_NEG += 1
             if self._wrong_NEG > 10:
-                raise RuntimeError, "Wrong PC ???"
+                raise RuntimeError("Wrong PC ???")
         else:
             self._wrong_NEG = 0
 
@@ -2508,7 +2508,7 @@ def start_CPU(cfg, use_bus, bus_socket_host, bus_socket_port):
 
 
 def test_run():
-    print "test run..."
+    print("test run...")
     import subprocess
     cmd_args = [sys.executable,
         os.path.join("..", "DragonPy_CLI.py"),
@@ -2532,7 +2532,7 @@ def test_run():
 
         "--display_cycle",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args).wait()
     sys.exit(0)
 
@@ -2548,8 +2548,8 @@ if __name__ == "__main__":
     cli = get_cli()
 
     if cli.cfg.bus is None:
-        print "DragonPy cpu core"
-        print "Run DragonPy_CLI.py instead"
+        print("DragonPy cpu core")
+        print("Run DragonPy_CLI.py instead")
         test_run()
         sys.exit(0)
 

@@ -58,7 +58,7 @@ class AddressAreas(dict):
             self.add_area(start_addr, end_addr, txt)
 
     def add_area(self, start_addr, end_addr, txt):
-        for addr in xrange(start_addr, end_addr + 1):
+        for addr in range(start_addr, end_addr + 1):
             dict.__setitem__(self, addr, txt)
 
 
@@ -124,20 +124,20 @@ class BaseConfig(object):
 #         self._mem = [0x00] * size
 
     def print_debug_info(self):
-        print "Config: '%s'" % self.__class__.__name__
+        print("Config: '%s'" % self.__class__.__name__)
 
         for name, value in inspect.getmembers(self): # , inspect.isdatadescriptor):
             if name.startswith("_"):
                 continue
 #             print name, type(value)
-            if not isinstance(value, (int, basestring, list, tuple, dict)):
+            if not isinstance(value, (int, str, list, tuple, dict)):
                 continue
-            if isinstance(value, (int,)):
-                print "%20s = %-6s in hex: %7s" % (
+            if isinstance(value, int):
+                print("%20s = %-6s in hex: %7s" % (
                     name, value, hex(value)
-                )
+                ))
             else:
-                print "%20s = %s" % (name, value)
+                print("%20s = %s" % (name, value))
 
 
 def test_run():
@@ -155,7 +155,7 @@ def test_run():
 #         "--machine=Simple6809",
         "--machine=sbc09",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd=".").wait()
 
 if __name__ == "__main__":

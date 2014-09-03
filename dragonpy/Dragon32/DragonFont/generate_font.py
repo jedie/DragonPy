@@ -29,7 +29,7 @@ def group(lst, n):
     >>> group(range(10), 3)
     [(0, 1, 2), (3, 4, 5), (6, 7, 8)]
     """
-    return zip(*[lst[i::n] for i in range(n)])
+    return list(zip(*[lst[i::n] for i in range(n)]))
 
 
 def generate_font(filename, row_count, column_count, characters):
@@ -39,8 +39,8 @@ def generate_font(filename, row_count, column_count, characters):
         png_data = r.read()
 
         width, height, data, info = png_data
-        print "Size:", width, height
-        print "Info:", info
+        print("Size:", width, height)
+        print("Info:", info)
 
         for row_no, row_array in enumerate(data):
             char_offset = divmod(row_no, height / column_count)[0] * row_count
@@ -65,26 +65,26 @@ def display_dict(all_bits, characters, width):
     """
     padding = '        "%s",' % (BACKGROUND_CHAR * width)
 
-    print 'BACKGROUND_CHAR = "%s"' % BACKGROUND_CHAR
-    print 'FOREGROUND_CHAR = "%s"' % FOREGROUND_CHAR
-    print "CHARS_DICT = {"
+    print('BACKGROUND_CHAR = "%s"' % BACKGROUND_CHAR)
+    print('FOREGROUND_CHAR = "%s"' % FOREGROUND_CHAR)
+    print("CHARS_DICT = {")
     for char in characters:
         name = unicodedata.name(char)
-        print '    %s: (# %s' % (repr(char), name)
-        print padding
-        print padding
-        print padding
+        print('    %s: (# %s' % (repr(char), name))
+        print(padding)
+        print(padding)
+        print(padding)
 
         bits = all_bits[char]
         for g in group(bits, width):
             line = "".join([str(i) for i in g])
             line = line.replace("0", BACKGROUND_CHAR)
             line = line.replace("1", FOREGROUND_CHAR)
-            print '        "%s",' % line
-        print padding
-        print padding
-        print '    ),'
-    print "}"
+            print('        "%s",' % line)
+        print(padding)
+        print(padding)
+        print('    ),')
+    print("}")
 
 
 if __name__ == "__main__":
@@ -92,11 +92,11 @@ if __name__ == "__main__":
         ''' !"#$%&'()*+,-./'''
         '''0123456789:;<=>?'''
         '''@ABCDEFGHIJKLMNO'''
-        '''PQRSTUVWXYZ[\]''' + u"\N{UPWARDS ARROW}\N{LEFTWARDS ARROW}"
+        '''PQRSTUVWXYZ[\]''' + "\N{UPWARDS ARROW}\N{LEFTWARDS ARROW}"
         '''`abcdefghijklmno'''
         '''pqrstuvwxyz{|}~§'''
     )
-    print CHARS6847
+    print(CHARS6847)
     all_bits, width = generate_font(
         "font-6847.png", # From XRoar
         row_count=16, # How many characters per row
@@ -108,10 +108,10 @@ if __name__ == "__main__":
     needed_chars = (
         '''@'''
         '''ABCDEFGHIJKLMNOPQRSTUVWXYZ'''
-        '''[\]''' + u"\N{UPWARDS ARROW}\N{LEFTWARDS ARROW}"
+        '''[\]''' + "\N{UPWARDS ARROW}\N{LEFTWARDS ARROW}"
         ''' !"#$%&'()*+,-./'''
         '''0123456789'''
         ''':;<=>?'''
     )
     display_dict(all_bits, needed_chars, width)
-    print " --- END --- "
+    print(" --- END --- ")

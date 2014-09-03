@@ -177,7 +177,7 @@ COCO_ROW_MAP = {
 
 # Use the Dragon map and just swap the rows
 COCO_KEYMAP = {}
-for key, coordinates in DRAGON_KEYMAP.items():
+for key, coordinates in list(DRAGON_KEYMAP.items()):
     coco_coordinates = []
     for column, row in coordinates:
         new_row = COCO_ROW_MAP[row]
@@ -187,7 +187,7 @@ for key, coordinates in DRAGON_KEYMAP.items():
 
 
 def _get_col_row_values(char_or_code, keymap, auto_shift=True):
-    if auto_shift and isinstance(char_or_code, basestring):
+    if auto_shift and isinstance(char_or_code, str):
         char_or_code = invert_shift(char_or_code)
 
     try:
@@ -255,35 +255,35 @@ def test(char_or_code, matrix_name, auto_shift=False):
     else:
         raise RuntimeError
 
-    print "char/keycode: %s -> cols/rows: %s" % (repr(char_or_code), repr(col_row_values))
+    print("char/keycode: %s -> cols/rows: %s" % (repr(char_or_code), repr(col_row_values)))
 
-    for i in xrange(8):
+    for i in range(8):
         pia0b = invert_byte(2 ** i) # written into $ff02
         if matrix_name == "dragon":
             result = get_dragon_keymatrix_pia_result(char_or_code, pia0b, auto_shift=auto_shift) # read from $ff00
         else:
             result = get_coco_keymatrix_pia_result(char_or_code, pia0b, auto_shift=auto_shift) # read from $ff00
         addr = 0x152 + i
-        print "PB%i - $ff02 in $%02x (%s) -> $ff00 out $%02x (%s) stored in $%04x" % (
+        print("PB%i - $ff02 in $%02x (%s) -> $ff00 out $%02x (%s) stored in $%04x" % (
             i, pia0b, '{0:08b}'.format(pia0b),
             result, '{0:08b}'.format(result),
             addr,
-        )
-    print "  ^                 ^^^^^^^^                     ^^^^^^^"
-    print "  |                 ||||||||                     |||||||"
-    print "col            col: 76543210              row -> 6543210"
+        ))
+    print("  ^                 ^^^^^^^^                     ^^^^^^^")
+    print("  |                 ||||||||                     |||||||")
+    print("col            col: 76543210              row -> 6543210")
 
 
 if __name__ == '__main__':
     import doctest
-    print doctest.testmod(
+    print(doctest.testmod(
         # verbose=1
-    )
+    ))
 
 #     import sys
 #     sys.exit()
 
-    import Tkinter
+    import tkinter
 
     import pprint
     pprint.pprint(COCO_KEYMAP)
@@ -295,7 +295,7 @@ if __name__ == '__main__':
 
     class TkKeycodes(object):
         def __init__(self):
-            self.root = Tkinter.Tk()
+            self.root = tkinter.Tk()
             self.root.title("Keycode Test")
             # self.root.geometry("+500+300")
             self.root.bind("<Key>", self.event_key_pressed)
@@ -304,10 +304,10 @@ if __name__ == '__main__':
         def event_key_pressed(self, event):
             char_or_code = event.char or event.keycode
 
-            print "Char: %s - keycode: %s - char_or_code: %s" % (
+            print("Char: %s - keycode: %s - char_or_code: %s" % (
                 repr(event.char), verbose_value(event.keycode),
                 repr(char_or_code)
-            )
+            ))
             try:
                 test(char_or_code,
 #                     auto_shift=True
@@ -316,7 +316,7 @@ if __name__ == '__main__':
             except:
                 self.root.destroy()
                 raise
-            print
+            print()
 
         def mainloop(self):
             self.root.mainloop()

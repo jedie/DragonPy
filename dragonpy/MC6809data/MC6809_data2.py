@@ -28,7 +28,7 @@ import os
 import csv
 
 # old data
-from MC6809_data_raw import INSTRUCTION_INFO, OP_DATA, OP_CATEGORIES
+from .MC6809_data_raw import INSTRUCTION_INFO, OP_DATA, OP_CATEGORIES
 
 
 class Tee(object):
@@ -58,17 +58,17 @@ def get_global_keys(ignore_keys):
         del(d["ignore_keys"])
     return d
 
-ignore_keys = globals().keys() # hack
+ignore_keys = list(globals().keys()) # hack
 
 BYTE = 8
 WORD = 16
 
 WIDTH_DICT = get_global_keys(ignore_keys)
-WIDTH_DICT2 = dict((v, k) for k, v in WIDTH_DICT.items())
-WIDTHS = WIDTH_DICT.keys()
+WIDTH_DICT2 = dict((v, k) for k, v in list(WIDTH_DICT.items()))
+WIDTHS = list(WIDTH_DICT.keys())
 
 
-ignore_keys = globals().keys() # hack
+ignore_keys = list(globals().keys()) # hack
 
 
 IMMEDIATE = "IMMEDIATE"
@@ -81,10 +81,10 @@ INDEXED = "INDEXED"
 INHERENT = "INHERENT"
 
 ADDR_MODE_DICT = get_global_keys(ignore_keys)
-ADDR_MODES = ADDR_MODE_DICT.keys()
+ADDR_MODES = list(ADDR_MODE_DICT.keys())
 ADDR_MODES.sort()
 
-ignore_keys = globals().keys() # hack
+ignore_keys = list(globals().keys()) # hack
 
 ABX = "ABX"
 ADC = "ADC"
@@ -154,11 +154,11 @@ RESET = "RESET"
 PAGE = "PAGE"
 
 INSTRUCTION_DICT = get_global_keys(ignore_keys)
-INSTRUCTIONS = INSTRUCTION_DICT.keys()
+INSTRUCTIONS = list(INSTRUCTION_DICT.keys())
 INSTRUCTIONS.sort()
 
 
-ignore_keys = globals().keys() # hack
+ignore_keys = list(globals().keys()) # hack
 
 # registers:
 REG_A = "A"
@@ -173,10 +173,10 @@ REG_CC = "CC"
 REG_DP = "DP"
 
 REGISTER_DICT = get_global_keys(ignore_keys)
-REGISTERS = REGISTER_DICT.keys()
+REGISTERS = list(REGISTER_DICT.keys())
 REGISTERS.sort()
 
-REGISTER_DICT2 = dict((v, k) for k, v in REGISTER_DICT.items())
+REGISTER_DICT2 = dict((v, k) for k, v in list(REGISTER_DICT.items()))
 
 
 REGISTER_INFO = {
@@ -738,7 +738,7 @@ with open("MC6809_data_raw2.csv", 'wb') as csvfile:
 
 
     MC6809_DATA = {}
-    for op_code, op_info in sorted(op_info_dict.items(), key=lambda i: i[1]):
+    for op_code, op_info in sorted(list(op_info_dict.items()), key=lambda i: i[1]):
         mnemonic, addr_mode = op_info
     #     if mnemonic.startswith("LB"):
     #         print '"%s",' % mnemonic
@@ -822,7 +822,7 @@ with open("MC6809_data_raw2.csv", 'wb') as csvfile:
             desc, category
         )
         w.writerow(row)
-        print "\t".join([repr(i).strip("'") for i in row])
+        print("\t".join([repr(i).strip("'") for i in row]))
         
 
         instr_dict = MC6809_DATA[instruction]
@@ -859,31 +859,31 @@ sys.stdout = Tee("MC6809_data_raw2.py", sys.stdout,
 
 def print_constants(keys, d):
     for k in keys:
-        print '%s = "%s"' % (k, d[k])
-    print
+        print('%s = "%s"' % (k, d[k]))
+    print()
 
-print "#!/usr/bin/env python"
-print
-print '"""%s"""' % __doc__
+print("#!/usr/bin/env python")
+print()
+print('"""%s"""' % __doc__)
 
-print
-print "# this file was generated with %s" % os.path.split(__file__)[1]
-print
+print()
+print("# this file was generated with %s" % os.path.split(__file__)[1])
+print()
 
 print_constants(WIDTHS, WIDTH_DICT)
 
-print "\n# Address modes:"
+print("\n# Address modes:")
 print_constants(ADDR_MODES, ADDR_MODE_DICT)
 
-print "\n# Registers:"
+print("\n# Registers:")
 print_constants(REGISTERS, REGISTER_DICT)
 
-print "\n# Instructions:"
+print("\n# Instructions:")
 print_constants(INSTRUCTIONS, INSTRUCTION_DICT)
 
 
 
-print "\n"*2
+print("\n"*2)
 
 CONSTANTS = ADDR_MODES[:]
 CONSTANTS += INSTRUCTIONS
@@ -902,7 +902,7 @@ class HexPrettyPrinter(pprint.PrettyPrinter, object):
         return super(HexPrettyPrinter, self).format(obj, context, maxlevels, level)
 
 printer = HexPrettyPrinter(indent=0, width=1)
-print "OP_DATA = %s" % printer.pformat(MC6809_DATA)
+print("OP_DATA = %s" % printer.pformat(MC6809_DATA))
 
 
 # pprint.pprint(CONSTANTS_DICT)
@@ -921,4 +921,4 @@ print "OP_DATA = %s" % printer.pformat(MC6809_DATA)
 
 
 sys.stdout.close()
-print " -- END -- "
+print(" -- END -- ")

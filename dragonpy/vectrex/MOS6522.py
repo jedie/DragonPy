@@ -63,7 +63,7 @@ class MOS6522VIA(object):
 
     def reset(self):
         self.snd_regs = {}
-        for i in xrange(16):
+        for i in range(16):
             self.snd_regs[i] = 0
         self.snd_regs[14] = 0xff
 
@@ -336,7 +336,7 @@ def test_run():
         "--max_ops", "1",
         "--trace",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
 if __name__ == "__main__":

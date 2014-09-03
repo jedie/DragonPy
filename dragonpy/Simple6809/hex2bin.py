@@ -35,7 +35,7 @@ def iter_steps(g, steps):
     if values:
         yield list(values)
 
-print "Read %s" % IN_FILENAME
+print("Read %s" % IN_FILENAME)
 hex_file = open(IN_FILENAME, "r")
 
 out_bytes = []
@@ -57,23 +57,23 @@ hex_file.close()
 
 # Display only the dump:
 length = len(out_bytes)
-print "length: %i $%x" % (length, length)
+print("length: %i $%x" % (length, length))
 pos = 0xc000
-print "ORG: $%x" % pos
+print("ORG: $%x" % pos)
 steps = 32
 for bytes in iter_steps(out_bytes, steps=steps):
     line = " ".join("%2X" % ord(b) for b in bytes)
     if "10 CE  1 EE" in line or "X7E E5  0" in line:
-        print "*"*79
-    print "$%4x %s" % (pos, line)
+        print("*"*79)
+    print("$%4x %s" % (pos, line))
     if "10 CE  1 EE" in line or "X7E E5  0" in line:
-        print "*"*79
+        print("*"*79)
     pos += steps
 
 
 
-print "Write to %s..." % OUT_FILENAME
+print("Write to %s..." % OUT_FILENAME)
 bin_file = open(OUT_FILENAME, "wb")
 bin_file.write("".join(out_bytes))
 bin_file.close()
-print "OK"
+print("OK")

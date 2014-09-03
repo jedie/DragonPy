@@ -33,30 +33,30 @@ class BaseDragon32ApiTestCase(BaseTestCase):
 
     def assertListing2Dump(self, ascii_listing,program_dump,debug=False):
         if debug:
-            print "\n"+"_"*79
-            print " *** Debug Listing:\n%s" % ascii_listing
-            print " -"*39
-            print " *** Debug Dump:\n%s\n" % (
+            print("\n"+"_"*79)
+            print(" *** Debug Listing:\n%s" % ascii_listing)
+            print(" -"*39)
+            print(" *** Debug Dump:\n%s\n" % (
                 pformat_program_dump(program_dump)
-            )
-            print " -"*39
+            ))
+            print(" -"*39)
             
         created_program_dump = self.dragon32api.ascii_listing2program_dump(
             ascii_listing
         )
         if debug:
-            print " *** Created dump from listing:\n%s\n" % (
+            print(" *** Created dump from listing:\n%s\n" % (
                 pformat_program_dump(created_program_dump)
-            )
-            print " -"*39
+            ))
+            print(" -"*39)
         
         if not created_program_dump:
             log.critical("Created dump empty? repr: %s", repr(created_program_dump))
             
         if debug:
-            print " *** Full Dump:\n%s" % "\n".join(
+            print(" *** Full Dump:\n%s" % "\n".join(
                 self.dragon32api.pformat_program_dump(created_program_dump)
-            )
+            ))
         self.assertEqualProgramDump(created_program_dump, program_dump)
         
     def assertDump2Listing(self, ascii_listing,program_dump):
@@ -101,7 +101,7 @@ class BaseDragon32ApiTestCase(BaseTestCase):
         # ~ print(repr(txt))
         # ~ print("-"*79)
 
-        return unicode(txt)  # turn to unicode, for better assertEqual error messages
+        return str(txt)  # turn to unicode, for better assertEqual error messages
 
 
 class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):

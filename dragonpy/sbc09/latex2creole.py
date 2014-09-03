@@ -97,6 +97,6 @@ with open(sourcefile, "r") as infile:
 
             line = line.replace("\\", "")
 
-            print line
+            print(line)
             line += "\n"
             outfile.write(line)

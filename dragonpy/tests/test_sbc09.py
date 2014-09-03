@@ -35,7 +35,7 @@ def extract_s_record_data(srec):
     Verify checksum and return the data from a srecord.
     If checksum failed, a Error will be raised.
     """
-    assert isinstance(srec, basestring)
+    assert isinstance(srec, str)
     blocks = ["S%s" % b for b in srec.split("S") if b]
 
     result = []
@@ -59,7 +59,7 @@ def split2chunks(seq, size):
     >>> split2chunks("ABCEDFGH", 3)
     ['ABC', 'EDF', 'GH']
     """
-    return [seq[pos:pos + size] for pos in xrange(0, len(seq), size)]
+    return [seq[pos:pos + size] for pos in range(0, len(seq), size)]
 
 
 class Test_sbc09(Test6809_sbc09_Base):
@@ -74,7 +74,7 @@ class Test_sbc09(Test6809_sbc09_Base):
         """
         Calculate simple expression in hex with + and -
         """
-        for i in xrange(20):
+        for i in range(20):
             self.setUp() # Reset CPU
             self.periphery.add_to_input_queue(
                  'H100+%X\r\n' % i
@@ -91,7 +91,7 @@ class Test_sbc09(Test6809_sbc09_Base):
         """
         Calculate simple expression in hex with + and -
         """
-        for i in xrange(20):
+        for i in range(20):
             self.setUp() # Reset CPU
             self.periphery.add_to_input_queue(
                  'H100-%X\r\n' % i
@@ -212,7 +212,7 @@ if __name__ == '__main__':
     )
 
     import doctest
-    print doctest.testmod(verbose=0)
+    print(doctest.testmod(verbose=0))
 
     unittest.main(
         argv=(
@@ -226,4 +226,4 @@ if __name__ == '__main__':
         verbosity=2,
 #         failfast=True,
     )
-    print " --- END --- "
+    print(" --- END --- ")

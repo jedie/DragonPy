@@ -198,7 +198,7 @@ def test_run_cli():
         #         "--max=15000",
         #         "--max=46041",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
 
@@ -214,7 +214,7 @@ def test_run_direct():
                      #             "Dragon64_test.py"
                      ),
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
 

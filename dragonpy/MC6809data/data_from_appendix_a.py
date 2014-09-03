@@ -14,7 +14,7 @@
 import pprint
 import os
 import sys
-import urllib2
+import urllib.request, urllib.error, urllib.parse
 
 # http://www.crummy.com/software/BeautifulSoup/bs4/doc/
 from bs4 import BeautifulSoup
@@ -23,10 +23,10 @@ from bs4 import BeautifulSoup
 filename = "appendix_a.htm"
 
 if os.path.isfile(filename):
-    print "use cached file %s" % filename
+    print("use cached file %s" % filename)
 else:
-    print "get and save cache file %s" % filename
-    response = urllib2.urlopen("http://www.maddes.net/m6809pm/%s" % filename)
+    print("get and save cache file %s" % filename)
+    response = urllib.request.urlopen("http://www.maddes.net/m6809pm/%s" % filename)
     html = response.read()
     with open(filename, "wb") as f:
         f.write(html)
@@ -43,15 +43,15 @@ soup = soup.find("div")
 cpu6809data = {}
 
 char_convert = (
-    (u"\u2227", "AND"),
-    (u"\u2264", "<="),
-    (u"\u2265", "=>"),
-    (u"\u2190", "="),
-    (u"\u2192", "->"),
-    (u"\u2194", "<->"),
-    (u"\u2295", "XOR"),
-    (u"\u2228", "OR"),
-    (u"\xd7", "*"),
+    ("\u2227", "AND"),
+    ("\u2264", "<="),
+    ("\u2265", "=>"),
+    ("\u2190", "="),
+    ("\u2192", "->"),
+    ("\u2194", "<->"),
+    ("\u2295", "XOR"),
+    ("\u2228", "OR"),
+    ("\xd7", "*"),
 
 )
 # ~ for src,dst in char_convert:
@@ -84,8 +84,8 @@ class Tee(object):
 sys.stdout = Tee("appendix_a.py", sys.stdout)
 
 
-print '"""%s"""' % __doc__
-print
+print('"""%s"""' % __doc__)
+print()
 for table in soup.find_all("table", attrs={"class":"appAa"}):
 
     instruction = table.findNext("th").get_text(" ", strip=True)
@@ -121,28 +121,28 @@ for table in soup.find_all("table", attrs={"class":"appAa"}):
 
                 try:
                     txt = txt.encode("ascii")
-                except UnicodeEncodeError, err:
-                    print err
-                    print instruction, key
-                    print repr(txt)
+                except UnicodeEncodeError as err:
+                    print(err)
+                    print(instruction, key)
+                    print(repr(txt))
                     sys.exit()
 
                 data[key] = txt
                 key = None
 
-    for key, other in USE_SOURCE_FORM.items():
+    for key, other in list(USE_SOURCE_FORM.items()):
         if instruction == key:
             if other in data["source form"]:
                 instruction = other
                 break
 
     if instruction in cpu6809data:
-        print "%s exists more then one time!"
-        print "new:"
+        print("%s exists more then one time!")
+        print("new:")
         pprint.pprint(data)
-        print "old:"
+        print("old:")
         pprint.pprint(cpu6809data[instruction])
         raise AssertionError
     cpu6809data[instruction] = data
 
-print "INSTRUCTION_INFO = ", pprint.pformat(cpu6809data)
+print("INSTRUCTION_INFO = ", pprint.pformat(cpu6809data))

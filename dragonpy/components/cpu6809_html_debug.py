@@ -35,7 +35,7 @@ th, td {padding:5px;}
 </head><body><h1>DragonPy Debug:</h1>
 <p>created: %s</p>
 <table>""" % datetime.datetime.today().isoformat())
-print "Create debug file: %s" % DEBUG_FILENAME
+print("Create debug file: %s" % DEBUG_FILENAME)
 
 
 @atexit.register
@@ -48,7 +48,7 @@ def close_html_debug():
     )
     HTML_OUT.write("</body></html>")
     HTML_OUT.close()
-    print "*** Debug file created:", DEBUG_FILENAME
+    print("*** Debug file created:", DEBUG_FILENAME)
 
 
 CALL_NO = 0

@@ -109,7 +109,7 @@ class Test6809_BranchInstructions(BaseCPUTestCase):
         self.assertEqualHex(self.cpu.program_counter.get(), 0x17e8)
 
     def test_BGE_LBGE(self):
-        for n, v in itertools.product(range(2), repeat=2): # -> [(0, 0), (0, 1), (1, 0), (1, 1)]
+        for n, v in itertools.product(list(range(2)), repeat=2): # -> [(0, 0), (0, 1), (1, 0), (1, 1)]
             # print n, v, (n ^ v) == 0, n == v
             self.cpu.cc.N = n
             self.cpu.cc.V = v
@@ -131,7 +131,7 @@ class Test6809_BranchInstructions(BaseCPUTestCase):
                 self.assertEqualHex(self.cpu.program_counter.get(), 0x1004)
 
     def test_BGT_LBGT(self):
-        for n, v, z in itertools.product(range(2), repeat=3):
+        for n, v, z in itertools.product(list(range(2)), repeat=3):
             # -> [(0, 0, 0), (0, 0, 1), (0, 1, 0), (0, 1, 1), ..., (1, 1, 1)]
             # print n, v, (n ^ v) == 0, n == v
             self.cpu.cc.N = n
@@ -154,7 +154,7 @@ class Test6809_BranchInstructions(BaseCPUTestCase):
                 self.assertEqualHex(self.cpu.program_counter.get(), 0x1004)
 
     def test_BHI_LBHI(self):
-        for c, z in itertools.product(range(2), repeat=2): # -> [(0, 0), (0, 1), (1, 0), (1, 1)]
+        for c, z in itertools.product(list(range(2)), repeat=2): # -> [(0, 0), (0, 1), (1, 0), (1, 1)]
             self.cpu.cc.C = c
             self.cpu.cc.Z = z
             self.cpu_test_run2(start=0x1000, count=1, mem=[
@@ -231,7 +231,7 @@ class Test6809_BranchInstructions(BaseCPUTestCase):
         self.assertEqualHex(self.cpu.program_counter.get(), 0x17e8)
 
     def test_BLT_LBLT(self):
-        for n, v in itertools.product(range(2), repeat=2): # -> [(0, 0), (0, 1), (1, 0), (1, 1)]
+        for n, v in itertools.product(list(range(2)), repeat=2): # -> [(0, 0), (0, 1), (1, 0), (1, 1)]
             self.cpu.cc.N = n
             self.cpu.cc.V = v
             self.cpu_test_run2(start=0x1000, count=1, mem=[

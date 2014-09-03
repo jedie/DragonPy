@@ -41,7 +41,7 @@ machine_dict.register(configs.VECTREX, (run_Vectrex, VectrexCfg))
 
 @atexit.register
 def goodbye():
-    print "\n --- END --- \n"
+    print("\n --- END --- \n")
 
 
 class DragonPyCLI(Base_CLI):
@@ -54,7 +54,7 @@ class DragonPyCLI(Base_CLI):
         log.debug("Existing machine_dict: %s" % repr(self.machine_dict))
 
         self.parser.add_argument("--machine",
-            choices=self.machine_dict.keys(),
+            choices=list(self.machine_dict.keys()),
             default=machine_dict.DEFAULT,
             help="Used machine configuration (Default: %s)" % machine_dict.DEFAULT
         )
@@ -164,11 +164,11 @@ def test_run():
 #         "--machine=Simple6809",
 #         "--machine=sbc09",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd=".").wait()
 
 
 if __name__ == "__main__":
-    print "ERROR: Use .../DragonPy/DragonPy_CLI.py instead of this file!"
+    print("ERROR: Use .../DragonPy/DragonPy_CLI.py instead of this file!")
 #     test_run() # Should be only enabled for developing!
 

@@ -66,7 +66,7 @@ def disable_logging(log):
 def log_memory_dump(memory, start, end, mem_info, level=99):
     log.log(level, "Memory dump from $%04x to $%04x:", start, end)
 
-    for addr in xrange(start, end + 1):
+    for addr in range(start, end + 1):
         value = memory[addr]
         if isinstance(value, int):
             msg = "$%04x: $%02x (dez: %i)" % (addr, value, value)
@@ -79,13 +79,13 @@ def log_memory_dump(memory, start, end, mem_info, level=99):
 
 
 def pformat_hex_list(hex_list):
-    return u" ".join([u"$%x" % v for v in hex_list])
+    return " ".join(["$%x" % v for v in hex_list])
 
 def pformat_byte_hex_list(hex_list):
-    return u" ".join([u"$%02x" % v for v in hex_list])
+    return " ".join(["$%02x" % v for v in hex_list])
 
 def pformat_word_hex_list(hex_list):
-    return u" ".join([u"$%02x" % v for v in hex_list])
+    return " ".join(["$%02x" % v for v in hex_list])
 
 def log_hexlist(byte_list, group=8, start=0x0000, level=99):
     def _log(level, addr, line):
@@ -109,7 +109,7 @@ def log_hexlist(byte_list, group=8, start=0x0000, level=99):
 
 def pformat_program_dump(ram_content):
     msg = pformat_byte_hex_list(ram_content)
-    msg = msg.replace(u"$00 ", u"\n$00\n")
+    msg = msg.replace("$00 ", "\n$00\n")
     return msg
 
 

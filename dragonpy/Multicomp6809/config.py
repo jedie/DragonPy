@@ -72,5 +72,5 @@ if __name__ == "__main__":
 
     cmd_args = UnittestCmdArgs
     cfg = Multicomp6809Cfg(cmd_args)
-    print "RAM Size:", cfg.RAM_SIZE, cfg.RAM_SIZE / 1024
-    print "RAM End: $%04x" % cfg.RAM_END
+    print("RAM Size:", cfg.RAM_SIZE, cfg.RAM_SIZE / 1024)
+    print("RAM End: $%04x" % cfg.RAM_END)

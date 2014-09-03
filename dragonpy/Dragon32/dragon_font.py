@@ -10,7 +10,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import Tkinter
+import tkinter
 import math
 
 from dragonpy.Dragon32.dragon_charmap import NORMAL, get_hex_color, COLORS, INVERTED
@@ -19,7 +19,7 @@ from dragonlib.utils.logging_utils import log
 BACKGROUND_CHAR = "."
 FOREGROUND_CHAR = "X"
 CHARS_DICT = {
-    u'@': (# COMMERCIAL AT
+    '@': (# COMMERCIAL AT
         "........",
         "........",
         "........",
@@ -34,7 +34,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'A': (# LATIN CAPITAL LETTER A
+    'A': (# LATIN CAPITAL LETTER A
         "........",
         "........",
         "........",
@@ -49,7 +49,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'B': (# LATIN CAPITAL LETTER B
+    'B': (# LATIN CAPITAL LETTER B
         "........",
         "........",
         "........",
@@ -64,7 +64,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'C': (# LATIN CAPITAL LETTER C
+    'C': (# LATIN CAPITAL LETTER C
         "........",
         "........",
         "........",
@@ -79,7 +79,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'D': (# LATIN CAPITAL LETTER D
+    'D': (# LATIN CAPITAL LETTER D
         "........",
         "........",
         "........",
@@ -94,7 +94,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'E': (# LATIN CAPITAL LETTER E
+    'E': (# LATIN CAPITAL LETTER E
         "........",
         "........",
         "........",
@@ -109,7 +109,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'F': (# LATIN CAPITAL LETTER F
+    'F': (# LATIN CAPITAL LETTER F
         "........",
         "........",
         "........",
@@ -124,7 +124,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'G': (# LATIN CAPITAL LETTER G
+    'G': (# LATIN CAPITAL LETTER G
         "........",
         "........",
         "........",
@@ -139,7 +139,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'H': (# LATIN CAPITAL LETTER H
+    'H': (# LATIN CAPITAL LETTER H
         "........",
         "........",
         "........",
@@ -154,7 +154,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'I': (# LATIN CAPITAL LETTER I
+    'I': (# LATIN CAPITAL LETTER I
         "........",
         "........",
         "........",
@@ -169,7 +169,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'J': (# LATIN CAPITAL LETTER J
+    'J': (# LATIN CAPITAL LETTER J
         "........",
         "........",
         "........",
@@ -184,7 +184,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'K': (# LATIN CAPITAL LETTER K
+    'K': (# LATIN CAPITAL LETTER K
         "........",
         "........",
         "........",
@@ -199,7 +199,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'L': (# LATIN CAPITAL LETTER L
+    'L': (# LATIN CAPITAL LETTER L
         "........",
         "........",
         "........",
@@ -214,7 +214,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'M': (# LATIN CAPITAL LETTER M
+    'M': (# LATIN CAPITAL LETTER M
         "........",
         "........",
         "........",
@@ -229,7 +229,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'N': (# LATIN CAPITAL LETTER N
+    'N': (# LATIN CAPITAL LETTER N
         "........",
         "........",
         "........",
@@ -244,7 +244,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'O': (# LATIN CAPITAL LETTER O
+    'O': (# LATIN CAPITAL LETTER O
         "........",
         "........",
         "........",
@@ -259,7 +259,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'P': (# LATIN CAPITAL LETTER P
+    'P': (# LATIN CAPITAL LETTER P
         "........",
         "........",
         "........",
@@ -274,7 +274,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'Q': (# LATIN CAPITAL LETTER Q
+    'Q': (# LATIN CAPITAL LETTER Q
         "........",
         "........",
         "........",
@@ -289,7 +289,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'R': (# LATIN CAPITAL LETTER R
+    'R': (# LATIN CAPITAL LETTER R
         "........",
         "........",
         "........",
@@ -304,7 +304,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'S': (# LATIN CAPITAL LETTER S
+    'S': (# LATIN CAPITAL LETTER S
         "........",
         "........",
         "........",
@@ -319,7 +319,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'T': (# LATIN CAPITAL LETTER T
+    'T': (# LATIN CAPITAL LETTER T
         "........",
         "........",
         "........",
@@ -334,7 +334,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'U': (# LATIN CAPITAL LETTER U
+    'U': (# LATIN CAPITAL LETTER U
         "........",
         "........",
         "........",
@@ -349,7 +349,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'V': (# LATIN CAPITAL LETTER V
+    'V': (# LATIN CAPITAL LETTER V
         "........",
         "........",
         "........",
@@ -364,7 +364,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'W': (# LATIN CAPITAL LETTER W
+    'W': (# LATIN CAPITAL LETTER W
         "........",
         "........",
         "........",
@@ -379,7 +379,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'X': (# LATIN CAPITAL LETTER X
+    'X': (# LATIN CAPITAL LETTER X
         "........",
         "........",
         "........",
@@ -394,7 +394,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'Y': (# LATIN CAPITAL LETTER Y
+    'Y': (# LATIN CAPITAL LETTER Y
         "........",
         "........",
         "........",
@@ -409,7 +409,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'Z': (# LATIN CAPITAL LETTER Z
+    'Z': (# LATIN CAPITAL LETTER Z
         "........",
         "........",
         "........",
@@ -424,7 +424,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'[': (# LEFT SQUARE BRACKET
+    '[': (# LEFT SQUARE BRACKET
         "........",
         "........",
         "........",
@@ -439,7 +439,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'\\': (# REVERSE SOLIDUS
+    '\\': (# REVERSE SOLIDUS
         "........",
         "........",
         "........",
@@ -454,7 +454,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u']': (# RIGHT SQUARE BRACKET
+    ']': (# RIGHT SQUARE BRACKET
         "........",
         "........",
         "........",
@@ -469,7 +469,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'\u2191': (# UPWARDS ARROW
+    '\u2191': (# UPWARDS ARROW
         "........",
         "........",
         "........",
@@ -484,7 +484,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'\u2190': (# LEFTWARDS ARROW
+    '\u2190': (# LEFTWARDS ARROW
         "........",
         "........",
         "........",
@@ -499,7 +499,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u' ': (# SPACE
+    ' ': (# SPACE
         "........",
         "........",
         "........",
@@ -514,7 +514,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'!': (# EXCLAMATION MARK
+    '!': (# EXCLAMATION MARK
         "........",
         "........",
         "........",
@@ -529,7 +529,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'"': (# QUOTATION MARK
+    '"': (# QUOTATION MARK
         "........",
         "........",
         "........",
@@ -544,7 +544,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'#': (# NUMBER SIGN
+    '#': (# NUMBER SIGN
         "........",
         "........",
         "........",
@@ -559,7 +559,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'$': (# DOLLAR SIGN
+    '$': (# DOLLAR SIGN
         "........",
         "........",
         "........",
@@ -574,7 +574,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'%': (# PERCENT SIGN
+    '%': (# PERCENT SIGN
         "........",
         "........",
         "........",
@@ -589,7 +589,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'&': (# AMPERSAND
+    '&': (# AMPERSAND
         "........",
         "........",
         "........",
@@ -604,7 +604,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u"'": (# APOSTROPHE
+    "'": (# APOSTROPHE
         "........",
         "........",
         "........",
@@ -619,7 +619,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'(': (# LEFT PARENTHESIS
+    '(': (# LEFT PARENTHESIS
         "........",
         "........",
         "........",
@@ -634,7 +634,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u')': (# RIGHT PARENTHESIS
+    ')': (# RIGHT PARENTHESIS
         "........",
         "........",
         "........",
@@ -649,7 +649,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'*': (# ASTERISK
+    '*': (# ASTERISK
         "........",
         "........",
         "........",
@@ -664,7 +664,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'+': (# PLUS SIGN
+    '+': (# PLUS SIGN
         "........",
         "........",
         "........",
@@ -679,7 +679,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u',': (# COMMA
+    ',': (# COMMA
         "........",
         "........",
         "........",
@@ -694,7 +694,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'-': (# HYPHEN-MINUS
+    '-': (# HYPHEN-MINUS
         "........",
         "........",
         "........",
@@ -709,7 +709,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'.': (# FULL STOP
+    '.': (# FULL STOP
         "........",
         "........",
         "........",
@@ -724,7 +724,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'/': (# SOLIDUS
+    '/': (# SOLIDUS
         "........",
         "........",
         "........",
@@ -739,7 +739,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'0': (# DIGIT ZERO
+    '0': (# DIGIT ZERO
         "........",
         "........",
         "........",
@@ -754,7 +754,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'1': (# DIGIT ONE
+    '1': (# DIGIT ONE
         "........",
         "........",
         "........",
@@ -769,7 +769,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'2': (# DIGIT TWO
+    '2': (# DIGIT TWO
         "........",
         "........",
         "........",
@@ -784,7 +784,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'3': (# DIGIT THREE
+    '3': (# DIGIT THREE
         "........",
         "........",
         "........",
@@ -799,7 +799,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'4': (# DIGIT FOUR
+    '4': (# DIGIT FOUR
         "........",
         "........",
         "........",
@@ -814,7 +814,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'5': (# DIGIT FIVE
+    '5': (# DIGIT FIVE
         "........",
         "........",
         "........",
@@ -829,7 +829,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'6': (# DIGIT SIX
+    '6': (# DIGIT SIX
         "........",
         "........",
         "........",
@@ -844,7 +844,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'7': (# DIGIT SEVEN
+    '7': (# DIGIT SEVEN
         "........",
         "........",
         "........",
@@ -859,7 +859,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'8': (# DIGIT EIGHT
+    '8': (# DIGIT EIGHT
         "........",
         "........",
         "........",
@@ -874,7 +874,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'9': (# DIGIT NINE
+    '9': (# DIGIT NINE
         "........",
         "........",
         "........",
@@ -889,7 +889,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u':': (# COLON
+    ':': (# COLON
         "........",
         "........",
         "........",
@@ -904,7 +904,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u';': (# SEMICOLON
+    ';': (# SEMICOLON
         "........",
         "........",
         "........",
@@ -919,7 +919,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'<': (# LESS-THAN SIGN
+    '<': (# LESS-THAN SIGN
         "........",
         "........",
         "........",
@@ -934,7 +934,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'=': (# EQUALS SIGN
+    '=': (# EQUALS SIGN
         "........",
         "........",
         "........",
@@ -949,7 +949,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'>': (# GREATER-THAN SIGN
+    '>': (# GREATER-THAN SIGN
         "........",
         "........",
         "........",
@@ -964,7 +964,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'?': (# QUESTION MARK
+    '?': (# QUESTION MARK
         "........",
         "........",
         "........",
@@ -979,7 +979,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'\u2588':(#   FULL BLOCK
+    '\u2588':(#   FULL BLOCK
         "XXXXXXXX",
         "XXXXXXXX",
         "XXXXXXXX",
@@ -994,7 +994,7 @@ CHARS_DICT = {
         "XXXXXXXX",
         "XXXXXXXX",
     ),
-    u'\u259b':(#   QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER LEFT
+    '\u259b':(#   QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER LEFT
         "XXXXXXXX",
         "XXXXXXXX",
         "XXXXXXXX",
@@ -1009,7 +1009,7 @@ CHARS_DICT = {
         "XXXX....",
         "XXXX....",
     ),
-    u'\u259c':(#   QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER RIGHT
+    '\u259c':(#   QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER RIGHT
         "XXXXXXXX",
         "XXXXXXXX",
         "XXXXXXXX",
@@ -1024,7 +1024,7 @@ CHARS_DICT = {
         "....XXXX",
         "....XXXX",
     ),
-    u'\u2580':(#   UPPER HALF BLOCK
+    '\u2580':(#   UPPER HALF BLOCK
         "XXXXXXXX",
         "XXXXXXXX",
         "XXXXXXXX",
@@ -1039,7 +1039,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'\u2599':(#   QUADRANT UPPER LEFT AND LOWER LEFT AND LOWER RIGHT
+    '\u2599':(#   QUADRANT UPPER LEFT AND LOWER LEFT AND LOWER RIGHT
         "XXXX....",
         "XXXX....",
         "XXXX....",
@@ -1054,7 +1054,7 @@ CHARS_DICT = {
         "XXXXXXXX",
         "XXXXXXXX",
     ),
-    u'\u258c':(#   LEFT HALF BLOCK
+    '\u258c':(#   LEFT HALF BLOCK
         "XXXX....",
         "XXXX....",
         "XXXX....",
@@ -1069,7 +1069,7 @@ CHARS_DICT = {
         "XXXX....",
         "XXXX....",
     ),
-    u'\u259a':(#   QUADRANT UPPER LEFT AND LOWER RIGHT
+    '\u259a':(#   QUADRANT UPPER LEFT AND LOWER RIGHT
         "XXXX....",
         "XXXX....",
         "XXXX....",
@@ -1084,7 +1084,7 @@ CHARS_DICT = {
         "....XXXX",
         "....XXXX",
     ),
-    u'\u2598':(#   QUADRANT UPPER LEFT
+    '\u2598':(#   QUADRANT UPPER LEFT
         "XXXX....",
         "XXXX....",
         "XXXX....",
@@ -1099,7 +1099,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'\u259f':(#   QUADRANT UPPER RIGHT AND LOWER LEFT AND LOWER RIGHT
+    '\u259f':(#   QUADRANT UPPER RIGHT AND LOWER LEFT AND LOWER RIGHT
         "....XXXX",
         "....XXXX",
         "....XXXX",
@@ -1114,7 +1114,7 @@ CHARS_DICT = {
         "XXXXXXXX",
         "XXXXXXXX",
     ),
-    u'\u259e':(#   QUADRANT UPPER RIGHT AND LOWER LEFT
+    '\u259e':(#   QUADRANT UPPER RIGHT AND LOWER LEFT
         "....XXXX",
         "....XXXX",
         "....XXXX",
@@ -1129,7 +1129,7 @@ CHARS_DICT = {
         "XXXX....",
         "XXXX....",
     ),
-    u'\u2590':(#   RIGHT HALF BLOCK
+    '\u2590':(#   RIGHT HALF BLOCK
         "....XXXX",
         "....XXXX",
         "....XXXX",
@@ -1144,7 +1144,7 @@ CHARS_DICT = {
         "....XXXX",
         "....XXXX",
     ),
-    u'\u259d':(#   QUADRANT UPPER RIGHT
+    '\u259d':(#   QUADRANT UPPER RIGHT
         "....XXXX",
         "....XXXX",
         "....XXXX",
@@ -1159,7 +1159,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    u'\u2584':(#   LOWER HALF BLOCK
+    '\u2584':(#   LOWER HALF BLOCK
         "........",
         "........",
         "........",
@@ -1174,7 +1174,7 @@ CHARS_DICT = {
         "XXXXXXXX",
         "XXXXXXXX",
     ),
-    u'\u2596':(#   QUADRANT LOWER LEFT
+    '\u2596':(#   QUADRANT LOWER LEFT
         "........",
         "........",
         "........",
@@ -1189,7 +1189,7 @@ CHARS_DICT = {
         "XXXX....",
         "XXXX....",
     ),
-    u'\u2597':(#   QUADRANT LOWER RIGHT
+    '\u2597':(#   QUADRANT LOWER RIGHT
         "........",
         "........",
         "........",
@@ -1246,7 +1246,7 @@ class TkFont(object):
         foreground = "#%s" % foreground
         background = "#%s" % background
 
-        img = Tkinter.PhotoImage(
+        img = tkinter.PhotoImage(
             width=self.width_scaled,
             height=self.height_scaled
         )
@@ -1277,7 +1277,7 @@ class TestTkFont(object):
         self.color_index = 0
         self.current_color = self.colors[self.color_index]
 
-        self.root = Tkinter.Tk()
+        self.root = tkinter.Tk()
         self.root.title("TkFont Test")
 
         self.root.bind('<Down>', self.event_arrow_down)
@@ -1290,10 +1290,10 @@ class TestTkFont(object):
             )
         )
 
-        print "Window/Canvas geometry: %spx x %spx" % (self.total_width, self.total_height)
+        print("Window/Canvas geometry: %spx x %spx" % (self.total_width, self.total_height))
         self.root.geometry("+%i+%i" % (self.total_width, self.total_height))
 
-        self.canvas = Tkinter.Canvas(self.root,
+        self.canvas = tkinter.Canvas(self.root,
             width=self.total_width,
             height=self.total_height,
             bd=0,  # Border
@@ -1303,7 +1303,7 @@ class TestTkFont(object):
         self.add_chars()
 
     def add_chars(self):
-        print "Fill with", self.current_color
+        print("Fill with", self.current_color)
         chars_dict = self.tk_font.chars_dict
         for no, char in enumerate(sorted(chars_dict.keys())):
             y, x = divmod(no * self.tk_font.width_scaled, self.total_width)
@@ -1316,7 +1316,7 @@ class TestTkFont(object):
             self.canvas.create_image(x, y,
                 image=img,
                 state="normal",
-                anchor=Tkinter.NW  # NW == NorthWest
+                anchor=tkinter.NW  # NW == NorthWest
             )
             # self.root.update() # Not needed here!
 
@@ -1341,12 +1341,12 @@ class TestTkFont(object):
 def test_dict(chars_dict, width, height):
     for char, data in sorted(chars_dict.items()):
         if len(data) != height:
-            print "Char %s has wrong height / row count !" % repr(char)
-            print "Should have %i rows, but has: %i rows" % (height, len(data))
+            print("Char %s has wrong height / row count !" % repr(char))
+            print("Should have %i rows, but has: %i rows" % (height, len(data)))
         for line in data:
             if len(line) != width:
-                print "Char %s has wrong width / column count !" % repr(char)
-                print "Should have %i columns, but has: %i columns" % (width, len(line))
+                print("Char %s has wrong width / column count !" % repr(char))
+                print("Should have %i columns, but has: %i columns" % (width, len(line)))
 
 
 if __name__ == "__main__":
@@ -1369,4 +1369,4 @@ if __name__ == "__main__":
         colors=colors,
     )
     t.mainloop()
-    print " --- END --- "
+    print(" --- END --- ")

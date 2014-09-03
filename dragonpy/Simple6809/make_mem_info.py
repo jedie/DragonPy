@@ -30,7 +30,7 @@ for line in rom_list:
     desc = desc.strip()
     if not desc or desc in ("*",):
         continue
-    print '        (0x%s, 0x%s, %r),' % (addr, addr, desc)
+    print('        (0x%s, 0x%s, %r),' % (addr, addr, desc))
 #     print items
 #     print
 rom_list.close()

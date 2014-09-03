@@ -13,13 +13,13 @@
 """
 
 
-import ScrolledText
-import Tkinter
+import tkinter.scrolledtext
+import tkinter
 import os
 import string
 import sys
-import tkFileDialog
-import tkMessageBox
+import tkinter.filedialog
+import tkinter.messagebox
 
 from basic_editor.editor_base import BaseExtension
 from basic_editor.highlighting import TkTextHighlighting
@@ -27,17 +27,17 @@ from dragonlib.utils.auto_shift import invert_shift
 from dragonlib.utils.logging_utils import log, pformat_program_dump
 
 
-class MultiStatusBar(Tkinter.Frame):
+class MultiStatusBar(tkinter.Frame):
     """
     code from idlelib.MultiStatusBar.MultiStatusBar
     """
     def __init__(self, master, **kw):
-        Tkinter.Frame.__init__(self, master, **kw)
+        tkinter.Frame.__init__(self, master, **kw)
         self.labels = {}
 
-    def set_label(self, name, text='', side=Tkinter.LEFT):
+    def set_label(self, name, text='', side=tkinter.LEFT):
         if name not in self.labels:
-            label = Tkinter.Label(self, bd=1, relief=Tkinter.SUNKEN, anchor=Tkinter.W)
+            label = tkinter.Label(self, bd=1, relief=tkinter.SUNKEN, anchor=tkinter.W)
             label.pack(side=side)
             self.labels[name] = label
         else:
@@ -58,7 +58,7 @@ class TkTextHighlightCurrentLine(BaseExtension):
         
     def update(self, force=False):
         """ highlight the current line """
-        line_no = self.text.index(Tkinter.INSERT).split('.')[0]
+        line_no = self.text.index(tkinter.INSERT).split('.')[0]
         
         if not force:
             if line_no == self.current_line:
@@ -77,16 +77,16 @@ class TkTextHighlightCurrentLine(BaseExtension):
         self.after_id = self.text.after(10, self.__update_interval)
 
 
-class ScrolledText2(ScrolledText.ScrolledText):
+class ScrolledText2(tkinter.scrolledtext.ScrolledText):
     def save_position(self):
         # save text cursor position:
-        self.old_text_pos = self.index(Tkinter.INSERT)
+        self.old_text_pos = self.index(tkinter.INSERT)
         # save scroll position:
         self.old_first, self.old_last = self.yview()
         
     def restore_position(self):
         # restore text cursor position:
-        self.mark_set(Tkinter.INSERT, self.old_text_pos)
+        self.mark_set(tkinter.INSERT, self.old_text_pos)
         # restore scroll position:
         self.yview_moveto(self.old_first)
                     
@@ -103,10 +103,10 @@ class EditorWindow(object):
         self.machine_api = self.cfg.machine_api
 
         if self.standalone_run:
-            self.root = Tkinter.Tk()
+            self.root = tkinter.Tk()
         else:
             # As sub window in DragonPy Emulator
-            self.root = Tkinter.Toplevel(self.gui.root)
+            self.root = tkinter.Toplevel(self.gui.root)
             self.root.geometry("+%d+%d" % (self.gui.root.winfo_rootx() + 30,
                 self.gui.root.winfo_rooty() + 40))
             
@@ -122,16 +122,16 @@ class EditorWindow(object):
             highlightthickness=0,
             font=('courier', 11),
         )
-        self.text.grid(row=0, column=0, sticky=Tkinter.NSEW)
+        self.text.grid(row=0, column=0, sticky=tkinter.NSEW)
         
         self.highlighting=TkTextHighlighting(self)
         self.highlight_currentline = TkTextHighlightCurrentLine(self)
 
         #self.auto_shift = True # use invert shift for letters?
 
-        menubar = Tkinter.Menu(self.root)
+        menubar = tkinter.Menu(self.root)
 
-        filemenu = Tkinter.Menu(menubar, tearoff=0)
+        filemenu = tkinter.Menu(menubar, tearoff=0)
         filemenu.add_command(label="Load", command=self.command_load_file)
         filemenu.add_command(label="Save", command=self.command_save_file)
         if self.standalone_run:
@@ -139,19 +139,19 @@ class EditorWindow(object):
         menubar.add_cascade(label="File", menu=filemenu)
 
         if not self.standalone_run: # As sub window in DragonPy Emulator
-            editmenu = Tkinter.Menu(menubar, tearoff=0)
+            editmenu = tkinter.Menu(menubar, tearoff=0)
             editmenu.add_command(label="load from DragonPy", command=self.command_load_from_DragonPy)
             editmenu.add_command(label="inject into DragonPy", command=self.command_inject_into_DragonPy)
             editmenu.add_command(label="inject + RUN into DragonPy", command=self.command_inject_and_run_into_DragonPy)
             menubar.add_cascade(label="DragonPy", menu=editmenu)
 
-        editmenu = Tkinter.Menu(menubar, tearoff=0)
+        editmenu = tkinter.Menu(menubar, tearoff=0)
         editmenu.add_command(label="renum", command=self.renumber_listing)
         editmenu.add_command(label="display tokens", command=self.debug_display_tokens)
         menubar.add_cascade(label="tools", menu=editmenu)
 
         # help menu
-        helpmenu = Tkinter.Menu(menubar, tearoff=0)
+        helpmenu = tkinter.Menu(menubar, tearoff=0)
 #        helpmenu.add_command(label="help", command=self.menu_event_help)
 #        helpmenu.add_command(label="about", command=self.menu_event_about)
         menubar.add_cascade(label="help", menu=helpmenu)
@@ -173,7 +173,7 @@ class EditorWindow(object):
         if sys.platform == "darwin":
             # Insert some padding to avoid obscuring some of the statusbar
             # by the resize widget.
-            self.status_bar.set_label('_padding1', '    ', side=Tkinter.RIGHT)
+            self.status_bar.set_label('_padding1', '    ', side=tkinter.RIGHT)
         self.status_bar.grid(row=1, column=0)
         
         self.text.bind("<<set-line-and-column>>", self.set_line_and_column)
@@ -182,7 +182,7 @@ class EditorWindow(object):
         self.text.after_idle(self.set_line_and_column)
 
     def set_line_and_column(self, event=None):
-        line, column = self.text.index(Tkinter.INSERT).split('.')
+        line, column = self.text.index(tkinter.INSERT).split('.')
         self.status_bar.set_label('column', 'Column: %s' % column)
         self.status_bar.set_label('line', 'Line: %s' % line)
 
@@ -201,7 +201,7 @@ class EditorWindow(object):
         converted_char = invert_shift(char)
         log.debug("convert keycode %s - char %s to %s", event.keycode, repr(char), converted_char)
 #         self.text.delete(Tkinter.INSERT + "-1c") # Delete last input char
-        self.text.insert(Tkinter.INSERT, converted_char) # Insert converted char
+        self.text.insert(tkinter.INSERT, converted_char) # Insert converted char
         return "break"
 
 #     def event_syntax_check(self, event):
@@ -215,7 +215,7 @@ class EditorWindow(object):
 #         print self.machine_api.parse_ascii_listing(word)
 
     def command_load_file(self):
-        infile = tkFileDialog.askopenfile(parent=self.root, mode="r", title="Select a BASIC file to load")
+        infile = tkinter.filedialog.askopenfile(parent=self.root, mode="r", title="Select a BASIC file to load")
         if infile is not None:
             content = infile.read()
             infile.close()
@@ -224,7 +224,7 @@ class EditorWindow(object):
             self.set_content(listing_ascii)
 
     def command_save_file(self):
-        outfile = tkFileDialog.asksaveasfile(parent=self.root, mode="w")
+        outfile = tkinter.filedialog.asksaveasfile(parent=self.root, mode="w")
         if outfile is not None:
             content = self.get_content()
             outfile.write(content)
@@ -257,7 +257,7 @@ class EditorWindow(object):
         content = self.get_content()
         program_dump = self.machine_api.ascii_listing2program_dump(content)
         msg = pformat_program_dump(program_dump)
-        tkMessageBox.showinfo("Program Dump:", msg, parent=self.root)
+        tkinter.messagebox.showinfo("Program Dump:", msg, parent=self.root)
 
     def renumber_listing(self):
         # save text cursor and scroll position
@@ -272,23 +272,23 @@ class EditorWindow(object):
         self.text.restore_position()
 
     def get_content(self):
-        content = self.text.get("1.0", Tkinter.END)
+        content = self.text.get("1.0", tkinter.END)
         content = content.strip()
         return content
 
     def set_content(self, listing_ascii):
 #        self.text.config(state=Tkinter.NORMAL)
-        self.text.delete("1.0", Tkinter.END)
+        self.text.delete("1.0", tkinter.END)
         log.critical("insert listing:")
-        if isinstance(listing_ascii, basestring):
+        if isinstance(listing_ascii, str):
             listing_ascii = listing_ascii.splitlines()
 
         for line in listing_ascii:
             line = "%s\n" % line # use os.sep ?!?
             log.critical("\t%s", repr(line))
-            self.text.insert(Tkinter.END, line)
+            self.text.insert(tkinter.END, line)
 #        self.text.config(state=Tkinter.DISABLED)
-        self.text.mark_set(Tkinter.INSERT, '1.0') # Set cursor at start
+        self.text.mark_set(tkinter.INSERT, '1.0') # Set cursor at start
         self.text.focus()
         self.highlight_currentline.update(force=True)
         self.highlighting.update(force=True)

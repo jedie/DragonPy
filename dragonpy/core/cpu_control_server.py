@@ -16,7 +16,7 @@
     more info, see README
 """
 
-import BaseHTTPServer
+import http.server
 import json
 import re
 import logging
@@ -29,7 +29,7 @@ import os
 from dragonlib.utils.logging_utils import log
 
 
-class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
+class ControlHandler(http.server.BaseHTTPRequestHandler):
 
     def __init__(self, request, client_address, server, cpu):
         log.error("ControlHandler %s %s %s", request, client_address, server)
@@ -51,7 +51,7 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             r"/debug/$": self.post_debug,
         }
 
-        BaseHTTPServer.BaseHTTPRequestHandler.__init__(self, request, client_address, server)
+        http.server.BaseHTTPRequestHandler.__init__(self, request, client_address, server)
 
     def log_message(self, format, *args):
         msg = "%s - - [%s] %s\n" % (
@@ -60,13 +60,13 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         log.critical(msg)
 
     def dispatch(self, urls):
-        for r, f in urls.items():
+        for r, f in list(urls.items()):
             m = re.match(r, self.path)
             if m is not None:
                 log.critical("call %s", f.__name__)
                 try:
                     f(m)
-                except Exception, err:
+                except Exception as err:
                     txt = traceback.format_exc()
                     self.response_500("Error call %r: %s" % (f.__name__, err), txt)
                 return
@@ -162,7 +162,7 @@ class ControlHandler(BaseHTTPServer.BaseHTTPRequestHandler):
             end = int(e, 16)
         else:
             end = addr
-        self.response(json.dumps(list(map(self.cpu.read_byte, range(addr, end + 1)))))
+        self.response(json.dumps(list(map(self.cpu.read_byte, list(range(addr, end + 1))))))
 
     def get_status(self, m):
         data = {
@@ -254,7 +254,7 @@ def start_http_control_server(cpu, cfg):
     control_handler = ControlHandlerFactory(cpu)
     server_address = (cfg.CPU_CONTROL_ADDR, cfg.CPU_CONTROL_PORT)
     try:
-        control_server = BaseHTTPServer.HTTPServer(server_address, control_handler)
+        control_server = http.server.HTTPServer(server_address, control_handler)
     except:
         cpu.running = False
         raise
@@ -265,7 +265,7 @@ def start_http_control_server(cpu, cfg):
 
 
 def test_run():
-    print "test run..."
+    print("test run...")
     import subprocess
     cmd_args = [sys.executable,
         os.path.join("..", "..", "DragonPy_CLI.py"),
@@ -282,7 +282,7 @@ def test_run():
 #         "--max=100000",
         "--display_cycle",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args).wait()
 
 if __name__ == "__main__":

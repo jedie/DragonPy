@@ -27,11 +27,11 @@ from dragonpy.sbc09.mem_info import SBC09MemInfo
 def proc_killer(proc, timeout):
     time.sleep(timeout)
     if proc.poll() is None:
-        print "kill process after %fsec timeout..." % timeout
+        print("kill process after %fsec timeout..." % timeout)
         proc.kill()
 
 def subprocess2(timeout=3, **kwargs):
-    print "Start: %s" % " ".join(kwargs["args"])
+    print("Start: %s" % " ".join(kwargs["args"]))
     proc = subprocess.Popen(**kwargs)
     threading.Thread(target=partial(proc_killer, proc, timeout)).start()
     return proc
@@ -46,25 +46,25 @@ def create_v09_trace(commands, timeout, max_newlines=None):
         stdin=subprocess.PIPE,
         stdout=subprocess.PIPE,
     )
-    print "Started with timeout: %fsec." % timeout
+    print("Started with timeout: %fsec." % timeout)
 
     commands = "".join(["%s\n" % cmd for cmd in commands])
-    print "Commands: %r" % commands
+    print("Commands: %r" % commands)
     proc.stdin.write(commands)
     proc.stdin.flush()
 
-    print
-    print "Process output:"
-    print "-"*79
+    print()
+    print("Process output:")
+    print("-"*79)
     newline_count = 0
     line_buffer = ""
     while proc.poll() is None:
         char = proc.stdout.read(1)
         if char == "\n":
-            print line_buffer
+            print(line_buffer)
             newline_count += 1
             if max_newlines is not None and newline_count >= max_newlines:
-                print "Aboad process after %i newlines." % newline_count
+                print("Aboad process after %i newlines." % newline_count)
                 proc.kill()
                 break
             line_buffer = ""
@@ -73,9 +73,9 @@ def create_v09_trace(commands, timeout, max_newlines=None):
         else:
             line_buffer += char
 
-    print "-"*79
-    print "Process ends and output %i newlines." % newline_count
-    print
+    print("-"*79)
+    print("Process ends and output %i newlines." % newline_count)
+    print()
 
     result = trace_file.read()
     trace_file.close()
@@ -91,8 +91,8 @@ def reformat_v09_trace(raw_trace, max_lines=None):
         v09 traces contains the register info line one trace line later!
         We reoder it as XRoar done: addr+Opcode with resulted registers
     """
-    print
-    print "Reformat v09 trace..."
+    print()
+    print("Reformat v09 trace...")
     mem_info = SBC09MemInfo(sys.stderr)
 
     result = []
@@ -101,12 +101,12 @@ def reformat_v09_trace(raw_trace, max_lines=None):
     for line_no, line in enumerate(raw_trace.splitlines()):
         if max_lines is not None and line_no >= max_lines:
             msg = "max lines %i arraived -> Abort." % max_lines
-            print msg
+            print(msg)
             result.append(msg)
             break
 
         if time.time() > next_update:
-            print "reformat %i trace lines..." % line_no
+            print("reformat %i trace lines..." % line_no)
             next_update = time.time() + 1
 
         try:
@@ -119,12 +119,12 @@ def reformat_v09_trace(raw_trace, max_lines=None):
             y = int(line[25:29], 16)
             u = int(line[32:36], 16)
             s = int(line[39:43], 16)
-        except ValueError, err:
-            print "Error in line %i: %s" % (line_no, err)
-            print "Content on line %i:" % line_no
-            print "-"*79
-            print repr(line)
-            print "-"*79
+        except ValueError as err:
+            print("Error in line %i: %s" % (line_no, err))
+            print("Content on line %i:" % line_no)
+            print("-"*79)
+            print(repr(line))
+            print("-"*79)
             continue
 
         op_data = MC6809OP_DATA_DICT[op_code]
@@ -149,7 +149,7 @@ def reformat_v09_trace(raw_trace, max_lines=None):
 
         result.append(line)
 
-    print "Done, %i trace lines converted." % line_no
+    print("Done, %i trace lines converted." % line_no)
 #    print raw_trace[:700]
     return result
 
@@ -187,6 +187,6 @@ if __name__ == '__main__':
     with open(out_filename, "w") as f:
         f.write("\n".join(trace))
 
-    print "Trace file %r created." % out_filename
-    print " --- END --- "
+    print("Trace file %r created." % out_filename)
+    print(" --- END --- ")
 

@@ -355,7 +355,7 @@ def page(content, pagecallback=prompt):
                     # avoid extra blank line by skipping linefeed print
                     echo(linelist[i])
                 else:
-                    print(linelist[i])
+                    print((linelist[i]))
             linesleft -= lines2print
             linelist = linelist[lines2print:]
 
@@ -381,7 +381,7 @@ def page(content, pagecallback=prompt):
 # --- Manual tests when pager executed as a module ---
 
 def _manual_test_console():
-    print("\nconsole size: width %s, height %s" % (getwidth(), getheight()))
+    print(("\nconsole size: width %s, height %s" % (getwidth(), getheight())))
     echo("--<enter>--")
     getch()
     echo("\n")
@@ -528,7 +528,7 @@ if __name__ == '__main__':
     stdin_fd = sys.stdin.fileno()
     if os.isatty(stdin_fd):
         if not sys.argv[1:]:
-            print("pager v%s" % __version__)
+            print(("pager v%s" % __version__))
             print("usage: pager.py <file>")
             print("       pager.py --test")
             print("       pager.py < <file>         (Windows)")

@@ -42,7 +42,7 @@ class ROM(object):
         )
 
     def load(self, address, data):
-        if isinstance(data, basestring):
+        if isinstance(data, str):
             data = [ord(c) for c in data]
         log.debug("ROM load at $%04x: %s", address,
             ", ".join(["$%02x" % i for i in data])
@@ -137,7 +137,7 @@ class Memory(object):
         # init read/write byte middlewares:
         self._read_byte_middleware = {}
         self._write_byte_middleware = {}
-        for addr_range, functions in cfg.memory_byte_middlewares.items():
+        for addr_range, functions in list(cfg.memory_byte_middlewares.items()):
             start_addr, end_addr = addr_range
             read_func, write_func = functions
 
@@ -150,7 +150,7 @@ class Memory(object):
         # init read/write word middlewares:
         self._read_word_middleware = {}
         self._write_word_middleware = {}
-        for addr_range, functions in cfg.memory_word_middlewares.items():
+        for addr_range, functions in list(cfg.memory_word_middlewares.items()):
             start_addr, end_addr = addr_range
             read_func, write_func = functions
 
@@ -175,7 +175,7 @@ class Memory(object):
         if end_addr is None:
             callbacks_dict[start_addr] = callback_func
         else:
-            for addr in xrange(start_addr, end_addr + 1):
+            for addr in range(start_addr, end_addr + 1):
                 callbacks_dict[addr] = callback_func
 
     #---------------------------------------------------------------------------
@@ -319,7 +319,7 @@ class Memory(object):
         self.write_byte(address + 1, word & 0xff)
 
     def iter_bytes(self, start, end):
-        for addr in xrange(start, end + 1):
+        for addr in range(start, end + 1):
             yield addr, self.read_byte(addr)
 
     def get_dump(self, start, end):
@@ -333,9 +333,9 @@ class Memory(object):
         return dump_lines
 
     def print_dump(self, start, end):
-        print "Memory dump from $%04x to $%04x:" % (start, end)
+        print("Memory dump from $%04x to $%04x:" % (start, end))
         dump_lines = self.get_dump(start, end)
-        print "\n".join(["\t%s" % line for line in dump_lines])
+        print("\n".join(["\t%s" % line for line in dump_lines]))
 
 
 def test_run():
@@ -353,7 +353,7 @@ def test_run():
 #         "--max=30000",
 #         "--max=20000",
     ]
-    print "Startup CLI with: %s" % " ".join(cmd_args[1:])
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
 if __name__ == "__main__":

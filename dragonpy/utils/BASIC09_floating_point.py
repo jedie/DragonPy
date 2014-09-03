@@ -46,9 +46,9 @@ class BASIC09FloatingPoint(object):
         value = decimal.Decimal(abs(value))
         result = []
         pos = 0
-        for __ in xrange(byte_count):
+        for __ in range(byte_count):
             current_byte = 0
-            for bit_no in reversed(xrange(8)):
+            for bit_no in reversed(range(8)):
                 pos += 1
                 bit_value = decimal.Decimal(1.0) / decimal.Decimal(2) ** decimal.Decimal(pos)
                 if value >= bit_value:
@@ -61,26 +61,26 @@ class BASIC09FloatingPoint(object):
         return [self.exponent_byte] + self.mantissa_bytes + [self.mantissa_sign]
 
     def print_values(self):
-        print "Float value was: %s" % self.value
-        print "\texponent......: dez.: %s hex: $%02x" % (self.exponent, self.exponent)
-        print "\texponent byte.: dez.: %s hex: $%02x" % (
+        print("Float value was: %s" % self.value)
+        print("\texponent......: dez.: %s hex: $%02x" % (self.exponent, self.exponent))
+        print("\texponent byte.: dez.: %s hex: $%02x" % (
             self.exponent_byte, self.exponent_byte
-        )
-        print "\tmantissa value: dez.: %s" % (self.mantissa)
-        print "\tmantissa bytes: dez.: %s hex: %s" % (
+        ))
+        print("\tmantissa value: dez.: %s" % (self.mantissa))
+        print("\tmantissa bytes: dez.: %s hex: %s" % (
             repr(self.mantissa_bytes),
             ", ".join(["$%02x" % i for i in self.mantissa_bytes])
-        )
-        print "\tmatissa-sign..: hex: $%02x" % self.mantissa_sign
+        ))
+        print("\tmatissa-sign..: hex: $%02x" % self.mantissa_sign)
         byte_list = self.get_bytes()
-        print "\tbinary........: hex: %s" % (
+        print("\tbinary........: hex: %s" % (
             ", ".join(["$%02x" % i for i in byte_list])
-        )
-        print "\texponent |            mantissa             | mantissa-sign"
-        print "\t" + " ".join(
+        ))
+        print("\texponent |            mantissa             | mantissa-sign")
+        print("\t" + " ".join(
             ['{0:08b}'.format(i) for i in byte_list]
-        )
-        print
+        ))
+        print()
 
     def __repr__(self):
         return "<BinaryFloatingPoint %f: %s>" % (
@@ -103,18 +103,18 @@ if __name__ == "__main__":
 #    areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
 
     # 16 Bit test values
-    areas = range(0, 3)
-    areas += ["..."] + range(0x7f, 0x82) # sign change in 8 Bit range
-    areas += ["..."] + range(0xfe, 0x101) # end of 8 Bit range
-    areas += ["..."] + range(0x7ffe, 0x8003) # sign change in 16 Bit range
-    areas += ["..."] + range(0xfffd, 0x10000) # end of 16 Bit range
+    areas = list(range(0, 3))
+    areas += ["..."] + list(range(0x7f, 0x82)) # sign change in 8 Bit range
+    areas += ["..."] + list(range(0xfe, 0x101)) # end of 8 Bit range
+    areas += ["..."] + list(range(0x7ffe, 0x8003)) # sign change in 16 Bit range
+    areas += ["..."] + list(range(0xfffd, 0x10000)) # end of 16 Bit range
 
     for test_value in areas:
         if test_value == "...":
-            print "\n...\n"
+            print("\n...\n")
             continue
         fp = BASIC09FloatingPoint(test_value)
-        print "$%x (dez.: %s) -> %s" % (
+        print("$%x (dez.: %s) -> %s" % (
             test_value, test_value,
             " ".join(["$%02x" % i for i in fp.get_bytes()])
-        )
+        ))

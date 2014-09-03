@@ -32,16 +32,16 @@ with open(sourcefile, "r") as infile:
 
             outfile.write(line)
 
-print "%r written." % temp_file
+print("%r written." % temp_file)
 
 
-print "rename %r to %r" % (sourcefile, sourcefile_bak)
+print("rename %r to %r" % (sourcefile, sourcefile_bak))
 os.rename(sourcefile, sourcefile_bak)
 
-print "rename %r to %r" % (temp_file, sourcefile)
+print("rename %r to %r" % (temp_file, sourcefile))
 os.rename(temp_file, sourcefile)
 
 
-print "\n --- END --- "
+print("\n --- END --- ")
 
 

@@ -31,15 +31,15 @@ class TestBASICParser(unittest.TestCase):
         parsed_lines = self.parser.parse(ascii_listing)
 
         string_dict = {}
-        for line_no, code_objects in parsed_lines.items():
+        for line_no, code_objects in list(parsed_lines.items()):
             string_dict[line_no] = [repr(code_object) for code_object in code_objects]
 
         if print_parsed_lines:
-            print "-" * 79
-            print "parsed lines:", parsed_lines
-            print "-" * 79
-            print "reference:", reference
-            print "-" * 79
+            print("-" * 79)
+            print("parsed lines:", parsed_lines)
+            print("-" * 79)
+            print("reference:", reference)
+            print("-" * 79)
 
         self.assertEqual(string_dict, reference)
 
@@ -299,4 +299,4 @@ if __name__ == "__main__":
         verbosity=2,
         #         failfast=True,
     )
-    print " --- END --- "
+    print(" --- END --- ")

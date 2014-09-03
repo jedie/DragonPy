@@ -25,12 +25,12 @@ class BasicTokenUtil(object):
         self.basic_token_dict = basic_token_dict
         self.ascii2token_dict = dict([
             (code, token)
-            for token, code in basic_token_dict.items()
+            for token, code in list(basic_token_dict.items())
         ])
 
         regex = r"(%s)" % "|".join([
             re.escape(statement)
-            for statement in sorted(self.basic_token_dict.values(), key=len, reverse=True)
+            for statement in sorted(list(self.basic_token_dict.values()), key=len, reverse=True)
         ])
         self.regex = re.compile(regex)
 
@@ -451,9 +451,9 @@ if __name__ == "__main__":
 20 PRINT "END?"
 30 GOTO 123 ' didn't exist
 """
-    print listing
-    print "-" * 79
-    print api.renum_ascii_listing(listing)
-    print "-" * 79
-    print api.renum_tool.get_destinations(listing)
-    print "-" * 79
+    print(listing)
+    print("-" * 79)
+    print(api.renum_ascii_listing(listing))
+    print("-" * 79)
+    print(api.renum_tool.get_destinations(listing))
+    print("-" * 79)

@@ -22,4 +22,4 @@ if __name__ == "__main__":
     )
 
     test_runner.run(tests)
-    print " --- END --- "
+    print(" --- END --- ")
