@@ -6,7 +6,8 @@ python:
 install: true # There is no dependencies, yet.
 #  - pip install coveralls
 script:
-  - python setup.py test
+  # "python setup.py test" will not run the tests from dragonlib
+  - python -m unittest discover
 #  coverage run --source=dragonpy setup.py test
 #after_success:
 #  coveralls
