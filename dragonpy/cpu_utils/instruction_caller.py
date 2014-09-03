@@ -67,3 +67,26 @@ class OpCollection(object):
             func = getattr(instrution_class, func_name)
 
             self.opcode_dict[op_code] = (op_code_data["cycles"], func)
+
+
+if __name__ == "__main__":
+    from dragonpy.components.cpu6809 import CPU
+    from dragonpy.tests.test_base import BaseCPUTestCase
+    from dragonpy.Dragon32.config import Dragon32Cfg
+    from dragonpy.components.memory import Memory
+
+    cmd_args = BaseCPUTestCase.UNITTEST_CFG_DICT
+    cfg = Dragon32Cfg(cmd_args)
+    memory = Memory(cfg)
+    cpu = CPU(memory, cfg)
+
+    for op_code, data in sorted(cpu.opcode_dict.items()):
+        cycles, func = data
+        if op_code > 0xff:
+            op_code = "$%04x" % op_code
+        else:
+            op_code = "  $%02x" % op_code
+
+        print("Op %s - cycles: %2i - func: %s" % (op_code, cycles, func.__name__))
+
+    print(" --- END --- ")
