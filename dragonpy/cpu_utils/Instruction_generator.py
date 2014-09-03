@@ -10,16 +10,15 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-
-import sys
 import os
-
+import sys
 
 from dragonpy.MC6809data.MC6809_data_raw2 import (
     OP_DATA, BYTE, WORD, REG_A, REG_B, REG_CC, REG_D , REG_DP, REG_PC,
     REG_S, REG_U, REG_X, REG_Y
 )
 from dragonpy.MC6809data.MC6809_data_utils import MC6809OP_DATA_DICT
+
 
 SPECIAL_FUNC_NAME = "special"
 
@@ -43,6 +42,11 @@ REGISTER_DICT = {
 }
 
 
+if __doc__:
+    DOC = __doc__.rsplit("=", 1)[1]
+else:
+    DOC = "" # e.g.: run with --OO
+
 INIT_CODE = '''
 """
     This file was generated with: "%s"
@@ -55,10 +59,7 @@ from dragonpy.cpu_utils.instruction_base import InstructionBase
 
 class PrepagedInstructions(InstructionBase):
 
-''' % (
-    os.path.basename(__file__),
-    __doc__.rsplit("=", 1)[1]
-)
+''' % (os.path.basename(__file__), DOC)
 
 
 
