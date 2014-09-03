@@ -1,6 +1,6 @@
 *.rom
 *~
-*.pyc
+*.py[co]
 *.egg-info/*
 .settings/*
 .coverage
