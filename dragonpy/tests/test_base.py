@@ -199,6 +199,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
         else:
             print("Load CPU init state from: %r" % cls.TEMP_FILE)
             cls.__init_state = pickle.load(temp_file)
+            temp_file.close()
 
 #        print_cpu_state_data(cls.__init_state)
 
@@ -291,6 +292,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         else:
             print("Load CPU init state from: %r" % cls.TEMP_FILE)
             cls.__init_state = pickle.load(temp_file)
+            temp_file.close()
 
 #         print_cpu_state_data(cls.__init_state)
 
@@ -444,6 +446,7 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
         else:
             print("Load CPU init state from: %r" % cls.TEMP_FILE)
             cls.__init_state = pickle.load(temp_file)
+            temp_file.close()
 
 #        print "cls.__init_state:", ;print_cpu_state_data(cls.__init_state)
 
