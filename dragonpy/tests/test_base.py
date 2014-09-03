@@ -154,7 +154,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
         """
         super(Test6809_BASIC_simple6809_Base, cls).setUpClass()
 
-        print("CPU state pickle file: %r" % cls.TEMP_FILE)
+        log.info("CPU state pickle file: %r" % cls.TEMP_FILE)
 #         if os.path.isfile(cls.TEMP_FILE):os.remove(cls.TEMP_FILE);print "Delete CPU data file!"
 
         cfg = Simple6809Cfg(cls.UNITTEST_CFG_DICT)
@@ -172,14 +172,14 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
         try:
             temp_file = open(cls.TEMP_FILE, "rb")
         except IOError:
-            print("init machine...")
+            log.info("init machine...")
             init_start = time.time()
             cpu.test_run(
                 start=cpu.program_counter.get(),
                 end=cfg.STARTUP_END_ADDR,
             )
             duration = time.time() - init_start
-            print("done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
+            log.info("done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
                 duration, float(cpu.cycles / duration), cpu.cycles
             ))
 
@@ -194,10 +194,10 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
             init_state = cpu.get_state()
             with open(cls.TEMP_FILE, "wb") as f:
                 pickle.dump(init_state, f)
-                print("Save CPU init state to: %r" % cls.TEMP_FILE)
+                log.info("Save CPU init state to: %r" % cls.TEMP_FILE)
             cls.__init_state = init_state
         else:
-            print("Load CPU init state from: %r" % cls.TEMP_FILE)
+            log.info("Load CPU init state from: %r" % cls.TEMP_FILE)
             cls.__init_state = pickle.load(temp_file)
             temp_file.close()
 
@@ -250,7 +250,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         """
         super(Test6809_sbc09_Base, cls).setUpClass()
 
-        print("CPU state pickle file: %r" % cls.TEMP_FILE)
+        log.info("CPU state pickle file: %r" % cls.TEMP_FILE)
 #         os.remove(cls.TEMP_FILE);print "Delete CPU date file!"
 
         cfg = SBC09Cfg(cls.UNITTEST_CFG_DICT)
@@ -268,14 +268,14 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         try:
             temp_file = open(cls.TEMP_FILE, "rb")
         except IOError:
-            print("init machine...")
+            log.info("init machine...")
             init_start = time.time()
             cpu.test_run(
                 start=cpu.program_counter.get(),
                 end=cfg.STARTUP_END_ADDR,
             )
             duration = time.time() - init_start
-            print("done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
+            log.info("done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
                 duration, float(cpu.cycles / duration), cpu.cycles
             ))
 
@@ -287,10 +287,10 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
             init_state = cpu.get_state()
             with open(cls.TEMP_FILE, "wb") as f:
                 pickle.dump(init_state, f)
-                print("Save CPU init state to: %r" % cls.TEMP_FILE)
+                log.info("Save CPU init state to: %r" % cls.TEMP_FILE)
             cls.__init_state = init_state
         else:
-            print("Load CPU init state from: %r" % cls.TEMP_FILE)
+            log.info("Load CPU init state from: %r" % cls.TEMP_FILE)
             cls.__init_state = pickle.load(temp_file)
             temp_file.close()
 
@@ -387,7 +387,7 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
         """
         super(Test6809_Dragon32_Base, cls).setUpClass()
 
-        print("CPU state pickle file: %r" % cls.TEMP_FILE)
+        log.info("CPU state pickle file: %r" % cls.TEMP_FILE)
 #         os.remove(cls.TEMP_FILE);print "Delete CPU date file!"
 
         cfg = Dragon32Cfg(cls.UNITTEST_CFG_DICT)
@@ -418,14 +418,14 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
         try:
             temp_file = open(cls.TEMP_FILE, "rb")
         except IOError:
-            print("init machine...")
+            log.info("init machine...")
             init_start = time.time()
             cls.cpu.test_run(
                 start=cls.cpu.program_counter.get(),
                 end=cfg.STARTUP_END_ADDR,
             )
             duration = time.time() - init_start
-            print("done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
+            log.info("done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
                 duration, float(cls.cpu.cycles / duration), cls.cpu.cycles
             ))
 
@@ -441,10 +441,10 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
             init_state = cls.cpu.get_state()
             with open(cls.TEMP_FILE, "wb") as f:
                 pickle.dump(init_state, f)
-                print("Save CPU init state to: %r" % cls.TEMP_FILE)
+                log.info("Save CPU init state to: %r" % cls.TEMP_FILE)
             cls.__init_state = init_state
         else:
-            print("Load CPU init state from: %r" % cls.TEMP_FILE)
+            log.info("Load CPU init state from: %r" % cls.TEMP_FILE)
             cls.__init_state = pickle.load(temp_file)
             temp_file.close()
 
