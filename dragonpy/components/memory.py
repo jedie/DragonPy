@@ -242,7 +242,7 @@ class Memory(object):
             msg = "reading outside memory area (PC:$%x)" % self.cpu.program_counter.get()
             self.cfg.mem_info(address, msg)
             msg2 = "%s: $%x" % (msg, address)
-            log.warn(msg2)
+            log.warning(msg2)
             # raise RuntimeError(msg2)
             byte = 0x0
 
@@ -301,7 +301,7 @@ class Memory(object):
             )
             self.cfg.mem_info(address, msg)
             msg2 = "%s: $%x" % (msg, address)
-            log.warn(msg2)
+            log.warning(msg2)
 #             raise RuntimeError(msg2)
 
     def write_word(self, address, word):

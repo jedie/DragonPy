@@ -14,11 +14,8 @@
 from __future__ import absolute_import, division, print_function, unicode_literals
 
 
-import logging
 from dragonpy.utils.humanize import cc_value2txt
-
-
-log = logging.getLogger("DragonPy")
+from dragonlib.utils.logging_utils import log
 
 
 class ValueStorage(object):
@@ -51,7 +48,7 @@ class UndefinedRegister(ValueStorage):
     def __init__(self):
         pass
     def set(self, v):
-        log.warn("Set value to 'undefined' register!")
+        log.warning("Set value to 'undefined' register!")
         pass
 
     def get(self):

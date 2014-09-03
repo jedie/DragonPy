@@ -275,7 +275,7 @@ class CPU(object):
         self.cycles += cycles
 
     def test_run(self, start, end):
-#        log.warn("CPU test_run(): from $%x to $%x" % (start, end))
+#        log.warning("CPU test_run(): from $%x to $%x" % (start, end))
         self.program_counter.set(start)
 #        log.debug("-"*79)
         while True:
@@ -284,7 +284,7 @@ class CPU(object):
             self.get_and_call_next_op()
 
     def test_run2(self, start, count):
-#        log.warn("CPU test_run2(): from $%x count: %i" % (start, count))
+#        log.warning("CPU test_run2(): from $%x count: %i" % (start, count))
         self.program_counter.set(start)
 #        log.debug("-"*79)
         for __ in range(count):
@@ -1563,7 +1563,7 @@ class CPU(object):
         """
         r = register.get()
         r_new = r - m
-#        log.warn("$%x CMP16 %s $%x - $%x = $%x" % (
+#        log.warning("$%x CMP16 %s $%x - $%x = $%x" % (
 #             self.program_counter,
 #             register.name,
 #             r, m, r_new,
@@ -1589,7 +1589,7 @@ class CPU(object):
         """
         r = register.get()
         r_new = r - m
-#         log.warn("$%x CMP8 %s $%x - $%x = $%x" % (
+#         log.warning("$%x CMP8 %s $%x - $%x = $%x" % (
 #             self.program_counter,
 #             register.name,
 #             r, m, r_new,
