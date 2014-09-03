@@ -21,7 +21,7 @@ from dragonpy.utils.humanize import cc_value2txt
 log = logging.getLogger("DragonPy")
 
 
-class ValueStorage(object):
+class ValueStorage:
     def __init__(self, name, initial_value):
         self.name = name
         self.value = initial_value
@@ -104,7 +104,7 @@ def _register_bit(key):
     return property(get_flag, set_flag)
 
 
-class ConditionCodeRegister(object):
+class ConditionCodeRegister:
     """ CC - 8 bit condition code register bits """
 
     WIDTH = 8 # 8 Bit

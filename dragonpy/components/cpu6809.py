@@ -104,7 +104,7 @@ class CPUStatusThread(threading.Thread):
             raise
 
 
-class CPU(object):
+class CPU:
     RESET_VECTOR = 0xfffe
 
     def __init__(self, memory, cfg, cpu_status_queue=None):

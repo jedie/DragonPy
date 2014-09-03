@@ -10,13 +10,13 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-
 import inspect
 
 from dragonpy.MC6809data.MC6809_data_utils import MC6809OP_DATA_DICT
+from dragonpy.components.cpu6809_trace import InstructionTrace
 from dragonpy.cpu_utils.Instruction_generator import func_name_from_op_code
 from dragonpy.cpu_utils.instruction_call import PrepagedInstructions
-from dragonpy.components.cpu6809_trace import InstructionTrace
+
 
 
 class OpCollection(object):
@@ -29,10 +29,7 @@ class OpCollection(object):
         return self.opcode_dict
 
     def collect_ops(self):
-        # Get the members not from class instance, so that's possible to
-        # exclude properties without "activate" them.
-        cls = type(self.cpu)
-        for name, cls_method in inspect.getmembers(cls):
+        for name, cls_method in inspect.getmembers(self.cpu):
             if name.startswith("_") or isinstance(cls_method, property):
                 continue
 
