@@ -63,7 +63,7 @@ class DragonPyCLI(Base_CLI):
         log.debug("Existing machine_dict: %s" % repr(self.machine_dict))
 
         self.parser.add_argument("--machine",
-            choices=list(self.machine_dict.keys()),
+            choices=sorted(self.machine_dict.keys()),
             default=machine_dict.DEFAULT,
             help="Used machine configuration (Default: %s)" % machine_dict.DEFAULT
         )
