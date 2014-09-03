@@ -11,18 +11,16 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-
 import inspect
-import struct
 import multiprocessing
-
+import struct
 
 from dragonlib.utils.logging_utils import log
 
 
 DRAGON32 = "Dragon32"
 DRAGON64 = "Dragon64"
-COCO2B = "COCO2B"
+COCO2B = "CoCo2b"
 SBC09 = "sbc09"
 SIMPLE6809 = "Simple6809"
 MULTICOMP6809 = "Multicomp6809"

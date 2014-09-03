@@ -26,7 +26,7 @@ from dragonpy.core.configs import COCO2B
 
 class CoCo2bCfg(Dragon32Cfg):
     CONFIG_NAME = COCO2B
-    MACHINE_NAME = "CoCo"
+    MACHINE_NAME = "CoCo2b"
 
     # How does the keyboard polling routine starts with?
     PIA0B_KEYBOARD_START = 0xfe
@@ -110,21 +110,6 @@ class CoCo2bCfg(Dragon32Cfg):
         """
         log.critical("%04x| write $%04x to $%04x", last_op_address, word, address)
         return word
-
-    def get_initial_RAM(self):
-        """
-        init the Dragon RAM
-        See: http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4444
-        """
-        mem_FF = [0xff for _ in range(4)]
-        mem_00 = [0x00 for _ in range(4)]
-
-        mem = []
-        for _ in range(self.RAM_SIZE / 8):
-            mem += mem_FF
-            mem += mem_00
-
-        return mem
 
     def pia_keymatrix_result(self, char_or_code, pia0b):
         return get_coco_keymatrix_pia_result(char_or_code, pia0b, auto_shift=True)
