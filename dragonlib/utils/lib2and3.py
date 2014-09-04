@@ -12,7 +12,9 @@
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
+import string
 import sys
+
 
 PY2 = sys.version_info[0] == 2
 PY3 = sys.version_info[0] == 3
@@ -21,3 +23,4 @@ if PY3:
     string_types = str,
 else:
     string_types = basestring,
+    string.ascii_letters = string.letters

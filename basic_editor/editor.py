@@ -212,7 +212,7 @@ class EditorWindow(object):
         Convert all lowercase letters to uppercase and vice versa.
         """
         char = event.char
-        if not char or char not in string.letters:
+        if not char or char not in string.ascii_letters:
             # ignore all non letter inputs
             return
 
