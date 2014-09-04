@@ -10,13 +10,12 @@ if NOT exist %python% (
     exit 1
 )
 
-cd ..
+cd..
 
 :loop
-    echo on
     cls
-    REM ~ %python% setup.py test
-    %python% -m unittest discover
+    echo on
+    %python% -3 DragonPy_CLI.py --machine=Dragon64 run
     @echo off
     pause
 goto:loop
