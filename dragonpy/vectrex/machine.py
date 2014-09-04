@@ -13,14 +13,14 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 
 from dragonlib.utils.logging_utils import log, setup_logging
-from dragonpy.core.machine import ThreadedMachineGUI
+from dragonpy.core.machine import MachineGUI
 from dragonpy.vectrex.config import VectrexCfg
 from dragonpy.vectrex.periphery import VectrexPeriphery
 from dragonpy.vectrex.vectrex_gui import VectrexGUI
 
 
 def run_Vectrex(cfg_dict):
-    machine = ThreadedMachineGUI(
+    machine = MachineGUI(
         cfg=VectrexCfg(cfg_dict)
     )
     machine.run(

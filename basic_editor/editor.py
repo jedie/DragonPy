@@ -263,14 +263,14 @@ class EditorWindow(object):
 
     def command_load_from_DragonPy(self):
         self.gui.add_user_input_and_wait("'SAVE TO EDITOR")
-        listing_ascii = self.gui.request_comm.get_basic_program()
+        listing_ascii = self.gui.machine.get_basic_program()
         self.set_content(listing_ascii)
         self.gui.add_user_input_and_wait("\r")
 
     def command_inject_into_DragonPy(self):
         self.gui.add_user_input_and_wait("'LOAD FROM EDITOR")
         content = self.get_content()
-        result = self.gui.request_comm.inject_basic_program(content)
+        result = self.gui.machine.inject_basic_program(content)
         log.critical("program loaded: %s", result)
         self.gui.add_user_input_and_wait("\r")
 

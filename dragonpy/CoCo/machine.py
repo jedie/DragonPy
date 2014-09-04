@@ -18,11 +18,11 @@ from dragonlib.utils.logging_utils import log, setup_logging
 from dragonpy.CoCo.config import CoCo2bCfg
 from dragonpy.CoCo.periphery_coco import CoCoPeriphery
 from dragonpy.core.gui import DragonTkinterGUI
-from dragonpy.core.machine import ThreadedMachineGUI
+from dragonpy.core.machine import MachineGUI
 
 
 def run_CoCo2b(cfg_dict):
-    machine = ThreadedMachineGUI(
+    machine = MachineGUI(
         cfg=CoCo2bCfg(cfg_dict)
     )
     machine.run(

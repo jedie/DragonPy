@@ -33,8 +33,7 @@ from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809TestPeriphery
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
-from dragonpy.core.machine import CommunicatorRequest, CommunicatorResponse, \
-    Machine
+from dragonpy.core.machine import Machine
 from dragonpy.cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
 from dragonpy.sbc09.config import SBC09Cfg
 from dragonpy.sbc09.periphery import SBC09PeripheryUnittest
@@ -345,25 +344,6 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         raise self.failureException(msg)
 
 #-----------------------------------------------------------------------------
-
-
-class UnittestCommunicatorRequest(CommunicatorRequest):
-    """
-    Used in unittests:
-    Create a request, but doesn't block until response exists
-    """
-    def __init__(self, cfg):
-        super(UnittestCommunicatorRequest, self).__init__(cfg)
-
-    def add_response_comm(self, response_comm):
-        self.response_comm = response_comm
-
-    def _request(self, *args):
-        log.critical("request: %s", repr(args))
-        self.request_queue.put(args)
-        self.response_comm.do_response()
-        return self.response_queue.get(block=False)
-
 
 
 DRAGON32ROM_FILENAME = Dragon32Cfg.DEFAULT_ROMS[0].filepath

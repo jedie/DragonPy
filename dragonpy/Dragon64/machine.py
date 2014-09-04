@@ -18,11 +18,11 @@ from dragonlib.utils.logging_utils import log, setup_logging
 from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 from dragonpy.Dragon64.config import Dragon64Cfg
 from dragonpy.core.gui import DragonTkinterGUI
-from dragonpy.core.machine import ThreadedMachineGUI
+from dragonpy.core.machine import MachineGUI
 
 
 def run_Dragon64(cfg_dict):
-    machine = ThreadedMachineGUI(
+    machine = MachineGUI(
         cfg=Dragon64Cfg(cfg_dict)
     )
     machine.run(

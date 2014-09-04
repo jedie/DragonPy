@@ -89,7 +89,7 @@ class DragonDisplayOutputHandler(object):
         """
         self.display_queue.put(
             (cpu_cycles, op_address, address, value),
-            block=True
+            block=True, timeout=3
         )
         return value
 

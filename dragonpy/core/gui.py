@@ -122,7 +122,7 @@ class BaseTkinterGUI(object):
     """
     The complete Tkinter GUI window
     """
-    def __init__(self, cfg, display_queue, user_input_queue, cpu_status_queue, request_comm):
+    def __init__(self, cfg, display_queue, user_input_queue):
         self.cfg = cfg
 
         # Queue which contains "write into Display RAM" information
@@ -132,13 +132,9 @@ class BaseTkinterGUI(object):
         # Queue to send keyboard inputs to CPU Thread:
         self.user_input_queue = user_input_queue
 
-        # LifoQueue filles in CPU Thread with CPU-Cycles information:
-        self.cpu_status_queue = cpu_status_queue
-
-        self.request_comm = request_comm
-
         self.last_cpu_cycles = 0
-        self.last_cpu_cycle_update = time.time()
+        self.cpu_cycles_update_interval = 1
+        self.next_cpu_cycle_update = time.time() + self.cpu_cycles_update_interval
 
         self.root = tkinter.Tk(className="DragonPy")
 
@@ -211,70 +207,63 @@ class BaseTkinterGUI(object):
         char_or_code = event.char or event.keycode
         self.user_input_queue.put(char_or_code)
 
-    def display_cpu_status_interval(self, interval):
+    def cpu_interval(self, machine, burst_count, interval):
         """
-        Update the 'cycles/sec' in the GUI
+10 FOR X=32 TO 255
+20 PRINT CHR$(X);
+30 NEXT
         """
-        try:
-            cycles = self.cpu_status_queue.get(block=False)
-        except queue.Empty:
-            log.critical("no new cpu_status_queue entry")
-            pass
-        else:
-            new_cycles = cycles - self.last_cpu_cycles
-            duration = time.time() - self.last_cpu_cycle_update
-            self.last_cpu_cycles = cycles
-            self.last_cpu_cycle_update = time.time()
+#        log.critical("enter cpu interval")
+        start_time = time.time()
+
+        machine.run_cpu(burst_count)
+
+        if time.time() > self.next_cpu_cycle_update:
+            now = time.time()
+
+            duration = now - self.next_cpu_cycle_update + self.cpu_cycles_update_interval
+            self.next_cpu_cycle_update = now + self.cpu_cycles_update_interval
+
+            new_cycles = machine.cpu.cycles - self.last_cpu_cycles
+            self.last_cpu_cycles = machine.cpu.cycles
+
             cycles_per_second = int(new_cycles / duration)
-
-#             msg = "%i cycles/sec - Dragon ~895.000cycles/s (%i cycles in last %0.1fs)" % (
-#                 cycles_per_second, new_cycles, duration
-#             )
-
             msg = "%s cycles/sec (Dragon 32 == 895.000cycles/sec)" % (
                 locale_format_number(cycles_per_second)
             )
-#             log.critical(msg)
             self.status.set(msg)
             self.root.update()
 
-        self.root.after(interval, self.display_cpu_status_interval, interval)
+        self.process_display_queue()
 
-    def display_queue_interval(self, interval):
+        if machine.cpu.running:
+#            log.critical("queue cpu interval")
+#            self.root.after_idle(self.cpu_interval, machine, burst_count, interval)
+            self.root.after(interval, self.cpu_interval, machine, burst_count, interval)
+        else:
+            log.critical("CPU stopped.")
+
+    def process_display_queue(self):
         """
         consume all exiting "display RAM write" queue items and render them.
         """
-        max_time = time.time() + 0.25
+#        log.critical("start process_display_queue()")
         while True:
             try:
                 cpu_cycles, op_address, address, value = self.display_queue.get_nowait()
             except queue.Empty:
-                #                 log.critical("display_queue empty -> exit loop")
-                break
-#                 log.critical(
-#                     "call display.write_byte() (display_queue._qsize(): %i)",
-#                     self.display_queue._qsize()
-#                 )
+#                log.critical("display_queue empty -> exit loop")
+                return
+#                log.critical(
+#                    "call display.write_byte() (display_queue._qsize(): %i)",
+#                    self.display_queue._qsize()
+#                )
             self.display.write_byte(cpu_cycles, op_address, address, value)
-            if time.time() > max_time:
-                log.critical("Abort display_queue_interval() loop.")
-                break
-#                 self.root.update()
-#                 self.root.after_idle(self.display_queue_interval, interval)
-#                 return
 
-#         log.critical(
-#             "exit display_queue_interval (display_queue._qsize(): %i)",
-#             self.display_queue._qsize()
-#         )
-        self.root.after(interval, self.display_queue_interval, interval)
+    def mainloop(self, machine, burst_count):
+        self.machine = machine
 
-    def mainloop(self):
-        log.critical("Start display_queue_interval()")
-        self.display_queue_interval(interval=50)
-
-        log.critical("Start display_cpu_status_interval()")
-        self.display_cpu_status_interval(interval=1000)
+        self.cpu_interval(machine, burst_count, interval=1)
 
         log.critical("Start root.mainloop()")
         try:
@@ -331,20 +320,25 @@ class DragonTkinterGUI(BaseTkinterGUI):
         tkinter.messagebox.showinfo("TODO", "dump_program:\n%s" % "\n".join(lines))
 
 
-def test_run_direct():
+
+#------------------------------------------------------------------------------
+
+
+def test_run():
+    import sys
+    import os
     import subprocess
     cmd_args = [
         sys.executable,
-        #         "/usr/bin/pypy",
-        os.path.join("..",
-            "Dragon32_test.py"
-#             "Dragon64_test.py"
-        ),
+        os.path.join("..", "DragonPy_CLI.py"),
+#        "--verbosity", "5",
+        "--machine", "Dragon32", "run",
+#        "--machine", "Vectrex", "run",
+#        "--max_ops", "1",
+#        "--trace",
     ]
     print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
-
 if __name__ == "__main__":
-    #     test_run_cli()
-    test_run_direct()
+    test_run()
