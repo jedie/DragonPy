@@ -1,6 +1,6 @@
 @echo off
 
-title "%~0"
+title "%~nx0"
 
 set python=C:\Python34\python.exe
 if NOT exist %python% (

@@ -13,7 +13,7 @@ cd..
 
 :loop
     echo on
-    %python% -OO DragonPy_CLI.py benchmark
+    %python% -OO DragonPy_CLI.py benchmark --loops 100
     @echo off
     pause
 goto:loop
