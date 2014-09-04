@@ -11,6 +11,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import locale
 
 
 def locale_format_number(val):
@@ -20,7 +21,12 @@ def locale_format_number(val):
     > locale_format_number(1234567.89)
     '1.234.567.890'
     """
-    return '{:n}'.format(val)
+    try:
+        return locale.format('%d', val, 1)
+    except UnicodeDecodeError:
+        # For PyPy3, see: https://bitbucket.org/pypy/pypy/issue/1858/pypy3-localeformat-d-val-1
+#        return '{:n}'.format(val) # makes 1234567890.1234 to 1,23457e+09 :(
+        return '{:,}'.format(int(val))
 
 
 def byte2bit_string(data):
