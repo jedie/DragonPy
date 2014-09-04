@@ -12,8 +12,7 @@ from __future__ import absolute_import, division, print_function, unicode_litera
 
 
 import unittest
-
-from .test_base import BaseCPUTestCase
+from dragonpy.tests.test_base import BaseCPUTestCase
 
 
 class CC_AccumulatorTestCase(BaseCPUTestCase):

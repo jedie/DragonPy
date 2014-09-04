@@ -375,20 +375,11 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
         cls.user_input_queue = queue.Queue()
         cls.display_queue = queue.Queue()
 
-#        cls.request_comm = CommunicatorRequest(cfg)
-        cls.request_comm = UnittestCommunicatorRequest(cfg)
-        cls.request_queue, cls.response_queue = cls.request_comm.get_queues()
-        cls.response_comm = CommunicatorResponse(cls.request_queue, cls.response_queue)
-
-        cls.request_comm.add_response_comm(cls.response_comm)
-
         cls.machine = Machine(
             cfg,
             periphery_class=Dragon32PeripheryUnittest,
             display_queue=cls.display_queue,
             user_input_queue=cls.user_input_queue,
-            cpu_status_queue=None, # CPU should not start seperate thread for this
-            response_comm=cls.response_comm,
         )
         cls.cpu = cls.machine.cpu
         cls.periphery = cls.machine.periphery

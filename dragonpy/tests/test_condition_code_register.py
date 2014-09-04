@@ -10,13 +10,11 @@
 
 from __future__ import absolute_import, division, print_function, unicode_literals
 
-
-import unittest
 import logging
 import sys
+import unittest
 
-from .test_base import BaseCPUTestCase
-from dragonpy.tests.test_base import TextTestRunner2
+from dragonpy.tests.test_base import BaseCPUTestCase, TextTestRunner2
 from dragonpy.utils.byte_word_values import signed8
 
 
@@ -125,30 +123,6 @@ class CCTestCase(BaseCPUTestCase):
 
 
 if __name__ == '__main__':
-    log = logging.getLogger("DragonPy")
-    log.setLevel(
-#        1
-#         10 # DEBUG
-#         20 # INFO
-#         30 # WARNING
-        40 # ERROR
-#         50 # CRITICAL/FATAL
-    )
-    log.addHandler(logging.StreamHandler())
-
-    # XXX: Disable hacked XRoar trace
-    import cpu6809; cpu6809.trace_file = None
-
-    unittest.main(
-        argv=(
-            sys.argv[0],
-#            "CCTestCase.test_HNZVC_8",
-
-        ),
-        testRunner=TextTestRunner2,
-#         verbosity=1,
-        verbosity=2,
-#         failfast=True,
-    )
+    unittest.main(verbosity=2)
 
 

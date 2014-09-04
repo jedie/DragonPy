@@ -54,7 +54,7 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
         )
 
     def test_code_load01(self):
-        output = self.request_comm.get_basic_program()
+        output = self.machine.get_basic_program()
         self.assertEqual(output, [])
 
         self.periphery.add_to_input_queue(
@@ -67,18 +67,17 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
         self.assertEqual(output,
             ['10A=1', '20B=2', 'LIST', '10 A=1', '20 B=2', 'OK']
         )
-        output = self.request_comm.get_basic_program()
+        output = self.machine.get_basic_program()
         self.assertEqual(output, ['10 A=1', '20 B=2'])
 
     def test_code_save01(self):
-        output = self.request_comm.get_basic_program()
+        output = self.machine.get_basic_program()
         self.assertEqual(output, [])
 
-        output = self.request_comm.inject_basic_program(
+        self.machine.inject_basic_program(
             '10 ?123\n'
             '20 PRINT "FOO"\n'
         )
-        self.assertEqual(output, "OK")
 
         # Check the lising
         self.periphery.add_to_input_queue('LIST\r\n')
@@ -100,7 +99,7 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
         self.assertEqual(output,
             ['10A=1', '20B=2', 'LIST', '10 A=1', '20 B=2', 'OK']
         )
-        output = self.request_comm.get_basic_program()
+        output = self.machine.get_basic_program()
         self.assertEqual(output, ['10 A=1', '20 B=2'])
 
 
