@@ -103,8 +103,9 @@ class Machine(object):
         for __ in range(burst_count):
             self.cpu.get_and_call_next_op()
 
+        self.op_count += burst_count
+
         if self.max_ops:
-            self.op_count += self.burst_count
             if self.op_count >= self.max_ops:
                 log.critical("Quit CPU after given 'max_ops' %i ops.", self.max_ops)
                 self.quit()
@@ -164,8 +165,6 @@ class MachineGUI(object):
     def __init__(self, cfg):
         self.cfg = cfg
 
-        self.burst_count = 10000
-
         # Queue to send keyboard inputs from GUI to CPU Thread:
         self.user_input_queue = queue.Queue()
 
@@ -192,7 +191,7 @@ class MachineGUI(object):
         )
 
         try:
-            gui.mainloop(machine, self.burst_count)
+            gui.mainloop(machine)
         except Exception as err:
             log.critical("GUI exception: %s", err)
             print_exc_plus()

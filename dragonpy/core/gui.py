@@ -132,8 +132,11 @@ class BaseTkinterGUI(object):
         # Queue to send keyboard inputs to CPU Thread:
         self.user_input_queue = user_input_queue
 
+        self.target_burst_duration = 0.1 # Duration how long should a CPU Op burst loop take
+
+        self.last_op_count = 0
         self.last_cpu_cycles = 0
-        self.cpu_cycles_update_interval = 1
+        self.cpu_cycles_update_interval = 1 # Fequency for update GUI status information
         self.next_cpu_cycle_update = time.time() + self.cpu_cycles_update_interval
 
         self.root = tkinter.Tk()
@@ -207,32 +210,59 @@ class BaseTkinterGUI(object):
         char_or_code = event.char or event.keycode
         self.user_input_queue.put(char_or_code)
 
+    def calc_new_count(self, burst_count, current_value, target_value):
+        """
+        >>> calc_new_count(burst_count=100, current_value=30, target_value=30)
+        100
+        >>> calc_new_count(burst_count=100, current_value=40, target_value=20)
+        75
+        >>> calc_new_count(burst_count=100, current_value=20, target_value=40)
+        150
+        """
+        try:
+            a = float(burst_count) / float(current_value) * target_value
+        except ZeroDivisionError:
+            return burst_count * 2
+        return int(round((burst_count + a) / 2))
+
     def cpu_interval(self, machine, burst_count, interval):
-        """
-10 FOR X=32 TO 255
-20 PRINT CHR$(X);
-30 NEXT
-        """
 #        log.critical("enter cpu interval")
         start_time = time.time()
 
         machine.run_cpu(burst_count)
 
-        if time.time() > self.next_cpu_cycle_update:
-            now = time.time()
+        now = time.time()
+        burst_duration = now - start_time
+
+        # Calculate the burst_count new, to hit self.target_burst_duration
+        burst_count = self.calc_new_count(burst_count,
+            current_value=burst_duration,
+            target_value=self.target_burst_duration,
+        )
+#        log.critical("burst duration: %.3f sec. - new burst count: %i Ops", burst_duration, burst_count)
+
+        if now > self.next_cpu_cycle_update:
 
             duration = now - self.next_cpu_cycle_update + self.cpu_cycles_update_interval
             self.next_cpu_cycle_update = now + self.cpu_cycles_update_interval
 
             new_cycles = machine.cpu.cycles - self.last_cpu_cycles
             self.last_cpu_cycles = machine.cpu.cycles
-
             cycles_per_second = int(new_cycles / duration)
-            msg = "%s cycles/sec (Dragon 32 == 895.000cycles/sec)" % (
-                locale_format_number(cycles_per_second)
+
+            new_ops = machine.op_count - self.last_op_count
+            self.last_op_count = machine.op_count
+            ops_per_second = int(new_ops / duration)
+
+            msg = (
+                "%s cycles/sec (Dragon 32 == 895.000cycles/sec)"
+                "\n%s ops/sec - burst duration: %.3f sec. - burst count: %s Ops"
+            ) % (
+                locale_format_number(cycles_per_second),
+                locale_format_number(ops_per_second),
+                burst_duration, locale_format_number(burst_count)
             )
             self.status.set(msg)
-            self.root.update()
 
         self.process_display_queue()
 
@@ -260,10 +290,10 @@ class BaseTkinterGUI(object):
 #                )
             self.display.write_byte(cpu_cycles, op_address, address, value)
 
-    def mainloop(self, machine, burst_count):
+    def mainloop(self, machine):
         self.machine = machine
 
-        self.cpu_interval(machine, burst_count, interval=1)
+        self.cpu_interval(machine, burst_count=100, interval=1)
 
         log.critical("Start root.mainloop()")
         try:
