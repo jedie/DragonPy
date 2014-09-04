@@ -121,7 +121,7 @@ class EditorWindow(object):
         self.machine_api = self.cfg.machine_api
 
         if self.standalone_run:
-            self.root = tkinter.Tk()
+            self.root = tkinter.Tk(className="EDITOR")
         else:
             # As sub window in DragonPy Emulator
             self.root = tkinter.Toplevel(self.gui.root)

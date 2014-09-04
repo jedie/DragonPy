@@ -139,7 +139,7 @@ class BaseTkinterGUI(object):
         self.cpu_cycles_update_interval = 1 # Fequency for update GUI status information
         self.next_cpu_cycle_update = time.time() + self.cpu_cycles_update_interval
 
-        self.root = tkinter.Tk()
+        self.root = tkinter.Tk(className="DragonPy")
 
         self.root.bind("<Key>", self.event_key_pressed)
         self.root.bind("<<Paste>>", self.paste_clipboard)
