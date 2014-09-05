@@ -322,9 +322,25 @@ class EditorWindow(object):
             self.text.insert(tkinter.END, line)
 #        self.text.config(state=Tkinter.DISABLED)
         self.text.mark_set(tkinter.INSERT, '1.0') # Set cursor at start
-        self.text.focus()
+        self.focus_text()
         self.highlight_currentline.update(force=True)
         self.highlighting.update(force=True)
+
+    def focus_text(self):
+        if not self.standalone_run:
+            # see:
+            # http://www.python-forum.de/viewtopic.php?f=18&t=34643 (de)
+            # http://bugs.python.org/issue11571
+            # http://bugs.python.org/issue9384
+
+            self.root.attributes('-topmost', True)
+            self.root.attributes('-topmost', False)
+
+            self.root.focus_force()
+
+            self.root.lift(aboveThis=self.gui.root)
+
+        self.text.focus()
 
     def mainloop(self):
         """ for standalone usage """

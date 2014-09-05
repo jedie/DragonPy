@@ -36,9 +36,7 @@ except ImportError:
     import Queue as queue
     import Tkinter as tkinter
     import tkFileDialog as filedialog
-    import tkMessageBox as __messagebox
-    tkinter.messagebox = __messagebox
-    del(__messagebox)
+    import tkMessageBox as messagebox
     import ScrolledText as scrolledtext
 
 
@@ -178,13 +176,13 @@ class BaseTkinterGUI(object):
         self.next_cpu_cycle_update = time.time() + self.cpu_cycles_update_interval
 
     def menu_event_about(self):
-        tkinter.messagebox.showinfo("DragonPy",
+        messagebox.showinfo("DragonPy",
             "DragonPy the OpenSource emulator written in python.\n"
             "more info: https://github.com/jedie/DragonPy"
         )
 
     def menu_event_help(self):
-        tkinter.messagebox.showinfo("Help",
+        messagebox.showinfo("Help",
             "Please read the README:"
             "https://github.com/jedie/DragonPy#readme"
         )
@@ -369,8 +367,21 @@ class DragonTkinterGUI(BaseTkinterGUI):
         self.root.config(menu=self.menubar)
         self.root.update()
 
+    #-------------------------------------------------------------------------------------
+
+    def close_basic_editor(self):
+        if messagebox.askokcancel("Quit", "Do you really wish to close the Editor?"):
+            self._editor_window.root.destroy()
+            self._editor_window = None
+
     def open_basic_editor(self):
-        self._editor_window = EditorWindow(self.cfg, self)
+        if self._editor_window is None:
+            self._editor_window = EditorWindow(self.cfg, self)
+            self._editor_window.root.protocol("WM_DELETE_WINDOW", self.close_basic_editor)
+
+        self._editor_window.focus_text()
+
+    #-------------------------------------------------------------------------------------
 
     def dump_rnd(self):
         start_addr = 0x0019
@@ -386,7 +397,7 @@ class DragonTkinterGUI(BaseTkinterGUI):
                 lines.append("$%04x: $%02x (dez.: %i)" % (addr, value, value))
             return lines
         lines = format_dump(dump, start_addr, end_addr)
-        tkinter.messagebox.showinfo("TODO", "dump_program:\n%s" % "\n".join(lines))
+        messagebox.showinfo("TODO", "dump_program:\n%s" % "\n".join(lines))
 
 
 
