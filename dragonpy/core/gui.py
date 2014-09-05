@@ -130,6 +130,7 @@ class BaseTkinterGUI(object):
         # Queue to send keyboard inputs to CPU Thread:
         self.user_input_queue = user_input_queue
 
+        self.burst_count = 100
         self.cpu_after_id = None # Used to call CPU OP burst loop
         self.target_burst_duration = 0.1 # Duration how long should a CPU Op burst loop take
 
@@ -196,17 +197,20 @@ class BaseTkinterGUI(object):
 
     #-----------------------------------------------------------------------------------------
 
+    def status_paused(self):
+        self.status.set("%s paused.\n" % self.cfg.MACHINE_NAME)
+
     def command_cpu_pause(self):
         if self.cpu_after_id is not None:
             # stop CPU
             self.root.after_cancel(self.cpu_after_id)
             self.cpu_after_id = None
-            self.status.set("%s paused.\n" % self.cfg.MACHINE_NAME)
+            self.status_paused()
             self.cpu_menu.entryconfig(index=0, state=tkinter.DISABLED)
             self.cpu_menu.entryconfig(index=1, state=tkinter.NORMAL)
         else:
             # restart
-            self.cpu_interval(self.machine, burst_count=100, interval=1)
+            self.cpu_interval(interval=1)
             self.cpu_menu.entryconfig(index=0, state=tkinter.NORMAL)
             self.cpu_menu.entryconfig(index=1, state=tkinter.DISABLED)
             self.init_statistics() # Reset statistics
@@ -226,12 +230,16 @@ class BaseTkinterGUI(object):
             self.user_input_queue.put(char)
 
     def wait_until_input_queue_empty(self):
-        for count in range(4):
+        for count in range(1, 10):
+            self.cpu_interval()
             if self.user_input_queue.empty():
-                log.critical("user_input_queue is empty, after %.1f Sec., ok.", (0.1 * count))
+                log.critical("user_input_queue is empty, after %i burst runs, ok.", count)
+                if self.cpu_after_id is None:
+                    self.status_paused()
                 return
-            time.sleep(0.25)
-        log.critical("user_input_queue not empty, after %.1f Sec.!", (0.1 * count))
+        if self.cpu_after_id is None:
+            self.status_paused()
+        log.critical("user_input_queue not empty, after %i burst runs!", count)
 
     def add_user_input_and_wait(self, txt):
         self.add_user_input(txt)
@@ -266,17 +274,17 @@ class BaseTkinterGUI(object):
             return burst_count * 2
         return int(round((burst_count + a) / 2))
 
-    def cpu_interval(self, machine, burst_count, interval):
+    def cpu_interval(self, interval=None):
 #        log.critical("enter cpu interval")
         start_time = time.time()
 
-        machine.run_cpu(burst_count)
+        self.machine.run_cpu(self.burst_count)
 
         now = time.time()
         burst_duration = now - start_time
 
         # Calculate the burst_count new, to hit self.target_burst_duration
-        burst_count = self.calc_new_count(burst_count,
+        self.burst_count = self.calc_new_count(self.burst_count,
             current_value=burst_duration,
             target_value=self.target_burst_duration,
         )
@@ -287,12 +295,12 @@ class BaseTkinterGUI(object):
             duration = now - self.next_cpu_cycle_update + self.cpu_cycles_update_interval
             self.next_cpu_cycle_update = now + self.cpu_cycles_update_interval
 
-            new_cycles = machine.cpu.cycles - self.last_cpu_cycles
-            self.last_cpu_cycles = machine.cpu.cycles
+            new_cycles = self.machine.cpu.cycles - self.last_cpu_cycles
+            self.last_cpu_cycles = self.machine.cpu.cycles
             cycles_per_second = int(new_cycles / duration)
 
-            new_ops = machine.op_count - self.last_op_count
-            self.last_op_count = machine.op_count
+            new_ops = self.machine.op_count - self.last_op_count
+            self.last_op_count = self.machine.op_count
             ops_per_second = int(new_ops / duration)
 
             msg = (
@@ -301,18 +309,19 @@ class BaseTkinterGUI(object):
             ) % (
                 locale_format_number(cycles_per_second),
                 locale_format_number(ops_per_second),
-                burst_duration, locale_format_number(burst_count)
+                burst_duration, locale_format_number(self.burst_count)
             )
             self.status.set(msg)
 
         self.process_display_queue()
 
-        if machine.cpu.running:
-#            log.critical("queue cpu interval")
-#            self.root.after_idle(self.cpu_interval, machine, burst_count, interval)
-            self.cpu_after_id = self.root.after(interval, self.cpu_interval, machine, burst_count, interval)
-        else:
-            log.critical("CPU stopped.")
+        if interval is not None:
+            if self.machine.cpu.running:
+    #            log.critical("queue cpu interval")
+    #            self.root.after_idle(self.cpu_interval, machine, burst_count, interval)
+                self.cpu_after_id = self.root.after(interval, self.cpu_interval, interval)
+            else:
+                log.critical("CPU stopped.")
 
     def process_display_queue(self):
         """
@@ -334,7 +343,7 @@ class BaseTkinterGUI(object):
     def mainloop(self, machine):
         self.machine = machine
 
-        self.cpu_interval(machine, burst_count=100, interval=1)
+        self.cpu_interval(interval=1)
 
         log.critical("Start root.mainloop()")
         try:
@@ -358,7 +367,6 @@ class DragonTkinterGUI(BaseTkinterGUI):
         self.display = MC6847_TextModeCanvas(self.root)
         self.display.canvas.grid(row=0, column=0, columnspan=2)  # , rowspan=2)
 
-        self.editor_content = None
         self._editor_window = None
 
         self.menubar.insert_command(index=3, label="BASIC editor", command=self.open_basic_editor)
