@@ -360,11 +360,7 @@ class DragonTkinterGUI(BaseTkinterGUI):
         self.editor_content = None
         self._editor_window = None
 
-        editmenu = tkinter.Menu(self.menubar, tearoff=0)
-#        editmenu.add_command(label="load BASIC program", command=self.load_program)
-#        editmenu.add_command(label="dump BASIC program", command=self.dump_program)
-        editmenu.add_command(label="open", command=self.open_basic_editor)
-        self.menubar.add_cascade(label="BASIC editor", menu=editmenu)
+        self.menubar.insert_command(index=3, label="BASIC editor", command=self.open_basic_editor)
 
         # display the menu
         self.root.config(menu=self.menubar)
