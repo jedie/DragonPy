@@ -194,7 +194,7 @@ class CPU(object):
             REG_CC: self.cc.get(),
 
             "cycles": self.cycles,
-            "RAM":self.memory.ram._mem,
+            "RAM":self.memory.ram._mem[:] # copy of RAM,
         }
 
     def set_state(self, state):

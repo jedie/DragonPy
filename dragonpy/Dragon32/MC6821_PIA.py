@@ -131,6 +131,7 @@ class PIA(object):
             self.write_serial_interface, 0xff06)
 
     def reset(self):
+        log.critical("PIA reset()")
         self.pia_0_A_register.reset()
         self.pia_0_B_register.reset()
         self.pia_1_A_register.reset()
@@ -141,6 +142,7 @@ class PIA(object):
         internal state reset.
         used e.g. in unittests
         """
+        log.critical("PIA internal_reset()")
         self.empty_key_toggle = True
         self.current_input_char = None
         self.input_repead = 0

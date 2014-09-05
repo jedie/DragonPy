@@ -47,6 +47,11 @@ class Dragon32PeripheryBase(PeripheryBase):
 
         self.running = True
 
+    def reset(self):
+        self.sam.reset()
+        self.pia.reset()
+        self.pia.internal_reset()
+
     def no_dos_rom(self, cpu_cycles, op_address, address):
         log.error("%04x| TODO: DOS ROM requested. Send 0x00 back", op_address)
         return 0x00
@@ -173,53 +178,24 @@ class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
         ]
 
 
+
 #------------------------------------------------------------------------------
 
 
-def test_run_cli():
-    import subprocess
-    cmd_args = [
-        sys.executable,
-        #         "/usr/bin/pypy",
-        os.path.join("..", "DragonPy_CLI.py"),
-        #         "--verbosity=5",
-        # "--verbosity=10", # DEBUG
-        # "--verbosity=20", # INFO
-        # "--verbosity=30", # WARNING
-        # "--verbosity=40", # ERROR
-        "--verbosity=50",  # CRITICAL/FATAL
-        #
-        #         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
-        #
-        #         "--machine=Dragon32",
-        "--machine=Dragon64",
-        #
-        "--dont_open_webbrowser",
-        "--display_cycle",  # print CPU cycle/sec while running.
-        #
-        #         "--max=15000",
-        #         "--max=46041",
-    ]
-    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
-    subprocess.Popen(cmd_args, cwd="..").wait()
-
-
-def test_run_direct():
+def test_run():
     import sys
     import os
     import subprocess
     cmd_args = [
         sys.executable,
-        #         "/usr/bin/pypy",
-        os.path.join("..",
-                     "Dragon32_test.py"
-                     #             "Dragon64_test.py"
-                     ),
+        os.path.join("..", "DragonPy_CLI.py"),
+#        "--verbosity", "5",
+        "--machine", "Dragon32", "run",
+#        "--max_ops", "1",
+#        "--trace",
     ]
     print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
-
 if __name__ == "__main__":
-    #     test_run_cli()
-    test_run_direct()
+    test_run()

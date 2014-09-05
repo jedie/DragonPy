@@ -132,14 +132,10 @@ class BaseTkinterGUI(object):
         # Queue to send keyboard inputs to CPU Thread:
         self.user_input_queue = user_input_queue
 
-        self.cpu_after_id = None
-
+        self.cpu_after_id = None # Used to call CPU OP burst loop
         self.target_burst_duration = 0.1 # Duration how long should a CPU Op burst loop take
 
-        self.last_op_count = 0
-        self.last_cpu_cycles = 0
-        self.cpu_cycles_update_interval = 1 # Fequency for update GUI status information
-        self.next_cpu_cycle_update = time.time() + self.cpu_cycles_update_interval
+        self.init_statistics() # Called also after reset
 
         self.root = tkinter.Tk(className="DragonPy")
 
@@ -172,6 +168,12 @@ class BaseTkinterGUI(object):
         helpmenu.add_command(label="about", command=self.menu_event_about)
         self.menubar.add_cascade(label="help", menu=helpmenu)
 
+    def init_statistics(self):
+        self.last_op_count = 0
+        self.last_cpu_cycles = 0
+        self.cpu_cycles_update_interval = 1 # Fequency for update GUI status information
+        self.next_cpu_cycle_update = time.time() + self.cpu_cycles_update_interval
+
     def menu_event_about(self):
         tkinter.messagebox.showinfo("DragonPy",
             "DragonPy the OpenSource emulator written in python.\n"
@@ -192,6 +194,7 @@ class BaseTkinterGUI(object):
             pass
 
     #-----------------------------------------------------------------------------------------
+
     def command_cpu_pause(self):
         if self.cpu_after_id is not None:
             # stop CPU
@@ -205,12 +208,16 @@ class BaseTkinterGUI(object):
             self.cpu_interval(self.machine, burst_count=100, interval=1)
             self.cpu_menu.entryconfig(index=0, state=tkinter.NORMAL)
             self.cpu_menu.entryconfig(index=1, state=tkinter.DISABLED)
+            self.init_statistics() # Reset statistics
 
     def command_cpu_soft_reset(self):
         self.machine.cpu.reset()
+        self.init_statistics() # Reset statistics
 
     def command_cpu_hard_reset(self):
-        tkinter.messagebox.showinfo("TODO", "TODO")
+        self.machine.hard_reset()
+        self.init_statistics() # Reset statistics
+
     #-----------------------------------------------------------------------------------------
 
     def add_user_input(self, txt):

@@ -57,12 +57,12 @@ class SAM(object):
     def __init__(self, cfg, memory):
         self.cfg = cfg
         self.memory = memory
-        
+
         #
         # TODO: Collect this information via a decorator similar to op codes in CPU!
         #
         self.memory.add_read_byte_callback(self.read_VDG_mode_register_v1, 0xffc2)
-        
+
         self.memory.add_write_byte_callback(self.write_VDG_mode_register_v0, 0xffc0)
         self.memory.add_write_byte_callback(self.write_VDG_mode_register_v1, 0xffc2)
         self.memory.add_write_byte_callback(self.write_VDG_mode_register_v2, 0xffc4)
@@ -85,9 +85,12 @@ class SAM(object):
         self.memory.add_write_byte_callback(self.write_D64_dynamic_memory, 0xffc9)
 
         self.memory.add_read_byte_callback(self.interrupt_vectors, 0xfff0, 0xffff)
-        
+
+    def reset(self):
+        log.critical("TODO: VDG reset")
+
     def interrupt_vectors(self, cpu_cycles, op_address, address):
-        new_address = address-0x4000
+        new_address = address - 0x4000
         value = self.memory.read_byte(new_address)
         log.critical("read interrupt vector $%04x redirect in SAM to $%04x use value $%02x",
             address, new_address, value

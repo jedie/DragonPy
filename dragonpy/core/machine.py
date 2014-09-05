@@ -12,6 +12,14 @@
 
 from __future__ import absolute_import, division, print_function
 
+import threading
+
+from dragonlib.core.basic import log_program_dump
+from dragonlib.utils.logging_utils import log
+from dragonpy.components.cpu6809 import CPU
+from dragonpy.components.memory import Memory
+from dragonpy.utils.simple_debugger import print_exc_plus
+
 
 try:
     # Python 3
@@ -22,13 +30,7 @@ except ImportError:
     import Queue as queue
     import thread as _thread
 
-import threading
 
-from dragonlib.core.basic import log_program_dump
-from dragonlib.utils.logging_utils import log
-from dragonpy.components.cpu6809 import CPU
-from dragonpy.components.memory import Memory
-from dragonpy.utils.simple_debugger import print_exc_plus
 
 
 class Machine(object):
@@ -52,7 +54,12 @@ class Machine(object):
         self.cpu = CPU(memory, self.cfg)
         memory.cpu = self.cpu  # FIXME
 
+        self.cpu_init_state = self.cpu.get_state() # Used for hard reset
+#        from dragonpy.tests.test_base import print_cpu_state_data
+#        print_cpu_state_data(self.cpu_init_state)
+
         self.cpu.reset()
+
         self.max_ops = self.cfg.cfg_dict["max_ops"]
         self.op_count = 0
 
@@ -98,6 +105,14 @@ class Machine(object):
         self.cpu.memory.write_word(self.machine_api.ARRAY_START_ADDR, program_end)
         self.cpu.memory.write_word(self.machine_api.FREE_SPACE_START_ADDR, program_end)
         log.critical("BASIC addresses updated.")
+
+    def hard_reset(self):
+        self.periphery.reset()
+#        from dragonpy.tests.test_base import print_cpu_state_data
+#        print_cpu_state_data(self.cpu_init_state)
+        self.cpu.set_state(self.cpu_init_state)
+#        print_cpu_state_data(self.cpu.get_state())
+        self.cpu.reset()
 
     def run_cpu(self, burst_count):
         self.cpu.burst_run(burst_count)
