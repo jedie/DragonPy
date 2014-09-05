@@ -34,13 +34,14 @@ else:
 
 
 setup(
-    name="DragonPy",
+    name="DragonPyEmulator", # Name conflict with https://github.com/jpanganiban/dragonpy :(
     version=dragonpy.__version__,
     py_modules=["DragonPy"],
     provides=["DragonPy"],
     author="Jens Diemer",
     author_email="DragonPy@jensdiemer.de",
     description="Emulator for 6809 CPU based system like Dragon 32 / CoCo written in Python...",
+    keywords="Emulator 6809 Dragon CoCo Vectrex tkinter pypy",
     long_description=long_description,
     url="https://github.com/jedie/DragonPy",
     # TODO:
@@ -51,6 +52,9 @@ setup(
     classifiers=[
         # https://pypi.python.org/pypi?%3Aaction=list_classifiers
         "Development Status :: 4 - Beta",
+        "Environment :: MacOS X",
+        "Environment :: Win32 (MS Windows)",
+        "Environment :: X11 Applications",
         "Environment :: Other Environment",
         "Intended Audience :: Developers",
         "Intended Audience :: Education",
