@@ -152,32 +152,25 @@ class EditorWindow(object):
 
         #self.auto_shift = True # use invert shift for letters?
 
-        menubar = tkinter.Menu(self.root)
+        self.menubar = tkinter.Menu(self.root)
 
-        filemenu = tkinter.Menu(menubar, tearoff=0)
+        filemenu = tkinter.Menu(self.menubar, tearoff=0)
         filemenu.add_command(label="Load", command=self.command_load_file)
         filemenu.add_command(label="Save", command=self.command_save_file)
         if self.standalone_run:
             filemenu.add_command(label="Exit", command=self.root.quit)
-        menubar.add_cascade(label="File", menu=filemenu)
+        self.menubar.add_cascade(label="File", menu=filemenu)
 
-        if not self.standalone_run: # As sub window in DragonPy Emulator
-            editmenu = tkinter.Menu(menubar, tearoff=0)
-            editmenu.add_command(label="load from DragonPy", command=self.command_load_from_DragonPy)
-            editmenu.add_command(label="inject into DragonPy", command=self.command_inject_into_DragonPy)
-            editmenu.add_command(label="inject + RUN into DragonPy", command=self.command_inject_and_run_into_DragonPy)
-            menubar.add_cascade(label="DragonPy", menu=editmenu)
-
-        editmenu = tkinter.Menu(menubar, tearoff=0)
+        editmenu = tkinter.Menu(self.menubar, tearoff=0)
         editmenu.add_command(label="renum", command=self.renumber_listing)
         editmenu.add_command(label="display tokens", command=self.debug_display_tokens)
-        menubar.add_cascade(label="tools", menu=editmenu)
+        self.menubar.add_cascade(label="tools", menu=editmenu)
 
         # help menu
-        helpmenu = tkinter.Menu(menubar, tearoff=0)
+        helpmenu = tkinter.Menu(self.menubar, tearoff=0)
 #        helpmenu.add_command(label="help", command=self.menu_event_help)
 #        helpmenu.add_command(label="about", command=self.menu_event_about)
-        menubar.add_cascade(label="help", menu=helpmenu)
+        self.menubar.add_cascade(label="help", menu=helpmenu)
 
         self.set_status_bar() # Create widget, add bindings and after_idle() update
 
@@ -185,7 +178,7 @@ class EditorWindow(object):
 #         self.text.bind("<space>", self.event_syntax_check)
 
         # display the menu
-        self.root.config(menu=menubar)
+        self.root.config(menu=self.menubar)
         self.root.update()
 
     ###########################################################################
@@ -262,29 +255,6 @@ class EditorWindow(object):
             content = self.get_content()
             outfile.write(content)
             outfile.close()
-
-    ###########################################################################
-    # For DragonPy Emulator:
-
-    def command_load_from_DragonPy(self):
-        self.gui.add_user_input_and_wait("'SAVE TO EDITOR")
-        listing_ascii = self.gui.machine.get_basic_program()
-        self.set_content(listing_ascii)
-        self.gui.add_user_input_and_wait("\r")
-
-    def command_inject_into_DragonPy(self):
-        self.gui.add_user_input_and_wait("'LOAD FROM EDITOR")
-        content = self.get_content()
-        result = self.gui.machine.inject_basic_program(content)
-        log.critical("program loaded: %s", result)
-        self.gui.add_user_input_and_wait("\r")
-
-    def command_inject_and_run_into_DragonPy(self):
-        self.command_inject_into_DragonPy()
-        self.gui.add_user_input_and_wait("\r") # FIXME: Sometimes this input will be "ignored"
-        self.gui.add_user_input_and_wait("RUN\r")
-
-    ###########################################################################
 
     def debug_display_tokens(self):
         content = self.get_content()

@@ -387,7 +387,34 @@ class DragonTkinterGUI(BaseTkinterGUI):
             self._editor_window = EditorWindow(self.cfg, self)
             self._editor_window.root.protocol("WM_DELETE_WINDOW", self.close_basic_editor)
 
+            # insert menu to editor window
+            editmenu = tkinter.Menu(self._editor_window.menubar, tearoff=0)
+            editmenu.add_command(label="load from DragonPy", command=self.command_load_from_DragonPy)
+            editmenu.add_command(label="inject into DragonPy", command=self.command_inject_into_DragonPy)
+            editmenu.add_command(label="inject + RUN into DragonPy", command=self.command_inject_and_run_into_DragonPy)
+            self._editor_window.menubar.insert_cascade(index=2, label="DragonPy", menu=editmenu)
+
         self._editor_window.focus_text()
+
+    def command_load_from_DragonPy(self):
+        self.add_user_input_and_wait("'SAVE TO EDITOR")
+        listing_ascii = self.machine.get_basic_program()
+        self._editor_window.set_content(listing_ascii)
+        self.add_user_input_and_wait("\r")
+
+    def command_inject_into_DragonPy(self):
+        self.add_user_input_and_wait("'LOAD FROM EDITOR")
+        content = self._editor_window.get_content()
+        result = self.machine.inject_basic_program(content)
+        log.critical("program loaded: %s", result)
+        self.add_user_input_and_wait("\r")
+
+    def command_inject_and_run_into_DragonPy(self):
+        self.command_inject_into_DragonPy()
+        self.add_user_input_and_wait("\r") # FIXME: Sometimes this input will be "ignored"
+        self.add_user_input_and_wait("RUN\r")
+
+    ###########################################################################
 
     #-------------------------------------------------------------------------------------
 
