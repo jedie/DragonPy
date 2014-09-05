@@ -1,2 +1,0 @@
-	addb ,y+
-	adda ,x+
