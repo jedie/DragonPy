@@ -35,7 +35,8 @@ class ROM(object):
 
         self._mem = [None] * start
         self._mem += memory
-#         self._mem = memory # [0x00] * size
+        #self._mem = bytearray(start) + bytearray(memory)
+
         # assert len(self._mem) == size, "%i != %i" len(self._mem) == size
         log.critical("init $%04x (dez.:%s) Bytes (real: %s) %s ($%04x - $%04x)",
             size, size, len(self._mem), self.__class__.__name__, start, self.end
