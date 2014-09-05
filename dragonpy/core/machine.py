@@ -100,8 +100,7 @@ class Machine(object):
         log.critical("BASIC addresses updated.")
 
     def run_cpu(self, burst_count):
-        for __ in range(burst_count):
-            self.cpu.get_and_call_next_op()
+        self.cpu.burst_run(burst_count)
 
         self.op_count += burst_count
 
