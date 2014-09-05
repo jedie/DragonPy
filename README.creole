@@ -351,6 +351,7 @@ Motorola S-Record utilities
 
 == History
 
+* 05.09.2014 - Release v0.1.0 - Implement pause/resume, hard-/soft-reset 6809 in GUI and improve a little the GUI/Editor stuff: [[https://github.com/jedie/DragonPy/releases/tag/v0.1.0|v0.1.0]] see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&p=11719#p11719|
 * 27.08.2014 - Run CoCo with Extended Color Basic v1.1, bugfix transfer BASIC Listing with [[https://github.com/jedie/DragonPy/compare/8fe24e5...697d39e|8fe24e5...697d39e]] see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=90#p11696|Forum post 11696]].
 * 20.08.2014 - rudimenary BASIC IDE works with [[https://github.com/jedie/DragonPy/compare/7e0f16630...ce12148|7e0f16630...ce12148]], see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4439#p11645|Forum post 11645]].
 * 05.08.2014 - Start to support CoCo, too with [[https://github.com/jedie/DragonPy/commit/0df724b3ee9d87088b524c3623040a41e9772eb4|0df724b]], see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=80#p11573|Forum post 11573]].
