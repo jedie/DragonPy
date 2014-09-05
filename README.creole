@@ -1,4 +1,4 @@
-=== Dragon/CoCO emulator written in Python
+== Dragon/CoCO emulator written in Python
 
 DragonPy is a Open source (GPL v3 or later) emulator for the 30 years old homecomputer {{{Dragon 32}}} and {{{Tandy TRS-80 Color Computer}}} (CoCo)...
 
@@ -351,14 +351,14 @@ Motorola S-Record utilities
 
 == History
 
-* 27.08.2014 - Run CoCo with Extended Color Basic v1.1, bugfix transfer BASIC Listing with [[https://github.com/jedie/DragonPy/compare/8fe24e5...697d39e|8fe24e5...697d39e]] see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=90#p11696|Forum post]].
-* 20.08.2014 - rudimenary BASIC IDE works with [[https://github.com/jedie/DragonPy/compare/7e0f16630...ce12148|7e0f16630...ce12148]], see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4439#p11645|Forum post]].
-* 05.08.2014 - Start to support CoCo, too with [[https://github.com/jedie/DragonPy/commit/0df724b3ee9d87088b524c3623040a41e9772eb4|0df724b]], see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=80#p11573|Forum post]].
-* 04.08.2014 - Use the origin Pixel-Font with Tkinter GUI, see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4909|Forum post 1]] and [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=80#p11570|Forum post 2]].
-* 27.07.2014 - Copyrigth info from Dragon 64 ROM is alive with [[https://github.com/jedie/DragonPy/commit/543275b1b90824b64b67dcd003cc5ab54296fc15|543275b]], see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=80#p11524|Forum post]].
-* 29.06.2014 - First "HELLO WORLD" works, see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=70#p11283|Forum post]].
-* 27.10.2013 - "sbc09" ROM works wuite well almist, see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=60#p9752|Forum post]].
-* 16.10.2013 - See copyright info from "Simple6809" ROM with [[https://github.com/jedie/DragonPy/tree/25a97b66d8567ba7c3a5b646e4a807b816a0e376|25a97b6]] see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=50#p9654|Forum post]].
+* 27.08.2014 - Run CoCo with Extended Color Basic v1.1, bugfix transfer BASIC Listing with [[https://github.com/jedie/DragonPy/compare/8fe24e5...697d39e|8fe24e5...697d39e]] see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=90#p11696|Forum post 11696]].
+* 20.08.2014 - rudimenary BASIC IDE works with [[https://github.com/jedie/DragonPy/compare/7e0f16630...ce12148|7e0f16630...ce12148]], see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4439#p11645|Forum post 11645]].
+* 05.08.2014 - Start to support CoCo, too with [[https://github.com/jedie/DragonPy/commit/0df724b3ee9d87088b524c3623040a41e9772eb4|0df724b]], see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=80#p11573|Forum post 11573]].
+* 04.08.2014 - Use the origin Pixel-Font with Tkinter GUI, see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4909|Forum post 4909]] and [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=80#p11570|Forum post 11570]].
+* 27.07.2014 - Copyrigth info from Dragon 64 ROM is alive with [[https://github.com/jedie/DragonPy/commit/543275b1b90824b64b67dcd003cc5ab54296fc15|543275b]], see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=80#p11524|Forum post 11524]].
+* 29.06.2014 - First "HELLO WORLD" works, see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=70#p11283|Forum post 11283]].
+* 27.10.2013 - "sbc09" ROM works wuite well almist, see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=60#p9752|Forum post 9752]].
+* 16.10.2013 - See copyright info from "Simple6809" ROM with [[https://github.com/jedie/DragonPy/tree/25a97b66d8567ba7c3a5b646e4a807b816a0e376|25a97b6]] see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=50#p9654|Forum post 9654]].
 * 10.09.2013 - Start to implement the 6809 CPU with [[https://github.com/jedie/DragonPy/commit/591d2ed2b6f1a5f913c14e56e1e37f5870510b0d|591d2ed]]
 * 28.08.2013 - Fork "Apple ][ Emulator" written in Python: https://github.com/jtauber/applepy to https://github.com/jedie/DragonPy
 

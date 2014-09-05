@@ -11,9 +11,27 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 from setuptools import setup, find_packages
+import os
+import sys
+
 import dragonpy
+
+
+PACKAGE_ROOT = os.path.dirname(os.path.abspath(__file__))
+
+
+# convert creole to ReSt on-the-fly, see also:
+# https://code.google.com/p/python-creole/wiki/UseInSetup
+try:
+    from creole.setup_utils import get_long_description
+except ImportError as err:
+    if "register" in sys.argv or "sdist" in sys.argv or "--long-description" in sys.argv:
+        raise ImportError("%s - Please install python-creole >= v0.8 -  e.g.: pip install python-creole" % err)
+    long_description = None
+else:
+    long_description = get_long_description(PACKAGE_ROOT)
+
 
 setup(
     name="DragonPy",
@@ -23,6 +41,7 @@ setup(
     author="Jens Diemer",
     author_email="DragonPy@jensdiemer.de",
     description="Emulator for 6809 CPU based system like Dragon 32 / CoCo written in Python...",
+    long_description=long_description,
     url="https://github.com/jedie/DragonPy",
     # TODO:
 #    entry_points={
