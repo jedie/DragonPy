@@ -144,7 +144,7 @@ class BaseTkinterGUI(object):
         self.root.bind("<Key>", self.event_key_pressed)
         self.root.bind("<<Paste>>", self.paste_clipboard)
 
-        self.status = tkinter.StringVar()
+        self.status = tkinter.StringVar(value="startup %s...\n" % self.cfg.MACHINE_NAME)
         self.status_widget = tkinter.Label(
             self.root, textvariable=self.status, text="Info:", borderwidth=1)
         self.status_widget.grid(row=1, column=0, columnspan=2)
