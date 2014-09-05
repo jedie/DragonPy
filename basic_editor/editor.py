@@ -122,6 +122,9 @@ class EditorWindow(object):
 
         if self.standalone_run:
             self.root = tkinter.Tk(className="EDITOR")
+            self.root.geometry("+%d+%d" % (
+                self.root.winfo_screenwidth() * 0.1, self.root.winfo_screenheight() * 0.1
+            ))
         else:
             # As sub window in DragonPy Emulator
             self.root = tkinter.Toplevel(self.gui.root)

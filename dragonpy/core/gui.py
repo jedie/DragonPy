@@ -138,6 +138,9 @@ class BaseTkinterGUI(object):
         self.init_statistics() # Called also after reset
 
         self.root = tkinter.Tk(className="DragonPy")
+        self.root.geometry("+%d+%d" % (
+            self.root.winfo_screenwidth() * 0.1, self.root.winfo_screenheight() * 0.1
+        ))
 
         self.root.bind("<Key>", self.event_key_pressed)
         self.root.bind("<<Paste>>", self.paste_clipboard)
