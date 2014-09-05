@@ -11,14 +11,12 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 import os
 
+from dragonpy.components.rom import ROMFile
 from dragonpy.core.configs import BaseConfig, SBC09
-
 from dragonpy.sbc09.mem_info import get_sbc09_meminfo
 from dragonpy.sbc09.periphery import SBC09Periphery
-from dragonpy.components.rom import ROMFile
 
 
 class SBC09Cfg(BaseConfig):
@@ -47,7 +45,7 @@ class SBC09Cfg(BaseConfig):
     DEFAULT_ROMS = (
         ROMFile(address=0x8000, max_size=None,
             filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                "sbc09", "v09.rom" # Source for this is monitor.asm
+                "v09.rom" # Source for this is monitor.asm
             )
         ),
     )
