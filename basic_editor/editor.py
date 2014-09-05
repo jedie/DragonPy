@@ -283,7 +283,7 @@ class EditorWindow(object):
 #        self.text.config(state=Tkinter.NORMAL)
         self.text.delete("1.0", tkinter.END)
         log.critical("insert listing:")
-        if isinstance(listing_ascii, str):
+        if not isinstance(listing_ascii, (list, tuple)):
             listing_ascii = listing_ascii.splitlines()
 
         for line in listing_ascii:
