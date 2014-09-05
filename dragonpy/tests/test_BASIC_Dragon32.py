@@ -37,13 +37,8 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
         self.assertEqual(output,
             ['? "FOO"', 'FOO', 'OK']
         )
-        # FIXME: Strange, Why different values here?!?
-        if lib2and3.PY2:
-            self.assertEqual(op_call_count, 56143)
-            self.assertEqual(cycles, 316192) # TODO: cycles are probably not set corrent in CPU, yet!
-        else:
-            self.assertEqual(op_call_count, 56137)
-            self.assertEqual(cycles, 316144) # TODO: cycles are probably not set corrent in CPU, yet!
+        self.assertEqual(op_call_count, 56137)
+        self.assertEqual(cycles, 316144) # TODO: cycles are probably not set corrent in CPU, yet!
 
     def test_poke(self):
         self.periphery.add_to_input_queue('POKE &H05ff,88\r\n')
