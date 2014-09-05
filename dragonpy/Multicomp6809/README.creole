@@ -4,54 +4,22 @@ Grant Searle's Multicomp FPGA project:
 * Pick-and-mix to create your own custom computer on a low-cost FPGA board
 * BASIC, Z80, 6502, 6809, internal/external RAM, serial/keyboard+monitor, SD-card for CP/M or other storage
 
-Emulate the 6809 in DragonPy. 
+Emulate the 6809 in DragonPy.
 
 Homepage:
  * http://searle.hostei.com/grant/Multicomp/
+
+ROMs are here:
+ * http://searle.hostei.com/grant/Multicomp/#SoftwareDownload
+
+Extrace from **Multicomp.zip** the file: **ROMS/6809/EXT_BASIC_NO_USING.hex**
+and save it into **dragonpy/Multicomp6809/** and run:
+{{{
+...dragonpy/Multicomp6809/$ python2 hex2bin.py
+}}}
 
 == hex2bin
 
 With the hacked script 'hex2bin.py' i convertet the "EXT_BASIC_NO_USING.hex" file
 to the binary "EXT_BASIC_NO_USING.bin" for usage in DragonPy.
 
-== TODO
-
-TODO: Check all these instruction from the debug output for {{{PRINT "HELLO"\r\n}}}
-{{{
-6809 EXTENDED BASIC
-(C) 1982 BY MICROSOFT
-
-OK
-e00c| (1635226) read from ACIA-data, send back 'P' $50
-e00f| called the first time: instruction_AND (CPU cycles: 1635233)
-e163| called the first time: instruction_ORCC (CPU cycles: 1635280)
-e17e| called the first time: instruction_BHS (CPU cycles: 1635312)
-e00c| (1635523) read from ACIA-data, send back 'R' $52
-e00c| (1635820) read from ACIA-data, send back 'I' $49
-PRIe00c| (1636117) read from ACIA-data, send back 'N' $4e
-e00c| (1636414) read from ACIA-data, send back 'T' $54
-e00c| (1636711) read from ACIA-data, send back ' ' $20
-NT e00c| (1637008) read from ACIA-data, send back '"' $22
-e00c| (1637305) read from ACIA-data, send back 'H' $48
-e00c| (1637602) read from ACIA-data, send back 'E' $45
-"HEe00c| (1637899) read from ACIA-data, send back 'L' $4c
-e00c| (1638196) read from ACIA-data, send back 'L' $4c
-e00c| (1638493) read from ACIA-data, send back 'O' $4f
-LLOe00c| (1638790) read from ACIA-data, send back '"' $22
-e00c| (1639087) read from ACIA-data, send back '\r' $d
-efa4| called the first time: instruction_TST_memory_8 (CPU cycles: 1639609)
-f010| called the first time: instruction_LEA_pointer (CPU cycles: 1639738)
-f01d| called the first time: instruction_SUB (CPU cycles: 1639789)
-f066| called the first time: instruction_BPL (CPU cycles: 1639841)
-f029| called the first time: instruction_OR (CPU cycles: 1640639)
-e579| called the first time: instruction_TST_register (CPU cycles: 1641236)
-e589| called the first time: instruction_LSL_register (CPU cycles: 1641278)
-e58c| called the first time: instruction_ABX (CPU cycles: 1641290)
-"
-e53f| called the first time: instruction_ANDCC (CPU cycles: 1641693)
-e00c| (1641742) read from ACIA-data, send back '\n' $a
-
-
-BREAK
-OK
-}}}

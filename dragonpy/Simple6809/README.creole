@@ -4,54 +4,17 @@ Grant Searle's Simple 6809 design:
 * complete 8-bit computer on 6 chips (only 5 chips if using a USB to TTL serial cable)
 * a fully operational, running BASIC
 
-Emulate the Simple 6809 in DragonPy. 
+Emulate the Simple 6809 in DragonPy.
 
 Homepage:
  * http://searle.hostei.com/grant/6809/Simple6809.html
+
+Download **ExBasRom.zip** and extrace the file into: **dragonpy/Simple6809/** and run:
+{{{
+...dragonpy/Simple6809/$ python2 hex2bin.py
 
 == hex2bin
 
 With the hacked script 'hex2bin.py' i convertet the "ExBasROM.hex" file
 to the binary "ExBasROM.bin" for usage in DragonPy.
 
-== TODO
-
-TODO: Check all these instruction from the debug output for {{{PRINT "HELLO"\r\n}}}
-{{{
-6809 EXTENDED BASIC
-(C) 1982 BY MICROSOFT
-
-OKdb0c| (23797) read from ACIA-data, send back 'P' $50
-db0f| called the first time: instruction_AND (CPU cycles: 23804)
-dc63| called the first time: instruction_ORCC (CPU cycles: 23851)
-dc7e| called the first time: instruction_BHS (CPU cycles: 23883)
-
-db0c| (24094) read from ACIA-data, send back 'R' $52
-db0c| (24391) read from ACIA-data, send back 'I' $49
-PRdb0c| (24688) read from ACIA-data, send back 'N' $4e
-db0c| (24985) read from ACIA-data, send back 'T' $54
-INdb0c| (25282) read from ACIA-data, send back ' ' $20
-db0c| (25579) read from ACIA-data, send back '"' $22
-T db0c| (25876) read from ACIA-data, send back 'H' $48
-"Hdb0c| (26173) read from ACIA-data, send back 'E' $45
-db0c| (26470) read from ACIA-data, send back 'L' $4c
-ELdb0c| (26767) read from ACIA-data, send back 'L' $4c
-db0c| (27064) read from ACIA-data, send back 'O' $4f
-LOdb0c| (27361) read from ACIA-data, send back '"' $22
-db0c| (27658) read from ACIA-data, send back '\r' $d
-"eaa4| called the first time: instruction_TST_memory_8 (CPU cycles: 28180)
-eb10| called the first time: instruction_LEA_pointer (CPU cycles: 28309)
-eb1d| called the first time: instruction_SUB (CPU cycles: 28360)
-eb66| called the first time: instruction_BPL (CPU cycles: 28412)
-eb29| called the first time: instruction_OR (CPU cycles: 29210)
-e079| called the first time: instruction_TST_register (CPU cycles: 29807)
-e089| called the first time: instruction_LSL_register (CPU cycles: 29849)
-e08c| called the first time: instruction_ABX (CPU cycles: 29861)
-
-e03f| called the first time: instruction_ANDCC (CPU cycles: 30264)
-db0c| (30313) read from ACIA-data, send back '\n' $a
-
-
-BREAK
-OK
-}}}

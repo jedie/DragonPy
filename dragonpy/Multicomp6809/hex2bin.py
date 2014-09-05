@@ -57,12 +57,12 @@ hex_file.close()
 
 # Display only the dump:
 length = len(out_bytes)
-print("length: %i $%x" % (length, length))
+print("length: %i $%02x" % (length, length))
 pos = 0xc000
-print("ORG: $%x" % pos)
+print("ORG: $%04x" % pos)
 steps = 32
 for bytes in iter_steps(out_bytes, steps=steps):
-    line = " ".join("%2X" % ord(b) for b in bytes)
+    line = " ".join("%02X" % ord(b) for b in bytes)
     if "10 CE  1 EE" in line or "X7E E5  0" in line:
         print("*"*79)
     print("$%4x %s" % (pos, line))
