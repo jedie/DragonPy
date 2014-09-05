@@ -125,8 +125,10 @@ class EditorWindow(object):
         else:
             # As sub window in DragonPy Emulator
             self.root = tkinter.Toplevel(self.gui.root)
-            self.root.geometry("+%d+%d" % (self.gui.root.winfo_rootx() + 30,
-                self.gui.root.winfo_rooty() + 40))
+            self.root.geometry("+%d+%d" % (
+                self.gui.root.winfo_rootx() + self.gui.root.winfo_width(),
+                self.gui.root.winfo_y() # FIXME: Different on linux.
+            ))
 
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
