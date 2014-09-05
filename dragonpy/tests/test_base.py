@@ -135,7 +135,13 @@ def print_cpu_state_data(state):
             v = "$%x" % v
         print("\t%r: %s" % (k, v))
 
+#-----------------------------------------------------------------------------
 
+
+SIMPLE6809ROM_FILENAME = Simple6809Cfg.DEFAULT_ROMS[0].filepath
+SIMPLE6809ROM_EXISTS = os.path.isfile(SIMPLE6809ROM_FILENAME)
+
+@unittest.skipUnless(SIMPLE6809ROM_EXISTS, "No Simple6809 ROM file: %r" % SIMPLE6809ROM_FILENAME)
 class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
     """
     Run tests with the BASIC Interpreter from simple6809 ROM.
@@ -231,7 +237,13 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
         )
         raise self.failureException(msg)
 
+#-----------------------------------------------------------------------------
 
+
+SBC09ROM_FILENAME = SBC09Cfg.DEFAULT_ROMS[0].filepath
+SBC09ROM_EXISTS = os.path.isfile(SBC09ROM_FILENAME)
+
+@unittest.skipUnless(SBC09ROM_EXISTS, "No sbc09 ROM file: %r" % SBC09ROM_FILENAME)
 class Test6809_sbc09_Base(BaseCPUTestCase):
     """
     Run tests with the sbc09 ROM.
