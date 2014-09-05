@@ -207,7 +207,8 @@ class BaseTkinterGUI(object):
             self.cpu_menu.entryconfig(index=1, state=tkinter.DISABLED)
 
     def command_cpu_soft_reset(self):
-        tkinter.messagebox.showinfo("TODO", "TODO")
+        self.machine.cpu.reset()
+
     def command_cpu_hard_reset(self):
         tkinter.messagebox.showinfo("TODO", "TODO")
     #-----------------------------------------------------------------------------------------
