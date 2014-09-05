@@ -132,6 +132,8 @@ class BaseTkinterGUI(object):
         # Queue to send keyboard inputs to CPU Thread:
         self.user_input_queue = user_input_queue
 
+        self.cpu_after_id = None
+
         self.target_burst_duration = 0.1 # Duration how long should a CPU Op burst loop take
 
         self.last_op_count = 0
@@ -154,6 +156,15 @@ class BaseTkinterGUI(object):
         filemenu = tkinter.Menu(self.menubar, tearoff=0)
         filemenu.add_command(label="Exit", command=self.exit)
         self.menubar.add_cascade(label="File", menu=filemenu)
+
+        # 6809 menu
+        self.cpu_menu = tkinter.Menu(self.menubar, tearoff=0)
+        self.cpu_menu.add_command(label="pause", command=self.command_cpu_pause)
+        self.cpu_menu.add_command(label="resume", command=self.command_cpu_pause, state=tkinter.DISABLED)
+        self.cpu_menu.add_separator()
+        self.cpu_menu.add_command(label="soft reset", command=self.command_cpu_soft_reset)
+        self.cpu_menu.add_command(label="hard reset", command=self.command_cpu_hard_reset)
+        self.menubar.add_cascade(label="6809", menu=self.cpu_menu)
 
         # help menu
         helpmenu = tkinter.Menu(self.menubar, tearoff=0)
@@ -179,6 +190,27 @@ class BaseTkinterGUI(object):
             self.root.destroy()
         except:
             pass
+
+    #-----------------------------------------------------------------------------------------
+    def command_cpu_pause(self):
+        if self.cpu_after_id is not None:
+            # stop CPU
+            self.root.after_cancel(self.cpu_after_id)
+            self.cpu_after_id = None
+            self.status.set("%s paused.\n" % self.cfg.MACHINE_NAME)
+            self.cpu_menu.entryconfig(index=0, state=tkinter.DISABLED)
+            self.cpu_menu.entryconfig(index=1, state=tkinter.NORMAL)
+        else:
+            # restart
+            self.cpu_interval(self.machine, burst_count=100, interval=1)
+            self.cpu_menu.entryconfig(index=0, state=tkinter.NORMAL)
+            self.cpu_menu.entryconfig(index=1, state=tkinter.DISABLED)
+
+    def command_cpu_soft_reset(self):
+        tkinter.messagebox.showinfo("TODO", "TODO")
+    def command_cpu_hard_reset(self):
+        tkinter.messagebox.showinfo("TODO", "TODO")
+    #-----------------------------------------------------------------------------------------
 
     def add_user_input(self, txt):
         for char in txt:
@@ -269,7 +301,7 @@ class BaseTkinterGUI(object):
         if machine.cpu.running:
 #            log.critical("queue cpu interval")
 #            self.root.after_idle(self.cpu_interval, machine, burst_count, interval)
-            self.root.after(interval, self.cpu_interval, machine, burst_count, interval)
+            self.cpu_after_id = self.root.after(interval, self.cpu_interval, machine, burst_count, interval)
         else:
             log.critical("CPU stopped.")
 
