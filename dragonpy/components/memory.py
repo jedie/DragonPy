@@ -100,7 +100,10 @@ class RAM(ROM):
 #        log.debug(" **** write $%x to $%x", value, address)
 #        log.log(5, "\t\t%s", self.cfg.mem_info.get_shortest(value))
 #        log.log(5, "\t\t%s", self.cfg.mem_info.get_shortest(address))
-        self._mem[address] = value
+        try:
+            self._mem[address] = value
+        except TypeError as err:
+            raise TypeError("%s - value: %s" % (err, repr(value)))
 
 
 class Memory(object):

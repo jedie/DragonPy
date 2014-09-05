@@ -252,7 +252,14 @@ class CPU(object):
 
     def get_and_call_next_op(self):
         op_address, opcode = self.read_pc_byte()
-        self.call_instruction_func(op_address, opcode)
+        try:
+            self.call_instruction_func(op_address, opcode)
+        except Exception as err:
+            try:
+                raise Exception("%s - address: $%04x - opcode: $%02x" % (err, op_address, opcode))
+            except TypeError:
+                raise Exception("%s - address: %r - opcode: %r" % (err, op_address, opcode))
+
 
     def quit(self):
         log.critical("CPU quit() called.")
