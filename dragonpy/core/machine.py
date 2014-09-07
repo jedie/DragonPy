@@ -114,17 +114,6 @@ class Machine(object):
 #        print_cpu_state_data(self.cpu.get_state())
         self.cpu.reset()
 
-    def run_cpu(self, burst_count, op_delay=None):
-
-        self.cpu.burst_run(burst_count, op_delay)
-
-        self.op_count += burst_count
-
-        if self.max_ops:
-            if self.op_count >= self.max_ops:
-                log.critical("Quit CPU after given 'max_ops' %i ops.", self.max_ops)
-                self.quit()
-
     def quit(self):
         self.cpu.running = False
 

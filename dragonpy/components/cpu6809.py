@@ -106,6 +106,7 @@ class CPUStatusThread(threading.Thread):
 
 class CPU(object):
     RESET_VECTOR = 0xfffe
+    STARTUP_BURST_COUNT = 1000
 
     def __init__(self, memory, cfg, cpu_status_queue=None):
         self.memory = memory
@@ -114,6 +115,7 @@ class CPU(object):
         self.running = True
         self.cycles = 0
         self.last_op_address = 0 # Store the current run opcode memory address
+        self.burst_op_count = self.STARTUP_BURST_COUNT
 
         if cpu_status_queue is not None:
             status_thread = CPUStatusThread(self, cpu_status_queue)
@@ -288,31 +290,33 @@ class CPU(object):
         for __ in range(count):
             get_and_call_next_op()
 
-    STARTUP_BURST_COUNT = 1000
-    def run(self, max_time=0.1, target_cycles_per_sec=None):
-        """
-        14.218000 Mhz crystal / 16 = 0.888625 MHz CPU frequency * 1000000 = 888625 cycles/sec
-        """
-#         log.critical("target_cycles_per_sec=%s", target_cycles_per_sec)
-        delay = 0
-        burst_count = self.STARTUP_BURST_COUNT
+    def run(self, max_run_time=0.1, target_cycles_per_sec=None, target_burst_loops=100):
+
         now = time.time
+        sleep = time.sleep
+
+        start_cycles = self.cycles
+        burst_loops = 0
+        total_delay = 0
         start_time = now()
-        abort_time = start_time + max_time
+        abort_time = start_time + max_run_time
         while now() < abort_time:
+            burst_loops += 1
             last_cpu_cycles = self.cycles
             burst_start = now()
 
-            self.burst_run(burst_count)
+            self.burst_run(self.burst_op_count)
 
-#             log.critical("Run %i", burst_count)
+            burst_duration = now() - burst_start
+
+#             log.critical("Run %i", burst_op_count)
 
             if target_cycles_per_sec:
-                burst_duration = now() - burst_start
+
                 burst_cycles_count = self.cycles - last_cpu_cycles
 
 #                 log.critical("*"*79)
-#                 log.critical("burst_count=%s", burst_count)
+#                 log.critical("burst_op_count=%s", burst_op_count)
 #                 log.critical("burst_duration=%f", burst_duration)
 #                 log.critical("burst_cycles_count=%i", burst_cycles_count)
 
@@ -337,7 +341,30 @@ class CPU(object):
 #                 log.critical("Delay: %.12f sec", delay)
 
                 if delay > 0:
-                    time.sleep(delay)
+                    total_delay += delay
+                    sleep(delay)
+
+#         log.critical("burst_loops = %i", burst_loops)
+        if burst_loops != target_burst_loops:
+            """
+            Recalculate how many ops we should run in a loop to
+            match the target_burst_loops
+            """
+#             log.critical("self.burst_op_count = %i", self.burst_op_count)
+            new_burst_loops = float(burst_loops) / target_burst_loops * self.burst_op_count
+#             log.critical("new_burst_loops = %s", new_burst_loops)
+            self.burst_op_count = int((self.burst_op_count + new_burst_loops) / 2)
+            if self.burst_op_count < 1:
+                self.burst_op_count = 1
+#             log.critical("self.burst_op_count = %i", self.burst_op_count)
+
+#         log.critical("*"*79)
+        total_duration = now() - start_time
+
+        total_cycles_count = self.cycles - start_cycles
+        cycles_per_sec = total_cycles_count / total_duration
+
+        return cycles_per_sec, burst_loops, total_duration, total_delay
 
     def test_run(self, start, end):
 #        log.warning("CPU test_run(): from $%x to $%x" % (start, end))
