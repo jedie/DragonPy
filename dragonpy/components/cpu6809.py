@@ -105,7 +105,15 @@ class CPUStatusThread(threading.Thread):
 
 
 class CPU(object):
+
+    SWI3_VECTOR = 0xfff2
+    SWI2_VECTOR = 0xfff4
+    FIRQ_VECTOR = 0xfff6
+    IRQ_VECTOR = 0xfff8
+    SWI_VECTOR = 0xfffa
+    NMI_VECTOR = 0xfffc
     RESET_VECTOR = 0xfffe
+
     STARTUP_BURST_COUNT = 1000
 
     def __init__(self, memory, cfg, cpu_status_queue=None):
@@ -252,6 +260,8 @@ class CPU(object):
 #        log.info("\tset PC to $%x" % (ea))
         self.program_counter.set(ea)
 
+    ####
+
     def get_and_call_next_op(self):
         op_address, opcode = self.read_pc_byte()
         try:
@@ -261,7 +271,6 @@ class CPU(object):
                 raise Exception("%s - address: $%04x - opcode: $%02x" % (err, op_address, opcode))
             except TypeError:
                 raise Exception("%s - address: %r - opcode: %r" % (err, op_address, opcode))
-
 
     def quit(self):
         log.critical("CPU quit() called.")
@@ -2466,6 +2475,50 @@ class CPU(object):
         raise NotImplementedError("$%x RESET" % opcode)
         # Update CC bits: *****
 
+    # ---- Interrupt handling ----
+
+    irq_enabled = False
+    def irq(self):
+        if not self.irq_enabled or self.cc.I == 1:
+            log.critical("$%04x *** IRQ, ignore!\t%s" % (
+                self.program_counter.get(), self.cc.get_info
+            ))
+            return
+
+        if self.cc.E:
+            self.push_irq_registers()
+        else:
+            self.push_firq_registers()
+
+        ea = self.memory.read_word(self.IRQ_VECTOR)
+        log.critical("$%04x *** IRQ, set PC to $%04x\t%s" % (
+            self.program_counter.get(), ea, self.cc.get_info
+        ))
+        self.program_counter.set(ea)
+
+    def push_irq_registers(self):
+        """
+        push PC, U, Y, X, DP, B, A, CC on System stack pointer
+        """
+        self.cycles += 1
+        self.push_word(self.system_stack_pointer, self.program_counter.get()) # PC
+        self.push_word(self.system_stack_pointer, self.user_stack_pointer.get()) # U
+        self.push_word(self.system_stack_pointer, self.index_y.get()) # Y
+        self.push_word(self.system_stack_pointer, self.index_x.get()) # X
+        self.push_byte(self.system_stack_pointer, self.direct_page.get()) # DP
+        self.push_byte(self.system_stack_pointer, self.accu_b.get()) # B
+        self.push_byte(self.system_stack_pointer, self.accu_a.get()) # A
+        self.push_byte(self.system_stack_pointer, self.cc.get()) # CC
+
+    def push_firq_registers(self):
+        """
+        FIRQ - Fast Interrupt Request
+        push PC and CC on System stack pointer
+        """
+        self.cycles += 1
+        self.push_word(self.system_stack_pointer, self.program_counter.get()) # PC
+        self.push_byte(self.system_stack_pointer, self.cc.get()) # CC
+
     @opcode(# Return from interrupt
         0x3b, # RTI (inherent)
     )
@@ -2480,7 +2533,33 @@ class CPU(object):
 
         CC bits "HNZVC": -----
         """
-        raise NotImplementedError("$%x RTI" % opcode)
+        cc = self.pull_byte(self.system_stack_pointer) # CC
+        self.cc.set(cc)
+        if self.cc.E:
+            self.accu_a.set(
+                self.pull_byte(self.system_stack_pointer) # A
+            )
+            self.accu_b.set(
+                self.pull_byte(self.system_stack_pointer) # B
+            )
+            self.direct_page.set(
+                self.pull_byte(self.system_stack_pointer) # DP
+            )
+            self.index_x.set(
+                self.pull_word(self.system_stack_pointer) # X
+            )
+            self.index_y.set(
+                self.pull_word(self.system_stack_pointer) # Y
+            )
+            self.user_stack_pointer.set(
+                self.pull_word(self.system_stack_pointer) # U
+            )
+
+        self.program_counter.set(
+            self.pull_word(self.system_stack_pointer) # PC
+        )
+#         log.critical("RTI to $%04x", self.program_counter.get())
+
 
     @opcode(# Software interrupt (absolute indirect)
         0x3f, # SWI (inherent)
