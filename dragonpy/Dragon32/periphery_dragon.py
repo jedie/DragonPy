@@ -31,16 +31,16 @@ class Dragon32PeripheryBase(PeripheryBase):
     """
     GUI independent stuff
     """
-    def __init__(self, cfg, memory, user_input_queue):
-        super(Dragon32PeripheryBase, self).__init__(cfg, memory, user_input_queue)
+    def __init__(self, cfg, cpu, memory, user_input_queue):
+        super(Dragon32PeripheryBase, self).__init__(cfg, cpu, memory, user_input_queue)
 
         self.kbd = 0xBF
         self.display = None
         self.speaker = None  # Speaker()
         self.cassette = None  # Cassette()
 
-        self.sam = SAM(cfg, memory)
-        self.pia = PIA(cfg, memory, self.user_input_queue)
+        self.sam = SAM(cfg, cpu, memory)
+        self.pia = PIA(cfg, cpu, memory, self.user_input_queue)
 
         self.memory.add_read_byte_callback(self.no_dos_rom, 0xC000)
         self.memory.add_read_word_callback(self.no_dos_rom, 0xC000)
@@ -65,8 +65,8 @@ class Dragon32PeripheryBase(PeripheryBase):
 
 
 class Dragon32Periphery(Dragon32PeripheryBase):
-    def __init__(self, cfg, memory, display_queue, user_input_queue):
-        super(Dragon32Periphery, self).__init__(cfg, memory, user_input_queue)
+    def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
+        super(Dragon32Periphery, self).__init__(cfg, cpu, memory, user_input_queue)
 
         # redirect writes to display RAM area 0x0400-0x0600 into display_queue:
         DragonDisplayOutputHandler(display_queue, memory)

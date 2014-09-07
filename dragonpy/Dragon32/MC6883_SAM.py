@@ -54,8 +54,9 @@ class SAM(object):
     """
     MC6883 (74LS783) Synchronous Address Multiplexer (SAM)
     """
-    def __init__(self, cfg, memory):
+    def __init__(self, cfg, cpu, memory):
         self.cfg = cfg
+        self.cpu = cpu
         self.memory = memory
 
         #
@@ -92,9 +93,9 @@ class SAM(object):
     def interrupt_vectors(self, cpu_cycles, op_address, address):
         new_address = address - 0x4000
         value = self.memory.read_byte(new_address)
-        log.critical("read interrupt vector $%04x redirect in SAM to $%04x use value $%02x",
-            address, new_address, value
-        )
+#         log.critical("read interrupt vector $%04x redirect in SAM to $%04x use value $%02x",
+#             address, new_address, value
+#         )
         return value
 
 #     def read_VDG_mode_register_v0(self, cpu_cycles, op_address, address):

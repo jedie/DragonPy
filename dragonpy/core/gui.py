@@ -393,8 +393,13 @@ class BaseTkinterGUI(object):
             return burst_count * 2
         return int(round((burst_count + a) / 2))
 
+    # TODO: move
+    irq_cycles = 0
     def cpu_interval(self, interval=None):
-#         log.critical("enter cpu interval")
+        if (self.machine.cpu.cycles - self.irq_cycles) > 17784:
+            # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4894&p=11730#p11726
+            self.machine.cpu.irq()
+            self.irq_cycles = self.machine.cpu.cycles
 
         if not self.runtime_cfg.speedlimit:
             # Run CPU as fast as Python can...
