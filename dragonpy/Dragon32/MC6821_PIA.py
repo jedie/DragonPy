@@ -74,8 +74,9 @@ class PIA(object):
     PIA0 - Keyboard, Joystick
     PIA1 - Printer, Cassette, 6-Bit DAC, Sound Mux
     """
-    def __init__(self, cfg, memory, user_input_queue):
+    def __init__(self, cfg, cpu, memory, user_input_queue):
         self.cfg = cfg
+        self.cpu = cpu
         self.memory = memory
         self.user_input_queue = user_input_queue
 
@@ -401,17 +402,35 @@ class PIA(object):
         bit 1 | control line 1 (CB1): IRQ polarity 0 = IRQ on HI to LO / 1 = IRQ on LO to HI
         bit 0 | VSYNC IRQ: 0 = disable IRQ / 1 = enable IRQ
         """
-        log.error(
+        log.critical(
             "%04x| write $%02x (%s) to $%04x -> PIA 0 B side Control reg.\t|%s",
             op_address, value, byte2bit_string(value),
             address, self.cfg.mem_info.get_shortest(op_address)
         )
         self.pia_0_B_register.set(value)
 
+        if is_bit_set(value, bit=0):
+            log.critical(
+                "%04x| write $%02x (%s) to $%04x -> VSYNC IRQ: enable\t|%s",
+                op_address, value, byte2bit_string(value),
+                address, self.cfg.mem_info.get_shortest(op_address)
+            )
+            self.cpu.irq_enabled = True
+        else:
+            log.critical(
+                "%04x| write $%02x (%s) to $%04x -> VSYNC IRQ: disable\t|%s",
+                op_address, value, byte2bit_string(value),
+                address, self.cfg.mem_info.get_shortest(op_address)
+            )
+            self.cpu.irq_enabled = False
+
         if not is_bit_set(value, bit=2):
             self.pia_0_B_register.select_pdr()
         else:
             self.pia_0_B_register.deselect_pdr()
+
+
+#------------------------------------------------------------------------------
 
 
 def test_run():
@@ -420,11 +439,12 @@ def test_run():
     import subprocess
     cmd_args = [
         sys.executable,
-        os.path.join("..",
-            "CoCo_test.py"
-            #             "Dragon32_test.py"
-            #             "Dragon64_test.py"
-        ),
+        os.path.join("..", "DragonPy_CLI.py"),
+#        "--verbosity", "5",
+        "--machine", "Dragon32", "run",
+#        "--machine", "Vectrex", "run",
+#        "--max_ops", "1",
+#        "--trace",
     ]
     print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()

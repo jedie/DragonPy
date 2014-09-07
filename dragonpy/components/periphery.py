@@ -46,8 +46,9 @@ except ImportError:
 class PeripheryBase(object):
     INITAL_INPUT = None # For quick test
 
-    def __init__(self, cfg, memory, user_input_queue=None):
+    def __init__(self, cfg, cpu, memory, user_input_queue=None):
         self.cfg = cfg
+        self.cpu = cpu
         self.memory = memory
         self.running = True
 

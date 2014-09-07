@@ -47,12 +47,12 @@ class Machine(object):
         self.user_input_queue = user_input_queue
 
         memory = Memory(self.cfg)
-        self.periphery = self.periphery_class(
-            self.cfg, memory, self.display_queue, self.user_input_queue
-        )
-
         self.cpu = CPU(memory, self.cfg)
         memory.cpu = self.cpu  # FIXME
+
+        self.periphery = self.periphery_class(
+            self.cfg, self.cpu, memory, self.display_queue, self.user_input_queue
+        )
 
         self.cpu_init_state = self.cpu.get_state() # Used for hard reset
 #        from dragonpy.tests.test_base import print_cpu_state_data
