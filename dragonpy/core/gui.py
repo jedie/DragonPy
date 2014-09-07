@@ -116,12 +116,111 @@ class MC6847_TextModeCanvas(object):
         self.canvas.itemconfigure(image_id, image=image)
 
 
+class RuntimeCfg(object):
+    """
+    TODO: Load/save to ~/.DragonPy.ini
+    """
+    speedlimit = False
+    cycles_per_sec = 888625 # cycles/sec
+
+    def __setattr__(self, attr, value):
+        log.critical("Set RuntimeCfg %r to: %r" % (attr, value))
+        return object.__setattr__(self, attr, value)
+
+    def load(self):
+        raise NotImplementedError("TODO!")
+    def save(self):
+        raise NotImplementedError("TODO!")
+
+
+
+class BaseTkinterGUIConfig(object):
+    """
+    14.318180 Mhz crystal / 16 = 0.894886 MHz CPU frequency * 1000000 = 894886 cycles/sec
+    14.218000 Mhz crystal / 16 = 0.888625 MHz CPU frequency * 1000000 = 888625 cycles/sec
+
+    894886 cycles/sec - 888625 cycles/sec = 6261 cycles/sec slower
+    14.218000 Mhz crystal = 0.00000113 Sec or 1.12533408356e-06 us cycle time
+    """
+    def __init__(self, gui, runtime_cfg):
+        self.gui = gui
+        self.runtime_cfg = runtime_cfg
+
+        self.root = tkinter.Toplevel(self.gui.root)
+        self.root.geometry("+%d+%d" % (
+            self.gui.root.winfo_rootx() + self.gui.root.winfo_width(),
+            self.gui.root.winfo_y() # FIXME: Different on linux.
+        ))
+
+        #
+        # Speedlimit check button
+        #
+        # self.check_value_speedlimit = tkinter.BooleanVar( # FIXME: Doesn't work with PyPy ?!?!
+        self.check_value_speedlimit = tkinter.IntVar(
+            value=self.runtime_cfg.speedlimit
+        )
+        self.checkbutton_speedlimit = tkinter.Checkbutton(self.root,
+            text="speedlimit", variable=self.check_value_speedlimit,
+            command=self.command_checkbutton_speedlimit
+        )
+        self.checkbutton_speedlimit.grid(row=0, column=0)
+
+        #
+        # Cycles/sec entry
+        #
+        self.cycles_per_sec_var = tkinter.IntVar(
+            value=self.runtime_cfg.cycles_per_sec
+        )
+        self.cycles_per_sec_entry = tkinter.Entry(self.root,
+            textvariable=self.cycles_per_sec_var,
+            width=8, # validate = 'key', validatecommand = vcmd
+        )
+        self.cycles_per_sec_entry.bind('<KeyRelease>', self.command_cycles_per_sec)
+        self.cycles_per_sec_entry.grid(row=0, column=1)
+
+        self.cycles_per_sec_label_var = tkinter.StringVar()
+        self.cycles_per_sec_label = tkinter.Label(
+            self.root, textvariable=self.cycles_per_sec_label_var
+        )
+        self.root.after_idle(self.command_cycles_per_sec) # Add Text
+        self.cycles_per_sec_label.grid(row=0, column=2)
+
+        self.root.update()
+
+    def command_checkbutton_speedlimit(self, event=None):
+        self.runtime_cfg.speedlimit = self.check_value_speedlimit.get()
+
+    def command_cycles_per_sec(self, event=None):
+        try:
+            cycles_per_sec = self.cycles_per_sec_var.get()
+        except ValueError:
+            self.cycles_per_sec_var.set(self.runtime_cfg.cycles_per_sec)
+            return
+
+        self.cycles_per_sec_label_var.set(
+            "cycles/sec / 1000000 = %f MHz CPU frequency * 16 = %f Mhz crystal" % (
+                cycles_per_sec / 1000000,
+                cycles_per_sec / 1000000 * 16,
+            )
+        )
+
+        self.runtime_cfg.cycles_per_sec = cycles_per_sec
+
+    def focus(self):
+        # see: http://www.python-forum.de/viewtopic.php?f=18&t=34643 (de)
+        self.root.attributes('-topmost', True)
+        self.root.attributes('-topmost', False)
+        self.root.focus_force()
+        self.root.lift(aboveThis=self.gui.root)
+
+
 class BaseTkinterGUI(object):
     """
     The complete Tkinter GUI window
     """
     def __init__(self, cfg, display_queue, user_input_queue):
         self.cfg = cfg
+        self.runtime_cfg = RuntimeCfg()
 
         # Queue which contains "write into Display RAM" information
         # for render them in MC6847_TextModeCanvas():
@@ -130,6 +229,7 @@ class BaseTkinterGUI(object):
         # Queue to send keyboard inputs to CPU Thread:
         self.user_input_queue = user_input_queue
 
+        self.op_delay = 0
         self.burst_count = 100
         self.cpu_after_id = None # Used to call CPU OP burst loop
         self.target_burst_duration = 0.1 # Duration how long should a CPU Op burst loop take
@@ -164,6 +264,10 @@ class BaseTkinterGUI(object):
         self.cpu_menu.add_command(label="hard reset", command=self.command_cpu_hard_reset)
         self.menubar.add_cascade(label="6809", menu=self.cpu_menu)
 
+        self.config_window = None
+        self.menubar.add_command(label="config", command=self.command_config)
+#         self.root.after(200, self.command_config) # FIXME: Only for developing: Open config on startup!
+
         # help menu
         helpmenu = tkinter.Menu(self.menubar, tearoff=0)
         helpmenu.add_command(label="help", command=self.menu_event_help)
@@ -175,6 +279,7 @@ class BaseTkinterGUI(object):
         self.last_cpu_cycles = 0
         self.cpu_cycles_update_interval = 1 # Fequency for update GUI status information
         self.next_cpu_cycle_update = time.time() + self.cpu_cycles_update_interval
+        self.last_cycles_per_second = sys.maxsize
 
     def menu_event_about(self):
         messagebox.showinfo("DragonPy",
@@ -194,6 +299,17 @@ class BaseTkinterGUI(object):
             self.root.destroy()
         except:
             pass
+
+    #-----------------------------------------------------------------------------------------
+
+    def command_config(self):
+        if self.config_window is None:
+            self.config_window = BaseTkinterGUIConfig(self, self.runtime_cfg)
+            self.config_window.root.protocol(
+                "WM_DELETE_WINDOW", self.config_window.root.destroy
+            )
+        else:
+            self.config_window.focus()
 
     #-----------------------------------------------------------------------------------------
 
@@ -274,14 +390,36 @@ class BaseTkinterGUI(object):
             return burst_count * 2
         return int(round((burst_count + a) / 2))
 
+    burst_delay = 0
     def cpu_interval(self, interval=None):
 #        log.critical("enter cpu interval")
+
+        last_cpu_cycles = self.machine.cpu.cycles
+
         start_time = time.time()
-
-        self.machine.run_cpu(self.burst_count)
-
+        self.machine.run_cpu(self.burst_count, self.op_delay)
         now = time.time()
+
         burst_duration = now - start_time
+        new_cycles = self.machine.cpu.cycles - self.last_cpu_cycles
+        cycles_per_second = new_cycles / burst_duration
+
+        # Calculate op_delay if speedlimit is enabled
+        if not self.runtime_cfg.speedlimit:
+            # Run CPU as fast as Python can...
+            self.op_delay = 0
+        else:
+            # Run CPU not faster than speedlimit
+            # e.g.:
+            # 14.218000 Mhz crystal / 16 = 0.888625 MHz CPU frequency * 1000000 = 888625 cycles/sec
+            cycle_duration = burst_duration / new_cycles
+            should_cycle_duration = cycle_duration * self.runtime_cfg.cycles_per_sec
+            duration_diff = burst_duration - should_cycle_duration
+            op_delay = duration_diff / self.burst_count
+            if op_delay < 0:
+                self.op_delay = self.op_delay / 2
+            else:
+                self.op_delay = (self.op_delay + op_delay) / 2
 
         # Calculate the burst_count new, to hit self.target_burst_duration
         self.burst_count = self.calc_new_count(self.burst_count,
@@ -289,25 +427,33 @@ class BaseTkinterGUI(object):
             target_value=self.target_burst_duration,
         )
 #        log.critical("burst duration: %.3f sec. - new burst count: %i Ops", burst_duration, burst_count)
+        self.burst_count = 5000
 
         if now > self.next_cpu_cycle_update:
+#             if self.runtime_cfg.speedlimit:
+#                 log.critical("self.burst_count=%i - burst_duration=%f - new_cycles=%i", self.burst_count, burst_duration, new_cycles)
+#                 log.critical("%f burst_duration / %i new_cycles = %.12f cycle_duration" % (burst_duration, new_cycles, cycle_duration))
+#                 log.critical("%.12f cycle_duration * %i self_runtime_cfg_cycles_per_sec = %f should_cycle_duration" % (cycle_duration, self.runtime_cfg.cycles_per_sec, should_cycle_duration))
+#                 log.critical("%f duration_diff = %f burst_duration - %f should_cycle_duration" % (duration_diff, burst_duration, should_cycle_duration))
+#                 log.critical("%.12f op_delay = %f duration_diff / %i self_burst_count" % (op_delay, duration_diff, self.burst_count))
+#             log.critical("self.op_delay = %.12f" % self.op_delay)
 
             duration = now - self.next_cpu_cycle_update + self.cpu_cycles_update_interval
             self.next_cpu_cycle_update = now + self.cpu_cycles_update_interval
 
             new_cycles = self.machine.cpu.cycles - self.last_cpu_cycles
             self.last_cpu_cycles = self.machine.cpu.cycles
-            cycles_per_second = int(new_cycles / duration)
+            self.last_cycles_per_second = int(new_cycles / duration)
 
             new_ops = self.machine.op_count - self.last_op_count
             self.last_op_count = self.machine.op_count
             ops_per_second = int(new_ops / duration)
 
             msg = (
-                "%s cycles/sec (Dragon 32 == 895.000cycles/sec)"
+                "%s cycles/sec (OP delay: %.20f sec/op)"
                 "\n%s ops/sec - burst duration: %.3f sec. - burst count: %s Ops"
             ) % (
-                locale_format_number(cycles_per_second),
+                locale_format_number(self.last_cycles_per_second), self.op_delay,
                 locale_format_number(ops_per_second),
                 burst_duration, locale_format_number(self.burst_count)
             )

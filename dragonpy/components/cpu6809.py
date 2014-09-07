@@ -281,11 +281,21 @@ class CPU(object):
         instr_func(opcode)
         self.cycles += cycles
 
-    def burst_run(self, count):
+    def burst_run(self, count, op_delay=None):
         # https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Avoiding_dots...
         get_and_call_next_op = self.get_and_call_next_op
-        for __ in range(count):
-            get_and_call_next_op()
+
+        if not op_delay: # e.g.: delay == 0 or == None
+            # Run CPU as fast as Python can...
+            for __ in range(count):
+                get_and_call_next_op()
+        else:
+            # limit the CPU speed
+            assert isinstance(op_delay, (float, int)) and op_delay > 0, "ValueError: %r" % op_delay
+            sleep = time.sleep
+            for __ in range(count): # TODO: Maybe split the count loop ?!?
+                get_and_call_next_op()
+                sleep(op_delay)
 
     def test_run(self, start, end):
 #        log.warning("CPU test_run(): from $%x to $%x" % (start, end))

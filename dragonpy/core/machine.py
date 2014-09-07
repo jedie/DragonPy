@@ -114,8 +114,9 @@ class Machine(object):
 #        print_cpu_state_data(self.cpu.get_state())
         self.cpu.reset()
 
-    def run_cpu(self, burst_count):
-        self.cpu.burst_run(burst_count)
+    def run_cpu(self, burst_count, op_delay=None):
+
+        self.cpu.burst_run(burst_count, op_delay)
 
         self.op_count += burst_count
 
