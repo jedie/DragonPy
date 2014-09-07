@@ -390,8 +390,56 @@ class BaseTkinterGUI(object):
             return burst_count * 2
         return int(round((burst_count + a) / 2))
 
-    burst_delay = 0
     def cpu_interval(self, interval=None):
+#         log.critical("enter cpu interval")
+
+        last_cpu_cycles = self.machine.cpu.cycles
+
+        start_time = time.time()
+        if not self.runtime_cfg.speedlimit:
+            # Run CPU as fast as Python can...
+            self.machine.cpu.run(max_time=0.1, target_cycles_per_sec=None)
+        else:
+            # Run CPU not faster than speedlimit
+            self.machine.cpu.run(max_time=0.1, target_cycles_per_sec=self.runtime_cfg.cycles_per_sec)
+        now = time.time()
+
+        burst_duration = now - start_time
+        new_cycles = self.machine.cpu.cycles - self.last_cpu_cycles
+        cycles_per_second = new_cycles / burst_duration
+
+        duration = now - self.next_cpu_cycle_update + self.cpu_cycles_update_interval
+        self.next_cpu_cycle_update = now + self.cpu_cycles_update_interval
+
+        new_cycles = self.machine.cpu.cycles - self.last_cpu_cycles
+        self.last_cpu_cycles = self.machine.cpu.cycles
+        self.last_cycles_per_second = int(new_cycles / duration)
+
+        new_ops = self.machine.op_count - self.last_op_count
+        self.last_op_count = self.machine.op_count
+        ops_per_second = int(new_ops / duration)
+
+        msg = (
+            "%s cycles/sec (OP delay: %.20f sec/op)"
+            "\n%s ops/sec - burst duration: %.3f sec. - burst count: %s Ops"
+        ) % (
+            locale_format_number(self.last_cycles_per_second), self.op_delay,
+            locale_format_number(ops_per_second),
+            burst_duration, locale_format_number(self.burst_count)
+        )
+        self.status.set(msg)
+
+        self.process_display_queue()
+
+        if interval is not None:
+            if self.machine.cpu.running:
+    #            log.critical("queue cpu interval")
+    #            self.root.after_idle(self.cpu_interval, machine, burst_count, interval)
+                self.cpu_after_id = self.root.after(interval, self.cpu_interval, interval)
+            else:
+                log.critical("CPU stopped.")
+
+    def cpu_interval_OLD(self, interval=None):
 #        log.critical("enter cpu interval")
 
         last_cpu_cycles = self.machine.cpu.cycles

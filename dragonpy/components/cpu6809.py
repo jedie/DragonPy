@@ -281,21 +281,63 @@ class CPU(object):
         instr_func(opcode)
         self.cycles += cycles
 
-    def burst_run(self, count, op_delay=None):
+    def burst_run(self, count):
+        """ Run CPU as fast as Python can... """
         # https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Avoiding_dots...
         get_and_call_next_op = self.get_and_call_next_op
+        for __ in range(count):
+            get_and_call_next_op()
 
-        if not op_delay: # e.g.: delay == 0 or == None
-            # Run CPU as fast as Python can...
-            for __ in range(count):
-                get_and_call_next_op()
-        else:
-            # limit the CPU speed
-            assert isinstance(op_delay, (float, int)) and op_delay > 0, "ValueError: %r" % op_delay
-            sleep = time.sleep
-            for __ in range(count): # TODO: Maybe split the count loop ?!?
-                get_and_call_next_op()
-                sleep(op_delay)
+    STARTUP_BURST_COUNT = 1000
+    def run(self, max_time=0.1, target_cycles_per_sec=None):
+        """
+        14.218000 Mhz crystal / 16 = 0.888625 MHz CPU frequency * 1000000 = 888625 cycles/sec
+        """
+#         log.critical("target_cycles_per_sec=%s", target_cycles_per_sec)
+        delay = 0
+        burst_count = self.STARTUP_BURST_COUNT
+        now = time.time
+        start_time = now()
+        abort_time = start_time + max_time
+        while now() < abort_time:
+            last_cpu_cycles = self.cycles
+            burst_start = now()
+
+            self.burst_run(burst_count)
+
+#             log.critical("Run %i", burst_count)
+
+            if target_cycles_per_sec:
+                burst_duration = now() - burst_start
+                burst_cycles_count = self.cycles - last_cpu_cycles
+
+#                 log.critical("*"*79)
+#                 log.critical("burst_count=%s", burst_count)
+#                 log.critical("burst_duration=%f", burst_duration)
+#                 log.critical("burst_cycles_count=%i", burst_cycles_count)
+
+                cycles_per_sec = burst_cycles_count / burst_duration
+#                 log.critical("%i cycles_per_sec = %i burst_cycles_count / %f burst_duration",
+#                     cycles_per_sec, burst_cycles_count, burst_duration
+#                 )
+
+                should_burst_duration = cycles_per_sec / target_cycles_per_sec
+#                 log.critical("%s should_burst_duration = %s cycles_per_sec / %s target_cycles_per_sec",
+#                     should_burst_duration, target_cycles_per_sec, cycles_per_sec
+#                 )
+
+                target_duration = should_burst_duration * burst_duration
+#                 log.critical("%s target_duration = %s should_burst_duration * %s burst_duration",
+#                     target_duration, should_burst_duration, burst_duration
+#                 )
+                delay = target_duration - burst_duration
+#                 log.critical("%s delay = %s target_duration - %s burst_duration",#
+#                     delay, target_duration, burst_duration
+#                 )
+#                 log.critical("Delay: %.12f sec", delay)
+
+                if delay > 0:
+                    time.sleep(delay)
 
     def test_run(self, start, end):
 #        log.warning("CPU test_run(): from $%x to $%x" % (start, end))
@@ -2517,77 +2559,24 @@ class TypeAssert(CPU):
 # CPU = TypeAssert # Should be only activated for debugging!
 
 
-
-def start_CPU(cfg, use_bus, bus_socket_host, bus_socket_port):
-    log.info(
-        "Connect to internal socket bus I/O %s:%s", bus_socket_host, bus_socket_port
-    )
-
-    if use_bus:
-        bus = socket.socket()
-        bus.connect(
-            (bus_socket_host, bus_socket_port)
-        )
-        assert bus is not None
-        cfg.bus = bus
-
-    cpu = CPU(cfg)
-    cpu.reset()
-    try:
-        cpu.run()
-    except SystemExit:
-        log.critical("CPU has raised system exit, ok.")
-    except:
-        print_exc_plus()
+#------------------------------------------------------------------------------
 
 
 def test_run():
-    print("test run...")
+    import sys
+    import os
     import subprocess
-    cmd_args = [sys.executable,
+    cmd_args = [
+        sys.executable,
         os.path.join("..", "DragonPy_CLI.py"),
-#        "--verbosity=5",
-#         "--verbosity=10", # DEBUG
-        "--verbosity=20", # INFO
-#         "--verbosity=30", # WARNING
-#         "--verbosity=40", # ERROR
-#        "--verbosity=50", # CRITICAL/FATAL
-#
-#         '--log_formatter=%(filename)s %(funcName)s %(lineno)d %(message)s',
-#
-#         "--machine=sbc09",
-#          "--machine=Simple6809",
-#        "--machine=Dragon32",
-
-         "--machine=Multicomp6809",
-
-#         "--max=15000",
-#        "--max=1",
-
-        "--display_cycle",
+#        "--verbosity", "5",
+        "--machine", "Dragon32", "run",
+#        "--machine", "Vectrex", "run",
+#        "--max_ops", "1",
+#        "--trace",
     ]
     print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
-    subprocess.Popen(cmd_args).wait()
-    sys.exit(0)
-
+    subprocess.Popen(cmd_args, cwd="..").wait()
 
 if __name__ == "__main__":
-    #
-    # TODO: Only needed for windows-multiprocessing-work-a-round:
-    #       start with script with subprocess.Popen()
-    #
-    #    See: dragonpy.core.DragonPy
-    #
-    from dragonpy.DragonPy_CLI import get_cli
-    cli = get_cli()
-
-    if cli.cfg.bus is None:
-        print("DragonPy cpu core")
-        print("Run DragonPy_CLI.py instead")
-        test_run()
-        sys.exit(0)
-
-    bus_socket_host = cli.cfg.bus_socket_host
-    bus_socket_port = cli.cfg.bus_socket_port
-
-    start_CPU(cli.cfg, True, bus_socket_host, bus_socket_port)
+    test_run()
