@@ -175,25 +175,3 @@ class SAM(object):
     def write_D64_dynamic_memory(self, cpu_cycles, op_address, address, value):
         log.error("TODO: write D64_dynamic_memory $%02x to $%04x", value, address)
 
-
-#------------------------------------------------------------------------------
-
-
-def test_run():
-    import sys
-    import os
-    import subprocess
-    cmd_args = [
-        sys.executable,
-        os.path.join("..", "DragonPy_CLI.py"),
-#        "--verbosity", "5",
-        "--machine", "Dragon32", "run",
-#        "--machine", "Vectrex", "run",
-#        "--max_ops", "1",
-#        "--trace",
-    ]
-    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
-    subprocess.Popen(cmd_args, cwd="..").wait()
-
-if __name__ == "__main__":
-    test_run()

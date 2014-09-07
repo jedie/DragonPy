@@ -1541,11 +1541,11 @@ class CPU(object):
         CC bits "HNZVC": -aa0-
         """
         value = register.get()
-#        log.debug("%04x| ST8 store value $%02x from %s at $%04x \t| %s" % (
-#            self.program_counter.get(),
-#            value, register.name, ea,
-#            self.cfg.mem_info.get_shortest(ea)
-#        ))
+#        log.debug("$%x ST8 store value $%x from %s at $%x \t| %s" % (
+#             self.program_counter,
+#             value, register.name, ea,
+#             self.cfg.mem_info.get_shortest(ea)
+#         ))
         self.cc.clear_NZV()
         self.cc.update_NZ_8(value)
         return ea, value # write byte to Memory

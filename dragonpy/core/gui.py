@@ -289,6 +289,7 @@ class BaseTkinterGUI(object):
         self.op_delay = 0
         self.burst_op_count = 100
         self.cpu_after_id = None # Used to call CPU OP burst loop
+        self.target_burst_duration = 0.1 # Duration how long should a CPU Op burst loop take
 
         self.init_statistics() # Called also after reset
 
@@ -322,7 +323,7 @@ class BaseTkinterGUI(object):
 
         self.config_window = None
         self.menubar.add_command(label="config", command=self.command_config)
-#        self.root.after(200, self.command_config) # FIXME: Only for developing: Open config on startup!
+        self.root.after(200, self.command_config) # FIXME: Only for developing: Open config on startup!
 
         # help menu
         helpmenu = tkinter.Menu(self.menubar, tearoff=0)
@@ -458,6 +459,7 @@ class BaseTkinterGUI(object):
 
         if not self.runtime_cfg.speedlimit:
             # Run CPU as fast as Python can...
+            start_time = time.time()
 
 #            self.machine.cpu.burst_op_count = int(17784 / 4)
             self.machine.cpu.burst_run()

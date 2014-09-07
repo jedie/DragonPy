@@ -451,17 +451,11 @@ def test_run():
     import subprocess
     cmd_args = [
         sys.executable,
-        os.path.join("..", "DragonPy_CLI.py"),
-#        "--verbosity", " 1", # hardcode DEBUG ;)
-#        "--verbosity", "10", # DEBUG
-#        "--verbosity", "20", # INFO
-#        "--verbosity", "30", # WARNING
-        "--verbosity", "40", # ERROR
-#        "--verbosity", "50", # CRITICAL/FATAL
-        "--machine", "Dragon32", "run",
-#        "--machine", "Vectrex", "run",
-#        "--max_ops", "1",
-#        "--trace",
+        os.path.join("..",
+            "CoCo_test.py"
+            #             "Dragon32_test.py"
+            #             "Dragon64_test.py"
+        ),
     ]
     print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
