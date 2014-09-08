@@ -325,7 +325,7 @@ class CPU(object):
             get_and_call_next_op()
         self.call_sync_callbacks()
 
-    def run(self, max_run_time=0.1, target_cycles_per_sec=None, target_burst_loops=100):
+    def run(self, max_run_time=0.1, target_cycles_per_sec=None, target_burst_loops=10):
 
         now = time.time
         sleep = time.sleep
@@ -356,7 +356,14 @@ class CPU(object):
 #                 log.critical("burst_duration=%f", burst_duration)
 #                 log.critical("burst_cycles_count=%i", burst_cycles_count)
 
-                cycles_per_sec = burst_cycles_count / burst_duration
+                try:
+                    cycles_per_sec = burst_cycles_count / burst_duration
+                except ZeroDivisionError:
+                    log.critical("burst_cycles_count=%i", burst_cycles_count)
+                    log.critical("burst_duration=%f", burst_duration)
+                    log.critical("Set cycles_per_sec to maxint.")
+                    cycles_per_sec = sys.maxint
+
 #                 log.critical("%i cycles_per_sec = %i burst_cycles_count / %f burst_duration",
 #                     cycles_per_sec, burst_cycles_count, burst_duration
 #                 )
@@ -380,19 +387,20 @@ class CPU(object):
                     total_delay += delay
                     sleep(delay)
 
-#         log.critical("burst_loops = %i", burst_loops)
+#        log.critical("burst_loops = %i - burst_op_count = %i", burst_loops, self.burst_op_count)
+
         if burst_loops != target_burst_loops:
             """
             Recalculate how many ops we should run in a loop to
             match the target_burst_loops
             """
-#             log.critical("self.burst_op_count = %i", self.burst_op_count)
+#            log.critical("self.burst_op_count = %i", self.burst_op_count)
             new_burst_loops = float(burst_loops) / target_burst_loops * self.burst_op_count
-#             log.critical("new_burst_loops = %s", new_burst_loops)
+#            log.critical("new_burst_loops = %s", new_burst_loops)
             self.burst_op_count = int((self.burst_op_count + new_burst_loops) / 2)
             if self.burst_op_count < 1:
                 self.burst_op_count = 1
-#             log.critical("self.burst_op_count = %i", self.burst_op_count)
+#            log.critical("new self.burst_op_count = %i", self.burst_op_count)
 
 #         log.critical("*"*79)
         total_duration = now() - start_time
@@ -422,6 +430,7 @@ class CPU(object):
 
 
     ####
+
 
     @property
     def get_info(self):
@@ -2518,9 +2527,9 @@ class CPU(object):
             self.push_firq_registers()
 
         ea = self.memory.read_word(self.IRQ_VECTOR)
-        log.critical("$%04x *** IRQ, set PC to $%04x\t%s" % (
-            self.program_counter.get(), ea, self.cc.get_info
-        ))
+#        log.critical("$%04x *** IRQ, set PC to $%04x\t%s" % (
+#            self.program_counter.get(), ea, self.cc.get_info
+#        ))
         self.program_counter.set(ea)
 
     def push_irq_registers(self):
