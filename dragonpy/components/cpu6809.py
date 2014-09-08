@@ -291,12 +291,39 @@ class CPU(object):
         instr_func(opcode)
         self.cycles += cycles
 
+
+    ####
+
+    sync_callbacks_cyles = {}
+    sync_callbacks = []
+    def add_sync_callback(self, callback_cycles, callback):
+        """ Add a CPU cycle triggered callback """
+        self.sync_callbacks_cyles[callback] = 0
+        self.sync_callbacks.append([callback_cycles, callback])
+
+    def call_sync_callbacks(self):
+        """ Call every sync callback with CPU cycles trigger """
+        current_cycles = self.cycles
+        for callback_cycles, callback in self.sync_callbacks:
+            # get the CPU cycles count of the last call
+            last_call_cycles = self.sync_callbacks_cyles[callback]
+
+            if current_cycles - last_call_cycles > callback_cycles:
+                # this callback should be called
+
+                # Save the current cycles, to trigger the next call
+                self.sync_callbacks_cyles[callback] = self.cycles
+
+                # Call the callback function
+                callback(current_cycles - last_call_cycles)
+
     def burst_run(self, count):
         """ Run CPU as fast as Python can... """
         # https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Avoiding_dots...
         get_and_call_next_op = self.get_and_call_next_op
         for __ in range(count):
             get_and_call_next_op()
+        self.call_sync_callbacks()
 
     def run(self, max_run_time=0.1, target_cycles_per_sec=None, target_burst_loops=100):
 
@@ -314,6 +341,7 @@ class CPU(object):
             burst_start = now()
 
             self.burst_run(self.burst_op_count)
+            self.call_sync_callbacks()
 
             burst_duration = now() - burst_start
 
