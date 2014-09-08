@@ -17,9 +17,8 @@
 
 from __future__ import absolute_import, division, print_function
 
-
-from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 from dragonlib.utils.logging_utils import log
+from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 
 
 class CoCoPeriphery(Dragon32Periphery):
@@ -30,8 +29,8 @@ class CoCoPeriphery(Dragon32Periphery):
     http://sourceforge.net/p/toolshed/code/ci/default/tree/cocoroms/bas.asm
     http://www.lomont.org/Software/Misc/CoCo/Lomont_CoCoHardware_2.pdf
     """
-    def __init__(self, cfg, memory, display_queue, user_input_queue):
-        super(CoCoPeriphery, self).__init__(cfg, memory, display_queue, user_input_queue)
+    def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
+        super(CoCoPeriphery, self).__init__(cfg, cpu, memory, display_queue, user_input_queue)
 #         self.read_byte_func_map.update({
 #             0xc000: self.no_dos_rom,
 #         })
@@ -49,18 +48,24 @@ class CoCoPeriphery(Dragon32Periphery):
         ))
 
 
-def test_run_direct():
+#------------------------------------------------------------------------------
+
+
+def test_run():
     import sys
     import os
     import subprocess
     cmd_args = [
         sys.executable,
-        #         "/usr/bin/pypy",
-        os.path.join("..", "CoCo_test.py"),
+        os.path.join("..", "DragonPy_CLI.py"),
+#        "--verbosity", "5",
+#        "--machine", "Dragon32", "run",
+        "--machine", "CoCo2b", "run",
+#        "--max_ops", "1",
+#        "--trace",
     ]
     print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
 
-
 if __name__ == "__main__":
-    test_run_direct()
+    test_run()
