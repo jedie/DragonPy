@@ -54,10 +54,17 @@ class SAM(object):
     """
     MC6883 (74LS783) Synchronous Address Multiplexer (SAM)
     """
+
+    # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4894&p=11730#p11726
+    IRQ_CYCLES = 17784
+
     def __init__(self, cfg, cpu, memory):
         self.cfg = cfg
         self.cpu = cpu
         self.memory = memory
+
+
+        self.cpu.add_sync_callback(callback_cycles=self.IRQ_CYCLES, callback=self.irq_trigger)
 
         #
         # TODO: Collect this information via a decorator similar to op codes in CPU!
@@ -89,6 +96,12 @@ class SAM(object):
 
     def reset(self):
         log.critical("TODO: VDG reset")
+
+    def irq_trigger(self, call_cycles):
+#        log.critical("%04x| SAM irq trigger called %i cycles to late",
+#            self.cpu.last_op_address, call_cycles - self.IRQ_CYCLES
+#        )
+        self.cpu.irq()
 
     def interrupt_vectors(self, cpu_cycles, op_address, address):
         new_address = address - 0x4000
@@ -162,3 +175,25 @@ class SAM(object):
     def write_D64_dynamic_memory(self, cpu_cycles, op_address, address, value):
         log.error("TODO: write D64_dynamic_memory $%02x to $%04x", value, address)
 
+
+#------------------------------------------------------------------------------
+
+
+def test_run():
+    import sys
+    import os
+    import subprocess
+    cmd_args = [
+        sys.executable,
+        os.path.join("..", "DragonPy_CLI.py"),
+#        "--verbosity", "5",
+        "--machine", "Dragon32", "run",
+#        "--machine", "Vectrex", "run",
+#        "--max_ops", "1",
+#        "--trace",
+    ]
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
+    subprocess.Popen(cmd_args, cwd="..").wait()
+
+if __name__ == "__main__":
+    test_run()
