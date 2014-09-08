@@ -122,6 +122,7 @@ class RuntimeCfg(object):
     """
     speedlimit = False
     cycles_per_sec = 888625 # cycles/sec
+    target_burst_loops = 5
 
     def __setattr__(self, attr, value):
         log.critical("Set RuntimeCfg %r to: %r" % (attr, value))
@@ -185,6 +186,23 @@ class BaseTkinterGUIConfig(object):
         self.root.after_idle(self.command_cycles_per_sec) # Add Text
         self.cycles_per_sec_label.grid(row=0, column=2)
 
+        #
+        # target CPU burst loops
+        #
+        self.target_burst_loops_var = tkinter.IntVar(
+            value=self.runtime_cfg.target_burst_loops
+        )
+        self.target_burst_loops_entry = tkinter.Entry(self.root,
+            textvariable=self.target_burst_loops_var,
+            width=8, # validate = 'key', validatecommand = vcmd
+        )
+        self.target_burst_loops_entry.bind('<KeyRelease>', self.command_target_burst_loops)
+        self.target_burst_loops_entry.grid(row=1, column=0)
+        self.target_burst_loops_label = tkinter.Label(
+            self.root, text="target CPU burst loops"
+        )
+        self.target_burst_loops_label.grid(row=1, column=1)
+
         self.root.update()
 
     def command_checkbutton_speedlimit(self, event=None):
@@ -205,6 +223,18 @@ class BaseTkinterGUIConfig(object):
         )
 
         self.runtime_cfg.cycles_per_sec = cycles_per_sec
+
+    def command_target_burst_loops(self, event=None):
+        try:
+            target_burst_loops = self.target_burst_loops_var.get()
+        except ValueError:
+            target_burst_loops = self.runtime_cfg.target_burst_loops
+
+        if target_burst_loops < 1:
+            target_burst_loops = 1
+
+        self.runtime_cfg.target_burst_loops = target_burst_loops
+        self.target_burst_loops_var.set(self.runtime_cfg.target_burst_loops)
 
     def focus(self):
         # see: http://www.python-forum.de/viewtopic.php?f=18&t=34643 (de)
@@ -394,22 +424,24 @@ class BaseTkinterGUI(object):
     interval_count = 0
     total_burst_duration = 0
     def cpu_interval(self, interval=None):
+        burst_start_time = time.time()
+        self.interval_count += 1
 
         if not self.runtime_cfg.speedlimit:
             # Run CPU as fast as Python can...
-            start_time = time.time()
 
+            self.burst_op_count = int(17784 / 4)
             self.machine.cpu.burst_run(self.burst_op_count)
             self.op_count += self.burst_op_count
 
             now = time.time()
-            burst_duration = now - start_time
-
+            burst_duration = now - burst_start_time
+            self.total_burst_duration += burst_duration
             # Calculate the burst_count new, to hit self.target_burst_duration
-            self.burst_op_count = self.calc_new_count(self.burst_op_count,
-                current_value=burst_duration,
-                target_value=self.target_burst_duration,
-            )
+#            self.burst_op_count = self.calc_new_count(self.burst_op_count,
+#                current_value=burst_duration,
+#                target_value=self.target_burst_duration,
+#            )
     #        log.critical("burst duration: %.3f sec. - new burst count: %i Ops", burst_duration, burst_op_count)
 
             if now > self.next_cpu_cycle_update:
@@ -425,38 +457,55 @@ class BaseTkinterGUI(object):
                 self.last_op_count = self.op_count
                 ops_per_second = int(new_ops / duration)
 
+                burst_duration = self.total_burst_duration / self.interval_count
                 msg = (
                     "%s cycles/sec (Dragon 32 == 895.000cycles/sec)"
                     "\n%s ops/sec - burst duration: %.3f sec. - burst count: %s Ops"
+                    "\n%s target CPU burst loops - GUI interval count: %s"
                 ) % (
                     locale_format_number(cycles_per_second),
                     locale_format_number(ops_per_second),
-                    burst_duration, locale_format_number(self.burst_op_count)
+                    burst_duration, locale_format_number(self.burst_op_count),
+                    self.runtime_cfg.target_burst_loops,
+                    self.interval_count
                 )
                 self.status.set(msg)
+                self.interval_count = 0
+                self.total_burst_duration = 0
         else:
             # Run CPU not faster than speedlimit
             cycles_per_sec, burst_loops, total_duration, total_delay = self.machine.cpu.run(
-                max_run_time=0.1, target_cycles_per_sec=self.runtime_cfg.cycles_per_sec
+                max_run_time=0.1,
+                target_cycles_per_sec=self.runtime_cfg.cycles_per_sec,
+                target_burst_loops=self.runtime_cfg.target_burst_loops,
             )
+            now = time.time()
+            burst_duration = now - burst_start_time
 
-            if time.time() > self.next_cpu_cycle_update:
+            self.total_burst_duration += burst_duration
+
+            if now > self.next_cpu_cycle_update:
                 self.next_cpu_cycle_update = time.time() + self.cpu_cycles_update_interval
 
                 burst_op_count = self.machine.cpu.burst_op_count
                 total_ops = burst_op_count * burst_loops
                 ops_per_sec = total_ops / total_duration
 
-                burst_duration = total_duration / burst_loops
+                burst_duration = self.total_burst_duration / self.interval_count
                 msg = (
                     "CPU: %.3f Mhz (%s cycles/sec, delay: %.4f sec)"
                     "\n%s ops/sec - burst duration: %.3f sec. - burst count: %s Ops"
+                    "\n%s target CPU burst loops - GUI interval count: %s"
                 ) % (
                     cycles_per_sec / 1000000, locale_format_number(cycles_per_sec), total_delay,
                     locale_format_number(ops_per_sec),
-                    burst_duration, locale_format_number(burst_op_count)
+                    burst_duration, locale_format_number(burst_op_count),
+                    self.runtime_cfg.target_burst_loops,
+                    self.interval_count
                 )
                 self.status.set(msg)
+                self.interval_count = 0
+                self.total_burst_duration = 0
 
         self.process_display_queue()
 
