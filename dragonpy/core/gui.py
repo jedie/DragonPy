@@ -465,6 +465,9 @@ class BaseTkinterGUI(object):
             self.machine.cpu.burst_run()
             self.op_count += self.machine.cpu.burst_op_count
 
+            now = time.time()
+            burst_duration = now - burst_start_time
+            self.total_burst_duration += burst_duration
             # Calculate the burst_count new, to hit self.target_burst_duration
             self.machine.cpu.burst_op_count = self.calc_new_count(self.machine.cpu.burst_op_count,
                 current_value=time.time() - burst_start_time,
