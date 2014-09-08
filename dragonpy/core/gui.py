@@ -421,6 +421,7 @@ class BaseTkinterGUI(object):
             return burst_count * 2
         return int(round((burst_count + a) / 2))
 
+    total_delay = 0
     interval_count = 0
     total_burst_duration = 0
     def cpu_interval(self, interval=None):
@@ -430,82 +431,32 @@ class BaseTkinterGUI(object):
         if not self.runtime_cfg.speedlimit:
             # Run CPU as fast as Python can...
 
-            self.burst_op_count = int(17784 / 4)
-            self.machine.cpu.burst_run(self.burst_op_count)
-            self.op_count += self.burst_op_count
+#            self.machine.cpu.burst_op_count = int(17784 / 4)
+            self.machine.cpu.burst_run()
+            self.op_count += self.machine.cpu.burst_op_count
 
-            now = time.time()
-            burst_duration = now - burst_start_time
-            self.total_burst_duration += burst_duration
             # Calculate the burst_count new, to hit self.target_burst_duration
-#            self.burst_op_count = self.calc_new_count(self.burst_op_count,
-#                current_value=burst_duration,
-#                target_value=self.target_burst_duration,
-#            )
+            self.machine.cpu.burst_op_count = self.calc_new_count(self.machine.cpu.burst_op_count,
+                current_value=time.time() - burst_start_time,
+                target_value=self.target_burst_duration,
+            )
     #        log.critical("burst duration: %.3f sec. - new burst count: %i Ops", burst_duration, burst_op_count)
-
-            if now > self.next_cpu_cycle_update:
-
-                duration = now - self.next_cpu_cycle_update + self.cpu_cycles_update_interval
-                self.next_cpu_cycle_update = now + self.cpu_cycles_update_interval
-
-                new_cycles = self.machine.cpu.cycles - self.last_cpu_cycles
-                self.last_cpu_cycles = self.machine.cpu.cycles
-                cycles_per_second = int(new_cycles / duration)
-
-                new_ops = self.op_count - self.last_op_count
-                self.last_op_count = self.op_count
-                ops_per_second = int(new_ops / duration)
-
-                burst_duration = self.total_burst_duration / self.interval_count
-                msg = (
-                    "%s cycles/sec (Dragon 32 == 895.000cycles/sec)"
-                    "\n%s ops/sec - burst duration: %.3f sec. - burst count: %s Ops"
-                    "\n%s target CPU burst loops - GUI interval count: %s"
-                ) % (
-                    locale_format_number(cycles_per_second),
-                    locale_format_number(ops_per_second),
-                    burst_duration, locale_format_number(self.burst_op_count),
-                    self.runtime_cfg.target_burst_loops,
-                    self.interval_count
-                )
-                self.status.set(msg)
-                self.interval_count = 0
-                self.total_burst_duration = 0
         else:
             # Run CPU not faster than speedlimit
-            cycles_per_sec, burst_loops, total_duration, total_delay = self.machine.cpu.run(
+            burst_loops, total_delay = self.machine.cpu.run(
                 max_run_time=0.1,
                 target_cycles_per_sec=self.runtime_cfg.cycles_per_sec,
                 target_burst_loops=self.runtime_cfg.target_burst_loops,
             )
-            now = time.time()
-            burst_duration = now - burst_start_time
+            self.op_count += self.machine.cpu.burst_op_count * burst_loops
+            self.total_delay += total_delay
 
-            self.total_burst_duration += burst_duration
+        now = time.time()
+        burst_duration = now - burst_start_time
+        self.total_burst_duration += burst_duration
 
-            if now > self.next_cpu_cycle_update:
-                self.next_cpu_cycle_update = time.time() + self.cpu_cycles_update_interval
-
-                burst_op_count = self.machine.cpu.burst_op_count
-                total_ops = burst_op_count * burst_loops
-                ops_per_sec = total_ops / total_duration
-
-                burst_duration = self.total_burst_duration / self.interval_count
-                msg = (
-                    "CPU: %.3f Mhz (%s cycles/sec, delay: %.4f sec)"
-                    "\n%s ops/sec - burst duration: %.3f sec. - burst count: %s Ops"
-                    "\n%s target CPU burst loops - GUI interval count: %s"
-                ) % (
-                    cycles_per_sec / 1000000, locale_format_number(cycles_per_sec), total_delay,
-                    locale_format_number(ops_per_sec),
-                    burst_duration, locale_format_number(burst_op_count),
-                    self.runtime_cfg.target_burst_loops,
-                    self.interval_count
-                )
-                self.status.set(msg)
-                self.interval_count = 0
-                self.total_burst_duration = 0
+        if now > self.next_cpu_cycle_update:
+            self.update_status()
 
         self.process_display_queue()
 
@@ -516,6 +467,36 @@ class BaseTkinterGUI(object):
                 self.cpu_after_id = self.root.after(interval, self.cpu_interval, interval)
             else:
                 log.critical("CPU stopped.")
+
+    def update_status(self):
+        self.next_cpu_cycle_update = time.time() + self.cpu_cycles_update_interval
+
+        new_cycles = self.machine.cpu.cycles - self.last_cpu_cycles
+        cycles_per_sec = int(new_cycles / self.total_burst_duration)
+
+        burst_op_count = self.machine.cpu.burst_op_count
+
+        ops_per_sec = self.op_count / self.total_burst_duration
+
+        burst_duration = self.total_burst_duration / self.interval_count
+        delay = self.total_delay / self.interval_count
+        msg = (
+            "CPU: %.3f Mhz (%s cycles/sec, delay: %.4f sec)"
+            "\n%s ops/sec - burst duration: %.3f sec. - burst count: %s Ops"
+            "\n%s target CPU burst loops - GUI interval count: %s"
+        ) % (
+            cycles_per_sec / 1000000, locale_format_number(cycles_per_sec), delay,
+            locale_format_number(ops_per_sec),
+            burst_duration, locale_format_number(burst_op_count),
+            self.runtime_cfg.target_burst_loops,
+            self.interval_count
+        )
+        self.status.set(msg)
+        self.op_count = 0
+        self.total_delay = 0
+        self.interval_count = 0
+        self.total_burst_duration = 0
+        self.last_cpu_cycles = self.machine.cpu.cycles
 
     def process_display_queue(self):
         """
