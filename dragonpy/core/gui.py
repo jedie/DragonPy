@@ -199,10 +199,9 @@ class BaseTkinterGUIConfig(object):
         self.target_burst_loops_entry.bind('<KeyRelease>', self.command_target_burst_loops)
         self.target_burst_loops_entry.grid(row=1, column=1)
         self.target_burst_loops_label = tkinter.Label(self.root,
-            anchor=tkinter.W, justify=tkinter.LEFT, # FIXME: Doesn't work
             text="target CPU burst loops (target_burst_loops)",
         )
-        self.target_burst_loops_label.grid(row=1, column=2)
+        self.target_burst_loops_label.grid(row=1, column=2, sticky=tkinter.W)
 
         #
         # CPU burst max running time - self.runtime_cfg.max_run_time
@@ -216,10 +215,9 @@ class BaseTkinterGUIConfig(object):
         self.max_run_time_entry.bind('<KeyRelease>', self.command_max_run_time)
         self.max_run_time_entry.grid(row=2, column=1)
         self.max_run_time_label = tkinter.Label(self.root,
-            anchor=tkinter.W, justify=tkinter.LEFT, # FIXME: Doesn't work
             text="How long should a CPU Op burst loop take (max_run_time)"
         )
-        self.max_run_time_label.grid(row=2, column=2)
+        self.max_run_time_label.grid(row=2, column=2, sticky=tkinter.W)
 
         self.root.update()
 
