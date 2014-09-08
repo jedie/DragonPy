@@ -317,11 +317,11 @@ class CPU(object):
                 # Call the callback function
                 callback(current_cycles - last_call_cycles)
 
-    def burst_run(self, count):
+    def burst_run(self):
         """ Run CPU as fast as Python can... """
         # https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Avoiding_dots...
         get_and_call_next_op = self.get_and_call_next_op
-        for __ in range(count):
+        for __ in range(self.burst_op_count):
             get_and_call_next_op()
         self.call_sync_callbacks()
 
@@ -338,16 +338,14 @@ class CPU(object):
         while now() < abort_time:
             burst_loops += 1
             last_cpu_cycles = self.cycles
-            burst_start = now()
 
-            self.burst_run(self.burst_op_count)
+            self.burst_run()
             self.call_sync_callbacks()
-
-            burst_duration = now() - burst_start
 
 #             log.critical("Run %i", burst_op_count)
 
             if target_cycles_per_sec:
+                burst_duration = (now() - start_time) / burst_loops
 
                 burst_cycles_count = self.cycles - last_cpu_cycles
 
@@ -403,12 +401,7 @@ class CPU(object):
 #            log.critical("new self.burst_op_count = %i", self.burst_op_count)
 
 #         log.critical("*"*79)
-        total_duration = now() - start_time
-
-        total_cycles_count = self.cycles - start_cycles
-        cycles_per_sec = total_cycles_count / total_duration
-
-        return cycles_per_sec, burst_loops, total_duration, total_delay
+        return burst_loops, total_delay
 
     def test_run(self, start, end):
 #        log.warning("CPU test_run(): from $%x to $%x" % (start, end))
