@@ -123,6 +123,7 @@ class RuntimeCfg(object):
     speedlimit = False
     cycles_per_sec = 888625 # cycles/sec
     target_burst_loops = 5
+    max_run_time = 0.1
 
     def __setattr__(self, attr, value):
         log.critical("Set RuntimeCfg %r to: %r" % (attr, value))
@@ -187,21 +188,38 @@ class BaseTkinterGUIConfig(object):
         self.cycles_per_sec_label.grid(row=0, column=2)
 
         #
-        # target CPU burst loops
+        # target CPU burst loops - self.runtime_cfg.target_burst_loops
         #
         self.target_burst_loops_var = tkinter.IntVar(
             value=self.runtime_cfg.target_burst_loops
         )
         self.target_burst_loops_entry = tkinter.Entry(self.root,
-            textvariable=self.target_burst_loops_var,
-            width=8, # validate = 'key', validatecommand = vcmd
+            textvariable=self.target_burst_loops_var, width=8,
         )
         self.target_burst_loops_entry.bind('<KeyRelease>', self.command_target_burst_loops)
-        self.target_burst_loops_entry.grid(row=1, column=0)
-        self.target_burst_loops_label = tkinter.Label(
-            self.root, text="target CPU burst loops"
+        self.target_burst_loops_entry.grid(row=1, column=1)
+        self.target_burst_loops_label = tkinter.Label(self.root,
+            anchor=tkinter.W, justify=tkinter.LEFT, # FIXME: Doesn't work
+            text="target CPU burst loops (target_burst_loops)",
         )
-        self.target_burst_loops_label.grid(row=1, column=1)
+        self.target_burst_loops_label.grid(row=1, column=2)
+
+        #
+        # CPU burst max running time - self.runtime_cfg.max_run_time
+        #
+        self.max_run_time_var = tkinter.DoubleVar(
+            value=self.runtime_cfg.max_run_time
+        )
+        self.max_run_time_entry = tkinter.Entry(self.root,
+            textvariable=self.max_run_time_var, width=8,
+        )
+        self.max_run_time_entry.bind('<KeyRelease>', self.command_max_run_time)
+        self.max_run_time_entry.grid(row=2, column=1)
+        self.max_run_time_label = tkinter.Label(self.root,
+            anchor=tkinter.W, justify=tkinter.LEFT, # FIXME: Doesn't work
+            text="How long should a CPU Op burst loop take (max_run_time)"
+        )
+        self.max_run_time_label.grid(row=2, column=2)
 
         self.root.update()
 
@@ -225,6 +243,7 @@ class BaseTkinterGUIConfig(object):
         self.runtime_cfg.cycles_per_sec = cycles_per_sec
 
     def command_target_burst_loops(self, event=None):
+        """ target CPU burst loops - self.runtime_cfg.target_burst_loops """
         try:
             target_burst_loops = self.target_burst_loops_var.get()
         except ValueError:
@@ -235,6 +254,16 @@ class BaseTkinterGUIConfig(object):
 
         self.runtime_cfg.target_burst_loops = target_burst_loops
         self.target_burst_loops_var.set(self.runtime_cfg.target_burst_loops)
+
+    def command_max_run_time(self, event=None):
+        """ CPU burst max running time - self.runtime_cfg.max_run_time """
+        try:
+            max_run_time = self.max_run_time_var.get()
+        except ValueError:
+            max_run_time = self.runtime_cfg.max_run_time
+
+        self.runtime_cfg.max_run_time = max_run_time
+        self.max_run_time_var.set(self.runtime_cfg.max_run_time)
 
     def focus(self):
         # see: http://www.python-forum.de/viewtopic.php?f=18&t=34643 (de)
@@ -262,7 +291,6 @@ class BaseTkinterGUI(object):
         self.op_delay = 0
         self.burst_op_count = 100
         self.cpu_after_id = None # Used to call CPU OP burst loop
-        self.target_burst_duration = 0.1 # Duration how long should a CPU Op burst loop take
 
         self.init_statistics() # Called also after reset
 
@@ -440,13 +468,13 @@ class BaseTkinterGUI(object):
             # Calculate the burst_count new, to hit self.target_burst_duration
             self.machine.cpu.burst_op_count = self.calc_new_count(self.machine.cpu.burst_op_count,
                 current_value=time.time() - burst_start_time,
-                target_value=self.target_burst_duration,
+                target_value=self.runtime_cfg.max_run_time,
             )
     #        log.critical("burst duration: %.3f sec. - new burst count: %i Ops", burst_duration, burst_op_count)
         else:
             # Run CPU not faster than speedlimit
             burst_loops, total_delay = self.machine.cpu.run(
-                max_run_time=0.1,
+                max_run_time=self.runtime_cfg.max_run_time,
                 target_cycles_per_sec=self.runtime_cfg.cycles_per_sec,
                 target_burst_loops=self.runtime_cfg.target_burst_loops,
             )
