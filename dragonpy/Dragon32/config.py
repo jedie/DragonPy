@@ -87,11 +87,12 @@ class Dragon32Cfg(BaseConfig):
         self.memory_byte_middlewares = {
             # (start_addr, end_addr): (read_func, write_func)
 #             (0x0152, 0x0159): (None, self.keyboard_matrix_state),
-            (0x0115, 0x0119): (self.rnd_seed_read, self.rnd_seed_write)
-
+            (0x0115, 0x0119): (self.rnd_seed_read, self.rnd_seed_write),
+            (0x0112, 0x0113): (self.timer_value_read, self.timer_value_write),
         }
         self.memory_word_middlewares = {
             (0x0019, 0x001F): (None, self.basic_addresses_write),
+            (0x0112, 0x0113): (self.timer_value_read_word, self.timer_value_write_word),
         }
 
     def keyboard_matrix_state(self, cpu, addr, value):
@@ -109,6 +110,22 @@ class Dragon32Cfg(BaseConfig):
 
     def rnd_seed_write(self, cycles, last_op_address, address, byte):
         log.critical("%04x| write $%02x RND() seed to: $%04x", last_op_address, byte, address)
+        return byte
+
+    def timer_value_read(self, cycles, last_op_address, address, byte):
+        log.critical("%04x| read byte $%02x TIMER value from: $%04x", last_op_address, byte, address)
+        return byte
+
+    def timer_value_write(self, cycles, last_op_address, address, byte):
+        log.critical("%04x| write byte $%02x TIMER value to: $%04x", last_op_address, byte, address)
+        return byte
+
+    def timer_value_read_word(self, cycles, last_op_address, address, byte):
+        log.critical("%04x| read word $%04x TIMER value from: $%04x", last_op_address, byte, address)
+        return byte
+
+    def timer_value_write_word(self, cycles, last_op_address, address, byte):
+        log.critical("%04x| write word $%04x TIMER value to: $%04x", last_op_address, byte, address)
         return byte
 
     def basic_addresses_write(self, cycles, last_op_address, address, word):
@@ -138,3 +155,25 @@ class Dragon32Cfg(BaseConfig):
         return get_dragon_keymatrix_pia_result(char_or_code, pia0b, auto_shift=True)
 
 config = Dragon32Cfg
+
+
+#------------------------------------------------------------------------------
+
+
+def test_run():
+    import sys
+    import os
+    import subprocess
+    cmd_args = [
+        sys.executable,
+        os.path.join("..", "DragonPy_CLI.py"),
+#        "--verbosity", "5",
+        "--machine", "Dragon32", "run",
+#        "--max_ops", "1",
+#        "--trace",
+    ]
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
+    subprocess.Popen(cmd_args, cwd="..").wait()
+
+if __name__ == "__main__":
+    test_run()
