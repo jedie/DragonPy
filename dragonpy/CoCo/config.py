@@ -81,10 +81,12 @@ class CoCo2bCfg(Dragon32Cfg):
         self.memory_byte_middlewares = {
             # (start_addr, end_addr): (read_func, write_func)
 #             (0x0152, 0x0159): (None, self.keyboard_matrix_state),
-            (0x0115, 0x0119): (self.rnd_seed_read, self.rnd_seed_write)
+            (0x0115, 0x0119): (self.rnd_seed_read, self.rnd_seed_write),
+            (0x0112, 0x0113): (self.timer_value_read, self.timer_value_write),
         }
         self.memory_word_middlewares = {
             (0x0019, 0x0027): (None, self.basic_addresses_write),
+            (0x0112, 0x0113): (self.timer_value_read_word, self.timer_value_write_word),
         }
 
     def rnd_seed_read(self, cycles, last_op_address, address, byte):
@@ -116,11 +118,21 @@ class CoCo2bCfg(Dragon32Cfg):
 config = CoCo2bCfg
 
 
+#------------------------------------------------------------------------------
+
+
 def test_run():
-    import sys, os, subprocess
+    import sys
+    import os
+    import subprocess
     cmd_args = [
         sys.executable,
-        os.path.join("..", "CoCo_test.py"),
+        os.path.join("..", "DragonPy_CLI.py"),
+#        "--verbosity", "5",
+#        "--machine", "Dragon32", "run",
+        "--machine", "CoCo2b", "run",
+#        "--max_ops", "1",
+#        "--trace",
     ]
     print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
