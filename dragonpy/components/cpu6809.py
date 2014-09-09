@@ -2521,9 +2521,9 @@ class CPU(object):
             self.push_firq_registers()
 
         ea = self.memory.read_word(self.IRQ_VECTOR)
-#        log.critical("$%04x *** IRQ, set PC to $%04x\t%s" % (
-#            self.program_counter.get(), ea, self.cc.get_info
-#        ))
+        log.critical("$%04x *** IRQ, set PC to $%04x\t%s" % (
+            self.program_counter.get(), ea, self.cc.get_info
+        ))
         self.program_counter.set(ea)
 
     def push_irq_registers(self):

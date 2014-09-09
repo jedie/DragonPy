@@ -23,10 +23,9 @@
 
 from __future__ import absolute_import, division, print_function
 
-
+from dragonlib.utils.logging_utils import log
 from dragonpy.core.memory_info import BaseMemoryInfo
 from dragonpy.utils.humanize import nice_hex
-from dragonlib.utils.logging_utils import log
 
 
 class DragonMemInfo(BaseMemoryInfo):
@@ -283,8 +282,6 @@ class DragonMemInfo(BaseMemoryInfo):
         (0x600, 0xdff, "CoCo DOS workspace area (no more info)"),
         (0xc00, 0x23ff, "DOS - Available graphics pages"),
         (0x8000, 0xbfff, "BASIC ROM in 32K mode"),
-        (0x8000, 0x9fff, "CoCo - Extended Color BASIC ROM"),
-        (0xa000, 0xbfff, "CoCo - Color BASIC ROM"),
         (0xbff0, 0xbfff, "These addresses mapped from ROM to $fff0-$ffff by the SAM"),
         (0xc000, 0xdfff, "DOS - Dos ROM"),
         (0xc000, 0xfeff, "DOS - Cumana DOS ROM only"),

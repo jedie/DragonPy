@@ -29,7 +29,7 @@ except ImportError:
 
 from dragonlib.utils.logging_utils import log
 from dragonpy.core.configs import COCO2B
-from dragonpy.utils.bits import is_bit_set, invert_byte, clear_bit
+from dragonpy.utils.bits import is_bit_set, invert_byte, clear_bit, set_bit
 from dragonpy.utils.humanize import byte2bit_string
 
 
@@ -49,7 +49,7 @@ class PIA_register(object):
         self.irq = 0x00
 
     def set(self, value):
-#        log.debug("\t set %s to $%02x", self.name, value)
+        log.error("\t set %s to $%02x %s", self.name, value, '{0:08b}'.format(value))
         self.value = value
 
     def get(self):
@@ -71,8 +71,23 @@ class PIA(object):
     """
     PIA - MC6821 - Peripheral Interface Adaptor
 
-    PIA0 - Keyboard, Joystick
-    PIA1 - Printer, Cassette, 6-Bit DAC, Sound Mux
+    PIA 0 - Keyboard, Joystick
+    PIA 1 - Printer, Cassette, 6-Bit DAC, Sound Mux
+
+    $ff00 PIA 0 A side Data register        PA7
+    $ff01 PIA 0 A side Control register     CA1
+    $ff02 PIA 0 B side Data register        PB7
+    $ff03 PIA 0 B side Control register     CB1
+
+    $ff04 D64 - ACIA serial port read/write data register
+    $ff05 D64 - ACIA serial port status (R)/ reset (W) register
+    $ff06 D64 - ACIA serial port command register
+    $ff07 D64 - ACIA serial port control register
+
+    $ff20 PIA 1 A side Data register         PA7
+    $ff21 PIA 1 A side Control register      CA1
+    $ff22 PIA 1 B side Data register         PB7
+    $ff23 PIA 1 B side Control register      CB1
     """
     def __init__(self, cfg, cpu, memory, user_input_queue):
         self.cfg = cfg
@@ -82,6 +97,7 @@ class PIA(object):
 
         self.pia_0_A_register = PIA_register("PIA0 A")
         self.pia_0_B_register = PIA_register("PIA0 B")
+
         self.pia_1_A_register = PIA_register("PIA1 A")
         self.pia_1_B_register = PIA_register("PIA1 B")
 
@@ -90,40 +106,31 @@ class PIA(object):
         #
         # TODO: Collect this information via a decorator similar to op codes in CPU!
         #
-        # Register memory read Byte callbacks:
+        # Register memory read/write Byte callbacks:
         # PIA 0 A side Data reg.
         self.memory.add_read_byte_callback(self.read_PIA0_A_data, 0xff00)
-        # PIA 0 A side Control reg.
-        self.memory.add_read_byte_callback(self.read_PIA0_A_control, 0xff01)
-        # PIA 0 B side Data reg.
-        self.memory.add_read_byte_callback(self.read_PIA0_B_data, 0xff02)
-        # PIA 0 B side Control reg.
-        self.memory.add_read_byte_callback(self.read_PIA0_B_control, 0xff03)
-        # PIA 1 A side Data reg.
-        self.memory.add_read_byte_callback(self.read_PIA1_A_data, 0xff20)
-        # PIA 1 A side Control reg.
-        self.memory.add_read_byte_callback(self.read_PIA1_A_control, 0xff21)
-        # PIA 1 B side Data reg.
-        self.memory.add_read_byte_callback(self.read_PIA1_B_data, 0xff22)
-        # PIA 1 B side Control reg.
-        self.memory.add_read_byte_callback(self.read_PIA1_B_control, 0xff23)
-
-        # Register memory write Byte callbacks:
-        # PIA 0 A side Data reg.
         self.memory.add_write_byte_callback(self.write_PIA0_A_data, 0xff00)
         # PIA 0 A side Control reg.
+        self.memory.add_read_byte_callback(self.read_PIA0_A_control, 0xff01)
         self.memory.add_write_byte_callback(self.write_PIA0_A_control, 0xff01)
         # PIA 0 B side Data reg.
+        self.memory.add_read_byte_callback(self.read_PIA0_B_data, 0xff02)
         self.memory.add_write_byte_callback(self.write_PIA0_B_data, 0xff02)
         # PIA 0 B side Control reg.
+        self.memory.add_read_byte_callback(self.read_PIA0_B_control, 0xff03)
         self.memory.add_write_byte_callback(self.write_PIA0_B_control, 0xff03)
+
         # PIA 1 A side Data reg.
+        self.memory.add_read_byte_callback(self.read_PIA1_A_data, 0xff20)
         self.memory.add_write_byte_callback(self.write_PIA1_A_data, 0xff20)
         # PIA 1 A side Control reg.
+        self.memory.add_read_byte_callback(self.read_PIA1_A_control, 0xff21)
         self.memory.add_write_byte_callback(self.write_PIA1_A_control, 0xff21)
         # PIA 1 B side Data reg.
+        self.memory.add_read_byte_callback(self.read_PIA1_B_data, 0xff22)
         self.memory.add_write_byte_callback(self.write_PIA1_B_data, 0xff22)
         # PIA 1 B side Control reg.
+        self.memory.add_read_byte_callback(self.read_PIA1_B_control, 0xff23)
         self.memory.add_write_byte_callback(self.write_PIA1_B_control, 0xff23)
 
         # Only Dragon 64:
@@ -303,8 +310,9 @@ class PIA(object):
 
     def write_PIA0_A_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff00 -> PIA 0 A side Data reg. """
-        log.error("%04x| write $%02x to $%04x -> PIA 0 A side Data reg.\t|%s",
-            op_address, value, address, self.cfg.mem_info.get_shortest(op_address)
+        log.error("%04x| write $%02x (%s) to $%04x -> PIA 0 A side Data reg.\t|%s",
+            op_address, value, byte2bit_string(value), address,
+            self.cfg.mem_info.get_shortest(op_address)
         )
         self.pia_0_A_register.set(value)
 
@@ -312,12 +320,13 @@ class PIA(object):
         """
         read from 0xff01 -> PIA 0 A side control register
         """
-        result = 0xb3
+        value = 0xb3
         log.error(
-            "%04x| read $%04x (PIA 0 A side Control reg.) send $%02x back.\t|%s",
-            op_address, address, result, self.cfg.mem_info.get_shortest(op_address)
+            "%04x| read $%04x (PIA 0 A side Control reg.) send $%02x (%s) back.\t|%s",
+            op_address, address, value, byte2bit_string(value),
+            self.cfg.mem_info.get_shortest(op_address)
         )
-        return result
+        return value
 
     def write_PIA0_A_control(self, cpu_cycles, op_address, address, value):
         """
@@ -335,8 +344,9 @@ class PIA(object):
         bit 0 | HSYNC IRQ: 0 = disabled IRQ / 1 = enabled IRQ
         """
         log.error(
-            "%04x| write $%02x to $%04x -> PIA 0 A side Control reg.\t|%s",
-            op_address, value, address, self.cfg.mem_info.get_shortest(op_address)
+            "%04x| write $%02x (%s) to $%04x -> PIA 0 A side Control reg.\t|%s",
+            op_address, value, byte2bit_string(value), address,
+            self.cfg.mem_info.get_shortest(op_address)
         )
         if not is_bit_set(value, bit=2):
             self.pia_0_A_register.select_pdr()
@@ -358,34 +368,35 @@ class PIA(object):
 
         bits 0-7 also printer data lines
         """
-        pia0b = self.pia_0_B_register.get()  # $ff02
-        result = pia0b
-#        log.error(
-#            "%04x| read $%04x (PIA 0 B side Data reg.) send $%02x back.\t|%s",
-#            op_address, address, result, self.cfg.mem_info.get_shortest(op_address)
-#        )
-        return result
+        value = self.pia_0_B_register.get()  # $ff02
+        log.error(
+            "%04x| read $%04x (PIA 0 B side Data reg.) send $%02x (%s) back.\t|%s",
+            op_address, address, value, byte2bit_string(value),
+            self.cfg.mem_info.get_shortest(op_address)
+        )
+        return value
 
     def write_PIA0_B_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff02 -> PIA 0 B side Data reg. """
-#         log.critical(
+        log.critical(
 #        log.info(
-#            "%04x| write $%02x %s to $%04x -> PIA 0 B side Data reg.\t|%s",
-#            op_address, value, '{0:08b}'.format(value),
-#            address, self.cfg.mem_info.get_shortest(op_address)
-#        )
+            "%04x| write $%02x (%s) to $%04x -> PIA 0 B side Data reg.\t|%s",
+            op_address, value, byte2bit_string(value),
+            address, self.cfg.mem_info.get_shortest(op_address)
+        )
         self.pia_0_B_register.set(value)
 
     def read_PIA0_B_control(self, cpu_cycles, op_address, address):
         """
         read from 0xff03 -> PIA 0 B side Control reg.
         """
-        result = self.pia_0_B_register.get()
+        value = self.pia_0_B_register.get()
         log.error(
-            "%04x| read $%04x (PIA 0 B side Control reg.) send $%02x back.\t|%s",
-            op_address, address, result, self.cfg.mem_info.get_shortest(op_address)
+            "%04x| read $%04x (PIA 0 B side Control reg.) send $%02x (%s) back.\t|%s",
+            op_address, address, value, byte2bit_string(value),
+            self.cfg.mem_info.get_shortest(op_address)
         )
-        return result
+        return value
 
     def write_PIA0_B_control(self, cpu_cycles, op_address, address, value):
         """
@@ -407,7 +418,6 @@ class PIA(object):
             op_address, value, byte2bit_string(value),
             address, self.cfg.mem_info.get_shortest(op_address)
         )
-        self.pia_0_B_register.set(value)
 
         if is_bit_set(value, bit=0):
             log.critical(
@@ -416,6 +426,7 @@ class PIA(object):
                 address, self.cfg.mem_info.get_shortest(op_address)
             )
             self.cpu.irq_enabled = True
+            value = set_bit(value, bit=7)
         else:
             log.critical(
                 "%04x| write $%02x (%s) to $%04x -> VSYNC IRQ: disable\t|%s",
@@ -429,6 +440,7 @@ class PIA(object):
         else:
             self.pia_0_B_register.deselect_pdr()
 
+        self.pia_0_B_register.set(value)
 
 #------------------------------------------------------------------------------
 
@@ -440,7 +452,12 @@ def test_run():
     cmd_args = [
         sys.executable,
         os.path.join("..", "DragonPy_CLI.py"),
-#        "--verbosity", "5",
+#        "--verbosity", " 1", # hardcode DEBUG ;)
+#        "--verbosity", "10", # DEBUG
+#        "--verbosity", "20", # INFO
+#        "--verbosity", "30", # WARNING
+        "--verbosity", "40", # ERROR
+#        "--verbosity", "50", # CRITICAL/FATAL
         "--machine", "Dragon32", "run",
 #        "--machine", "Vectrex", "run",
 #        "--max_ops", "1",
