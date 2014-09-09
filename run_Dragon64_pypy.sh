@@ -4,7 +4,7 @@
 #
 
 #PYPY=~/pypy-2.3.1-linux_i686-portable/bin/pypy
-PYPY=~/pypy-2.3.1-linux_x86_64-portable/bin/pypy
+PYPY=~/pypy2/bin/pypy
 
 if [ ! -x ${PYPY} ]; then
     (
@@ -23,7 +23,7 @@ if [ ! -x ${PYPY} ]; then
 else
 (
     set -x
-    ${PYPY} DragonPy_CLI.py --machine=Dragon64 run
+    ${PYPY} -OO DragonPy_CLI.py --verbosity 99 --machine=Dragon64 run
 )
 fi
 
