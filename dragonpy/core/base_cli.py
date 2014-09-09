@@ -21,7 +21,7 @@ from dragonlib.utils.logging_utils import log, setup_logging
 
 
 def get_log_levels():
-    levels = [5, 7] # FIXME
+    levels = [1] # FIXME
     try:
         # Python 3
         levels += logging._nameToLevel.values()
