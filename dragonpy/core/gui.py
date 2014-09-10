@@ -266,7 +266,7 @@ class BaseTkinterGUI(object):
 
         self.config_window = None
         self.menubar.add_command(label="config", command=self.command_config)
-        self.root.after(200, self.command_config) # FIXME: Only for developing: Open config on startup!
+#        self.root.after(200, self.command_config) # FIXME: Only for developing: Open config on startup!
 
         # help menu
         helpmenu = tkinter.Menu(self.menubar, tearoff=0)
@@ -303,12 +303,14 @@ class BaseTkinterGUI(object):
 
     #-----------------------------------------------------------------------------------------
 
+    def close_config(self):
+        self.config_window.root.destroy()
+        self.config_window = None
+
     def command_config(self):
         if self.config_window is None:
             self.config_window = BaseTkinterGUIConfig(self, self.runtime_cfg)
-            self.config_window.root.protocol(
-                "WM_DELETE_WINDOW", self.config_window.root.destroy
-            )
+            self.config_window.root.protocol("WM_DELETE_WINDOW", self.close_config)
         else:
             self.config_window.focus()
 
