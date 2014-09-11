@@ -137,7 +137,7 @@ class Test_sbc09(Test6809_sbc09_Base):
         self.periphery.add_to_input_queue(command)
         op_call_count, cycles, output = self._run_until_newlines(
             newline_count=18,
-            max_ops=18000
+            max_ops=180000
         )
 #        print op_call_count, cycles, len(output), pprint.pformat(output)
 
@@ -217,10 +217,10 @@ if __name__ == '__main__':
     setup_logging(log,
         level=1 # hardcore debug ;)
 #        level=10 # DEBUG
-#         level=20 # INFO
+#        level=20 # INFO
 #        level=30 # WARNING
-#         level=40 # ERROR
-#         level=50 # CRITICAL/FATAL
+#        level=40 # ERROR
+#        level=50 # CRITICAL/FATAL
     )
 
     import doctest

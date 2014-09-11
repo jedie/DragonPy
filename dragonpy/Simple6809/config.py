@@ -11,13 +11,12 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 import os
 
-from dragonpy.core.configs import BaseConfig, SIMPLE6809
 from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809Periphery
 from dragonpy.components.rom import ROMFile
+from dragonpy.core.configs import BaseConfig, SIMPLE6809
 
 
 class Simple6809Cfg(BaseConfig):
@@ -37,7 +36,7 @@ class Simple6809Cfg(BaseConfig):
 
     ROM_START = 0xC000
     ROM_END = 0xFFFF
-    ROM_SIZE = 0x4000 # 16384 Bytes
+    # ROM size is: 0x4000 == 16384 Bytes
 
     RESET_VECTOR = 0xBFFE
     RESET_VECTOR_VALUE = 0xdb46 # ROM_START + 0x1b46
@@ -58,8 +57,6 @@ class Simple6809Cfg(BaseConfig):
     STARTUP_END_ADDR = 0xdf2b # == JSR  LA390          GO GET AN INPUT LINE
 
     def __init__(self, cfg_dict):
-        self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
-        self.RAM_SIZE = (self.RAM_END - self.RAM_START) + 1
         super(Simple6809Cfg, self).__init__(cfg_dict)
 
 #         if self.verbosity <= logging.INFO:

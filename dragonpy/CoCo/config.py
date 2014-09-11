@@ -69,8 +69,6 @@ class CoCo2bCfg(Dragon32Cfg):
     )
 
     def __init__(self, cmd_args):
-        self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
-        self.RAM_SIZE = (self.RAM_END - self.RAM_START) + 1
         super(CoCo2bCfg, self).__init__(cmd_args)
 
         self.machine_api = CoCoAPI()

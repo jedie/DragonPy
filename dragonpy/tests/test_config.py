@@ -34,6 +34,5 @@ class TestCfg(BaseConfig):
     DEFAULT_ROM = None
 
     def __init__(self, cfg_dict):
-        self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
-        self.RAM_SIZE = (self.RAM_END - self.RAM_START) + 1
+
         super(TestCfg, self).__init__(cfg_dict)

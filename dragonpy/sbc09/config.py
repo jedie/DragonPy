@@ -31,11 +31,11 @@ class SBC09Cfg(BaseConfig):
 
     RAM_START = 0x0000
     RAM_END = 0x7FFF
-    RAM_SIZE = 0x8000 # 32768 Bytes
+    # RAM size: 0x8000 == 32768 Bytes
 
     ROM_START = 0x8000
     ROM_END = 0xFFFF
-    ROM_SIZE = 0x4000 # 16384 Bytes
+    # ROM size: 0x4000 == 16384 Bytes
 
     BUS_ADDR_AREAS = (
         (0xe000, 0xe001, "RS232 interface"), # emulated serial port (ACIA)
@@ -54,7 +54,6 @@ class SBC09Cfg(BaseConfig):
     STARTUP_END_ADDR = 0xe45a # == O.S. routine to read a character into B register.
 
     def __init__(self, cmd_args):
-        self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
         super(SBC09Cfg, self).__init__(cmd_args)
 
 #         if self.verbosity <= logging.INFO:

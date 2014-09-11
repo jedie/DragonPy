@@ -400,7 +400,7 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
         self.assertFPA(value, 0x005c, 0x0061)
 
     def test_transfer_fpa0_to_fpa1(self):
-        self.cpu.memory.ram.load(0x004f, data=[
+        self.cpu.memory.load(0x004f, data=[
             0x12, # FPA 0 - exponent
             0x34, # FPA 0 - MS
             0x56, # FPA 0 - NMS
@@ -414,8 +414,8 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
 #        self.cpu.memory.ram.print_dump(0x004f, 0x0054)  # FPA0 # FPA0
 #        self.cpu.memory.ram.print_dump(0x005c, 0x0061) # FPA1
         self.assertEqual(
-            self.cpu.memory.ram._mem[0x004f:0x0055],
-            self.cpu.memory.ram._mem[0x005c:0x0062],
+            self.cpu.memory.get(start=0x004f, end=0x0055),
+            self.cpu.memory.get(start=0x005c, end=0x0062)
         )
 
     def test_ACCD_to_FPA0(self):
@@ -442,12 +442,11 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
             ])
 #            self.cpu.memory.ram.print_dump(0x004f, 0x0054)  # FPA0
 
-            ram = self.cpu.memory.ram._mem[0x004f:0x0055]
+            ram = self.cpu.memory.get(start=0x004f, end=0x0055)
 
             fp = BASIC09FloatingPoint(test_value)
 #            fp.print_values()
             reference = fp.get_bytes()
-            reference = array.array("B", reference)
 
             self.assertEqual(ram, reference)
 
@@ -485,7 +484,7 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
 
             # Set FPA0 via python float implementation
             fp = BASIC09FloatingPoint(test_value)
-            self.cpu.memory.ram.load(0x004f, fp.get_bytes())
+            self.cpu.memory.load(0x004f, fp.get_bytes())
 
             self.cpu_test_run(start=0x0000, end=None, mem=[
                 0xBD, 0xe6, 0x82, #             JSR   $e682 - CONVERT FPA0 TO A TWO BYTE INTEGER to D
@@ -544,12 +543,11 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
             ])
 #            self.cpu.memory.ram.print_dump(0x004f, 0x0054)  # FPA0
 
-            ram = self.cpu.memory.ram._mem[0x004f:0x0055]
+            ram = self.cpu.memory.get(start=0x004f, end=0x0055)
 
             fp = BASIC09FloatingPoint(test_value)
 #            fp.print_values()
             reference = fp.get_bytes()
-            reference = array.array("B", reference)
 
             self.assertEqual(ram, reference)
 

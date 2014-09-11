@@ -40,7 +40,7 @@ class Dragon64Cfg(Dragon32Cfg):
 
     ROM_START = 0x8000
     ROM_END = 0xFFFF
-    ROM_SIZE = 0x8000 # 32768 Bytes
+    # ROM size: 0x8000 == 32768 Bytes
 
     """
     $8000-$bfff - d64_ic17.rom - size: $3fff (dez.: 16383) Bytes
@@ -60,8 +60,6 @@ class Dragon64Cfg(Dragon32Cfg):
     )
 
     def __init__(self, cmd_args):
-        self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
-        self.RAM_SIZE = (self.RAM_END - self.RAM_START) + 1
         super(Dragon64Cfg, self).__init__(cmd_args)
 
         if self.verbosity <= logging.ERROR:

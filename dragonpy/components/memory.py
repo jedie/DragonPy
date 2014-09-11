@@ -27,97 +27,6 @@ from dragonlib.utils import lib2and3
 from dragonlib.utils.logging_utils import log, log_hexlist
 
 
-class ROM(object):
-
-    def __init__(self, cfg, memory, start, size):
-        self.cfg = cfg
-        self.start = start
-        self.end = start + size - 1
-
-        # About different types of memory see:
-        # http://www.python-forum.de/viewtopic.php?p=263775#p263775 (de)
-
-        # The old variant: Use a simple List:
-#        self._mem = [None] * start + memory
-
-        # Bytearray will be consume less RAM, but it's slower:
-#        self._mem = bytearray(start) + bytearray(memory)
-
-        # array consumes also less RAM than lists and it's a little bit faster:
-        self._mem = array.array("B", [0x00] * start + memory) # unsigned char
-
-        # assert len(self._mem) == size, "%i != %i" len(self._mem) == size
-        log.critical("init $%04x (dez.:%s) Bytes (real: %s) %s ($%04x - $%04x)",
-            size, size, len(self._mem), self.__class__.__name__, start, self.end
-        )
-
-    def load(self, address, data):
-        if isinstance(data, lib2and3.string_types):
-            data = [ord(c) for c in data]
-
-        log.debug("ROM load at $%04x: %s", address,
-            ", ".join(["$%02x" % i for i in data])
-        )
-        for offset, datum in enumerate(data):
-            self._mem[address - self.start + offset] = datum
-
-    def load_file(self, address, filename, max_size=None):
-        log.critical("Load ROM file %r to $%04x", filename, address)
-        with open(filename, "rb") as f:
-            filesize = os.stat(filename).st_size
-            for offset, datum in enumerate(f.read()):
-                if max_size and offset > max_size:
-                    log.critical("Load only $%04x (dez.: %i) Bytes - file size is $%04x (dez.: %i) Bytes",
-                        max_size, max_size, filesize, filesize
-                    )
-                    break
-
-                index = address + offset
-                if lib2and3.PY2:
-                    datum = ord(datum)
-
-#                 log.critical("$%04x - $%02x", index, datum)
-                try:
-                    self._mem[index] = datum
-                except IndexError:
-                    log.error("Error: File %s $%04x (dez.: %i) Bytes is bigger than: $%04x" % (
-                        filename, filesize, filesize, index
-                    ))
-                    break
-        log.info("read $%04x (dez.: %i) Bytes from %r into ROM $%04x-$%04x",
-            offset, offset, filename, address, (address + offset)
-        )
-
-    def read_byte(self, address):
-        try:
-#            byte = self._mem[address]
-            return self._mem[address]
-        except IndexError:
-            raise IndexError(
-                "Read $%04x from %s is not in range $%04x-$%04x (%s size: %i Bytes)" % (
-                    address - self.start,
-                    self.__class__.__name__,
-                    self.start, self.end,
-                    self.__class__.__name__, len(self._mem),
-                )
-            )
-#         log.debug("\tread byte %s: %s" % (hex(address), hex(byte)))
-#         self.cfg.mem_info(address, "read byte")
-#        return byte
-
-
-class RAM(ROM):
-    def write_byte(self, address, value):
-#        log.debug(" **** write $%x to $%x", value, address)
-#        log.log(5, "\t\t%s", self.cfg.mem_info.get_shortest(value))
-#        log.log(5, "\t\t%s", self.cfg.mem_info.get_shortest(address))
-        try:
-            self._mem[address] = value
-        except TypeError as err:
-            msg = "%s - value: %s address: $%04x" % (err, repr(value), address)
-            lib2and3.reraise(TypeError, TypeError(msg), sys.exc_info()[2])
-
-
 class Memory(object):
     def __init__(self, cfg, read_bus_request_queue=None, read_bus_response_queue=None, write_bus_queue=None):
         self.cfg = cfg
@@ -125,25 +34,38 @@ class Memory(object):
         self.read_bus_response_queue = read_bus_response_queue
         self.write_bus_queue = write_bus_queue
 
-        self.rom = ROM(
-            cfg, memory=cfg.get_initial_ROM(),
-            start=cfg.ROM_START, size=cfg.ROM_SIZE
+        self.INTERNAL_SIZE = (0xFFFF + 1)
+
+        self.RAM_SIZE = (self.cfg.RAM_END - self.cfg.RAM_START) + 1
+        self.ROM_SIZE = (self.cfg.ROM_END - self.cfg.ROM_START) + 1
+        assert not hasattr(cfg, "RAM_SIZE"), "cfg.RAM_SIZE is deprecated! Remove it from: %s" % self.cfg.__class__.__name__
+        assert not hasattr(cfg, "ROM_SIZE"), "cfg.ROM_SIZE is deprecated! Remove it from: %s" % self.cfg.__class__.__name__
+
+        assert not hasattr(cfg, "ram"), "cfg.ram is deprecated! Remove it from: %s" % self.cfg.__class__.__name__
+
+        assert self.RAM_SIZE + self.RAM_SIZE <= self.INTERNAL_SIZE, "%s Bytes < %s Bytes" % (
+            self.RAM_SIZE + self.RAM_SIZE, self.INTERNAL_SIZE
         )
+
+        # About different types of memory see:
+        # http://www.python-forum.de/viewtopic.php?p=263775#p263775 (de)
+
+        # The old variant: Use a simple List:
+#        self._mem = [None] * self.cfg.MEMORY_SIZE
+
+        # Bytearray will be consume less RAM, but it's slower:
+#        self._mem = bytearray(self.cfg.MEMORY_SIZE)
+
+        # array consumes also less RAM than lists and it's a little bit faster:
+        self._mem = array.array("B", [0x00] * self.INTERNAL_SIZE) # unsigned char
+
         if cfg and cfg.rom_cfg:
             for romfile in cfg.rom_cfg:
-                self.rom.load_file(
+                self.load_file(
                     address=romfile.address,
                     filename=romfile.filepath,
                     max_size=romfile.max_size
                 )
-
-        self.ram = RAM(
-            cfg, memory=cfg.get_initial_RAM(),
-            start=cfg.RAM_START, size=cfg.RAM_SIZE
-        )
-
-        if cfg and cfg.ram:
-            self.ram.load_file(cfg.RAM_START, cfg.ram)
 
         self._read_byte_callbacks = {}
         self._read_word_callbacks = {}
@@ -188,6 +110,15 @@ class Memory(object):
 #             "memory write middlewares: %s", self._write_byte_middleware
 #         )
 
+
+        log.critical("init RAM $%04x (dez.:%s) Bytes RAM $%04x (dez.:%s) Bytes (total %s real: %s)",
+            self.RAM_SIZE, self.RAM_SIZE,
+            self.ROM_SIZE, self.ROM_SIZE,
+            self.RAM_SIZE + self.ROM_SIZE,
+            len(self._mem)
+        )
+
+
     #---------------------------------------------------------------------------
 
     def _map_address_range(self, callbacks_dict, callback_func, start_addr, end_addr=None):
@@ -227,15 +158,46 @@ class Memory(object):
 
     #---------------------------------------------------------------------------
 
+
     def load(self, address, data):
-        if address < self.cfg.RAM_END:
-            self.ram.load(address, data)
-        else:
-            raise RuntimeError(
-                "Load data into ROM?!? Load into $%x, RAM end is $%x" % (
-                    address, self.cfg.RAM_END
-                )
-            )
+        if isinstance(data, lib2and3.string_types):
+            data = [ord(c) for c in data]
+
+        log.debug("ROM load at $%04x: %s", address,
+            ", ".join(["$%02x" % i for i in data])
+        )
+        for ea, datum in enumerate(data, address):
+            self._mem[ea] = datum
+
+    def load_file(self, address, filename, max_size=None):
+        # TODO: Use self.load !
+        log.critical("Load ROM file %r to $%04x", filename, address)
+        with open(filename, "rb") as f:
+            filesize = os.stat(filename).st_size
+            for offset, datum in enumerate(f.read()):
+                if max_size and offset > max_size:
+                    log.critical("Load only $%04x (dez.: %i) Bytes - file size is $%04x (dez.: %i) Bytes",
+                        max_size, max_size, filesize, filesize
+                    )
+                    break
+
+                index = address + offset
+                if lib2and3.PY2:
+                    datum = ord(datum)
+
+#                 log.critical("$%04x - $%02x", index, datum)
+                try:
+                    self._mem[index] = datum
+                except IndexError:
+                    log.error("Error: File %s $%04x (dez.: %i) Bytes is bigger than: $%04x" % (
+                        filename, filesize, filesize, index
+                    ))
+                    break
+        log.info("read $%04x (dez.: %i) Bytes from %r into ROM $%04x-$%04x",
+            offset, offset, filename, address, (address + offset)
+        )
+
+    #---------------------------------------------------------------------------
 
     def read_byte(self, address):
         self.cpu.cycles += 1
@@ -249,11 +211,9 @@ class Memory(object):
             )
             return byte
 
-        if address < self.cfg.RAM_END:
-            byte = self.ram.read_byte(address)
-        elif self.cfg.ROM_START <= address <= self.cfg.ROM_END:
-            byte = self.rom.read_byte(address)
-        else:
+        try:
+            byte = self._mem[address]
+        except KeyError:
             msg = "reading outside memory area (PC:$%x)" % self.cpu.program_counter.get()
             self.cfg.mem_info(address, msg)
             msg2 = "%s: $%x" % (msg, address)
@@ -288,6 +248,8 @@ class Memory(object):
         # 6809 is Big-Endian
         return (self.read_byte(address) << 8) + self.read_byte(address + 1)
 
+    #---------------------------------------------------------------------------
+
     def write_byte(self, address, value):
         self.cpu.cycles += 1
 
@@ -311,11 +273,20 @@ class Memory(object):
                 self.cpu.cycles, self.cpu.last_op_address, address, value
             )
 
-        if address < self.cfg.RAM_END:
-            self.ram.write_byte(address, value)
-        else:
-            msg = "writing to %x is outside RAM end %x (PC:$%x)" % (
-                address, self.cfg.RAM_END, self.cpu.program_counter.get()
+        if self.cfg.ROM_START <= address <= self.cfg.ROM_END:
+            msg = "%04x| writing into ROM at $%04x ignored." % (
+                self.cpu.program_counter.get(), address
+            )
+            self.cfg.mem_info(address, msg)
+            msg2 = "%s: $%x" % (msg, address)
+            log.critical(msg2)
+            return
+
+        try:
+            self._mem[address] = value
+        except (IndexError, KeyError):
+            msg = "%04x| writing to %x is outside RAM/ROM !" % (
+                self.cpu.program_counter.get(), address
             )
             self.cfg.mem_info(address, msg)
             msg2 = "%s: $%x" % (msg, address)
@@ -342,6 +313,14 @@ class Memory(object):
         # 6809 is Big-Endian
         self.write_byte(address, word >> 8)
         self.write_byte(address + 1, word & 0xff)
+
+    #---------------------------------------------------------------------------
+
+    def get(self, start, end):
+        """
+        used in unittests
+        """
+        return [self.read_byte(addr) for addr in range(start, end)]
 
     def iter_bytes(self, start, end):
         for addr in range(start, end + 1):

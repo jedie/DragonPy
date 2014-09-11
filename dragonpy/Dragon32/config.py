@@ -50,7 +50,7 @@ class Dragon32Cfg(BaseConfig):
 
     ROM_START = 0x8000
     ROM_END = 0xBFFF
-    ROM_SIZE = 0x4000 # 16384 Bytes
+    # ROM size: 0x4000 == 16384 Bytes
 
     """
     $8000-$bfff - d32.rom - size: $3fff (dez.: 16383) Bytes
@@ -73,8 +73,6 @@ class Dragon32Cfg(BaseConfig):
     STARTUP_END_ADDR = 0xbbe5 # scan keyboard
 
     def __init__(self, cmd_args):
-        self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
-        self.RAM_SIZE = (self.RAM_END - self.RAM_START) + 1
         super(Dragon32Cfg, self).__init__(cmd_args)
 
         self.machine_api = Dragon32API()

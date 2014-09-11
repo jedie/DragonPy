@@ -262,7 +262,9 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         super(Test6809_sbc09_Base, cls).setUpClass()
 
         log.info("CPU state pickle file: %r" % cls.TEMP_FILE)
-#         os.remove(cls.TEMP_FILE);print "Delete CPU date file!"
+#        if os.path.isfile(cls.TEMP_FILE):
+#            print("Delete CPU date file!")
+#            os.remove(cls.TEMP_FILE)
 
         cfg = SBC09Cfg(cls.UNITTEST_CFG_DICT)
 

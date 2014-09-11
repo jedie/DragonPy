@@ -77,9 +77,6 @@ class BaseConfig(object):
         self.cfg_dict = cfg_dict
         self.cfg_dict["cfg_module"] = self.__module__ # FIXME: !
 
-        assert self.RAM_SIZE == (self.RAM_END - self.RAM_START) + 1
-        assert self.ROM_SIZE == (self.ROM_END - self.ROM_START) + 1
-
         log.debug("cfg_dict: %s", repr(cfg_dict))
 
 #         # socket address for internal bus I/O:
@@ -90,7 +87,7 @@ class BaseConfig(object):
 #         else:
 #             self.bus = None # Will be set in cpu6809.start_CPU()
 
-        self.ram = cfg_dict.get("ram", None)
+        assert not hasattr(cfg_dict, "ram"), "cfg_dict.ram is deprecated! Remove it from: %s" % self.cfg_dict.__class__.__name__
 
 #         if cfg_dict["rom"]:
 #             raw_rom_cfg = cfg_dict["rom"]
