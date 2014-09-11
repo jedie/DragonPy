@@ -341,7 +341,6 @@ class CPU(object):
             burst_start = now()
 
             self.burst_run()
-            self.call_sync_callbacks()
 
 #             log.critical("Run %i", burst_op_count)
 
