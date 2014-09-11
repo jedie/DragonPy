@@ -104,7 +104,8 @@ class RAM(ROM):
         try:
             self._mem[address] = value
         except TypeError as err:
-            raise TypeError("%s - value: %s" % (err, repr(value)))
+            msg = "%s - value: %s address: $%04x" % (err, repr(value), address)
+            lib2and3.reraise(TypeError, TypeError(msg), sys.exc_info()[2])
 
 
 class Memory(object):

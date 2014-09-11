@@ -38,6 +38,7 @@ import threading
 import time
 import warnings
 
+from dragonlib.utils import lib2and3
 from dragonlib.utils.logging_utils import log
 from dragonpy.MC6809data.MC6809_data_raw2 import (
     OP_DATA, REG_A, REG_B, REG_CC, REG_D, REG_DP, REG_PC,
@@ -258,10 +259,11 @@ class CPU(object):
             self.call_instruction_func(op_address, opcode)
         except Exception as err:
             try:
-                raise Exception("%s - address: $%04x - opcode: $%02x" % (err, op_address, opcode))
-            except TypeError:
-                raise Exception("%s - address: %r - opcode: %r" % (err, op_address, opcode))
-
+                msg = "%s - op address: $%04x - opcode: $%02x" % (err, op_address, opcode)
+            except TypeError: # e.g: op_address or opcode is None
+                msg = "%s - op address: %r - opcode: %r" % (err, op_address, opcode)
+            exception = err.__class__ # Use origin Exception class, e.g.: KeyError
+            lib2and3.reraise(exception, exception(msg), sys.exc_info()[2])
 
     def quit(self):
         log.critical("CPU quit() called.")
