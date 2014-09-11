@@ -19,6 +19,7 @@
     more info, see README
 """
 
+import array
 import os
 import sys
 
@@ -33,9 +34,17 @@ class ROM(object):
         self.start = start
         self.end = start + size - 1
 
-        self._mem = [None] * start
-        self._mem += memory
-        #self._mem = bytearray(start) + bytearray(memory)
+        # About different types of memory see:
+        # http://www.python-forum.de/viewtopic.php?p=263775#p263775 (de)
+
+        # The old variant: Use a simple List:
+#        self._mem = [None] * start + memory
+
+        # Bytearray will be consume less RAM, but it's slower:
+#        self._mem = bytearray(start) + bytearray(memory)
+
+        # array consumes also less RAM than lists and it's a little bit faster:
+        self._mem = array.array("B", [0x00] * start + memory) # unsigned char
 
         # assert len(self._mem) == size, "%i != %i" len(self._mem) == size
         log.critical("init $%04x (dez.:%s) Bytes (real: %s) %s ($%04x - $%04x)",
@@ -81,7 +90,8 @@ class ROM(object):
 
     def read_byte(self, address):
         try:
-            byte = self._mem[address]
+#            byte = self._mem[address]
+            return self._mem[address]
         except IndexError:
             raise IndexError(
                 "Read $%04x from %s is not in range $%04x-$%04x (%s size: %i Bytes)" % (
@@ -93,7 +103,7 @@ class ROM(object):
             )
 #         log.debug("\tread byte %s: %s" % (hex(address), hex(byte)))
 #         self.cfg.mem_info(address, "read byte")
-        return byte
+#        return byte
 
 
 class RAM(ROM):

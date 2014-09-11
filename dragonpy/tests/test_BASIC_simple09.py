@@ -14,17 +14,14 @@
 
 from __future__ import absolute_import, division, print_function
 
-
+import array
 import logging
 import sys
 import unittest
 
-from dragonpy.tests.test_base import TextTestRunner2, Test6809_BASIC_simple6809_Base
-
-
-from dragonpy.utils.BASIC09_floating_point import BASIC09FloatingPoint
 from dragonlib.utils.logging_utils import setup_logging
-
+from dragonpy.tests.test_base import TextTestRunner2, Test6809_BASIC_simple6809_Base
+from dragonpy.utils.BASIC09_floating_point import BASIC09FloatingPoint
 
 
 log = logging.getLogger("DragonPy")
@@ -450,6 +447,7 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
             fp = BASIC09FloatingPoint(test_value)
 #            fp.print_values()
             reference = fp.get_bytes()
+            reference = array.array("B", reference)
 
             self.assertEqual(ram, reference)
 
@@ -551,6 +549,7 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
             fp = BASIC09FloatingPoint(test_value)
 #            fp.print_values()
             reference = fp.get_bytes()
+            reference = array.array("B", reference)
 
             self.assertEqual(ram, reference)
 
