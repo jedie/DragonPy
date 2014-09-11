@@ -205,7 +205,7 @@ class CPU(object):
             REG_CC: self.cc.get(),
 
             "cycles": self.cycles,
-            "RAM":self.memory.ram._mem[:] # copy of RAM,
+            "RAM": tuple(self.memory._mem) # copy of array.array() values,
         }
 
     def set_state(self, state):
@@ -227,7 +227,7 @@ class CPU(object):
         self.cc.set(state[REG_CC])
 
         self.cycles = state["cycles"]
-        self.memory.ram._mem = state["RAM"][:] # copy of RAM
+        self.memory.load(address=0x0000, data=state["RAM"])
 
     ####
 
