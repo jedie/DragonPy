@@ -323,7 +323,7 @@ class BaseTkinterGUI(object):
 
         self.config_window = None
         self.menubar.add_command(label="config", command=self.command_config)
-        self.root.after(200, self.command_config) # FIXME: Only for developing: Open config on startup!
+#        self.root.after(200, self.command_config) # FIXME: Only for developing: Open config on startup!
 
         # help menu
         helpmenu = tkinter.Menu(self.menubar, tearoff=0)

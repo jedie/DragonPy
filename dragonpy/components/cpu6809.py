@@ -338,6 +338,7 @@ class CPU(object):
         while now() < abort_time:
             burst_loops += 1
             last_cpu_cycles = self.cycles
+            burst_start = now()
 
             self.burst_run()
             self.call_sync_callbacks()

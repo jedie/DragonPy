@@ -418,7 +418,22 @@ class PIA(object):
             op_address, value, byte2bit_string(value),
             address, self.cfg.mem_info.get_shortest(op_address)
         )
-        self.pia_0_B_register.set(value)
+
+        if is_bit_set(value, bit=0):
+            log.critical(
+                "%04x| write $%02x (%s) to $%04x -> VSYNC IRQ: enable\t|%s",
+                op_address, value, byte2bit_string(value),
+                address, self.cfg.mem_info.get_shortest(op_address)
+            )
+            self.cpu.irq_enabled = True
+            value = set_bit(value, bit=7)
+        else:
+            log.critical(
+                "%04x| write $%02x (%s) to $%04x -> VSYNC IRQ: disable\t|%s",
+                op_address, value, byte2bit_string(value),
+                address, self.cfg.mem_info.get_shortest(op_address)
+            )
+            self.cpu.irq_enabled = False
 
         if is_bit_set(value, bit=0):
             log.critical(
