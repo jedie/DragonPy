@@ -142,6 +142,8 @@ class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
         self.output_lines[-1] += char
         self.display_buffer[address] = char
 
+        return value
+
     def striped_output(self):
         """
         It's a little bit tricky to get the "written output"...
