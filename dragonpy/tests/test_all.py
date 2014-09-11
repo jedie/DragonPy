@@ -19,7 +19,7 @@ from dragonlib.utils.logging_utils import setup_logging, log
 from dragonpy.tests.test_base import TextTestRunner2
 
 
-if __name__ == '__main__':   
+if __name__ == '__main__':
     setup_logging(log,
 #         level=1 # hardcore debug ;)
 #         level=10 # DEBUG
