@@ -234,7 +234,7 @@ class Memory(object):
             byte = self._read_byte_callbacks[address](
                 self.cpu.cycles, self.cpu.last_op_address, address
             )
-            assert byte is not None, "Error: Callback for $%04x func %r has return None!" % (
+            assert byte is not None, "Error: read byte callback for $%04x func %r has return None!" % (
                 address, self._read_byte_callbacks[address].__name__
             )
             return byte
@@ -255,7 +255,7 @@ class Memory(object):
             byte = self._read_byte_middleware[address](
                 self.cpu.cycles, self.cpu.last_op_address, address, byte
             )
-            assert byte is not None, "Error: Middleware for $%04x func %r has return None!" % (
+            assert byte is not None, "Error: read byte middleware for $%04x func %r has return None!" % (
                 address, self._read_byte_middleware[address].__name__
             )
 
@@ -270,7 +270,7 @@ class Memory(object):
             word = self._read_word_callbacks[address](
                 self.cpu.cycles, self.cpu.last_op_address, address
             )
-            assert word is not None, "Error: Callback for $%04x func %r has return None!" % (
+            assert word is not None, "Error: read word callback for $%04x func %r has return None!" % (
                 address, self._read_word_callbacks[address].__name__
             )
             return word
@@ -291,6 +291,9 @@ class Memory(object):
         if address in self._write_byte_middleware:
             value = self._write_byte_middleware[address](
                 self.cpu.cycles, self.cpu.last_op_address, address, value
+            )
+            assert value is not None, "Error: write byte middleware for $%04x func %r has return None!" % (
+                address, self._write_byte_middleware[address].__name__
             )
 
         if address in self._write_byte_callbacks:
@@ -316,6 +319,9 @@ class Memory(object):
         if address in self._write_word_middleware:
             word = self._write_word_middleware[address](
                 self.cpu.cycles, self.cpu.last_op_address, address, word
+            )
+            assert word is not None, "Error: write word middleware for $%04x func %r has return None!" % (
+                address, self._write_word_middleware[address].__name__
             )
 
         if address in self._write_word_callbacks:
