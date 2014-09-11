@@ -37,7 +37,7 @@ Looks like this:
 
 ==== Vectrex
 
-The [[https://en.wikipedia.org/wiki/Vectrex|Vectrex]] is a vector display-based video game console.
+The [[https://en.wikipedia.org/wiki/Vectrex|Vectrex (Wikipedia)]] is a vector display-based video game console.
 The Hardware are //only// the 6809 CPU, a 6522 Versatile Interface Adapter and the AY-3-8912 sound chip.
 
 Current state is completely not usable. The 6522 is only a dummy implementation.

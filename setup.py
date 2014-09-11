@@ -26,7 +26,7 @@ PACKAGE_ROOT = os.path.dirname(os.path.abspath(__file__))
 try:
     from creole.setup_utils import get_long_description
 except ImportError as err:
-    if "register" in sys.argv or "sdist" in sys.argv or "--long-description" in sys.argv:
+    if "check" in sys.argv or "register" in sys.argv or "sdist" in sys.argv or "--long-description" in sys.argv:
         raise ImportError("%s - Please install python-creole >= v0.8 -  e.g.: pip install python-creole" % err)
     long_description = None
 else:
