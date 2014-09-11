@@ -450,10 +450,60 @@ class BaseTkinterGUI(object):
             return burst_count * 2
         return int(round((burst_count + a) / 2))
 
+    burst_calls = 0
+    def cpu_interval(self, interval=None):
+        self.burst_calls += 1
+
+        start_time = time.time()
+        self.machine.cpu.burst_run()
+        now = time.time()
+        self.total_burst_duration += (now - start_time)
+        self.op_count += self.machine.cpu.burst_op_count
+        
+#         if now > self.next_cpu_cycle_update:
+#             self.update_status()
+
+        self.process_display_queue()
+
+        if interval is not None:
+            if self.machine.cpu.running:
+                self.cpu_after_id = self.root.after(interval, self.cpu_interval, interval)
+            else:
+                log.critical("CPU stopped.")
+
+    last_update = 0
+    def update_status_interval(self, interval=500):
+        self.last_op_count = 0
+
+        new_cycles = self.machine.cpu.cycles - self.last_cpu_cycles
+        duration = time.time() - self.last_update
+
+        cycles_per_sec = new_cycles / duration
+        ops_per_sec = self.op_count / duration
+
+        msg = (
+            "%s cylces/sec\n"
+            "%s ops/sec\n"
+            "%s Ops in %i burst calls"
+        ) % (
+            locale_format_number(cycles_per_sec),
+            locale_format_number(ops_per_sec),
+            locale_format_number(self.op_count),
+            self.burst_calls,
+        )
+        self.status.set(msg)
+
+        self.op_count = 0
+        self.last_cpu_cycles = self.machine.cpu.cycles
+        self.burst_calls = 0
+        self.last_update = time.time()
+
+        self.root.after(interval, self.update_status_interval, interval)
+
     total_delay = 0
     interval_count = 0
     total_burst_duration = 0
-    def cpu_interval(self, interval=None):
+    def cpu_intervalOLD(self, interval=None):
         burst_start_time = time.time()
         self.interval_count += 1
 
@@ -511,7 +561,11 @@ class BaseTkinterGUI(object):
 
         ops_per_sec = self.op_count / self.total_burst_duration
 
-        burst_duration = self.total_burst_duration / self.interval_count
+        try:
+            burst_duration = self.total_burst_duration / self.interval_count
+        except ZeroDivisionError:
+            return
+
         delay = self.total_delay / self.interval_count
         msg = (
             "CPU: %.3f Mhz (%s cycles/sec, delay: %.4f sec)"
@@ -550,6 +604,8 @@ class BaseTkinterGUI(object):
 
     def mainloop(self, machine):
         self.machine = machine
+
+        self.update_status_interval(interval=500)
 
         self.cpu_interval(interval=1)
 
@@ -654,7 +710,13 @@ def test_run():
     cmd_args = [
         sys.executable,
         os.path.join("..", "DragonPy_CLI.py"),
-#        "--verbosity", "5",
+#         "--verbosity", " 1", # hardcode DEBUG ;)
+#         "--verbosity", "10", # DEBUG
+#         "--verbosity", "20", # INFO
+#         "--verbosity", "30", # WARNING
+#         "--verbosity", "40", # ERROR
+#         "--verbosity", "50", # CRITICAL/FATAL
+        "--verbosity", "99", # nearly all off
         "--machine", "Dragon32", "run",
 #        "--machine", "Vectrex", "run",
 #        "--max_ops", "1",
