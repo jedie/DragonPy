@@ -61,10 +61,13 @@ class Base_CLI(object):
             arg_kwargs["description"] = self.DESCRIPTION
         if self.EPOLOG is not None:
             arg_kwargs["epilog"] = self.EPOLOG
-        if self.VERSION is not None:
-            arg_kwargs["version"] = self.VERSION
 
         self.parser = argparse.ArgumentParser(**arg_kwargs)
+
+        if self.VERSION is not None:
+            self.parser.add_argument('--version', action='version',
+                version='%%(prog)s %s' % self.VERSION
+            )
 
         self.parser.add_argument("--log",
             nargs="*",
