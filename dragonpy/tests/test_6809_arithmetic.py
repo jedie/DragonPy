@@ -696,6 +696,8 @@ loop:
 
 
 if __name__ == '__main__':
+    from dragonlib.utils.logging_utils import setup_logging
+
     setup_logging(log,
 #        level=1 # hardcore debug ;)
 #        level=10 # DEBUG

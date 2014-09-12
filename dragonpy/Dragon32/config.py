@@ -15,7 +15,9 @@ import logging
 import os
 
 from dragonlib.api import Dragon32API
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 from dragonpy.Dragon32.keyboard_map import get_dragon_keymatrix_pia_result
 from dragonpy.Dragon32.mem_info import get_dragon_meminfo
 from dragonpy.components.rom import ROMFile

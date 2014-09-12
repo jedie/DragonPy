@@ -22,7 +22,9 @@ except ImportError:
 from dragonpy.Dragon32.display_base import DragonTextDisplayBase
 from dragonpy.Dragon32.dragon_charmap import get_rgb_color, NORMAL, \
     get_charmap_dict
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 
 
 class DragonTextDisplay(DragonTextDisplayBase):

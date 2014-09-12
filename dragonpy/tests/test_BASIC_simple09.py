@@ -14,12 +14,10 @@
 
 from __future__ import absolute_import, division, print_function
 
-import array
 import logging
 import sys
 import unittest
 
-from dragonlib.utils.logging_utils import setup_logging
 from dragonpy.tests.test_base import TextTestRunner2, Test6809_BASIC_simple6809_Base
 from dragonpy.utils.BASIC09_floating_point import BASIC09FloatingPoint
 
@@ -587,7 +585,9 @@ WIP:
         ])
         self.assertFPA0(dividend) # Test if value is in FPA0
 
-        setup_logging(log, level=20)
+        from dragonlib.utils.logging_utils import setup_logging
+
+    setup_logging(log, level=20)
         self.cpu_test_run(start=0x0300, end=None, mem=[
             0xBD, 0xed, 0xcb, # JSR   $edcb  ; DIVIDE FPA0 BY 10
         ])
@@ -620,7 +620,9 @@ WIP:
 #        ])
 #        self.assertFPA1(dividend) # Test if value is in FPA1
 
-        setup_logging(log, level=20)
+        from dragonlib.utils.logging_utils import setup_logging
+
+    setup_logging(log, level=20)
 #        self.cpu.index_x.set(divisor)
         self.cpu.accu_d.set(divisor)
         self.cpu_test_run(start=0x0300, end=None, mem=[
@@ -633,7 +635,9 @@ WIP:
 #        ])
 #        self.assertFPA0(divisor) # Test if value is in FPA0
 #
-#        setup_logging(log, level=20)
+#        from dragonlib.utils.logging_utils import setup_logging
+
+    setup_logging(log, level=20)
 ##        self.cpu_test_run2(start=0x0306, count=100, mem=[
 #        self.cpu_test_run(start=0x0300, end=None, mem=[
 #            0xBD, 0xed, 0xdc, # 0306  JSR   $edda  ; divide FPA1 by FPA0
@@ -649,13 +653,15 @@ WIP:
 
 
 if __name__ == '__main__':
+    from dragonlib.utils.logging_utils import setup_logging
+
     setup_logging(log,
-#        level=1 # hardcore debug ;)
+        level=1 # hardcore debug ;)
 #        level=10 # DEBUG
 #        level=20 # INFO
 #        level=30 # WARNING
 #         level=40 # ERROR
-        level=50 # CRITICAL/FATAL
+#         level=50 # CRITICAL/FATAL
     )
 
     unittest.main(

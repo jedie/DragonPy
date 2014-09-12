@@ -15,7 +15,9 @@ from __future__ import absolute_import, division, print_function
 
 
 from dragonpy.utils.humanize import cc_value2txt
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 
 
 class ValueStorage(object):

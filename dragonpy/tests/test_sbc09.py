@@ -214,6 +214,8 @@ class Test_sbc09(Test6809_sbc09_Base):
 
 
 if __name__ == '__main__':
+    from dragonlib.utils.logging_utils import setup_logging
+
     setup_logging(log,
         level=1 # hardcore debug ;)
 #        level=10 # DEBUG

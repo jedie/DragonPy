@@ -15,7 +15,9 @@ import inspect
 import multiprocessing
 import struct
 
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 
 
 DRAGON32 = "Dragon32"

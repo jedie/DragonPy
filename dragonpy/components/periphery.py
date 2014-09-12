@@ -27,7 +27,9 @@ except ImportError:
     import thread as _thread
 #    import httplib
 
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 from dragonpy.utils import pager
 
 

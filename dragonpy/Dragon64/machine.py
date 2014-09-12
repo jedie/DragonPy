@@ -13,12 +13,15 @@
 from __future__ import absolute_import, division, print_function
 
 
-from dragonlib.utils.logging_utils import log, setup_logging
+import logging
 
 from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 from dragonpy.Dragon64.config import Dragon64Cfg
 from dragonpy.core.gui import DragonTkinterGUI
 from dragonpy.core.machine import MachineGUI
+
+
+log = logging.getLogger(__name__)
 
 
 def run_Dragon64(cfg_dict):
@@ -32,6 +35,8 @@ def run_Dragon64(cfg_dict):
 
 
 if __name__ == '__main__':
+    from dragonlib.utils.logging_utils import setup_logging
+
     setup_logging(log,
 #         level=1 # hardcore debug ;)
 #         level=10 # DEBUG

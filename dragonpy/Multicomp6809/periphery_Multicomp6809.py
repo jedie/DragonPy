@@ -29,7 +29,9 @@ except Exception as err:
 
 
 from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 
 
 class Multicomp6809PeripheryBase(PeripheryBase):

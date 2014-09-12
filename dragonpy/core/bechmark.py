@@ -20,10 +20,14 @@ import time
 import unittest
 
 from dragonlib.utils import lib2and3
-from dragonlib.utils.logging_utils import log, setup_logging
+import logging
+
 from dragonpy.tests.test_6809_program import Test6809_Program, \
     Test6809_Program_Division2
 from dragonpy.utils.humanize import locale_format_number
+
+
+log = logging.getLogger(__name__)
 
 
 class Test6809_Program2(Test6809_Program):
@@ -92,6 +96,8 @@ def run_benchmark(loops):
 
 
 if __name__ == '__main__':
+    from dragonlib.utils.logging_utils import setup_logging
+
     setup_logging(log,
 #        level=1 # hardcore debug ;)
 #        level=10 # DEBUG

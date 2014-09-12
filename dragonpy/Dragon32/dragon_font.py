@@ -18,7 +18,9 @@ try:
 except ImportError:
     import Tkinter as tkinter # Python 2
 
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 from dragonpy.Dragon32.dragon_charmap import NORMAL, get_hex_color, COLORS, INVERTED
 
 

@@ -12,14 +12,15 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 import atexit
 import locale
+import logging
 import sys
-import threading
-import webbrowser
 
 from basic_editor.editor import run_basic_editor
-from dragonlib.utils.logging_utils import log, setup_logging
+
+import dragonpy
 from dragonpy.CoCo.config import CoCo2bCfg
 from dragonpy.CoCo.machine import run_CoCo2b
 from dragonpy.Dragon32.config import Dragon32Cfg
@@ -33,6 +34,8 @@ from dragonpy.core.configs import machine_dict
 from dragonpy.vectrex.config import VectrexCfg
 from dragonpy.vectrex.machine import run_Vectrex
 
+
+log = logging.getLogger(__name__)
 
 machine_dict.register(configs.DRAGON32, (run_Dragon32, Dragon32Cfg), default=True)
 machine_dict.register(configs.DRAGON64, (run_Dragon64, Dragon64Cfg))
@@ -56,6 +59,7 @@ def goodbye():
 class DragonPyCLI(Base_CLI):
     LOG_NAME = "DragonPy"
     DESCRIPTION = "DragonPy - Dragon 32 emulator in Python"
+    VERSION = dragonpy.__version__
 
     def __init__(self, machine_dict):
         super(DragonPyCLI, self).__init__()
@@ -171,24 +175,33 @@ def get_cli():
     return cli
 
 
+#------------------------------------------------------------------------------
+
+
 def test_run():
-    import os, subprocess
-    cmd_args = [sys.executable,
+    import os
+    import subprocess
+    cmd_args = [
+        sys.executable,
         os.path.join("..", "DragonPy_CLI.py"),
+#         "-h"
+#         "--log_list",
+        "--log", "DragonPy.cpu6809,50;dragonpy.Dragon32.MC6821_PIA,10",
 
-#         "--verbosity=5",
-#         "--verbosity=10", # DEBUG
-#         "--verbosity=20", # INFO
-#         "--verbosity=30", # WARNING
-#         "--verbosity=40", # ERROR
-        "--verbosity=50", # CRITICAL/FATAL
-
-#         "--machine=Simple6809",
-#         "--machine=Simple6809",
-#         "--machine=sbc09",
+#         "--verbosity", " 1", # hardcode DEBUG ;)
+#         "--verbosity", "10", # DEBUG
+#         "--verbosity", "20", # INFO
+#         "--verbosity", "30", # WARNING
+#         "--verbosity", "40", # ERROR
+#         "--verbosity", "50", # CRITICAL/FATAL
+#         "--verbosity", "99", # nearly all off
+        "--machine", "Dragon32", "run",
+#        "--machine", "Vectrex", "run",
+#        "--max_ops", "1",
+#        "--trace",
     ]
     print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
-    subprocess.Popen(cmd_args, cwd=".").wait()
+    subprocess.Popen(cmd_args, cwd="..").wait()
 
 
 if __name__ == "__main__":

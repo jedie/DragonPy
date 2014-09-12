@@ -26,7 +26,9 @@ except ImportError:
 
 
 from dragonlib.tests.test_base import BaseTestCase
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.periphery_dragon import Dragon32PeripheryUnittest
 from dragonpy.Simple6809.config import Simple6809Cfg

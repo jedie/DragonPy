@@ -20,7 +20,9 @@ import unittest
 from dragonlib.api import Dragon32API
 from dragonlib.core.basic import BasicLine
 from dragonlib.tests.test_base import BaseTestCase
-from dragonlib.utils.logging_utils import log, setup_logging, log_program_dump,\
+import logging
+
+log=logging.getLogger(__name__), setup_logging, log_program_dump,\
     pformat_program_dump
 from dragonpy.tests.test_base import TextTestRunner2
 
@@ -473,6 +475,8 @@ class RenumTests(BaseDragon32ApiTestCase):
         )
 
 if __name__ == '__main__':
+    from dragonlib.utils.logging_utils import setup_logging
+
     setup_logging(log,
 #        level=1 # hardcore debug ;)
 #         level=10 # DEBUG

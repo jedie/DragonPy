@@ -27,7 +27,9 @@ try:
 except ImportError:
     import Queue as queue # Python 2
 
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 from dragonpy.core.configs import COCO2B
 from dragonpy.utils.bits import is_bit_set, invert_byte, clear_bit, set_bit
 from dragonpy.utils.humanize import byte2bit_string

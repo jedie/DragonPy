@@ -16,7 +16,9 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase, \
     ConsolePeripheryBase, PeripheryUnittestBase
 

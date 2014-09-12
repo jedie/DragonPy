@@ -12,11 +12,14 @@
 from __future__ import absolute_import, division, print_function
 
 
-from dragonlib.utils.logging_utils import log, setup_logging
+import logging
+
 from dragonpy.core.machine import MachineGUI
 from dragonpy.vectrex.config import VectrexCfg
 from dragonpy.vectrex.periphery import VectrexPeriphery
 from dragonpy.vectrex.vectrex_gui import VectrexGUI
+
+log = logging.getLogger(__name__)
 
 
 def run_Vectrex(cfg_dict):

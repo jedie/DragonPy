@@ -13,12 +13,16 @@
 from __future__ import absolute_import, division, print_function
 
 
-from dragonlib.utils.logging_utils import log, setup_logging
+import logging
 
+from dragonlib.utils.logging_utils import setup_logging
 from dragonpy.CoCo.config import CoCo2bCfg
 from dragonpy.CoCo.periphery_coco import CoCoPeriphery
 from dragonpy.core.gui import DragonTkinterGUI
 from dragonpy.core.machine import MachineGUI
+
+
+log = logging.getLogger(__name__)
 
 
 def run_CoCo2b(cfg_dict):
@@ -33,6 +37,8 @@ def run_CoCo2b(cfg_dict):
 
 
 if __name__ == '__main__':
+
+
     setup_logging(log,
 #         level=1 # hardcore debug ;)
 #         level=10 # DEBUG

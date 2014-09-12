@@ -18,7 +18,9 @@ from dragonlib.core.basic import BasicListing, RenumTool, BasicTokenUtil,\
     BasicLine
 from dragonlib.core.basic_parser import BASICParser
 from dragonlib.dragon32.basic_tokens import DRAGON32_BASIC_TOKENS
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 
 
 DRAGON32 = "Dragon32"

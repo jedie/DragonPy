@@ -31,7 +31,9 @@ import sys
 import threading
 import traceback
 
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 
 
 class ControlHandler(BaseHTTPRequestHandler):

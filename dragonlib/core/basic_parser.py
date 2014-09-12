@@ -4,7 +4,7 @@
 """
     BASIC parser
     ============
-    
+
     Note:
         The parser does only split into:
             * line number
@@ -23,7 +23,9 @@ from __future__ import absolute_import, division, print_function
 
 import re
 
-from dragonlib.utils.logging_utils import log, setup_logging
+import logging
+
+log = logging.getLogger(__name__)
 
 
 CODE_TYPE_CODE = "CODE"
@@ -218,6 +220,7 @@ class BASICParser(object):
 
 if __name__ == "__main__":
     import unittest
+    from dragonlib.utils.logging_utils import setup_logging
 
     setup_logging(log,
 #        level=1 # hardcore debug ;)

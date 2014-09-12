@@ -17,7 +17,9 @@ import sys
 import unittest
 
 from dragonlib.core.basic_parser import BASICParser
-from dragonlib.utils.logging_utils import log, setup_logging
+import logging
+
+log=logging.getLogger(__name__), setup_logging
 
 
 class TestBASICParser(unittest.TestCase):
@@ -284,6 +286,8 @@ class TestBASICParser(unittest.TestCase):
         )
 
 if __name__ == "__main__":
+    from dragonlib.utils.logging_utils import setup_logging
+
     setup_logging(log,
 #         level=1 # hardcore debug ;)
 #         level=10  # DEBUG

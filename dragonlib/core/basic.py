@@ -12,14 +12,17 @@
 
 from __future__ import absolute_import, division, print_function
 
+import logging
 import re
 
 from dragonlib.core import basic_parser
 from dragonlib.utils import lib2and3
 from dragonlib.utils.iter_utils import list_replace
-from dragonlib.utils.logging_utils import log, log_program_dump, \
-    pformat_byte_hex_list
+from dragonlib.utils.logging_utils import pformat_byte_hex_list, \
+    log_program_dump
 from dragonpy.utils.byte_word_values import word2bytes
+
+log = logging.getLogger(__name__)
 
 
 class BasicTokenUtil(object):

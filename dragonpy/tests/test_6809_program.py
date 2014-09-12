@@ -16,12 +16,14 @@ from __future__ import absolute_import, division, print_function
 
 from decimal import Decimal
 import binascii
+import logging
 import sys
 import unittest
 
 from dragonlib.utils import lib2and3
-from dragonlib.utils.logging_utils import log, setup_logging
 from dragonpy.tests.test_base import TextTestRunner2, BaseStackTestCase
+
+log = logging.getLogger(__name__)
 
 
 class Test6809_Program(BaseStackTestCase):
@@ -384,6 +386,8 @@ class Test6809_Program_Division2(BaseStackTestCase):
 
 
 if __name__ == '__main__':
+    from dragonlib.utils.logging_utils import setup_logging
+
     setup_logging(log,
 #        level=1 # hardcore debug ;)
 #        level=10 # DEBUG

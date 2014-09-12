@@ -26,7 +26,9 @@ try:
 except ImportError:
     pass
 
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase, \
     PeripheryUnittestBase
 

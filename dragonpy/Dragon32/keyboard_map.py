@@ -42,7 +42,9 @@
 import string
 
 from dragonlib.utils.auto_shift import invert_shift
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 from dragonpy.utils.bits import invert_byte, is_bit_set, clear_bit
 
 

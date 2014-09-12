@@ -15,13 +15,16 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 import time
+import logging
 
 from basic_editor.editor import EditorWindow
-from dragonlib.utils.logging_utils import log
+
 from dragonpy.Dragon32 import dragon_charmap
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
 from dragonpy.utils.humanize import locale_format_number
+
+log = logging.getLogger(__name__)
 
 
 try:

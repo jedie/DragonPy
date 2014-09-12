@@ -17,7 +17,9 @@ import time
 
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 
 
 class CPUThread(threading.Thread):

@@ -47,7 +47,9 @@
     Based on: XRoar emulator by Ciaran Anscomb (GPL license) more info, see README
 """
 
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 
 
 class SAM(object):

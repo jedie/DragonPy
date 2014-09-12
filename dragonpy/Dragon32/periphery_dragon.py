@@ -20,7 +20,9 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict

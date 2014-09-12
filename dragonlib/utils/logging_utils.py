@@ -14,15 +14,14 @@ from __future__ import absolute_import, division, print_function
 
 
 import logging
-import multiprocessing
 import sys
 
-log = multiprocessing.log_to_stderr()
+log = logging.getLogger(__name__)
 
 
 # log.critical("Log handlers: %s", repr(log.handlers))
-if len(log.handlers) > 1:  # FIXME: tro avoid doublicated output
-    log.handlers = (log.handlers[0],)
+# if len(log.handlers) > 1:  # FIXME: tro avoid doublicated output
+#     log.handlers = (log.handlers[0],)
 #     log.critical("Fixed Log handlers: %s", repr(log.handlers))
 
 
@@ -35,16 +34,23 @@ def setup_logging(log, level, handler=None, log_formatter=None):
         30 - WARNING
         40 - ERROR
         50 - CRITICAL/FATAL
+        99 - nearly off
+       100 - complete off
     """
-    sys.stderr.write("Set logging to %i\n" % level)
-    log.setLevel(level)
+    root_logger = logging.getLogger()
 
-    if handler is None:
-        handler = logging.StreamHandler()
+    if level == 100:
+        root_logger.disabled = True
+        return
+
+    root_logger.setLevel(level=level)
 
     if log_formatter is None:
         log_formatter = "[%(processName)s %(threadName)s] %(message)s"
     formatter = logging.Formatter(log_formatter)
+
+    if handler is None:
+        handler = logging.StreamHandler()
     handler.setFormatter(formatter)
 
     if hasattr(handler, "baseFilename"):
@@ -53,7 +59,7 @@ def setup_logging(log, level, handler=None, log_formatter=None):
         )
     else:
         sys.stderr.write("Log to handler: %s\n" % repr(handler))
-    log.handlers = (handler,)
+    root_logger.handlers = (handler,)
 
 
 def disable_logging(log):
@@ -62,8 +68,10 @@ def disable_logging(log):
     btw. logging can be activated again with e.g.: setup_logging()
     """
     log.log(99, "Disable all logging output.")
-    log.setLevel(level=100)
-    log.handlers = ()
+    root_logger = logging.getLogger()
+    root_logger.setLevel(level=100)
+    root_logger.disabled = True
+    root_logger.handlers = ()
 
 
 def log_memory_dump(memory, start, end, mem_info, level=99):
@@ -122,8 +130,40 @@ def log_program_dump(ram_content, level=99):
     log.log(level, msg)
 
 
-if __name__ == '__main__':
+
+#------------------------------------------------------------------------------
+
+
+def test_run():
+    import os
+    import subprocess
+    cmd_args = [
+        sys.executable,
+        os.path.join("..", "DragonPy_CLI.py"),
+#         "-h"
+#         "--log_list",
+        "--verbosity", "50",
+        "--log", "DragonPy.cpu6809,50;dragonpy.Dragon32.MC6821_PIA,40",
+
+#         "--verbosity", " 1", # hardcode DEBUG ;)
+#         "--verbosity", "10", # DEBUG
+#         "--verbosity", "20", # INFO
+#         "--verbosity", "30", # WARNING
+#         "--verbosity", "40", # ERROR
+#         "--verbosity", "50", # CRITICAL/FATAL
+#         "--verbosity", "99", # nearly all off
+        "--machine", "Dragon32", "run",
+#        "--machine", "Vectrex", "run",
+#        "--max_ops", "1",
+#        "--trace",
+    ]
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
+    subprocess.Popen(cmd_args, cwd="..").wait()
+
+if __name__ == "__main__":
     dump = (0x1e, 0x07, 0x00, 0x0a, 0xa0, 0x00, 0x1e, 0x1a, 0x00, 0x14, 0x80, 0x20, 0x49, 0x20, 0xcb, 0x20, 0x30, 0x20, 0xbc, 0x20, 0x32, 0x35, 0x35, 0x3a, 0x00, 0x1e, 0x2d, 0x00, 0x1e, 0x93, 0x20, 0x31, 0x30, 0x32, 0x34, 0xc3, 0x28, 0x49, 0xc5, 0x32, 0x29, 0x2c, 0x49, 0x00, 0x1e, 0x35, 0x00, 0x28, 0x8b, 0x20, 0x49, 0x00, 0x1e, 0x4e, 0x00, 0x32, 0x49, 0x24, 0x20, 0xcb, 0x20, 0xff, 0x9a, 0x3a, 0x85, 0x20, 0x49, 0x24, 0xcb, 0x22, 0x22, 0x20, 0xbf, 0x20, 0x35, 0x30, 0x00, 0x00, 0x00)
     log_hexlist(dump)
 #    log_hexlist(dump, group=4)
 #    log_hexlist(dump, group=5)
+
+    test_run()

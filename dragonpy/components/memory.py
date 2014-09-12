@@ -22,9 +22,13 @@
 import array
 import os
 import sys
+import logging
 
 from dragonlib.utils import lib2and3
-from dragonlib.utils.logging_utils import log, log_hexlist
+from dragonlib.utils.logging_utils import log_hexlist
+
+
+log = logging.getLogger(__name__)
 
 
 class Memory(object):

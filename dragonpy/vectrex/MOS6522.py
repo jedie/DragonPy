@@ -20,7 +20,9 @@ from __future__ import absolute_import, division, print_function
 
 
 
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 
 
 VECTREX_MHZ = 1500000

@@ -14,6 +14,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+import logging
 import os
 import string
 import sys
@@ -21,7 +22,9 @@ import sys
 from basic_editor.editor_base import BaseExtension
 from basic_editor.highlighting import TkTextHighlighting
 from dragonlib.utils.auto_shift import invert_shift
-from dragonlib.utils.logging_utils import log, pformat_program_dump
+from dragonlib.utils.logging_utils import pformat_program_dump
+
+log = logging.getLogger(__name__)
 
 
 try:

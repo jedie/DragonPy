@@ -15,7 +15,9 @@ from __future__ import absolute_import, division, print_function
 import threading
 
 from dragonlib.core.basic import log_program_dump
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
 from dragonpy.utils.simple_debugger import print_exc_plus

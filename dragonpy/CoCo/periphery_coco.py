@@ -17,7 +17,9 @@
 
 from __future__ import absolute_import, division, print_function
 
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
 
 

@@ -17,7 +17,9 @@ from __future__ import absolute_import, division, print_function
 import logging
 import os
 
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 from dragonpy.components.rom import ROMFile
 from dragonpy.core.configs import BaseConfig, VECTREX
 from dragonpy.vectrex.mem_info import VectrexMemInfo

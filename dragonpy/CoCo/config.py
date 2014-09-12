@@ -16,7 +16,9 @@ import logging
 import os
 
 from dragonlib.api import CoCoAPI
-from dragonlib.utils.logging_utils import log
+import logging
+
+log=logging.getLogger(__name__)
 from dragonpy.CoCo.mem_info import get_coco_meminfo
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.keyboard_map import get_coco_keymatrix_pia_result
