@@ -37,11 +37,10 @@ import sys
 import threading
 import time
 import warnings
-
-from dragonlib.utils import lib2and3
 import logging
 
-log=logging.getLogger(__name__)
+from dragonlib.utils import six
+
 from dragonpy.MC6809data.MC6809_data_raw2 import (
     OP_DATA, REG_A, REG_B, REG_CC, REG_D, REG_DP, REG_PC,
     REG_S, REG_U, REG_X, REG_Y
@@ -56,6 +55,8 @@ from dragonpy.utils.bits import is_bit_set, get_bit
 from dragonpy.utils.byte_word_values import signed8, signed16, signed5
 from dragonpy.utils.simple_debugger import print_exc_plus
 
+
+log=logging.getLogger(__name__)
 
 
 # HTML_TRACE = True

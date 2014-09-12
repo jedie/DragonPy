@@ -18,10 +18,9 @@ import locale
 import string
 import time
 import unittest
-
-from dragonlib.utils import lib2and3
 import logging
 
+from dragonlib.utils import six
 from dragonpy.tests.test_6809_program import Test6809_Program, \
     Test6809_Program_Division2
 from dragonpy.utils.humanize import locale_format_number
@@ -42,7 +41,7 @@ class Test6809_Program2(Test6809_Program):
 
         txt = string.printable
 
-        if lib2and3.PY3:
+        if six.PY3:
             txt = bytes(txt, encoding="UTF-8")
 
         txt = txt * multiply

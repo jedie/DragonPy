@@ -16,7 +16,7 @@ import logging
 import re
 
 from dragonlib.core import basic_parser
-from dragonlib.utils import lib2and3
+from dragonlib.utils import six
 from dragonlib.utils.iter_utils import list_replace
 from dragonlib.utils.logging_utils import pformat_byte_hex_list, \
     log_program_dump
@@ -47,7 +47,7 @@ class BasicTokenUtil(object):
                 log.critical("ERROR: Token $%04x is not in BASIC_TOKENS!", value)
                 return ""
             result = chr(value)
-        if lib2and3.PY2:
+        if six.PY2:
             # Only for unittest, to avoid token representation as u"..."
             # There is only ASCII characters possible
             return str(result)

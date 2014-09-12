@@ -20,7 +20,7 @@ import logging
 import sys
 import unittest
 
-from dragonlib.utils import lib2and3
+from dragonlib.utils import six
 from dragonpy.tests.test_base import TextTestRunner2, BaseStackTestCase
 
 log = logging.getLogger(__name__)
@@ -144,7 +144,7 @@ class Test6809_Program(BaseStackTestCase):
         return crc32 ^ 0xFFFFFFFF
 
     def _test_crc32(self, txt):
-        if lib2and3.PY3:
+        if six.PY3:
             txt = bytes(txt, encoding="UTF-8")
         crc32 = self._crc32(txt)
         excpected_crc32 = binascii.crc32(txt) & 0xffffffff
@@ -386,8 +386,6 @@ class Test6809_Program_Division2(BaseStackTestCase):
 
 
 if __name__ == '__main__':
-    from dragonlib.utils.logging_utils import setup_logging
-
     setup_logging(log,
 #        level=1 # hardcore debug ;)
 #        level=10 # DEBUG

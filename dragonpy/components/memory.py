@@ -24,7 +24,7 @@ import os
 import sys
 import logging
 
-from dragonlib.utils import lib2and3
+from dragonlib.utils import six
 from dragonlib.utils.logging_utils import log_hexlist
 
 
@@ -164,7 +164,7 @@ class Memory(object):
 
 
     def load(self, address, data):
-        if isinstance(data, lib2and3.string_types):
+        if isinstance(data, six.string_types):
             data = [ord(c) for c in data]
 
         log.debug("ROM load at $%04x: %s", address,
@@ -186,7 +186,7 @@ class Memory(object):
                     break
 
                 index = address + offset
-                if lib2and3.PY2:
+                if six.PY2:
                     datum = ord(datum)
 
 #                 log.critical("$%04x - $%02x", index, datum)

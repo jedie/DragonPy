@@ -18,7 +18,7 @@ import sys
 import unittest
 import logging
 
-from dragonlib.utils import lib2and3
+from dragonlib.utils.logging_utils import log, setup_logging
 from dragonpy.tests.test_base import TextTestRunner2, Test6809_Dragon32_Base
 
 log = logging.getLogger(__name__)
@@ -102,8 +102,6 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
 
 
 if __name__ == '__main__':
-    from dragonlib.utils.logging_utils import setup_logging
-
     setup_logging(log,
 #        level=1 # hardcore debug ;)
 #        level=10 # DEBUG

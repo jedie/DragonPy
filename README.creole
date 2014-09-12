@@ -37,7 +37,7 @@ Looks like this:
 
 ==== Vectrex
 
-The [[https://en.wikipedia.org/wiki/Vectrex|Vectrex]] is a vector display-based video game console.
+The [[https://en.wikipedia.org/wiki/Vectrex|Vectrex (Wikipedia)]] is a vector display-based video game console.
 The Hardware are //only// the 6809 CPU, a 6522 Versatile Interface Adapter and the AY-3-8912 sound chip.
 
 Current state is completely not usable. The 6522 is only a dummy implementation.
@@ -349,6 +349,11 @@ Motorola S-Record utilities
  * Homepage: https://github.com/gabtremblay/pysrec
  * Stored here: [[https://github.com/jedie/DragonPy/blob/master/dragonpy/utils/srecord_utils.py|/dragonpy/utils/srecord_utils.py]]
 
+**six**
+Six is a Python 2 and 3 compatibility library.
+ * https://pypi.python.org/pypi/six
+ * https://bitbucket.org/gutworth/six
+
 == History
 
 * 05.09.2014 - Release v0.1.0 - Implement pause/resume, hard-/soft-reset 6809 in GUI and improve a little the GUI/Editor stuff: [[https://github.com/jedie/DragonPy/releases/tag/v0.1.0|v0.1.0]] see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&p=11719#p11719|
@@ -368,4 +373,5 @@ Motorola S-Record utilities
 | Forum               | [[http://forum.pylucid.org/]]
 | IRC                 | [[http://www.pylucid.org/permalink/304/irc-channel|#pylucid on freenode.net]]
 | Jabber              | [[xmpp://pylucid@conference.jabber.org|pylucid@conference.jabber.org]]
+| PyPi                | [[https://pypi.python.org/pypi/DragonPyEmulator/]]
 | Github              | [[https://github.com/jedie/DragonPy]]
