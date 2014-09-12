@@ -294,12 +294,16 @@ class CPU(object):
 
     ####
 
+    quickest_sync_callback_cyles = None
     sync_callbacks_cyles = {}
     sync_callbacks = []
     def add_sync_callback(self, callback_cycles, callback):
         """ Add a CPU cycle triggered callback """
         self.sync_callbacks_cyles[callback] = 0
         self.sync_callbacks.append([callback_cycles, callback])
+        if self.quickest_sync_callback_cyles is None or \
+                        self.quickest_sync_callback_cyles > callback_cycles:
+            self.quickest_sync_callback_cyles = callback_cycles
 
     def call_sync_callbacks(self):
         """ Call every sync callback with CPU cycles trigger """
@@ -325,83 +329,39 @@ class CPU(object):
             get_and_call_next_op()
         self.call_sync_callbacks()
 
-    def run(self, max_run_time=0.1, target_cycles_per_sec=None, target_burst_loops=10):
+    def calc_new_count(self, burst_count, current_value, target_value):
+        """
+        >>> calc_new_count(burst_count=100, current_value=30, target_value=30)
+        100
+        >>> calc_new_count(burst_count=100, current_value=40, target_value=20)
+        75
+        >>> calc_new_count(burst_count=100, current_value=20, target_value=40)
+        150
+        """
+        try:
+            a = float(burst_count) / float(current_value) * target_value
+        except ZeroDivisionError:
+            return burst_count * 2
+        return int(round((burst_count + a) / 2))
 
+    def run(self, max_run_time=0.1):
         now = time.time
-        sleep = time.sleep
 
-        start_cycles = self.cycles
         burst_loops = 0
-        total_delay = 0
         start_time = now()
         abort_time = start_time + max_run_time
         while now() < abort_time:
             burst_loops += 1
-            last_cpu_cycles = self.cycles
-            burst_start = now()
-
             self.burst_run()
-
-#             log.critical("Run %i", burst_op_count)
-
-            if target_cycles_per_sec:
-                burst_duration = (now() - start_time) / burst_loops
-
-                burst_cycles_count = self.cycles - last_cpu_cycles
-
-#                 log.critical("*"*79)
-#                 log.critical("burst_op_count=%s", burst_op_count)
-#                 log.critical("burst_duration=%f", burst_duration)
-#                 log.critical("burst_cycles_count=%i", burst_cycles_count)
-
-                try:
-                    cycles_per_sec = burst_cycles_count / burst_duration
-                except ZeroDivisionError:
-                    log.critical("burst_cycles_count=%i", burst_cycles_count)
-                    log.critical("burst_duration=%f", burst_duration)
-                    log.critical("Set cycles_per_sec to maxint.")
-                    cycles_per_sec = sys.maxint
-
-#                 log.critical("%i cycles_per_sec = %i burst_cycles_count / %f burst_duration",
-#                     cycles_per_sec, burst_cycles_count, burst_duration
-#                 )
-
-                should_burst_duration = cycles_per_sec / target_cycles_per_sec
-#                 log.critical("%s should_burst_duration = %s cycles_per_sec / %s target_cycles_per_sec",
-#                     should_burst_duration, target_cycles_per_sec, cycles_per_sec
-#                 )
-
-                target_duration = should_burst_duration * burst_duration
-#                 log.critical("%s target_duration = %s should_burst_duration * %s burst_duration",
-#                     target_duration, should_burst_duration, burst_duration
-#                 )
-                delay = target_duration - burst_duration
-#                 log.critical("%s delay = %s target_duration - %s burst_duration",#
-#                     delay, target_duration, burst_duration
-#                 )
-#                 log.critical("Delay: %.12f sec", delay)
-
-                if delay > 0:
-                    total_delay += delay
-                    sleep(delay)
-
-#        log.critical("burst_loops = %i - burst_op_count = %i", burst_loops, self.burst_op_count)
-
-        if burst_loops != target_burst_loops:
-            """
-            Recalculate how many ops we should run in a loop to
-            match the target_burst_loops
-            """
-#            log.critical("self.burst_op_count = %i", self.burst_op_count)
-            new_burst_loops = float(burst_loops) / target_burst_loops * self.burst_op_count
-#            log.critical("new_burst_loops = %s", new_burst_loops)
-            self.burst_op_count = int((self.burst_op_count + new_burst_loops) / 2)
-            if self.burst_op_count < 1:
-                self.burst_op_count = 1
-#            log.critical("new self.burst_op_count = %i", self.burst_op_count)
-
-#         log.critical("*"*79)
-        return burst_loops, total_delay
+            
+        # Calculate the burst_count new, to hit self.target_burst_duration
+        self.burst_op_count = self.calc_new_count(self.burst_op_count,
+            current_value=now() - start_time,
+            target_value=max_run_time,
+        )
+        if self.burst_op_count > self.quickest_sync_callback_cyles:
+            self.burst_op_count = self.quickest_sync_callback_cyles
+        return burst_loops
 
     def test_run(self, start, end):
 #        log.warning("CPU test_run(): from $%x to $%x" % (start, end))

@@ -435,33 +435,17 @@ class BaseTkinterGUI(object):
         char_or_code = event.char or event.keycode
         self.user_input_queue.put(char_or_code)
 
-    def calc_new_count(self, burst_count, current_value, target_value):
-        """
-        >>> calc_new_count(burst_count=100, current_value=30, target_value=30)
-        100
-        >>> calc_new_count(burst_count=100, current_value=40, target_value=20)
-        75
-        >>> calc_new_count(burst_count=100, current_value=20, target_value=40)
-        150
-        """
-        try:
-            a = float(burst_count) / float(current_value) * target_value
-        except ZeroDivisionError:
-            return burst_count * 2
-        return int(round((burst_count + a) / 2))
-
+    burst_loops = 0
     burst_calls = 0
     def cpu_interval(self, interval=None):
         self.burst_calls += 1
 
         start_time = time.time()
-        self.machine.cpu.burst_run()
+#         self.machine.cpu.burst_run()
+        self.burst_loops += self.machine.cpu.run(max_run_time=self.runtime_cfg.max_run_time)
         now = time.time()
         self.total_burst_duration += (now - start_time)
         self.op_count += self.machine.cpu.burst_op_count
-        
-#         if now > self.next_cpu_cycle_update:
-#             self.update_status()
 
         self.process_display_queue()
 
@@ -484,18 +468,19 @@ class BaseTkinterGUI(object):
         msg = (
             "%s cylces/sec\n"
             "%s ops/sec\n"
-            "%s Ops in %i burst calls"
+            "%s Ops in %i burst calls %i burst loops"
         ) % (
             locale_format_number(cycles_per_sec),
             locale_format_number(ops_per_sec),
             locale_format_number(self.op_count),
-            self.burst_calls,
+            self.burst_calls, self.burst_loops
         )
         self.status.set(msg)
 
         self.op_count = 0
         self.last_cpu_cycles = self.machine.cpu.cycles
         self.burst_calls = 0
+        self.burst_loops = 0
         self.last_update = time.time()
 
         self.root.after(interval, self.update_status_interval, interval)
@@ -714,9 +699,9 @@ def test_run():
 #         "--verbosity", "10", # DEBUG
 #         "--verbosity", "20", # INFO
 #         "--verbosity", "30", # WARNING
-#         "--verbosity", "40", # ERROR
+        "--verbosity", "40", # ERROR
 #         "--verbosity", "50", # CRITICAL/FATAL
-        "--verbosity", "99", # nearly all off
+#         "--verbosity", "99", # nearly all off
         "--machine", "Dragon32", "run",
 #        "--machine", "Vectrex", "run",
 #        "--max_ops", "1",
