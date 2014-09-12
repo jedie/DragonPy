@@ -19,7 +19,7 @@ import binascii
 import sys
 import unittest
 
-from dragonlib.utils import lib2and3
+from dragonlib.utils import six
 from dragonlib.utils.logging_utils import log, setup_logging
 from dragonpy.tests.test_base import TextTestRunner2, BaseStackTestCase
 
@@ -142,7 +142,7 @@ class Test6809_Program(BaseStackTestCase):
         return crc32 ^ 0xFFFFFFFF
 
     def _test_crc32(self, txt):
-        if lib2and3.PY3:
+        if six.PY3:
             txt = bytes(txt, encoding="UTF-8")
         crc32 = self._crc32(txt)
         excpected_crc32 = binascii.crc32(txt) & 0xffffffff
