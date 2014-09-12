@@ -11,6 +11,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from six.moves import xrange
 
 import os
 import sys
@@ -83,8 +84,8 @@ class MC6847_TextModeCanvas(object):
 
         # Create all charachter images on the display and fill self.images_map:
         self.init_img = self.tk_font.get_char(char="?", color=dragon_charmap.INVERTED)
-        for row in range(self.rows + 1):
-            for column in range(self.columns + 1):
+        for row in xrange(self.rows + 1):
+            for column in xrange(self.columns + 1):
                 x = self.tk_font.width_scaled * row
                 y = self.tk_font.height_scaled * column
                 image_id = self.canvas.create_image(x, y,
@@ -409,7 +410,7 @@ class BaseTkinterGUI(object):
             self.user_input_queue.put(char)
 
     def wait_until_input_queue_empty(self):
-        for count in range(1, 10):
+        for count in xrange(1, 10):
             self.cpu_interval()
             if self.user_input_queue.empty():
                 log.critical("user_input_queue is empty, after %i burst runs, ok.", count)

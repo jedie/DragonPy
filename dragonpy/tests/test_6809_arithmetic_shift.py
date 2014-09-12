@@ -13,7 +13,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
-
+from six.moves import xrange
 
 import logging
 import sys
@@ -47,7 +47,7 @@ loop:
         LEAU 1,U    ; inc U
         JMP loop
         """
-        for i in range(0x100):
+        for i in xrange(0x100):
             self.cpu.accu_a.set(i)
             self.cpu.cc.set(0x00) # Clear all CC flags
             self.cpu_test_run(start=0x1000, end=None, mem=[
@@ -85,7 +85,7 @@ loop:
             self.assertEqual(self.cpu.cc.C, source_bit0)
 
     def test_LSLA_inherent(self):
-        for i in range(260):
+        for i in xrange(260):
             self.cpu.accu_a.set(i)
             self.cpu.cc.set(0x00) # Clear all CC flags
             self.cpu_test_run(start=0x1000, end=None, mem=[
@@ -132,7 +132,7 @@ loop:
         Jedes Bit der Speicherzelle bzw. des Akkumulators A/B wird um eine Position nach rechts verschoben.
         Bit 7 wird auf '0' gesetzt, und Bit 0 wird ins Carry Flag übertragen.
         """
-        for src in range(0x100):
+        for src in xrange(0x100):
             self.cpu.accu_b.set(src)
             self.cpu.cc.set(0x00) # Set all CC flags
             self.cpu_test_run(start=0x1000, end=None, mem=[
@@ -228,7 +228,7 @@ class Test6809_Rotate(BaseCPUTestCase):
                 self.assertEqual(self.cpu.cc.C, 0)
 
     def test_ROLA_with_clear_carry(self):
-        for a in range(0x100):
+        for a in xrange(0x100):
             self.cpu.cc.set(0x00) # clear all CC flags
             a = self.cpu.accu_a.set(a)
             self.cpu_test_run(start=0x0000, end=None, mem=[
@@ -241,7 +241,7 @@ class Test6809_Rotate(BaseCPUTestCase):
             self.assertEqual(self.cpu.cc.H, 0)
 
     def test_ROLA_with_set_carry(self):
-        for a in range(0x100):
+        for a in xrange(0x100):
             self.cpu.cc.set(0xff) # set all CC flags
             a = self.cpu.accu_a.set(a)
             self.cpu_test_run(start=0x0000, end=None, mem=[
@@ -254,7 +254,7 @@ class Test6809_Rotate(BaseCPUTestCase):
             self.assertEqual(self.cpu.cc.H, 1)
 
     def test_ROL_memory_with_clear_carry(self):
-        for a in range(0x100):
+        for a in xrange(0x100):
             self.cpu.cc.set(0x00) # clear all CC flags
             self.cpu.memory.write_byte(0x0050, a)
             self.cpu_test_run(start=0x0000, end=None, mem=[
@@ -267,7 +267,7 @@ class Test6809_Rotate(BaseCPUTestCase):
             self.assertEqual(self.cpu.cc.H, 0)
 
     def test_ROL_memory_with_set_carry(self):
-        for a in range(0x100):
+        for a in xrange(0x100):
             self.cpu.cc.set(0xff) # set all CC flags
             self.cpu.memory.write_byte(0x0050, a)
             self.cpu_test_run(start=0x0000, end=None, mem=[
@@ -312,7 +312,7 @@ class Test6809_Rotate(BaseCPUTestCase):
                 self.assertEqual(self.cpu.cc.C, 0)
 
     def test_RORA_with_clear_carry(self):
-        for a in range(0x100):
+        for a in xrange(0x100):
             self.cpu.cc.set(0x00) # clear all CC flags
             a = self.cpu.accu_a.set(a)
             self.cpu_test_run(start=0x0000, end=None, mem=[
@@ -326,7 +326,7 @@ class Test6809_Rotate(BaseCPUTestCase):
             self.assertEqual(self.cpu.cc.V, 0)
 
     def test_RORA_with_set_carry(self):
-        for a in range(0x100):
+        for a in xrange(0x100):
             self.cpu.cc.set(0xff) # set all CC flags
             a = self.cpu.accu_a.set(a)
             self.cpu_test_run(start=0x0000, end=None, mem=[
@@ -340,7 +340,7 @@ class Test6809_Rotate(BaseCPUTestCase):
             self.assertEqual(self.cpu.cc.V, 1)
 
     def test_ROR_memory_with_clear_carry(self):
-        for a in range(0x100):
+        for a in xrange(0x100):
             self.cpu.cc.set(0x00) # clear all CC flags
             self.cpu.memory.write_byte(0x0050, a)
             self.cpu_test_run(start=0x0000, end=None, mem=[
@@ -354,7 +354,7 @@ class Test6809_Rotate(BaseCPUTestCase):
             self.assertEqual(self.cpu.cc.V, 0)
 
     def test_ROR_memory_with_set_carry(self):
-        for a in range(0x100):
+        for a in xrange(0x100):
             self.cpu.cc.set(0xff) # set all CC flags
             self.cpu.memory.write_byte(0x0050, a)
             self.cpu_test_run(start=0x0000, end=None, mem=[

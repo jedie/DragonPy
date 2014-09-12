@@ -39,12 +39,15 @@
     PA6 | ENT   CLR   BRK   N/C   N/C   N/C   N/C  SHFT
 """
 
+from __future__ import absolute_import, division, print_function
+from six.moves import xrange
+
 import string
 
 from dragonlib.utils.auto_shift import invert_shift
 import logging
 
-log=logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 from dragonpy.utils.bits import invert_byte, is_bit_set, clear_bit
 
 
@@ -259,7 +262,7 @@ def test(char_or_code, matrix_name, auto_shift=False):
 
     print("char/keycode: %s -> cols/rows: %s" % (repr(char_or_code), repr(col_row_values)))
 
-    for i in range(8):
+    for i in xrange(8):
         pia0b = invert_byte(2 ** i) # written into $ff02
         if matrix_name == "dragon":
             result = get_dragon_keymatrix_pia_result(char_or_code, pia0b, auto_shift=auto_shift) # read from $ff00

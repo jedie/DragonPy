@@ -8,7 +8,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
-
+from six.moves import xrange
 
 import logging
 import sys
@@ -39,7 +39,7 @@ class Test6809_Arithmetic(BaseCPUTestCase):
         excpected_values += list(range(0, 5))
 
         self.cpu.accu_a.set(0x00) # start value
-        for i in range(260):
+        for i in xrange(260):
             self.cpu.cc.set(0x00) # Clear all CC flags
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x8B, 0x01, # ADDA #$1 Immediate
@@ -82,7 +82,7 @@ class Test6809_Arithmetic(BaseCPUTestCase):
                 self.assertEqual(self.cpu.cc.C, 0)
 
     def test_ADDA1(self):
-        for i in range(260):
+        for i in xrange(260):
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x8B, 0x01, # ADDA   #$01
             ])
@@ -174,7 +174,7 @@ loop:
         """
         excpected_values = [0] + list(range(255, 0, -1))
 
-        for a in range(256):
+        for a in xrange(256):
             self.cpu.cc.set(0x00)
 
             self.cpu_test_run(start=0x1000, end=None, mem=[
@@ -231,7 +231,7 @@ loop:
         excpected_values = [0] + list(range(255, 0, -1))
         address = 0x10
 
-        for a in range(256):
+        for a in xrange(256):
             self.cpu.cc.set(0x00)
 
             self.cpu.memory.write_byte(address, a)
@@ -281,7 +281,7 @@ loop:
         excpected_values += list(range(0, 5))
 
         self.cpu.memory.write_byte(0x4500, 0x0) # start value
-        for i in range(260):
+        for i in xrange(260):
             self.cpu.cc.set(0x00) # Clear all CC flags
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x7c, 0x45, 0x00, # INC $4500
@@ -319,7 +319,7 @@ loop:
         excpected_values = list(range(1, 256))
         excpected_values += list(range(0, 5))
 
-        for i in range(260):
+        for i in xrange(260):
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x5c, # INCB
             ])
@@ -389,7 +389,7 @@ loop:
         excpected_values += list(range(255, 250, -1))
 
         self.cpu.accu_a.set(0xff) # start value
-        for i in range(260):
+        for i in xrange(260):
             self.cpu.cc.set(0x00) # Clear all CC flags
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x80, 0x01, # SUBA #$01
@@ -452,7 +452,7 @@ loop:
 
         self.cpu.memory.write_byte(0x4500, 0xff) # start value
         self.cpu.accu_a.set(0xff) # start value
-        for i in range(260):
+        for i in xrange(260):
             self.cpu.cc.set(0x00) # Clear all CC flags
             self.cpu_test_run(start=0x1000, end=None, mem=[
                 0x7A, 0x45, 0x00, # DEC $4500
@@ -489,7 +489,7 @@ loop:
             self.assertEqual(self.cpu.cc.C, 0)
 
     def test_DECA(self):
-        for a in range(256):
+        for a in xrange(256):
             self.cpu.cc.set(0x00)
             self.cpu.accu_a.set(a)
             self.cpu_test_run(start=0x1000, end=None, mem=[
@@ -650,7 +650,7 @@ loop:
         self.assertEqual(self.cpu.cc.C, 1)
 
     def test_DAA2(self):
-        for add in range(0xff):
+        for add in xrange(0xff):
             self.cpu.cc.set(0x00)
             self.cpu.accu_a.set(0x01)
             self.cpu_test_run(start=0x0100, end=None, mem=[

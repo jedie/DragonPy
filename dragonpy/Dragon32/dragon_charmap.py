@@ -13,6 +13,7 @@
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
+from six.moves import xrange
 
 import unicodedata
 
@@ -202,9 +203,9 @@ for item_type in COLORS:
 
 def list_chars():
     index = 0
-    for x in range(8):
+    for x in xrange(8):
         line = ""
-        for y in range(32):
+        for y in xrange(32):
             try:
                 line += DRAGON_CHARS_MAP[index][0]
             except KeyError:

@@ -18,6 +18,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from six.moves import xrange
 
 import logging
 import pprint
@@ -68,7 +69,7 @@ def split2chunks(seq, size):
     >>> split2chunks("ABCEDFGH", 3)
     ['ABC', 'EDF', 'GH']
     """
-    return [seq[pos:pos + size] for pos in range(0, len(seq), size)]
+    return [seq[pos:pos + size] for pos in xrange(0, len(seq), size)]
 
 
 class Test_sbc09(Test6809_sbc09_Base):
@@ -83,7 +84,7 @@ class Test_sbc09(Test6809_sbc09_Base):
         """
         Calculate simple expression in hex with + and -
         """
-        for i in range(20):
+        for i in xrange(20):
             self.setUp() # Reset CPU
             self.periphery.add_to_input_queue(
                  'H100+%X\r\n' % i
@@ -100,7 +101,7 @@ class Test_sbc09(Test6809_sbc09_Base):
         """
         Calculate simple expression in hex with + and -
         """
-        for i in range(20):
+        for i in xrange(20):
             self.setUp() # Reset CPU
             self.periphery.add_to_input_queue(
                  'H100-%X\r\n' % i

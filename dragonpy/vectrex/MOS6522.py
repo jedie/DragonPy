@@ -17,8 +17,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
-
-
+from six.moves import xrange
 
 import logging
 
@@ -68,7 +67,7 @@ class MOS6522VIA(object):
 
     def reset(self):
         self.snd_regs = {}
-        for i in range(16):
+        for i in xrange(16):
             self.snd_regs[i] = 0
         self.snd_regs[14] = 0xff
 

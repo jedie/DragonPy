@@ -11,7 +11,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
-
+from six.moves import xrange
 
 import logging
 import sys
@@ -77,7 +77,7 @@ def disable_logging(log):
 def log_memory_dump(memory, start, end, mem_info, level=99):
     log.log(level, "Memory dump from $%04x to $%04x:", start, end)
 
-    for addr in range(start, end + 1):
+    for addr in xrange(start, end + 1):
         value = memory[addr]
         if isinstance(value, int):
             msg = "$%04x: $%02x (dez: %i)" % (addr, value, value)

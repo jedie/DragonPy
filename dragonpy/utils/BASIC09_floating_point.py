@@ -9,7 +9,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
-
+from six.moves import xrange
 
 import math
 import decimal
@@ -49,7 +49,7 @@ class BASIC09FloatingPoint(object):
         value = decimal.Decimal(abs(value))
         result = []
         pos = 0
-        for __ in range(byte_count):
+        for __ in xrange(byte_count):
             current_byte = 0
             for bit_no in reversed(range(8)):
                 pos += 1

@@ -21,6 +21,9 @@
     more info, see README
 """
 
+from __future__ import absolute_import, division, print_function
+from six.moves import xrange
+
 try:
     # Python 3
     import queue
@@ -328,7 +331,7 @@ class CPU(object):
         """ Run CPU as fast as Python can... """
         # https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Avoiding_dots...
         get_and_call_next_op = self.get_and_call_next_op
-        for __ in range(self.burst_op_count):
+        for __ in xrange(self.burst_op_count):
             get_and_call_next_op()
         self.call_sync_callbacks()
 
@@ -382,7 +385,12 @@ class CPU(object):
 #        log.warning("CPU test_run2(): from $%x count: %i" % (start, count))
         self.program_counter.set(start)
 #        log.debug("-"*79)
-        self.burst_run(count)
+        _old_count = self.burst_op_count
+        self.burst_op_count = count
+
+        self.burst_run()
+
+        self.burst_op_count = _old_count
 
 
     ####

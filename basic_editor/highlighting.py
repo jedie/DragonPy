@@ -12,7 +12,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
-
+from six.moves import xrange
 
 try:
     # python 3
@@ -92,7 +92,7 @@ class TkTextHighlighting(BaseExtension):
 
         line_max = self.text.index(tkinter.END).split('.')[0]
         line_max = int(line_max)
-        for line_no in range(line_max):
+        for line_no in xrange(line_max):
             line_content = self.text.get("%s.0" % line_no, "%s.0+1lines" % line_no)
 #             print "line:", repr(line_content)
             if not line_content.strip():

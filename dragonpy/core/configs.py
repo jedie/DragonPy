@@ -10,14 +10,12 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from six.moves import xrange
 
 import inspect
-import multiprocessing
-import struct
-
 import logging
 
-log=logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 DRAGON32 = "Dragon32"
@@ -61,7 +59,7 @@ class AddressAreas(dict):
             self.add_area(start_addr, end_addr, txt)
 
     def add_area(self, start_addr, end_addr, txt):
-        for addr in range(start_addr, end_addr + 1):
+        for addr in xrange(start_addr, end_addr + 1):
             dict.__setitem__(self, addr, txt)
 
 

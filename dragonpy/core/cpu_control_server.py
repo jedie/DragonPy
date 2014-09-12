@@ -16,6 +16,8 @@
     more info, see README
 """
 
+from __future__ import absolute_import, division, print_function
+from six.moves import xrange
 
 try:
     from http.server import BaseHTTPRequestHandler # Python 3
@@ -160,7 +162,7 @@ class ControlHandler(BaseHTTPRequestHandler):
             end = int(e)
         else:
             end = addr
-        self.response("".join([chr(self.cpu.read_byte(x)) for x in range(addr, end + 1)]))
+        self.response("".join([chr(self.cpu.read_byte(x)) for x in xrange(addr, end + 1)]))
 
     def get_memory(self, m):
         addr = int(m.group(1), 16)

@@ -11,6 +11,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from six.moves import xrange
 
 import binascii
 import io
@@ -51,7 +52,7 @@ class Test6809_Program2(Test6809_Program):
         ))
 
         start_time = time.time()
-        for __ in range(loops):
+        for __ in xrange(loops):
             self._crc32(txt)
         duration = time.time() - start_time
 

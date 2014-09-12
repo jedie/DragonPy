@@ -10,7 +10,7 @@
 
 
 from __future__ import absolute_import, division, print_function
-
+from six.moves import xrange
 
 import hashlib
 import os
@@ -222,7 +222,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
         old_cycles = self.cpu.cycles
         output = []
         existing_OK_count = 0
-        for op_call_count in range(max_ops):
+        for op_call_count in xrange(max_ops):
             self.cpu.get_and_call_next_op()
             out_lines = self.periphery.output_lines
             if out_lines:
@@ -323,7 +323,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         old_cycles = self.cpu.cycles
         output = []
         existing_OK_count = 0
-        for op_call_count in range(max_ops):
+        for op_call_count in xrange(max_ops):
             self.cpu.get_and_call_next_op()
             out_lines = self.periphery.output_lines
             if out_lines:
@@ -343,7 +343,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
     def _run_until_newlines(self, newline_count=1, max_ops=5000):
         old_cycles = self.cpu.cycles
         output = []
-        for op_call_count in range(max_ops):
+        for op_call_count in xrange(max_ops):
             self.cpu.get_and_call_next_op()
             out_lines = self.periphery.output_lines
             if out_lines:
@@ -448,7 +448,7 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
         old_cycles = self.cpu.cycles
         output = []
         existing_OK_count = 0
-        for op_call_count in range(max_ops):
+        for op_call_count in xrange(max_ops):
             try:
                 self.cpu.get_and_call_next_op()
             except Exception as err:
@@ -470,7 +470,7 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
 
     def _run_until_response(self, max_ops=10000):
         old_cycles = self.cpu.cycles
-        for op_call_count in range(max_ops):
+        for op_call_count in xrange(max_ops):
             self.cpu.get_and_call_next_op()
             try:
                 result = self.response_queue.get(block=False)

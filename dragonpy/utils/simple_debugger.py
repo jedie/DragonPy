@@ -13,6 +13,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from six.moves import xrange
 
 import sys
 import traceback
@@ -43,8 +44,8 @@ class ColorOut(object):
     def __init__(self):
         self.color_support = self.supports_colors()
 
-        self.foreground_colors = dict([(self.COLOR_NAMES[x], '3%s' % x) for x in range(8)])
-        self.background_colors = dict([(self.COLOR_NAMES[x], '4%s' % x) for x in range(8)])
+        self.foreground_colors = dict([(self.COLOR_NAMES[x], '3%s' % x) for x in xrange(8)])
+        self.background_colors = dict([(self.COLOR_NAMES[x], '4%s' % x) for x in xrange(8)])
 
     def supports_colors(self):
         if sys.platform in ('win32', 'Pocket PC'):

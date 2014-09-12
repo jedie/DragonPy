@@ -10,6 +10,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from six.moves import xrange
 
 import logging
 import os
@@ -72,11 +73,11 @@ class Dragon64Cfg(Dragon32Cfg):
         init the Dragon RAM
         See: http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4444
         """
-        mem_FF = [0xff for _ in range(4)]
-        mem_00 = [0x00 for _ in range(4)]
+        mem_FF = [0xff for _ in xrange(4)]
+        mem_00 = [0x00 for _ in xrange(4)]
 
         mem = []
-        for _ in range(self.RAM_SIZE // 8):
+        for _ in xrange(self.RAM_SIZE // 8):
             mem += mem_FF
             mem += mem_00
 

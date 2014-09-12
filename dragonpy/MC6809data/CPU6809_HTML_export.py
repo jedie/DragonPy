@@ -12,8 +12,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
-
-
+from six.moves import xrange
 
 import os
 
@@ -101,7 +100,7 @@ for instruction, instr_data in sorted(OP_DATA.items()):
 
 
 # add rowspan information
-for colum_no in range(len(data[0])):
+for colum_no in xrange(len(data[0])):
     old_cell = None
     same_count = 0
     for row in reversed(data):

@@ -11,6 +11,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from six.moves import xrange
 
 import sys
 import threading
@@ -29,7 +30,7 @@ except ImportError:
 
 import logging
 
-log=logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 from dragonpy.utils import pager
 
 
@@ -80,7 +81,7 @@ class PeripheryBase(object):
         max_ops = self.cfg.cfg_dict["max_ops"]
         if max_ops:
             log.critical("Running only %i ops!", max_ops)
-            for __ in range(max_ops):
+            for __ in xrange(max_ops):
                 cpu.get_and_call_next_op()
                 if not (self.periphery.running and self.cpu.running):
                     break
@@ -301,7 +302,6 @@ class ConsolePeripheryBase(PeripheryBase):
 
 class PeripheryUnittestBase(object):
     def __init__(self, *args, **kwargs):
-        super(PeripheryUnittestBase, self).__init__(*args, **kwargs)
         self._out_buffer = ""
         self.output_lines = []
 
