@@ -23,7 +23,7 @@ from basic_editor.editor import EditorWindow
 
 from dragonpy.Dragon32 import dragon_charmap
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
-from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
+from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkImageFont
 from dragonpy.utils.humanize import locale_format_number, get_python_info
 
 log = logging.getLogger(__name__)
@@ -36,6 +36,7 @@ try:
     from tkinter import filedialog
     from tkinter import messagebox
     from tkinter import scrolledtext
+    from tkinter import font as TkFont
 except ImportError:
     # Python 2
     import Queue as queue
@@ -43,6 +44,7 @@ except ImportError:
     import tkFileDialog as filedialog
     import tkMessageBox as messagebox
     import ScrolledText as scrolledtext
+    import tkFont as TkFont
 
 
 class MC6847_TextModeCanvas(object):
@@ -61,7 +63,7 @@ class MC6847_TextModeCanvas(object):
         self.columns = 16
 
         scale_factor = 2  # scale the complete Display/Characters
-        self.tk_font = TkFont(CHARS_DICT, scale_factor)  # to generate PhotoImage()
+        self.tk_font = TkImageFont(CHARS_DICT, scale_factor)  # to generate PhotoImage()
 
         self.total_width = self.tk_font.width_scaled * self.rows
         self.total_height = self.tk_font.height_scaled * self.columns
@@ -129,7 +131,9 @@ class RuntimeCfg(object):
     """
     speedlimit = False
     cycles_per_sec = 888625 # cycles/sec
+    sync_op_count = 100
     max_run_time = 0.1
+    max_burst_count = 1000
 
     def __setattr__(self, attr, value):
         log.critical("Set RuntimeCfg %r to: %r" % (attr, value))
@@ -160,6 +164,8 @@ class BaseTkinterGUIConfig(object):
             self.gui.root.winfo_y() # FIXME: Different on linux.
         ))
 
+        row = 0
+
         #
         # Speedlimit check button
         #
@@ -171,7 +177,7 @@ class BaseTkinterGUIConfig(object):
             text="speedlimit", variable=self.check_value_speedlimit,
             command=self.command_checkbutton_speedlimit
         )
-        self.checkbutton_speedlimit.grid(row=0, column=0)
+        self.checkbutton_speedlimit.grid(row=row, column=0)
 
         #
         # Cycles/sec entry
@@ -184,14 +190,16 @@ class BaseTkinterGUIConfig(object):
             width=8, # validate = 'key', validatecommand = vcmd
         )
         self.cycles_per_sec_entry.bind('<KeyRelease>', self.command_cycles_per_sec)
-        self.cycles_per_sec_entry.grid(row=0, column=1)
+        self.cycles_per_sec_entry.grid(row=row, column=1)
 
         self.cycles_per_sec_label_var = tkinter.StringVar()
         self.cycles_per_sec_label = tkinter.Label(
             self.root, textvariable=self.cycles_per_sec_label_var
         )
         self.root.after_idle(self.command_cycles_per_sec) # Add Text
-        self.cycles_per_sec_label.grid(row=0, column=2)
+        self.cycles_per_sec_label.grid(row=row, column=2)
+
+        row += 1
 
         #
         # CPU burst max running time - self.runtime_cfg.max_run_time
@@ -203,11 +211,47 @@ class BaseTkinterGUIConfig(object):
             textvariable=self.max_run_time_var, width=8,
         )
         self.max_run_time_entry.bind('<KeyRelease>', self.command_max_run_time)
-        self.max_run_time_entry.grid(row=2, column=1)
+        self.max_run_time_entry.grid(row=row, column=1)
         self.max_run_time_label = tkinter.Label(self.root,
             text="How long should a CPU Op burst loop take (max_run_time)"
         )
-        self.max_run_time_label.grid(row=2, column=2, sticky=tkinter.W)
+        self.max_run_time_label.grid(row=row, column=2, sticky=tkinter.W)
+
+        row += 1
+
+        #
+        # CPU sync OP count - self.runtime_cfg.sync_op_count
+        #
+        self.sync_op_count_var = tkinter.IntVar(
+            value=self.runtime_cfg.sync_op_count
+        )
+        self.sync_op_count_entry = tkinter.Entry(self.root,
+            textvariable=self.sync_op_count_var, width=8,
+        )
+        self.sync_op_count_entry.bind('<KeyRelease>', self.command_sync_op_count)
+        self.sync_op_count_entry.grid(row=row, column=1)
+        self.sync_op_count_label = tkinter.Label(self.root,
+            text="How many Ops should the CPU process before check sync calls e.g. IRQ (sync_op_count)"
+        )
+        self.sync_op_count_label.grid(row=row, column=2, sticky=tkinter.W)
+
+        row += 1
+
+        #
+        # max CPU burst op count - self.runtime_cfg.max_burst_count
+        #
+        self.max_burst_count_var = tkinter.IntVar(
+            value=self.runtime_cfg.max_burst_count
+        )
+        self.max_burst_count_entry = tkinter.Entry(self.root,
+            textvariable=self.max_burst_count_var, width=8,
+        )
+        self.max_burst_count_entry.bind('<KeyRelease>', self.command_max_burst_count)
+        self.max_burst_count_entry.grid(row=row, column=1)
+        self.max_burst_count_label = tkinter.Label(self.root,
+            text="Max CPU op burst count (max_burst_count)"
+        )
+        self.max_burst_count_label.grid(row=row, column=2, sticky=tkinter.W)
 
         self.root.update()
 
@@ -229,6 +273,32 @@ class BaseTkinterGUIConfig(object):
         )
 
         self.runtime_cfg.cycles_per_sec = cycles_per_sec
+
+    def command_sync_op_count(self, event=None):
+        """ CPU burst max running time - self.runtime_cfg.sync_op_count """
+        try:
+            sync_op_count = self.sync_op_count_var.get()
+        except ValueError:
+            sync_op_count = self.runtime_cfg.sync_op_count
+
+        if sync_op_count < 1:
+            sync_op_count = self.runtime_cfg.sync_op_count
+
+        self.runtime_cfg.sync_op_count = sync_op_count
+        self.sync_op_count_var.set(self.runtime_cfg.sync_op_count)
+
+    def command_max_burst_count(self, event=None):
+        """ max CPU burst op count - self.runtime_cfg.max_burst_count """
+        try:
+            max_burst_count = self.max_burst_count_var.get()
+        except ValueError:
+            max_burst_count = self.runtime_cfg.max_burst_count
+
+        if max_burst_count < 1:
+            max_burst_count = self.runtime_cfg.max_burst_count
+
+        self.runtime_cfg.max_burst_count = max_burst_count
+        self.max_burst_count_var.set(self.runtime_cfg.max_burst_count)
 
     def command_max_run_time(self, event=None):
         """ CPU burst max running time - self.runtime_cfg.max_run_time """
@@ -271,6 +341,8 @@ class BaseTkinterGUI(object):
         self.init_statistics() # Called also after reset
 
         self.root = tkinter.Tk(className="DragonPy")
+#         self.root.config(font="Helvetica 16 bold italic")
+
         self.root.geometry("+%d+%d" % (
             self.root.winfo_screenwidth() * 0.1, self.root.winfo_screenheight() * 0.1
         ))
@@ -278,9 +350,17 @@ class BaseTkinterGUI(object):
         self.root.bind("<Key>", self.event_key_pressed)
         self.root.bind("<<Paste>>", self.paste_clipboard)
 
+        menu_tk_font = TkFont.Font(
+            family='Helvetica',
+#             family='clean',
+            size=11, weight='normal'
+        )
+
         self.status = tkinter.StringVar(value="startup %s...\n" % self.cfg.MACHINE_NAME)
         self.status_widget = tkinter.Label(
-            self.root, textvariable=self.status, text="Info:", borderwidth=1)
+            self.root, textvariable=self.status, text="Info:", borderwidth=1,
+            font=menu_tk_font
+        )
         self.status_widget.grid(row=1, column=0)
 
         self.python_info_label = tkinter.Label(
@@ -418,7 +498,6 @@ class BaseTkinterGUI(object):
         self.user_input_queue.put(char_or_code)
 
     total_burst_duration = 0
-    burst_loops = 0
     cpu_interval_calls = 0
     last_display_queue_qsize = 0
     def cpu_interval(self, interval=None):
@@ -432,7 +511,7 @@ class BaseTkinterGUI(object):
             target_cycles_per_sec = None
 
         start_time = time.time()
-        self.burst_loops += self.machine.cpu.run(
+        self.machine.cpu.run(
             max_run_time=self.runtime_cfg.max_run_time,
             target_cycles_per_sec=target_cycles_per_sec,
         )
@@ -450,17 +529,21 @@ class BaseTkinterGUI(object):
 
     last_update = 0
     def update_status_interval(self, interval=500):
+
+        # Update CPU settings:
+        self.machine.cpu.sync_op_count = self.runtime_cfg.sync_op_count
+        self.machine.cpu.max_burst_count = self.runtime_cfg.max_burst_count
+
         new_cycles = self.machine.cpu.cycles - self.last_cpu_cycles
         duration = time.time() - self.last_update
 
         cycles_per_sec = new_cycles / duration
 
         msg = (
-            "%s cylces/sec in %i burst loops (~%s burst op count)\n"
+            "%s cylces/sec (~%s burst op count)\n"
             "%i CPU interval calls, display queue qsize: %.2f"
         ) % (
             locale_format_number(cycles_per_sec),
-            self.burst_loops,
             locale_format_number(self.machine.cpu.burst_op_count),
             self.cpu_interval_calls,
             self.last_display_queue_qsize

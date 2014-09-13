@@ -1217,7 +1217,7 @@ CHARS_DICT = {
 
 
 
-class TkFont(object):
+class TkImageFont(object):
     """
     Important is that image must be bind to a object, without:
     the garbage-collection by Python will "remove" the created images in Tkinter.Canvas!
@@ -1277,7 +1277,7 @@ class TkFont(object):
         return img
 
 
-class TestTkFont(object):
+class TestTkImageFont(object):
     CACHE = {}
     def __init__(self, row_count, tk_font, colors):
         self.row_count = row_count
@@ -1287,7 +1287,7 @@ class TestTkFont(object):
         self.current_color = self.colors[self.color_index]
 
         self.root = tkinter.Tk()
-        self.root.title("TkFont Test")
+        self.root.title("TkImageFont Test")
 
         self.root.bind('<Down>', self.event_arrow_down)
         self.root.bind('<Up>', self.event_arrow_up)
@@ -1367,13 +1367,13 @@ if __name__ == "__main__":
 #     scale_factor = 3
     scale_factor = 4
 #     scale_factor = 8
-    tk_font = TkFont(
+    tk_font = TkImageFont(
         CHARS_DICT, scale_factor,
     )
 
     colors = (NORMAL, INVERTED) + COLORS
 
-    t = TestTkFont(
+    t = TestTkImageFont(
         row_count=10,
         tk_font=tk_font,
         colors=colors,

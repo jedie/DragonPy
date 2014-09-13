@@ -120,7 +120,7 @@ class CPU(object):
     NMI_VECTOR = 0xfffc
     RESET_VECTOR = 0xfffe
 
-    STARTUP_BURST_COUNT = 1000
+    STARTUP_BURST_COUNT = 100
 
     def __init__(self, memory, cfg, cpu_status_queue=None):
         self.memory = memory
@@ -130,6 +130,8 @@ class CPU(object):
         self.cycles = 0
         self.last_op_address = 0 # Store the current run opcode memory address
         self.burst_op_count = self.STARTUP_BURST_COUNT
+        self.sync_op_count = 100
+        self.max_burst_count = 10000
 
         if cpu_status_queue is not None:
             status_thread = CPUStatusThread(self, cpu_status_queue)
@@ -299,16 +301,16 @@ class CPU(object):
 
     ####
 
-    quickest_sync_callback_cyles = None
+    quickest_sync_callback_cycles = None
     sync_callbacks_cyles = {}
     sync_callbacks = []
     def add_sync_callback(self, callback_cycles, callback):
         """ Add a CPU cycle triggered callback """
         self.sync_callbacks_cyles[callback] = 0
         self.sync_callbacks.append([callback_cycles, callback])
-        if self.quickest_sync_callback_cyles is None or \
-                        self.quickest_sync_callback_cyles > callback_cycles:
-            self.quickest_sync_callback_cyles = callback_cycles
+        if self.quickest_sync_callback_cycles is None or \
+                        self.quickest_sync_callback_cycles > callback_cycles:
+            self.quickest_sync_callback_cycles = callback_cycles
 
     def call_sync_callbacks(self):
         """ Call every sync callback with CPU cycles trigger """
@@ -332,20 +334,18 @@ class CPU(object):
         get_and_call_next_op = self.get_and_call_next_op
 
         for __ in xrange(self.burst_op_count):
-            get_and_call_next_op()
+            for __ in xrange(self.sync_op_count):
+                get_and_call_next_op()
 
-        self.call_sync_callbacks()
+            self.call_sync_callbacks()
 
-    def limited_burst_run(self, target_cycles_per_sec):
+    delay = 0
+    def delayed_burst_run(self, target_cycles_per_sec):
         """ Run CPU not faster than given speedlimit """
         old_cycles = self.cycles
         start_time = time.time()
 
-        # https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Avoiding_dots...
-        get_and_call_next_op = self.get_and_call_next_op
-
-        for __ in xrange(self.burst_op_count):
-            get_and_call_next_op()
+        self.burst_run()
 
         is_duration = time.time() - start_time
         new_cycles = self.cycles - old_cycles
@@ -359,8 +359,10 @@ class CPU(object):
             delay = target_duration - is_duration
             if delay > 0:
                 if delay > 1:
-                    delay = 1
-                time.sleep(delay)
+                    self.delay = 1
+                else:
+                    self.delay = delay
+                time.sleep(self.delay)
 
         self.call_sync_callbacks()
 
@@ -373,38 +375,39 @@ class CPU(object):
         >>> calc_new_count(burst_count=100, current_value=20, target_value=40)
         150
         """
+        log.critical(
+            "%i op count current: %.4f target: %.4f",
+            self.burst_op_count, current_value, target_value
+        )
         try:
             new_burst_count = float(burst_count) / float(current_value) * target_value
+            new_burst_count += 1 # At least we need one loop ;)
         except ZeroDivisionError:
             return burst_count * 2
+
+        if new_burst_count > self.max_burst_count:
+            return self.max_burst_count
+
         return int((burst_count + new_burst_count) / 2)
 
     def run(self, max_run_time=0.1, target_cycles_per_sec=None):
         now = time.time
 
-        burst_loops = 0
         start_time = now()
-        abort_time = start_time + max_run_time
 
         if target_cycles_per_sec is not None:
             # Run CPU not faster than given speedlimit
-            while now() < abort_time:
-                burst_loops += 1
-                self.limited_burst_run(target_cycles_per_sec)
+            self.delayed_burst_run(target_cycles_per_sec)
         else:
             # Run CPU as fast as Python can...
-            while now() < abort_time:
-                burst_loops += 1
-                self.burst_run()
+            self.delay = 0
+            self.burst_run()
 
         # Calculate the burst_count new, to hit max_run_time
         self.burst_op_count = self.calc_new_count(self.burst_op_count,
-            current_value=now() - start_time,
+            current_value=now() - start_time - self.delay,
             target_value=max_run_time,
         )
-        if self.burst_op_count > self.quickest_sync_callback_cyles:
-            self.burst_op_count = self.quickest_sync_callback_cyles
-        return burst_loops
 
     def test_run(self, start, end, max_ops=1000000):
 #        log.warning("CPU test_run(): from $%x to $%x" % (start, end))
@@ -426,12 +429,17 @@ class CPU(object):
 #        log.warning("CPU test_run2(): from $%x count: %i" % (start, count))
         self.program_counter.set(start)
 #        log.debug("-"*79)
-        _old_count = self.burst_op_count
+
+        _old_burst_count = self.burst_op_count
         self.burst_op_count = count
+
+        _old_sync_count = self.sync_op_count
+        self.sync_op_count = 1
 
         self.burst_run()
 
-        self.burst_op_count = _old_count
+        self.burst_op_count = _old_burst_count
+        self.sync_op_count = _old_sync_count
 
 
     ####
