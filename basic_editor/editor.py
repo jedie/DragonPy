@@ -19,6 +19,7 @@ import os
 import string
 import sys
 
+import dragonlib
 from basic_editor.editor_base import BaseExtension
 from basic_editor.highlighting import TkTextHighlighting
 from dragonlib.utils.auto_shift import invert_shift
@@ -138,7 +139,8 @@ class EditorWindow(object):
 
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
-        self.root.title("%s - BASIC Editor" % self.cfg.MACHINE_NAME)
+        self.base_title = "%s - BASIC Editor" % self.cfg.MACHINE_NAME
+        self.root.title(self.base_title)
 
         self.text = ScrolledText2(
             master=self.root, height=30, width=80
@@ -174,6 +176,13 @@ class EditorWindow(object):
 #        helpmenu.add_command(label="help", command=self.menu_event_help)
 #        helpmenu.add_command(label="about", command=self.menu_event_about)
         self.menubar.add_cascade(label="help", menu=helpmenu)
+
+        # startup directory for file open/save
+        self.current_dir = os.path.abspath(
+            os.path.join(
+                os.path.dirname(dragonlib.__file__), "..", "BASIC examples",
+            )
+        )
 
         self.set_status_bar() # Create widget, add bindings and after_idle() update
 
@@ -233,12 +242,20 @@ class EditorWindow(object):
 #         log.critical("inserted word: %r", word)
 #         print self.machine_api.parse_ascii_listing(word)
 
+    def setup_filepath(self, filepath):
+        log.critical(filepath)
+        self.filepath = os.path.normpath(os.path.abspath(filepath))
+        self.current_dir, self.filename = os.path.split(self.filepath)
+
+        self.root.title("%s - %s" % (self.base_title, repr(self.filename)))
+
     def command_load_file(self):
         infile = filedialog.askopenfile(
             parent=self.root,
             mode="r",
             title="Select a BASIC file to load",
             filetypes=self.FILETYPES,
+            initialdir=self.current_dir,
         )
         if infile is not None:
             content = infile.read()
@@ -247,17 +264,22 @@ class EditorWindow(object):
             listing_ascii = content.splitlines()
             self.set_content(listing_ascii)
 
+            self.setup_filepath(infile.name)
+
+
     def command_save_file(self):
         outfile = filedialog.asksaveasfile(
             parent=self.root,
             mode="w",
             filetypes=self.FILETYPES,
             defaultextension=self.DEFAULTEXTENSION,
+            initialdir=self.current_dir,
         )
         if outfile is not None:
             content = self.get_content()
             outfile.write(content)
             outfile.close()
+            self.setup_filepath(outfile.name)
 
     def debug_display_tokens(self):
         content = self.get_content()
