@@ -24,7 +24,7 @@ from basic_editor.editor import EditorWindow
 from dragonpy.Dragon32 import dragon_charmap
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkFont
-from dragonpy.utils.humanize import locale_format_number
+from dragonpy.utils.humanize import locale_format_number, get_python_info
 
 log = logging.getLogger(__name__)
 
@@ -66,12 +66,14 @@ class MC6847_TextModeCanvas(object):
         self.total_width = self.tk_font.width_scaled * self.rows
         self.total_height = self.tk_font.height_scaled * self.columns
 
+        foreground, background = dragon_charmap.get_hex_color(dragon_charmap.NORMAL)
         self.canvas = tkinter.Canvas(root,
             width=self.total_width,
             height=self.total_height,
             bd=0, # no border
             highlightthickness=0, # no highlight border
-            bg="#ff0000",
+#             bg="#ff0000",
+            bg="#%s" % background,
         )
 
         # Contains the map from Display RAM value to char/color:
@@ -279,7 +281,12 @@ class BaseTkinterGUI(object):
         self.status = tkinter.StringVar(value="startup %s...\n" % self.cfg.MACHINE_NAME)
         self.status_widget = tkinter.Label(
             self.root, textvariable=self.status, text="Info:", borderwidth=1)
-        self.status_widget.grid(row=1, column=0, columnspan=2)
+        self.status_widget.grid(row=1, column=0)
+
+        self.python_info_label = tkinter.Label(
+            self.root, borderwidth=1, text=get_python_info(),
+        )
+        self.python_info_label.grid(row=2, column=0)
 
         self.menubar = tkinter.Menu(self.root)
 
@@ -521,7 +528,7 @@ class DragonTkinterGUI(BaseTkinterGUI):
             "%s - Text Display 32 columns x 16 rows" % machine_name)
 
         self.display = MC6847_TextModeCanvas(self.root)
-        self.display.canvas.grid(row=0, column=0, columnspan=2)  # , rowspan=2)
+        self.display.canvas.grid(row=0, column=0)
 
         self._editor_window = None
 

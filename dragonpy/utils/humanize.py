@@ -12,6 +12,8 @@
 from __future__ import absolute_import, division, print_function
 
 import locale
+import sys
+import platform
 
 
 def locale_format_number(val):
@@ -78,6 +80,27 @@ def cc_value2txt(status):
         "." if status & x == 0 else char
         for char, x in zip("EFHINZVC", (128, 64, 32, 16, 8, 4, 2, 1))
     ])
+
+
+def get_python_info():
+    implementation = platform.python_implementation()
+    if implementation == "CPython":
+        return "%s v%s [%s]" % (
+            implementation,
+            platform.python_version(),
+            platform.python_compiler(),
+        )
+        # e.g.: CPython v2.7.6 [GCC 4.8.2]
+    elif implementation == "PyPy":
+        ver_info = sys.version.split("(", 1)[0]
+        ver_info += sys.version.split("\n")[-1]
+        return "Python %s" % ver_info
+        # e.g.: Python 2.7.6 [PyPy 2.3.1 with GCC 4.8.2]
+    else:
+        return "%s %s" % (
+            sys.executable,
+            sys.version.replace("\n", " ")
+        )
 
 
 if __name__ == "__main__":
