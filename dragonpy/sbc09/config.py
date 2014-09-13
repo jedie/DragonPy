@@ -17,6 +17,7 @@ from dragonpy.components.rom import ROMFile
 from dragonpy.core.configs import BaseConfig, SBC09
 from dragonpy.sbc09.mem_info import get_sbc09_meminfo
 from dragonpy.sbc09.periphery import SBC09Periphery
+from dragonlib.api import CoCoAPI
 
 
 class SBC09Cfg(BaseConfig):
@@ -55,6 +56,8 @@ class SBC09Cfg(BaseConfig):
 
     def __init__(self, cmd_args):
         super(SBC09Cfg, self).__init__(cmd_args)
+
+        self.machine_api = CoCoAPI() # FIXME!
 
 #         if self.verbosity <= logging.INFO:
         self.mem_info = get_sbc09_meminfo()

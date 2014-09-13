@@ -29,11 +29,11 @@ except ImportError:
 from dragonlib.tests.test_base import BaseTestCase
 import logging
 
-log=logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.periphery_dragon import Dragon32PeripheryUnittest
 from dragonpy.Simple6809.config import Simple6809Cfg
-from dragonpy.Simple6809.periphery_simple6809 import Simple6809TestPeriphery
+from dragonpy.Simple6809.periphery_simple6809 import Simple6809PeripheryUnittest
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
 from dragonpy.core.machine import Machine
@@ -167,73 +167,77 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
 
         cfg = Simple6809Cfg(cls.UNITTEST_CFG_DICT)
 
-        memory = Memory(cfg)
+        cls.user_input_queue = queue.Queue()
+        cls.display_queue = queue.Queue()
 
-        cls.periphery = Simple6809TestPeriphery(cfg, memory)
-        cfg.periphery = cls.periphery
+        cls.machine = Machine(
+            cfg,
+            periphery_class=Simple6809PeripheryUnittest,
+            display_queue=cls.display_queue,
+            user_input_queue=cls.user_input_queue,
+        )
+        cls.cpu = cls.machine.cpu
+        cls.periphery = cls.machine.periphery
+        cls.periphery.setUp()
 
-        cpu = CPU(memory, cfg)
-        memory.cpu = cpu # FIXME
-        cpu.reset()
-        cls.cpu = cpu
-
-        try:
-            temp_file = open(cls.TEMP_FILE, "rb")
-        except IOError:
+        if os.path.isfile(cls.TEMP_FILE):
+            log.info("Load CPU init state from: %r" % cls.TEMP_FILE)
+            with open(cls.TEMP_FILE, "rb") as temp_file:
+                cls.__init_state = pickle.load(temp_file)
+        else:
             log.info("init machine...")
             init_start = time.time()
-            cpu.test_run(
-                start=cpu.program_counter.get(),
+            cls.cpu.test_run(
+                start=cls.cpu.program_counter.get(),
                 end=cfg.STARTUP_END_ADDR,
+                max_ops=500000,
             )
             duration = time.time() - init_start
             log.info("done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
-                duration, float(cpu.cycles / duration), cpu.cycles
+                duration, float(cls.cpu.cycles / duration), cls.cpu.cycles
             ))
 
             # Check if machine is ready
-            assert cls.periphery.output_lines == [
-                '6809 EXTENDED BASIC\r\n',
-                '(C) 1982 BY MICROSOFT\r\n',
-                '\r\n',
+            assert cls.periphery.output == (
+                '6809 EXTENDED BASIC\r\n'
+                '(C) 1982 BY MICROSOFT\r\n'
+                '\r\n'
                 'OK\r\n'
-            ], "Outlines are: %s" % repr(cls.periphery.output_lines)
+            ), "Outlines are: %s" % repr(cls.periphery.output_lines)
             # Save CPU state
-            init_state = cpu.get_state()
+            init_state = cls.cpu.get_state()
             with open(cls.TEMP_FILE, "wb") as f:
                 pickle.dump(init_state, f)
                 log.info("Save CPU init state to: %r" % cls.TEMP_FILE)
             cls.__init_state = init_state
-        else:
-            log.info("Load CPU init state from: %r" % cls.TEMP_FILE)
-            cls.__init_state = pickle.load(temp_file)
-            temp_file.close()
 
 #        print_cpu_state_data(cls.__init_state)
 
     def setUp(self):
         """ restore CPU/Periphery state to a fresh startup. """
-        self.periphery.user_input_queue = queue.Queue()
-        self.periphery.display_queue = queue.Queue()
-        self.periphery.output_lines = []
+        self.periphery.setUp()
         self.cpu.set_state(self.__init_state)
 #         print_cpu_state_data(self.cpu.get_state())
 
     def _run_until_OK(self, OK_count=1, max_ops=5000):
         old_cycles = self.cpu.cycles
-        output = []
+        last_output_len = 0
         existing_OK_count = 0
         for op_call_count in xrange(max_ops):
             self.cpu.get_and_call_next_op()
-            out_lines = self.periphery.output_lines
-            if out_lines:
-                output += out_lines
-                if out_lines[-1] == "OK\r\n":
+
+            if self.periphery.output_len > last_output_len:
+                last_output_len = self.periphery.output_len
+
+#                 log.critical("output: %s", repr(self.periphery.output))
+
+                if self.periphery.output.endswith("OK\r\n"):
                     existing_OK_count += 1
-                if existing_OK_count >= OK_count:
-                    cycles = self.cpu.cycles - old_cycles
-                    return op_call_count, cycles, output
-                self.periphery.output_lines = []
+
+                    if existing_OK_count >= OK_count:
+                        cycles = self.cpu.cycles - old_cycles
+                        output_lines = self.periphery.output.splitlines(keepends=True)
+                        return op_call_count, cycles, output_lines
 
         msg = "ERROR: Abort after %i op calls (%i cycles)" % (
             op_call_count, (self.cpu.cycles - old_cycles)
@@ -271,36 +275,39 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
 
         cfg = SBC09Cfg(cls.UNITTEST_CFG_DICT)
 
-        memory = Memory(cfg)
+        cls.user_input_queue = queue.Queue()
+        cls.display_queue = queue.Queue()
 
-        cls.periphery = SBC09PeripheryUnittest(cfg, memory)
-        cfg.periphery = cls.periphery
-
-        cpu = CPU(memory, cfg)
-        memory.cpu = cpu # FIXME
-        cpu.reset()
-        cls.cpu = cpu
+        cls.machine = Machine(
+            cfg,
+            periphery_class=SBC09PeripheryUnittest,
+            display_queue=cls.display_queue,
+            user_input_queue=cls.user_input_queue,
+        )
+        cls.cpu = cls.machine.cpu
+        cls.periphery = cls.machine.periphery
+        cls.periphery.setUp()
 
         try:
             temp_file = open(cls.TEMP_FILE, "rb")
         except IOError:
             log.info("init machine...")
             init_start = time.time()
-            cpu.test_run(
-                start=cpu.program_counter.get(),
+            cls.cpu.test_run(
+                start=cls.cpu.program_counter.get(),
                 end=cfg.STARTUP_END_ADDR,
             )
             duration = time.time() - init_start
             log.info("done in %iSec. it's %.2f cycles/sec. (current cycle: %i)" % (
-                duration, float(cpu.cycles / duration), cpu.cycles
+                duration, float(cls.cpu.cycles / duration), cls.cpu.cycles
             ))
 
             # Check if machine is ready
-            assert cls.periphery.output_lines == [
-                'Welcome to BUGGY version 1.0\r\n',
-            ], "Outlines are: %s" % repr(cls.periphery.output_lines)
+            assert cls.periphery.output == (
+                'Welcome to BUGGY version 1.0\r\n'
+            ), "Outlines are: %s" % repr(cls.periphery.output)
             # Save CPU state
-            init_state = cpu.get_state()
+            init_state = cls.cpu.get_state()
             with open(cls.TEMP_FILE, "wb") as f:
                 pickle.dump(init_state, f)
                 log.info("Save CPU init state to: %r" % cls.TEMP_FILE)
@@ -314,51 +321,42 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
 
     def setUp(self):
         """ restore CPU/Periphery state to a fresh startup. """
-        self.periphery.user_input_queue = queue.Queue()
-        self.periphery.display_queue = queue.Queue()
-        self.periphery.output_lines = []
+        self.periphery.setUp()
         self.cpu.set_state(self.__init_state)
 #         print_cpu_state_data(self.cpu.get_state())
 
-    def _run_until_OK(self, OK_count=1, max_ops=5000):
+    def _run_until(self, terminator, count, max_ops):
         old_cycles = self.cpu.cycles
-        output = []
-        existing_OK_count = 0
+        last_output_len = 0
+        is_count = 0
         for op_call_count in xrange(max_ops):
             self.cpu.get_and_call_next_op()
-            out_lines = self.periphery.output_lines
-            if out_lines:
-                output += out_lines
-                if out_lines[-1] == "OK\r\n":
-                    existing_OK_count += 1
-                if existing_OK_count >= OK_count:
-                    cycles = self.cpu.cycles - old_cycles
-                    return op_call_count, cycles, output
-                self.periphery.output_lines = []
 
-        msg = "ERROR: Abort after %i op calls (%i cycles)" % (
-            op_call_count, (self.cpu.cycles - old_cycles)
+            if self.periphery.output_len > last_output_len:
+                last_output_len = self.periphery.output_len
+
+#                 log.critical("output: %s", repr(self.periphery.output))
+
+                if self.periphery.output.endswith(terminator):
+                    is_count += 1
+
+                    if is_count >= count:
+                        cycles = self.cpu.cycles - old_cycles
+                        output_lines = self.periphery.output.splitlines(keepends=True)
+                        return op_call_count, cycles, output_lines
+
+        msg = "ERROR: Abort after %i op calls (%i cycles) %i %r found." % (
+            op_call_count, (self.cpu.cycles - old_cycles),
+            is_count, terminator,
         )
         raise self.failureException(msg)
+
+    def _run_until_OK(self, OK_count=1, max_ops=5000):
+        return self._run_until(terminator="OK\r\n", count=OK_count, max_ops=max_ops)
 
     def _run_until_newlines(self, newline_count=1, max_ops=5000):
-        old_cycles = self.cpu.cycles
-        output = []
-        for op_call_count in xrange(max_ops):
-            self.cpu.get_and_call_next_op()
-            out_lines = self.periphery.output_lines
-            if out_lines:
-                output += out_lines
-                if len(output) >= newline_count:
-                    cycles = self.cpu.cycles - old_cycles
-                    return op_call_count, cycles, output
-                self.periphery.output_lines = []
+        return self._run_until(terminator="\n", count=newline_count, max_ops=max_ops)
 
-        msg = "ERROR: Abort after %i op calls (%i cycles) newline count: %i" % (
-            op_call_count, (self.cpu.cycles - old_cycles), len(output)
-        )
-        msg += "\nOutput so far: %s\n" % pprint.pformat(output)
-        raise self.failureException(msg)
 
 #-----------------------------------------------------------------------------
 

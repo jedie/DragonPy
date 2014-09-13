@@ -28,7 +28,7 @@ except ImportError:
 
 import logging
 
-log=logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase, \
     PeripheryUnittestBase
 
@@ -42,9 +42,13 @@ except ImportError:
         tkinter = None
 
 
-class Simple6809PeripheryBase(PeripheryBase):
-    def __init__(self, cfg, memory):
-        super(Simple6809PeripheryBase, self).__init__(cfg, memory)
+class Simple6809PeripheryBase(object):
+    def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
+        self.cfg = cfg
+        self.cpu = cpu
+        self.memory = memory
+        self.display_queue = display_queue
+        self.user_input_queue = user_input_queue
 
         self.memory.add_read_byte_callback(self.read_acia_status, 0xa000) #  Control/status port of ACIA
         self.memory.add_read_byte_callback(self.read_acia_data, 0xa001) #  Data port of ACIA
@@ -71,12 +75,8 @@ class Simple6809PeripheryBase(PeripheryBase):
         )
         return value
 
-    def write_acia_data(self, cpu_cycles, op_address, address, value):
+    def value2char(self, value):
         char = chr(value)
-        log.info("*"*79)
-        log.info("Write to screen: %s ($%x)" , repr(char), value)
-        log.info("*"*79)
-
         if value >= 0x90: # FIXME: Why?
             value -= 0x60
             char = chr(value)
@@ -86,12 +86,37 @@ class Simple6809PeripheryBase(PeripheryBase):
             value += 0x41
             char = chr(value)
 #            log.info("convert value += 0x41 to %s ($%x)" , repr(char), value)
+        return char
 
+    def write_acia_data(self, cpu_cycles, op_address, address, value):
+        char = self.value2char(value)
+        log.info("*"*79)
+        log.info("%04x| Write to screen: %s ($%x)", op_address, repr(char), value)
+        log.info("*"*79)
         self.display_queue.put(char)
 
 
-class Simple6809PeripheryUnittest(PeripheryUnittestBase, Simple6809PeripheryBase):
-    pass
+class Simple6809PeripheryUnittest(Simple6809PeripheryBase):
+    def __init__(self, *args, **kwargs):
+        super(Simple6809PeripheryUnittest, self).__init__(*args, **kwargs)
+        self.memory.add_write_byte_callback(self.write_acia_data, 0xa001) #  Data port of ACIA
+
+    def setUp(self):
+        self.user_input_queue.queue.clear()
+        self.output = "" # for unittest run_until_OK()
+        self.output_len = 0
+
+    def add_to_input_queue(self, txt):
+        log.debug("Add %s to input queue.", repr(txt))
+        for char in txt:
+            self.user_input_queue.put(char)
+
+    def write_acia_data(self, cpu_cycles, op_address, address, value):
+        char = self.value2char(value)
+#         log.info("%04x| Write to screen: %s ($%x)", op_address, repr(char), value)
+
+        self.output_len += 1
+        self.output += char
 
 
 
@@ -120,11 +145,6 @@ class Simple6809PeripheryTk(TkPeripheryBase, Simple6809PeripheryBase):
 #         self.user_input_queue.put("\n")
 
 
-
-# Simple6809Periphery = Simple6809PeripherySerial
-Simple6809Periphery = Simple6809PeripheryTk
-
-Simple6809TestPeriphery = Simple6809PeripheryUnittest
 
 
 def test_run():

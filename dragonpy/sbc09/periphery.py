@@ -39,7 +39,7 @@ except ImportError:
 
 
 
-class SBC09PeripheryBase(PeripheryBase):
+class SBC09PeripheryBase(object):
     TITLE = "DragonPy - Buggy machine language monitor and rudimentary O.S. version 1.0"
     INITAL_INPUT = (
 #        # Dump registers
@@ -65,8 +65,12 @@ class SBC09PeripheryBase(PeripheryBase):
 #         "ubasic\r\n"
     )
 
-    def __init__(self, cfg, memory):
-        super(SBC09PeripheryBase, self).__init__(cfg, memory)
+    def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
+        self.cfg = cfg
+        self.cpu = cpu
+        self.memory = memory
+        self.display_queue = display_queue
+        self.user_input_queue = user_input_queue
 
         self.memory.add_read_byte_callback(self.read_acia_status, 0xe000) #  Control/status port of ACIA
         self.memory.add_read_byte_callback(self.read_acia_data, 0xe001) #  Data port of ACIA
@@ -91,12 +95,8 @@ class SBC09PeripheryBase(PeripheryBase):
         )
         return value
 
-    def write_acia_data(self, cpu_cycles, op_address, address, value):
+    def value2char(self, value):
         char = chr(value)
-#        log.error("*"*79)
-#        log.error("Write to screen: %s ($%x)" , repr(char), value)
-#        log.error("*"*79)
-
         if value >= 0x90: # FIXME: Why?
             value -= 0x60
             char = chr(value)
@@ -106,6 +106,13 @@ class SBC09PeripheryBase(PeripheryBase):
             value += 0x41
             char = chr(value)
 #            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
+        return char
+
+    def write_acia_data(self, cpu_cycles, op_address, address, value):
+        char = self.value2char(value)
+#        log.error("*"*79)
+#        log.error("Write to screen: %s ($%x)" , repr(char), value)
+#        log.error("*"*79)
 
         self.display_queue.put(char)
 
@@ -130,8 +137,27 @@ class SBC09PeripheryConsole(SBC09PeripheryBase, ConsolePeripheryBase):
         sys.stdout.flush()
 
 
-class SBC09PeripheryUnittest(PeripheryUnittestBase, SBC09PeripheryBase):
-    pass
+class SBC09PeripheryUnittest(SBC09PeripheryBase):
+    def __init__(self, *args, **kwargs):
+        super(SBC09PeripheryUnittest, self).__init__(*args, **kwargs)
+        self.memory.add_write_byte_callback(self.write_acia_data, 0xa001) #  Data port of ACIA
+
+    def setUp(self):
+        self.user_input_queue.queue.clear()
+        self.output = "" # for unittest run_until_OK()
+        self.output_len = 0
+
+    def add_to_input_queue(self, txt):
+        log.debug("Add %s to input queue.", repr(txt))
+        for char in txt:
+            self.user_input_queue.put(char)
+
+    def write_acia_data(self, cpu_cycles, op_address, address, value):
+        char = self.value2char(value)
+#         log.info("%04x| Write to screen: %s ($%x)", op_address, repr(char), value)
+
+        self.output_len += 1
+        self.output += char
 
 
 

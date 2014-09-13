@@ -14,9 +14,9 @@ from __future__ import absolute_import, division, print_function
 import os
 
 from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
-from dragonpy.Simple6809.periphery_simple6809 import Simple6809Periphery
 from dragonpy.components.rom import ROMFile
 from dragonpy.core.configs import BaseConfig, SIMPLE6809
+from dragonlib.api import CoCoAPI
 
 
 class Simple6809Cfg(BaseConfig):
@@ -59,10 +59,12 @@ class Simple6809Cfg(BaseConfig):
     def __init__(self, cfg_dict):
         super(Simple6809Cfg, self).__init__(cfg_dict)
 
+        self.machine_api = CoCoAPI() # FIXME!
+
 #         if self.verbosity <= logging.INFO:
         self.mem_info = get_simple6809_meminfo()
 
-        self.periphery_class = Simple6809Periphery
+#         self.periphery_class = Simple6809Periphery
 
         self.memory_byte_middlewares = {
 #            (0x004f, 0x0054): (None, self.float_accu_write0),

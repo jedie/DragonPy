@@ -104,10 +104,12 @@ class DragonDisplayOutputHandler(object):
 #------------------------------------------------------------------------------
 
 class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
-    def __init__(self, cfg, memory, display_queue, user_input_queue):
+    def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
+        self.cfg = cfg
+        self.cpu = cpu
         self.display_queue = display_queue
         self.user_input_queue = user_input_queue
-        super(Dragon32PeripheryUnittest, self).__init__(cfg, memory, self.user_input_queue)
+        super(Dragon32PeripheryUnittest, self).__init__(cfg, cpu, memory, self.user_input_queue)
 
         self.rows = 32
         self.columns = 16

@@ -54,14 +54,13 @@ class PeripheryBase(object):
         self.cfg = cfg
         self.cpu = cpu
         self.memory = memory
-        self.running = True
-
-        self.display_queue = queue.Queue() # Buffer for output from CPU
         if user_input_queue is None:
             self.user_input_queue = queue.Queue() # Buffer for input to send back to the CPU
         else:
             self.user_input_queue = user_input_queue
 
+        self.running = True
+        self.display_queue = queue.Queue() # Buffer for output from CPU
         self.update_time = 0.1
         self.last_cpu_cycle_update = time.time()
 
@@ -302,9 +301,18 @@ class ConsolePeripheryBase(PeripheryBase):
 
 
 class PeripheryUnittestBase(object):
-    def __init__(self, *args, **kwargs):
-        self._out_buffer = ""
-        self.output_lines = []
+    def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
+        self.cfg = cfg
+        self.cpu = cpu
+        self.display_queue = display_queue
+        self.user_input_queue = user_input_queue
+
+    def setUp(self):
+        self.user_input_queue.queue.clear()
+        self.display_queue.queue.clear()
+        self.old_columns = None
+        self.output_lines = [""] # for unittest run_until_OK()
+        self.display_buffer = {} # for striped_output()
 
     def _new_output_char(self, char):
 #        sys.stdout.write(char)
@@ -315,6 +323,7 @@ class PeripheryUnittestBase(object):
             self._out_buffer = ""
 
     def write_acia_data(self, cpu_cycles, op_address, address, value):
+        raise
         super(PeripheryUnittestBase, self).write_acia_data(cpu_cycles, op_address, address, value)
 
         while True:

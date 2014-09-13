@@ -43,8 +43,6 @@ import time
 import warnings
 import logging
 
-from dragonlib.utils import six
-
 from dragonpy.MC6809data.MC6809_data_raw2 import (
     OP_DATA, REG_A, REG_B, REG_CC, REG_D, REG_DP, REG_PC,
     REG_S, REG_U, REG_X, REG_Y
@@ -60,7 +58,7 @@ from dragonpy.utils.byte_word_values import signed8, signed16, signed5
 from dragonpy.utils.simple_debugger import print_exc_plus
 
 
-log=logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 # HTML_TRACE = True
@@ -280,7 +278,7 @@ class CPU(object):
             except TypeError: # e.g: op_address or opcode is None
                 msg = "%s - op address: %r - opcode: %r" % (err, op_address, opcode)
             exception = err.__class__ # Use origin Exception class, e.g.: KeyError
-            lib2and3.reraise(exception, exception(msg), sys.exc_info()[2])
+            six.reraise(exception, exception(msg), sys.exc_info()[2])
 
     def quit(self):
         log.critical("CPU quit() called.")
@@ -360,7 +358,7 @@ class CPU(object):
         while now() < abort_time:
             burst_loops += 1
             self.burst_run()
-            
+
         # Calculate the burst_count new, to hit self.target_burst_duration
         self.burst_op_count = self.calc_new_count(self.burst_op_count,
             current_value=now() - start_time,
@@ -370,7 +368,7 @@ class CPU(object):
             self.burst_op_count = self.quickest_sync_callback_cyles
         return burst_loops
 
-    def test_run(self, start, end):
+    def test_run(self, start, end, max_ops=1000000):
 #        log.warning("CPU test_run(): from $%x to $%x" % (start, end))
         self.program_counter.set(start)
 #        log.debug("-"*79)
@@ -379,8 +377,12 @@ class CPU(object):
         get_and_call_next_op = self.get_and_call_next_op
         program_counter = self.program_counter.get
 
-        while program_counter() != end:
+        for __ in xrange(max_ops):
+            if program_counter() == end:
+                return
             get_and_call_next_op()
+        raise RuntimeError("Max ops %i arrived!" % max_ops)
+        log.critical("Max ops %i arrived!", max_ops)
 
     def test_run2(self, start, count):
 #        log.warning("CPU test_run2(): from $%x count: %i" % (start, count))
