@@ -151,7 +151,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
     """
     TEMP_FILE = os.path.join(
         tempfile.gettempdir(),
-        "DragonPy_simple6809_unittests.dat"
+        "DragonPy_simple6809_unittests_Py%i.dat" % sys.version_info[0]
     )
 
     @classmethod
@@ -257,7 +257,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
     """
     TEMP_FILE = os.path.join(
         tempfile.gettempdir(),
-        "DragonPy_sbc09_unittests.dat"
+        "DragonPy_sbc09_unittests_Py%i.dat" % sys.version_info[0]
     )
 
     @classmethod
@@ -371,7 +371,7 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
     """
     TEMP_FILE = os.path.join(
         tempfile.gettempdir(),
-        "DragonPy_Dragon32_unittests.dat"
+        "DragonPy_Dragon32_unittests_Py%i.dat" % sys.version_info[0]
     )
 
     @classmethod
