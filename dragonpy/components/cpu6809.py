@@ -330,8 +330,38 @@ class CPU(object):
         """ Run CPU as fast as Python can... """
         # https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Avoiding_dots...
         get_and_call_next_op = self.get_and_call_next_op
+
         for __ in xrange(self.burst_op_count):
             get_and_call_next_op()
+
+        self.call_sync_callbacks()
+
+    def limited_burst_run(self, target_cycles_per_sec):
+        """ Run CPU not faster than given speedlimit """
+        old_cycles = self.cycles
+        start_time = time.time()
+
+        # https://wiki.python.org/moin/PythonSpeed/PerformanceTips#Avoiding_dots...
+        get_and_call_next_op = self.get_and_call_next_op
+
+        for __ in xrange(self.burst_op_count):
+            get_and_call_next_op()
+
+        is_duration = time.time() - start_time
+        new_cycles = self.cycles - old_cycles
+        try:
+            is_cycles_per_sec = new_cycles / is_duration
+        except ZeroDivisionError:
+            pass
+        else:
+            should_burst_duration = is_cycles_per_sec / target_cycles_per_sec
+            target_duration = should_burst_duration * is_duration
+            delay = target_duration - is_duration
+            if delay > 0:
+                if delay > 1:
+                    delay = 1
+                time.sleep(delay)
+
         self.call_sync_callbacks()
 
     def calc_new_count(self, burst_count, current_value, target_value):
@@ -344,22 +374,30 @@ class CPU(object):
         150
         """
         try:
-            a = float(burst_count) / float(current_value) * target_value
+            new_burst_count = float(burst_count) / float(current_value) * target_value
         except ZeroDivisionError:
             return burst_count * 2
-        return int(round((burst_count + a) / 2))
+        return int((burst_count + new_burst_count) / 2)
 
-    def run(self, max_run_time=0.1):
+    def run(self, max_run_time=0.1, target_cycles_per_sec=None):
         now = time.time
 
         burst_loops = 0
         start_time = now()
         abort_time = start_time + max_run_time
-        while now() < abort_time:
-            burst_loops += 1
-            self.burst_run()
 
-        # Calculate the burst_count new, to hit self.target_burst_duration
+        if target_cycles_per_sec is not None:
+            # Run CPU not faster than given speedlimit
+            while now() < abort_time:
+                burst_loops += 1
+                self.limited_burst_run(target_cycles_per_sec)
+        else:
+            # Run CPU as fast as Python can...
+            while now() < abort_time:
+                burst_loops += 1
+                self.burst_run()
+
+        # Calculate the burst_count new, to hit max_run_time
         self.burst_op_count = self.calc_new_count(self.burst_op_count,
             current_value=now() - start_time,
             target_value=max_run_time,
@@ -2679,6 +2717,8 @@ def test_run():
         sys.executable,
         os.path.join("..", "DragonPy_CLI.py"),
 #        "--verbosity", "5",
+        "--log", "dragonpy.components.cpu6809,50",
+
         "--machine", "Dragon32", "run",
 #        "--machine", "Vectrex", "run",
 #        "--max_ops", "1",
