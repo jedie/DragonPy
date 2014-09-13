@@ -13,13 +13,14 @@
 from __future__ import absolute_import, division, print_function
 
 
+import logging
 import sys
 import unittest
 
 from dragonlib.core.basic_parser import BASICParser
-import logging
 
-log=logging.getLogger(__name__), setup_logging
+
+log = logging.getLogger(__name__)
 
 
 class TestBASICParser(unittest.TestCase):
