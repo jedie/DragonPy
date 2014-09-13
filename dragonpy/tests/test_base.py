@@ -236,7 +236,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
 
                     if existing_OK_count >= OK_count:
                         cycles = self.cpu.cycles - old_cycles
-                        output_lines = self.periphery.output.splitlines(keepends=True)
+                        output_lines = self.periphery.output.splitlines(True) # with keepends
                         return op_call_count, cycles, output_lines
 
         msg = "ERROR: Abort after %i op calls (%i cycles)" % (
@@ -342,7 +342,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
 
                     if is_count >= count:
                         cycles = self.cpu.cycles - old_cycles
-                        output_lines = self.periphery.output.splitlines(keepends=True)
+                        output_lines = self.periphery.output.splitlines(True) # with keepends
                         return op_call_count, cycles, output_lines
 
         msg = "ERROR: Abort after %i op calls (%i cycles) %i %r found." % (
