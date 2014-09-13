@@ -14,8 +14,10 @@ from dragonlib.utils import six
 xrange = six.moves.xrange
 
 import hashlib
+import logging
 import os
-import pprint
+import pickle as pickle
+import sys
 import tempfile
 import time
 import unittest
@@ -25,11 +27,7 @@ try:
 except ImportError:
     import Queue as queue # Python 2
 
-
 from dragonlib.tests.test_base import BaseTestCase
-import logging
-
-log = logging.getLogger(__name__)
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.periphery_dragon import Dragon32PeripheryUnittest
 from dragonpy.Simple6809.config import Simple6809Cfg
@@ -41,7 +39,9 @@ from dragonpy.cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStor
 from dragonpy.sbc09.config import SBC09Cfg
 from dragonpy.sbc09.periphery import SBC09PeripheryUnittest
 from dragonpy.tests.test_config import TestCfg
-import pickle as pickle
+
+
+log = logging.getLogger(__name__)
 
 
 class BaseCPUTestCase(BaseTestCase):
