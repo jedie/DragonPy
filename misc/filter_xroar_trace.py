@@ -184,7 +184,11 @@ class XroarTraceFilter(object):
         stat_out = False
         in_area = False
         for line_no, line in enumerate(self.infile):
-            addr = int(line[:4], 16)
+            try:
+                addr = int(line[:4], 16)
+            except ValueError:
+                continue
+
             passed_addresses.add(addr)
 
             if in_area:
