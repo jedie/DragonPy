@@ -702,8 +702,10 @@ def test_run():
 #         "--verbosity", "50", # CRITICAL/FATAL
         "--verbosity", "99", # nearly all off
 
-#         "--log", "DragonPy.cpu6809,50;dragonpy.Dragon32.MC6821_PIA,40",
-#         "--log", "dragonpy.components.cpu6809,50",
+        "--log",
+        "dragonpy.components.cpu6809,40",
+        "dragonpy.Dragon32.MC6821_PIA,50",
+
 
         "--machine", "Dragon32", "run",
 #        "--machine", "Vectrex", "run",

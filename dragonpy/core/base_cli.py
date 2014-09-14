@@ -51,7 +51,7 @@ class Base_CLI(object):
 #     DEFAULT_LOG_FORMATTER = "%(processName)s/%(threadName)s %(message)s"
 #     DEFAULT_LOG_FORMATTER = "[%(processName)s %(threadName)s] %(message)s"
 #     DEFAULT_LOG_FORMATTER = "[%(levelname)s %(asctime)s %(module)s] %(message)s"
-    DEFAULT_LOG_FORMATTER = "%(levelname)8s %(created)f %(module)s] %(message)s"
+    DEFAULT_LOG_FORMATTER = "%(levelname)8s %(created)f %(module)-12s %(message)s"
 
     def __init__(self):
         self.logfilename = None
