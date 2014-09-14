@@ -136,9 +136,16 @@ class XroarTraceInfo(object):
 
             line = line.strip()
             if self.add_cc:
-                cc = int(line[49:51], 16)
-                cc_info = cc_value2txt(cc)
-                line += "| " + cc_info
+                cc = line[49:51]
+                if cc:
+                    try:
+                        cc = int(cc, 16)
+                    except ValueError as err:
+                        msg = "ValueError: %s in line: %s" % (err, line)
+                        line += "| %s" % msg
+                    else:
+                        cc_info = cc_value2txt(cc)
+                        line += "| " + cc_info
 
             addr_info = rom_info.get_shortest(addr)
             self.outfile.write(
