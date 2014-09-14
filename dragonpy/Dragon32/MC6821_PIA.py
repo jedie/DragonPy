@@ -98,7 +98,8 @@ class PIA(object):
         self.user_input_queue = user_input_queue
 
         self.pia_0_A_register = PIA_register("PIA0 A")
-        self.pia_0_B_register = PIA_register("PIA0 B")
+        self.pia_0_B_data = PIA_register("PIA0 B data register $ff02")
+        self.pia_0_B_control = PIA_register("PIA0 B control register $ff03")
 
         self.pia_1_A_register = PIA_register("PIA1 A")
         self.pia_1_B_register = PIA_register("PIA1 B")
@@ -143,7 +144,8 @@ class PIA(object):
     def reset(self):
         log.critical("PIA reset()")
         self.pia_0_A_register.reset()
-        self.pia_0_B_register.reset()
+        self.pia_0_B_data.reset()
+        self.pia_0_B_control.reset()
         self.pia_1_A_register.reset()
         self.pia_1_B_register.reset()
 
@@ -240,7 +242,7 @@ class PIA(object):
         bit 1 | PA1 | keyboard matrix row 2 & left  joystick switch 1
         bit 0 | PA0 | keyboard matrix row 1 & right joystick switch 1
         """
-        pia0b = self.pia_0_B_register.get()  # $ff02
+        pia0b = self.pia_0_B_data.get()  # $ff02
 
         # FIXME: Find a way to handle CoCo and Dragon in the same way!
         if self.cfg.CONFIG_NAME == COCO2B:
@@ -370,7 +372,7 @@ class PIA(object):
 
         bits 0-7 also printer data lines
         """
-        value = self.pia_0_B_register.get()  # $ff02
+        value = self.pia_0_B_data.get()  # $ff02
         log.error(
             "%04x| read $%04x (PIA 0 B side Data reg.) send $%02x (%s) back.\t|%s",
             op_address, address, value, byte2bit_string(value),
@@ -386,13 +388,13 @@ class PIA(object):
             op_address, value, byte2bit_string(value),
             address, self.cfg.mem_info.get_shortest(op_address)
         )
-        self.pia_0_B_register.set(value)
+        self.pia_0_B_data.set(value)
 
     def read_PIA0_B_control(self, cpu_cycles, op_address, address):
         """
         read from 0xff03 -> PIA 0 B side Control reg.
         """
-        value = self.pia_0_B_register.get()
+        value = self.pia_0_B_control.get()
         log.error(
             "%04x| read $%04x (PIA 0 B side Control reg.) send $%02x (%s) back.\t|%s",
             op_address, address, value, byte2bit_string(value),
@@ -437,28 +439,12 @@ class PIA(object):
             )
             self.cpu.irq_enabled = False
 
-        if is_bit_set(value, bit=0):
-            log.critical(
-                "%04x| write $%02x (%s) to $%04x -> VSYNC IRQ: enable\t|%s",
-                op_address, value, byte2bit_string(value),
-                address, self.cfg.mem_info.get_shortest(op_address)
-            )
-            self.cpu.irq_enabled = True
-            value = set_bit(value, bit=7)
-        else:
-            log.critical(
-                "%04x| write $%02x (%s) to $%04x -> VSYNC IRQ: disable\t|%s",
-                op_address, value, byte2bit_string(value),
-                address, self.cfg.mem_info.get_shortest(op_address)
-            )
-            self.cpu.irq_enabled = False
-
         if not is_bit_set(value, bit=2):
-            self.pia_0_B_register.select_pdr()
+            self.pia_0_B_control.select_pdr()
         else:
-            self.pia_0_B_register.deselect_pdr()
+            self.pia_0_B_control.deselect_pdr()
 
-        self.pia_0_B_register.set(value)
+        self.pia_0_B_control.set(value)
 
 #------------------------------------------------------------------------------
 
