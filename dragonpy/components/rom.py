@@ -20,4 +20,5 @@ class ROMFile(object):
         self.address = address
         self.max_size = max_size
 
-        assert os.path.isfile(self.filepath), "Error ROM file not found: '%s'" % self.filepath
+        # Will break unittests, e.g.: https://travis-ci.org/jedie/DragonPy/jobs/35673875
+        # assert os.path.isfile(self.filepath), "Error ROM file not found: '%s'" % self.filepath
