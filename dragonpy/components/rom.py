@@ -10,6 +10,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+import os
 
 
 
@@ -18,3 +19,5 @@ class ROMFile(object):
         self.filepath = filepath
         self.address = address
         self.max_size = max_size
+
+        assert os.path.isfile(self.filepath), "Error ROM file not found: '%s'" % self.filepath
