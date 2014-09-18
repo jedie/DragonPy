@@ -34,37 +34,37 @@ def run_Dragon32(cfg_dict):
     )
 
 
-if __name__ == '__main__':
-    from dragonlib.utils.logging_utils import setup_logging
+#------------------------------------------------------------------------------
 
-    setup_logging(log,
-#         level=1 # hardcore debug ;)
-#         level=10 # DEBUG
-#         level=20 # INFO
-#         level=30 # WARNING
-#         level=40 # ERROR
-        level=50  # CRITICAL/FATAL
-    )
 
-    CFG_DICT = {
-        "verbosity": None,
-        #     "display_cycle":True,
-        "display_cycle": False,
+def test_run():
+    import os
+    import sys
+    import subprocess
+    cmd_args = [
+        sys.executable,
+        os.path.join("..", "DragonPy_CLI.py"),
+#         "-h"
+#         "--log_list",
+#         "--log", "DragonPy.cpu6809,50", "dragonpy.Dragon32.MC6821_PIA,40",
 
-        "trace": None,
-        #     "trace":True,
+#         "--verbosity", "0", # hardcode DEBUG ;)
+#         "--verbosity", "10", # DEBUG
+#         "--verbosity", "20", # INFO
+#         "--verbosity", "30", # WARNING
+#         "--verbosity", "40", # ERROR
+        "--verbosity", "50", # CRITICAL/FATAL
+#         "--verbosity", "99", # nearly all off
+#         "--verbosity", "100", # complete off
 
-        "max_ops": None,
-        #     "max_ops":2000,
-        #     "max_ops":1800,
+        "--machine", "Dragon32", "run",
+#        "--max_ops", "1",
+#        "--trace",
+    ]
+    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
+    subprocess.Popen(cmd_args, cwd="..").wait()
 
-        "bus_socket_host": None,
-        "bus_socket_port": None,
-        "ram": None,
-        "rom": None,
-
-        "use_bus": False,
-    }
-    run_Dragon32(CFG_DICT)
+if __name__ == "__main__":
+    test_run()
 
 

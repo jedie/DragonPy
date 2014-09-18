@@ -93,27 +93,26 @@ class InstructionTrace(PrepagedInstructions):
         return result
 
 
+#------------------------------------------------------------------------------
+
+
 def test_run():
+    import sys
+    import os
     import subprocess
     cmd_args = [
         sys.executable,
-#         "/usr/bin/pypy",
-#         os.path.join("..", "DragonPy_CLI.py"),
-        "DragonPy_CLI.py",
-#        "--verbosity=5",
-#         "--verbosity=10", # DEBUG
-#         "--verbosity=20", # INFO
-#        "--verbosity=30", # WARNING
-#         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
-
+        os.path.join("..", "DragonPy_CLI.py"),
+#        "--verbosity", " 1", # hardcode DEBUG ;)
+#        "--verbosity", "10", # DEBUG
+#        "--verbosity", "20", # INFO
+#        "--verbosity", "30", # WARNING
+#         "--verbosity", "40", # ERROR
+        "--verbosity", "50", # CRITICAL/FATAL
+        "--machine", "Dragon32", "run",
+#        "--machine", "Vectrex", "run",
+#        "--max_ops", "1",
         "--trace",
-
-#        "--machine=Simple6809",
-        "--machine=sbc09",
-#         "--max=500000",
-#         "--max=20000",
-        "--max=1",
     ]
     print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
