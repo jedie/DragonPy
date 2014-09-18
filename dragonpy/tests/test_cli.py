@@ -70,8 +70,22 @@ class CLITestCase(unittest.TestCase):
 #        print(cli_err)
         self.assertInMultiline([
             "usage: DragonPy_CLI.py [-h]",
-            "--machine {CoCo2b,Dragon32,Dragon64,Vectrex}",
+            "--machine {CoCo2b,Dragon32,Dragon64,Multicomp6809,Vectrex}",
             "{run,editor,benchmark}",
+        ], cli_out)
+
+        errors = ["Error", "Traceback"]
+        self.assertNotInMultiline(errors, cli_out)
+        self.assertNotInMultiline(errors, cli_err)
+
+    def test_log_list(self):
+        cli_out, cli_err = self._get("--log_list")
+#        print(cli_out)
+#        print(cli_err)
+        self.assertInMultiline([
+            "A list of all loggers:",
+            "DragonPy.cpu6809",
+            "dragonpy.Dragon32.MC6821_PIA",
         ], cli_out)
 
         errors = ["Error", "Traceback"]
