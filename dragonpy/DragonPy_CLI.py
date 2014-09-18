@@ -27,6 +27,8 @@ from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.machine import run_Dragon32
 from dragonpy.Dragon64.config import Dragon64Cfg
 from dragonpy.Dragon64.machine import run_Dragon64
+from dragonpy.Multicomp6809.config import Multicomp6809Cfg
+from dragonpy.Multicomp6809.machine import run_Multicomp6809
 from dragonpy.core import configs
 from dragonpy.core.base_cli import Base_CLI
 from dragonpy.core.bechmark import run_benchmark
@@ -40,9 +42,9 @@ log = logging.getLogger(__name__)
 machine_dict.register(configs.DRAGON32, (run_Dragon32, Dragon32Cfg), default=True)
 machine_dict.register(configs.DRAGON64, (run_Dragon64, Dragon64Cfg))
 machine_dict.register(configs.COCO2B, (run_CoCo2b, CoCo2bCfg))
-# machine_dict.register(SBC09, SBC09Cfg)
-# machine_dict.register(SIMPLE6809, Simple6809Cfg)
-# machine_dict.register(MULTICOMP6809, Multicomp6809Cfg)
+# machine_dict.register(configs.SBC09, SBC09Cfg)
+# machine_dict.register(configs.SIMPLE6809, Simple6809Cfg)
+machine_dict.register(configs.MULTICOMP6809, (run_Multicomp6809, Multicomp6809Cfg))
 machine_dict.register(configs.VECTREX, (run_Vectrex, VectrexCfg))
 
 
@@ -186,7 +188,7 @@ def test_run():
         os.path.join("..", "DragonPy_CLI.py"),
 #         "-h"
 #         "--log_list",
-        "--log", "DragonPy.cpu6809,50;dragonpy.Dragon32.MC6821_PIA,10",
+        "--log", "DragonPy.cpu6809,50", "dragonpy.Dragon32.MC6821_PIA,10",
 
 #         "--verbosity", " 1", # hardcode DEBUG ;)
 #         "--verbosity", "10", # DEBUG

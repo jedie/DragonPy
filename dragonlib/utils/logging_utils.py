@@ -26,7 +26,7 @@ log = logging.getLogger(__name__)
 #     log.critical("Fixed Log handlers: %s", repr(log.handlers))
 
 
-def setup_logging(log, level, handler=None, log_formatter=None):
+def setup_logging(level, logger_name=None, handler=None, log_formatter=None):
     """
     levels:
          1 - hardcode DEBUG ;)
@@ -40,11 +40,19 @@ def setup_logging(log, level, handler=None, log_formatter=None):
     """
     root_logger = logging.getLogger()
 
+    if logger_name is None:
+        logger = root_logger
+        root_logger.info("Set %i level to root logger", level)
+    else:
+        logger = logging.getLogger(logger_name)
+        root_logger.info("Set %i level to logger %r", level, logger_name)
+
     if level == 100:
-        root_logger.disabled = True
+        logger.handlers = ()
+        logger.disabled = True
         return
 
-    root_logger.setLevel(level=level)
+    logger.setLevel(level=level)
 
     if log_formatter is None:
         log_formatter = "[%(processName)s %(threadName)s] %(message)s"
@@ -55,24 +63,10 @@ def setup_logging(log, level, handler=None, log_formatter=None):
     handler.setFormatter(formatter)
 
     if hasattr(handler, "baseFilename"):
-        sys.stderr.write("Log to file: %s (%s)\n" % (
-            handler.baseFilename, repr(handler))
-        )
+        root_logger.debug("Log to file: %s (%s)", handler.baseFilename, repr(handler))
     else:
-        sys.stderr.write("Log to handler: %s\n" % repr(handler))
-    root_logger.handlers = (handler,)
-
-
-def disable_logging(log):
-    """
-    e.g.: for run all unittests.
-    btw. logging can be activated again with e.g.: setup_logging()
-    """
-    log.log(99, "Disable all logging output.")
-    root_logger = logging.getLogger()
-    root_logger.setLevel(level=100)
-    root_logger.disabled = True
-    root_logger.handlers = ()
+        root_logger.debug("Log to handler: %s", repr(handler))
+    logger.handlers = (handler,)
 
 
 def log_memory_dump(memory, start, end, mem_info, level=99):

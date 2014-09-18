@@ -16,6 +16,7 @@ from __future__ import absolute_import, division, print_function
 import argparse
 import sys
 import logging
+from dragonlib.utils.logging_utils import setup_logging
 
 log = logging.getLogger(__name__)
 
@@ -110,24 +111,31 @@ class Base_CLI(object):
         return args
 
     def setup_logging(self, args):
+        handler = logging.StreamHandler()
+
+        # Setup root logger
+        setup_logging(
+            level=args.verbosity,
+            logger_name=None, # Use root logger
+            handler=handler,
+            log_formatter=args.log_formatter
+        )
+
         if args.log is None:
             return
 
-        print(args.log)
-
-        handler = logging.StreamHandler()
-        formatter = logging.Formatter(args.log_formatter)
-        handler.setFormatter(formatter)
-
+        # Setup given loggers
         for logger_cfg in args.log:
             logger_name, level = logger_cfg.rsplit(",", 1)
             level = int(level)
-            logger = logging.getLogger(logger_name)
-            logger.handlers = (handler,)
 
-            logger.setLevel(logging.INFO)
-            logger.info("Set %i level to logger %r", level, logger_name)
-            logger.setLevel(level)
+            setup_logging(
+                level=level,
+                logger_name=logger_name,
+                handler=handler,
+                log_formatter=args.log_formatter
+            )
+
 
 
 #------------------------------------------------------------------------------
