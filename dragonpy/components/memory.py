@@ -51,6 +51,8 @@ class Memory(object):
 
         assert not hasattr(cfg, "ram"), "cfg.ram is deprecated! Remove it from: %s" % self.cfg.__class__.__name__
 
+        assert not hasattr(cfg, "DEFAULT_ROM"), "cfg.DEFAULT_ROM must be converted to DEFAULT_ROMS tuple in %s" % self.cfg.__class__.__name__
+
         assert self.RAM_SIZE + self.RAM_SIZE <= self.INTERNAL_SIZE, "%s Bytes < %s Bytes" % (
             self.RAM_SIZE + self.RAM_SIZE, self.INTERNAL_SIZE
         )
@@ -331,7 +333,7 @@ class Memory(object):
         return [self.read_byte(addr) for addr in xrange(start, end)]
 
     def iter_bytes(self, start, end):
-        for addr in xrange(start, end + 1):
+        for addr in xrange(start, end):
             yield addr, self.read_byte(addr)
 
     def get_dump(self, start, end):

@@ -29,12 +29,16 @@ from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.components.periphery import PeripheryBase
 
 
-class Dragon32PeripheryBase(PeripheryBase):
+class Dragon32PeripheryBase(object):
     """
     GUI independent stuff
     """
-    def __init__(self, cfg, cpu, memory, user_input_queue):
-        super(Dragon32PeripheryBase, self).__init__(cfg, cpu, memory, user_input_queue)
+    def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
+        self.cfg = cfg
+        self.cpu = cpu
+        self.memory = memory
+        self.display_queue = display_queue # Buffer for output from CPU
+        self.user_input_queue = user_input_queue
 
         self.kbd = 0xBF
         self.display = None
@@ -68,7 +72,7 @@ class Dragon32PeripheryBase(PeripheryBase):
 
 class Dragon32Periphery(Dragon32PeripheryBase):
     def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
-        super(Dragon32Periphery, self).__init__(cfg, cpu, memory, user_input_queue)
+        super(Dragon32Periphery, self).__init__(cfg, cpu, memory, display_queue, user_input_queue)
 
         # redirect writes to display RAM area 0x0400-0x0600 into display_queue:
         DragonDisplayOutputHandler(display_queue, memory)

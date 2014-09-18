@@ -50,17 +50,14 @@ except ImportError:
 class PeripheryBase(object):
     INITAL_INPUT = None # For quick test
 
-    def __init__(self, cfg, cpu, memory, user_input_queue=None):
+    def __init__(self, cfg, cpu, memory, display_queue=None, user_input_queue=None):
         self.cfg = cfg
         self.cpu = cpu
         self.memory = memory
-        if user_input_queue is None:
-            self.user_input_queue = queue.Queue() # Buffer for input to send back to the CPU
-        else:
-            self.user_input_queue = user_input_queue
+        self.user_input_queue = user_input_queue
+        self.display_queue = display_queue # Buffer for output from CPU
 
         self.running = True
-        self.display_queue = queue.Queue() # Buffer for output from CPU
         self.update_time = 0.1
         self.last_cpu_cycle_update = time.time()
 

@@ -17,6 +17,7 @@ import os
 from dragonpy.core.configs import BaseConfig, MULTICOMP6809
 # from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
 from dragonpy.Multicomp6809.periphery_Multicomp6809 import Multicomp6809Periphery
+from dragonpy.components.rom import ROMFile
 
 
 
@@ -26,6 +27,7 @@ class Multicomp6809Cfg(BaseConfig):
     http://searle.hostei.com/grant/Multicomp/
     """
     CONFIG_NAME = MULTICOMP6809
+    MACHINE_NAME = "Multicomp 6809"
 
     RAM_START = 0x0000
     RAM_END = 0x03FF # 1KB
@@ -51,15 +53,18 @@ class Multicomp6809Cfg(BaseConfig):
         (0xBFF0, 0xBFFF, "Interrupt vectors"),
     )
 
-    DEFAULT_ROM = os.path.join(
-        os.path.abspath(os.path.dirname(__file__)),
-        "EXT_BASIC_NO_USING.bin"
+    DEFAULT_ROMS = (
+        ROMFile(address=0xE000, max_size=0x4000,
+            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
+                "EXT_BASIC_NO_USING.bin"
+            )
+        ),
     )
 
     def __init__(self, cmd_args):
-        self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
-        self.RAM_SIZE = (self.RAM_END - self.RAM_START) + 1
         super(Multicomp6809Cfg, self).__init__(cmd_args)
+
+        self.machine_api = None
 
 #         if self.verbosity <= logging.INFO:
 #         self.mem_info = get_simple6809_meminfo()

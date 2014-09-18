@@ -52,9 +52,12 @@ class Machine(object):
         self.cpu = CPU(memory, self.cfg)
         memory.cpu = self.cpu  # FIXME
 
-        self.periphery = self.periphery_class(
-            self.cfg, self.cpu, memory, self.display_queue, self.user_input_queue
-        )
+        try:
+            self.periphery = self.periphery_class(
+                self.cfg, self.cpu, memory, self.display_queue, self.user_input_queue
+            )
+        except TypeError as err:
+            raise TypeError("%s - class: %s" % (err, self.periphery_class.__name__))
 
         self.cpu_init_state = self.cpu.get_state() # Used for hard reset
 #        from dragonpy.tests.test_base import print_cpu_state_data
