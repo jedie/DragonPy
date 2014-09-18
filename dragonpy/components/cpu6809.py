@@ -239,7 +239,7 @@ class CPU(object):
     ####
 
     def reset(self):
-#        log.info("$%x CPU reset:" % self.program_counter)
+        log.info("%04x| CPU reset:", self.program_counter.get())
 
         self.last_op_address = 0
 
@@ -263,9 +263,11 @@ class CPU(object):
 #         log.debug("\tset PC to $%x" % self.cfg.RESET_VECTOR)
 #         self.program_counter = self.cfg.RESET_VECTOR
 
-#        log.info("\tread word from $%x" % self.cfg.RESET_VECTOR)
+        log.info("\tread reset vector from $%04x", self.RESET_VECTOR)
         ea = self.memory.read_word(self.RESET_VECTOR)
-#        log.info("\tset PC to $%x" % (ea))
+        log.info("\tset PC to $%04x" % ea)
+        if ea == 0x0000:
+            log.critical("Reset vector is $%04x ??? ROM loading in the right place?!?", ea)
         self.program_counter.set(ea)
 
     ####
