@@ -51,7 +51,7 @@ class PIA_register(object):
         self.irq = 0x00
 
     def set(self, value):
-        log.error("\t set %s to $%02x %s", self.name, value, '{0:08b}'.format(value))
+        log.debug("\t set %s to $%02x %s", self.name, value, '{0:08b}'.format(value))
         self.value = value
 
     def get(self):
@@ -186,7 +186,7 @@ class PIA(object):
 
     def read_PIA1_B_data(self, cpu_cycles, op_address, address):
         """ read from 0xff22 -> PIA 1 B side Data reg. """
-        log.error("TODO: read from 0xff22 -> PIA 1 B side Data reg.")
+        log.debug("TODO: read from 0xff22 -> PIA 1 B side Data reg.")
         return 0x00
 
     def read_PIA1_B_control(self, cpu_cycles, op_address, address):
@@ -208,8 +208,9 @@ class PIA(object):
 
     def write_PIA1_B_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff22 -> PIA 1 B side Data reg. """
-        log.error(
-            "TODO: write $%02x to 0xff22 -> PIA 1 B side Data reg.", value)
+        log.debug(
+            "TODO: write $%02x to 0xff22 -> PIA 1 B side Data reg.", value
+        )
 
     def write_PIA1_B_control(self, cpu_cycles, op_address, address, value):
         """ write to 0xff23 -> PIA 1 B side Control reg. """
@@ -373,7 +374,7 @@ class PIA(object):
         bits 0-7 also printer data lines
         """
         value = self.pia_0_B_data.get()  # $ff02
-        log.error(
+        log.debug(
             "%04x| read $%04x (PIA 0 B side Data reg.) send $%02x (%s) back.\t|%s",
             op_address, address, value, byte2bit_string(value),
             self.cfg.mem_info.get_shortest(op_address)
@@ -382,7 +383,7 @@ class PIA(object):
 
     def write_PIA0_B_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff02 -> PIA 0 B side Data reg. """
-        log.critical(
+        log.debug(
 #        log.info(
             "%04x| write $%02x (%s) to $%04x -> PIA 0 B side Data reg.\t|%s",
             op_address, value, byte2bit_string(value),
