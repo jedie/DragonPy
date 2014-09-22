@@ -13,7 +13,7 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 
-from dragonpy.components.MC6809data.MC6809_data_raw2 import (
+from dragonpy.components.MC6809data.MC6809_data import (
     OP_DATA, BYTE, WORD, REG_A, REG_B, REG_CC, REG_D , REG_DP, REG_PC,
     REG_S, REG_U, REG_X, REG_Y
 )
@@ -55,7 +55,7 @@ INIT_CODE = '''
 """
 
 
-from dragonpy.cpu_utils.instruction_base import InstructionBase
+from dragonpy.components.cpu_utils.instruction_base import InstructionBase
 
 class PrepagedInstructions(InstructionBase):
 

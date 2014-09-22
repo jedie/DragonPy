@@ -17,7 +17,7 @@ xrange = six.moves.xrange
 
 import os
 
-from .MC6809_data_raw2 import OP_DATA, BYTE, WORD
+from .MC6809_data import OP_DATA, BYTE, WORD
 
 
 OUTFILENAME = "CPU6809_opcodes.html"
