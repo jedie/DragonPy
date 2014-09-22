@@ -71,11 +71,7 @@ class Memory(object):
 
         if cfg and cfg.rom_cfg:
             for romfile in cfg.rom_cfg:
-                self.load_file(
-                    address=romfile.address,
-                    filename=romfile.filepath,
-                    max_size=romfile.max_size
-                )
+                self.load_file(romfile)
 
         self._read_byte_callbacks = {}
         self._read_word_callbacks = {}
@@ -179,33 +175,10 @@ class Memory(object):
         for ea, datum in enumerate(data, address):
             self._mem[ea] = datum
 
-    def load_file(self, address, filename, max_size=None):
-        # TODO: Use self.load !
-        log.critical("Load ROM file %r to $%04x", filename, address)
-        with open(filename, "rb") as f:
-            filesize = os.stat(filename).st_size
-            for offset, datum in enumerate(f.read()):
-                if max_size and offset > max_size:
-                    log.critical("Load only $%04x (dez.: %i) Bytes - file size is $%04x (dez.: %i) Bytes",
-                        max_size, max_size, filesize, filesize
-                    )
-                    break
-
-                index = address + offset
-                if six.PY2:
-                    datum = ord(datum)
-
-#                 log.critical("$%04x - $%02x", index, datum)
-                try:
-                    self._mem[index] = datum
-                except IndexError:
-                    log.error("Error: File %s $%04x (dez.: %i) Bytes is bigger than: $%04x" % (
-                        filename, filesize, filesize, index
-                    ))
-                    break
-        log.info("read $%04x (dez.: %i) Bytes from %r into ROM $%04x-$%04x",
-            offset, offset, filename, address, (address + offset)
-        )
+    def load_file(self, romfile):
+        data = romfile.get_data()
+        self.load(romfile.address, data)
+        log.critical("Load ROM file %r to $%04x", romfile.filepath, romfile.address)
 
     #---------------------------------------------------------------------------
 
