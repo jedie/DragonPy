@@ -35,18 +35,13 @@ except ImportError:
     import thread as _thread
 
 import inspect
-import os
-import socket
+import logging
 import sys
 import threading
 import time
 import warnings
-import logging
 
-from dragonpy.MC6809data.MC6809_data_raw2 import (
-    OP_DATA, REG_A, REG_B, REG_CC, REG_D, REG_DP, REG_PC,
-    REG_S, REG_U, REG_X, REG_Y
-)
+
 from dragonpy.core.cpu_control_server import start_http_control_server
 from dragonpy.cpu_utils.MC6809_registers import (
     ValueStorage8Bit, ConcatenatedAccumulator,
@@ -55,7 +50,10 @@ from dragonpy.cpu_utils.MC6809_registers import (
 from dragonpy.cpu_utils.instruction_caller import OpCollection
 from dragonpy.utils.bits import is_bit_set, get_bit
 from dragonpy.utils.byte_word_values import signed8, signed16, signed5
-from dragonpy.utils.simple_debugger import print_exc_plus
+from dragonpy.components.MC6809data.MC6809_data_raw2 import (
+    REG_A, REG_B, REG_CC, REG_D, REG_DP, REG_PC,
+    REG_S, REG_U, REG_X, REG_Y
+)
 
 
 log = logging.getLogger(__name__)
