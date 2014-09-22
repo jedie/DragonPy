@@ -70,7 +70,7 @@ class CLITestCase(unittest.TestCase):
 #        print(cli_err)
         self.assertInMultiline([
             "usage: DragonPy_CLI.py [-h]",
-            "--machine {CoCo2b,Dragon32,Dragon64,Vectrex}",
+            "--machine {CoCo2b,Dragon32,Dragon64,Multicomp6809,Vectrex}",
             "{run,editor,benchmark}",
         ], cli_out)
 
