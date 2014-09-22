@@ -113,7 +113,7 @@ class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
         self.cpu = cpu
         self.display_queue = display_queue
         self.user_input_queue = user_input_queue
-        super(Dragon32PeripheryUnittest, self).__init__(cfg, cpu, memory, self.user_input_queue)
+        super(Dragon32PeripheryUnittest, self).__init__(cfg, cpu, memory, self.display_queue, self.user_input_queue)
 
         self.rows = 32
         self.columns = 16
@@ -132,6 +132,11 @@ class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
         self.old_columns = None
         self.output_lines = [""] # for unittest run_until_OK()
         self.display_buffer = {} # for striped_output()
+
+    def add_to_input_queue(self, txt):
+        log.debug("Add %s to input queue.", repr(txt))
+        for char in txt:
+            self.user_input_queue.put(char)
 
     def to_line_buffer(self, cpu_cycles, op_address, address, value):
         char, color = self.charmap[value]

@@ -31,7 +31,7 @@ class TestCfg(BaseConfig):
         (0xFFF2, 0xFFFE, "Interrupt vectors"),
     )
 
-    DEFAULT_ROM = None
+    DEFAULT_ROMS = None
 
     def __init__(self, cfg_dict):
 
