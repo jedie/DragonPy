@@ -12,22 +12,17 @@
 
 from __future__ import absolute_import, division, print_function
 
-
-import logging
 import unittest
-
-from dragonpy.tests.test_base import TextTestRunner2
 
 
 if __name__ == '__main__':
     loader = unittest.TestLoader()
     tests = loader.discover('.')
 
-#    test_runner = TextTestRunner2(
+    # test_runner = TextTestRunner2(
     test_runner = unittest.TextTestRunner(
-#         verbosity=1,
+        # verbosity=1,
         verbosity=2,
-#         failfast=True,
+        # failfast=True,
     )
-
     test_runner.run(tests)

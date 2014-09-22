@@ -1,6 +1,6 @@
 
 
-from dragonpy.MC6809data.MC6809_data_raw2 import OP_DATA
+from dragonpy.components.MC6809data.MC6809_data import OP_DATA
 
 
 def get_opdata():

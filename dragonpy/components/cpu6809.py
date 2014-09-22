@@ -35,27 +35,25 @@ except ImportError:
     import thread as _thread
 
 import inspect
-import os
-import socket
+import logging
 import sys
 import threading
 import time
 import warnings
-import logging
 
-from dragonpy.MC6809data.MC6809_data_raw2 import (
-    OP_DATA, REG_A, REG_B, REG_CC, REG_D, REG_DP, REG_PC,
-    REG_S, REG_U, REG_X, REG_Y
-)
+
 from dragonpy.core.cpu_control_server import start_http_control_server
-from dragonpy.cpu_utils.MC6809_registers import (
+from dragonpy.components.cpu_utils.MC6809_registers import (
     ValueStorage8Bit, ConcatenatedAccumulator,
     ValueStorage16Bit, ConditionCodeRegister, UndefinedRegister
 )
-from dragonpy.cpu_utils.instruction_caller import OpCollection
+from dragonpy.components.cpu_utils.instruction_caller import OpCollection
 from dragonpy.utils.bits import is_bit_set, get_bit
 from dragonpy.utils.byte_word_values import signed8, signed16, signed5
-from dragonpy.utils.simple_debugger import print_exc_plus
+from dragonpy.components.MC6809data.MC6809_data import (
+    REG_A, REG_B, REG_CC, REG_D, REG_DP, REG_PC,
+    REG_S, REG_U, REG_X, REG_Y
+)
 
 
 log = logging.getLogger(__name__)
@@ -377,10 +375,10 @@ class CPU(object):
         >>> calc_new_count(burst_count=100, current_value=20, target_value=40)
         150
         """
-        log.critical(
-            "%i op count current: %.4f target: %.4f",
-            self.burst_op_count, current_value, target_value
-        )
+        # log.critical(
+        #     "%i op count current: %.4f target: %.4f",
+        #     self.burst_op_count, current_value, target_value
+        # )
         try:
             new_burst_count = float(burst_count) / float(current_value) * target_value
             new_burst_count += 1 # At least we need one loop ;)

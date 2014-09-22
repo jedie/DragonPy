@@ -225,7 +225,12 @@ class BasicListing(object):
             basic_lines = []
 
         log.critical("progam start $%04x", program_start)
-        next_address = (dump[0] << 8) + dump[1]
+        try:
+            next_address = (dump[0] << 8) + dump[1]
+        except IndexError as err:
+            log.critical("Can't get address: %s", err)
+            return basic_lines
+
         log.critical("next_address: $%04x", next_address)
         if next_address == 0x0000:
             # program end

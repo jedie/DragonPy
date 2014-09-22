@@ -114,68 +114,68 @@ class SAM(object):
         return value
 
 #     def read_VDG_mode_register_v0(self, cpu_cycles, op_address, address):
-#         log.error("TODO: read VDG mode register V0 $%04x", address)
+#         log.debug("TODO: read VDG mode register V0 $%04x", address)
 #         return 0x00
 
     def read_VDG_mode_register_v1(self, cpu_cycles, op_address, address):
-        log.error("TODO: read VDG mode register V1 $%04x", address)
+        log.debug("TODO: read VDG mode register V1 $%04x", address)
         return 0x00
 
     #--------------------------------------------------------------------------
 
     def write_VDG_mode_register_v0(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write VDG mode register V0 $%02x to $%04x", value, address)
+        log.debug("TODO: write VDG mode register V0 $%02x to $%04x", value, address)
 
     def write_VDG_mode_register_v1(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write VDG mode register V1 $%02x to $%04x", value, address)
+        log.debug("TODO: write VDG mode register V1 $%02x to $%04x", value, address)
 
     def write_VDG_mode_register_v2(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write VDG mode register V2 $%02x to $%04x", value, address)
+        log.debug("TODO: write VDG mode register V2 $%02x to $%04x", value, address)
 
     def write_display_offset_F0(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write display_offset_F0 $%02x to $%04x", value, address)
+        log.debug("TODO: write display_offset_F0 $%02x to $%04x", value, address)
 
     def write_display_offset_F1(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write display_offset_F1 $%02x to $%04x", value, address)
+        log.debug("TODO: write display_offset_F1 $%02x to $%04x", value, address)
 
     def write_display_offset_F2(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write display_offset_F2 $%02x to $%04x", value, address)
+        log.debug("TODO: write display_offset_F2 $%02x to $%04x", value, address)
 
     def write_display_offset_F3(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write display_offset_F3 $%02x to $%04x", value, address)
+        log.debug("TODO: write display_offset_F3 $%02x to $%04x", value, address)
 
     def write_display_offset_F4(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write display_offset_F4 $%02x to $%04x", value, address)
+        log.debug("TODO: write display_offset_F4 $%02x to $%04x", value, address)
 
     def write_display_offset_F5(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write display_offset_F5 $%02x to $%04x", value, address)
+        log.debug("TODO: write display_offset_F5 $%02x to $%04x", value, address)
 
     def write_display_offset_F6(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write display_offset_F6 $%02x to $%04x", value, address)
+        log.debug("TODO: write display_offset_F6 $%02x to $%04x", value, address)
 
     def write_page_bit(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write page_bit $%02x to $%04x", value, address)
+        log.debug("TODO: write page_bit $%02x to $%04x", value, address)
 
     def write_MPU_rate_bit0(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write MPU_rate_bit0 $%02x to $%04x", value, address)
+        log.debug("TODO: write MPU_rate_bit0 $%02x to $%04x", value, address)
 
     def write_MPU_rate_bit1(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write MPU_rate_bit1 $%02x to $%04x", value, address)
+        log.debug("TODO: write MPU_rate_bit1 $%02x to $%04x", value, address)
 
     def write_size_select_bit0(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write size_select_bit0 $%02x to $%04x", value, address)
+        log.debug("TODO: write size_select_bit0 $%02x to $%04x", value, address)
 
     def write_size_select_bit1(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write size_select_bit1 $%02x to $%04x", value, address)
+        log.debug("TODO: write size_select_bit1 $%02x to $%04x", value, address)
 
     def write_map_type(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write map_type $%02x to $%04x", value, address)
+        log.debug("TODO: write map_type $%02x to $%04x", value, address)
 
     def write_map0(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write map0 $%02x to $%04x", value, address)
+        log.debug("TODO: write map0 $%02x to $%04x", value, address)
 
     def write_D64_dynamic_memory(self, cpu_cycles, op_address, address, value):
-        log.error("TODO: write D64_dynamic_memory $%02x to $%04x", value, address)
+        log.debug("TODO: write D64_dynamic_memory $%02x to $%04x", value, address)
 
 
 #------------------------------------------------------------------------------

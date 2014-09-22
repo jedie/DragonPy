@@ -55,7 +55,7 @@ def setup_logging(level, logger_name=None, handler=None, log_formatter=None):
     logger.setLevel(level=level)
 
     if log_formatter is None:
-        log_formatter = "[%(processName)s %(threadName)s] %(message)s"
+        log_formatter = "%(relativeCreated)-5d %(levelname)8s %(module)13s %(lineno)d %(message)s"
     formatter = logging.Formatter(log_formatter)
 
     if handler is None:

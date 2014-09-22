@@ -102,14 +102,14 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
 
 
 if __name__ == '__main__':
-    setup_logging(log,
-#        level=1 # hardcore debug ;)
+    setup_logging(
+       # level=1 # hardcore debug ;)
 #        level=10 # DEBUG
 #        level=20 # INFO
 #        level=30 # WARNING
-#        level=40 # ERROR
+       level=40 # ERROR
 #        level=50 # CRITICAL/FATAL
-        level=99 # nearly off
+#         level=99 # nearly off
     )
 
     unittest.main(

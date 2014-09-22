@@ -35,7 +35,7 @@ from dragonpy.Simple6809.periphery_simple6809 import Simple6809PeripheryUnittest
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
 from dragonpy.core.machine import Machine
-from dragonpy.cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
+from dragonpy.components.cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
 from dragonpy.sbc09.config import SBC09Cfg
 from dragonpy.sbc09.periphery import SBC09PeripheryUnittest
 from dragonpy.tests.test_config import TestCfg
