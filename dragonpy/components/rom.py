@@ -11,7 +11,9 @@
 
 from __future__ import absolute_import, division, print_function
 import os
+import logging
 
+log = logging.getLogger(__name__)
 
 
 class ROMFile(object):
@@ -20,4 +22,5 @@ class ROMFile(object):
         self.address = address
         self.max_size = max_size
 
-        assert os.path.isfile(self.filepath), "Error ROM file not found: '%s'" % self.filepath
+        if not os.path.isfile(self.filepath):
+            log.log(99, "Error ROM file not found: '%s'", self.filepath)
