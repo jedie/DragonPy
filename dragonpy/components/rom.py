@@ -10,14 +10,17 @@
 """
 
 from __future__ import absolute_import, division, print_function
+
 import os
 import logging
+
 
 log = logging.getLogger(__name__)
 
 
 class ROMFileNotFound(Exception):
     pass
+
 
 class ROMFile(object):
     def __init__(self, filepath, address, max_size=None):
@@ -31,10 +34,10 @@ class ROMFile(object):
 
         with open(self.filepath, "rb") as f:
             if not self.max_size:
-                data=f.read()
+                data = f.read()
             else:
                 filesize = os.stat(self.filepath).st_size
-                if filesize>self.max_size:
+                if filesize > self.max_size:
                     log.critical("Load only $%04x (dez.: %i) Bytes - file size is $%04x (dez.: %i) Bytes",
                         self.max_size, self.max_size, filesize, filesize
                     )

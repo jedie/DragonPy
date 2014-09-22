@@ -375,10 +375,10 @@ class CPU(object):
         >>> calc_new_count(burst_count=100, current_value=20, target_value=40)
         150
         """
-        log.critical(
-            "%i op count current: %.4f target: %.4f",
-            self.burst_op_count, current_value, target_value
-        )
+        # log.critical(
+        #     "%i op count current: %.4f target: %.4f",
+        #     self.burst_op_count, current_value, target_value
+        # )
         try:
             new_burst_count = float(burst_count) / float(current_value) * target_value
             new_burst_count += 1 # At least we need one loop ;)
