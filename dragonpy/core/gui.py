@@ -11,23 +11,10 @@
 """
 
 from __future__ import absolute_import, division, print_function
-from dragonlib.utils import six
-xrange = six.moves.xrange
 
-import os
 import sys
 import time
 import logging
-
-from basic_editor.editor import EditorWindow
-
-from dragonpy.Dragon32 import dragon_charmap
-from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
-from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkImageFont
-from dragonpy.utils.humanize import locale_format_number, get_python_info
-
-log = logging.getLogger(__name__)
-
 
 try:
     # Python 3
@@ -46,289 +33,22 @@ except ImportError:
     import ScrolledText as scrolledtext
     import tkFont as TkFont
 
+from basic_editor.editor import EditorWindow
+from dragonpy.Dragon32.MC6847 import MC6847_TextModeCanvas
+from dragonpy.Dragon32.gui_config import RuntimeCfg, BaseTkinterGUIConfig
+from dragonpy.utils.humanize import locale_format_number, get_python_info
 
-class MC6847_TextModeCanvas(object):
-    """
-    MC6847 Video Display Generator (VDG) in Alphanumeric Mode.
-    This display mode consumes 512 bytes of memory and is a 32 character wide screen with 16 lines.
-
-    Here we only get the "write into Display RAM" information from the CPU-Thread
-    from display_queue.
-
-    The Display Tkinter.Canvas() which will be filled with Tkinter.PhotoImage() instances.
-    Every displayed character is a Tkinter.PhotoImage()
-    """
-    def __init__(self, root):
-        self.rows = 32
-        self.columns = 16
-
-        scale_factor = 2  # scale the complete Display/Characters
-        self.tk_font = TkImageFont(CHARS_DICT, scale_factor)  # to generate PhotoImage()
-
-        self.total_width = self.tk_font.width_scaled * self.rows
-        self.total_height = self.tk_font.height_scaled * self.columns
-
-        foreground, background = dragon_charmap.get_hex_color(dragon_charmap.NORMAL)
-        self.canvas = tkinter.Canvas(root,
-            width=self.total_width,
-            height=self.total_height,
-            bd=0, # no border
-            highlightthickness=0, # no highlight border
-#             bg="#ff0000",
-            bg="#%s" % background,
-        )
-
-        # Contains the map from Display RAM value to char/color:
-        self.charmap = get_charmap_dict()
-
-        # Cache for the generated Tkinter.PhotoImage() in evry char/color combination:
-        self.image_cache = {}
-
-        # Tkinter.PhotoImage() IDs for image replace with canvas.itemconfigure():
-        self.images_map = {}
-
-        # Create all charachter images on the display and fill self.images_map:
-        self.init_img = self.tk_font.get_char(char="?", color=dragon_charmap.INVERTED)
-        for row in xrange(self.rows + 1):
-            for column in xrange(self.columns + 1):
-                x = self.tk_font.width_scaled * row
-                y = self.tk_font.height_scaled * column
-                image_id = self.canvas.create_image(x, y,
-                    image=self.init_img,
-                    state="normal",
-                    anchor=tkinter.NW  # NW == NorthWest
-                )
-#                 log.critical("Image ID: %s at %i x %i", image_id, x, y)
-                self.images_map[(x, y)] = image_id
-
-    def write_byte(self, cpu_cycles, op_address, address, value):
-        #         log.critical(
-        #             "%04x| *** Display write $%02x ***%s*** %s at $%04x",
-        #             op_address, value, repr(char), color, address
-        #         )
-
-        try:
-            image = self.image_cache[value]
-        except KeyError:
-            # Generate a Tkinter.PhotoImage() for the requested char/color
-            char, color = self.charmap[value]
-            image = self.tk_font.get_char(char, color)
-            self.image_cache[value] = image
-
-        position = address - 0x400
-        column, row = divmod(position, self.rows)
-        x = self.tk_font.width_scaled * row
-        y = self.tk_font.height_scaled * column
-
-#         log.critical("replace image %s at %i x %i", image, x, y)
-        image_id = self.images_map[(x, y)]
-        self.canvas.itemconfigure(image_id, image=image)
-
-
-class RuntimeCfg(object):
-    """
-    TODO: Load/save to ~/.DragonPy.ini
-    """
-    speedlimit = False
-    cycles_per_sec = 888625 # cycles/sec
-    sync_op_count = 100
-    max_run_time = 0.1
-    max_burst_count = 1000
-
-    def __setattr__(self, attr, value):
-        log.critical("Set RuntimeCfg %r to: %r" % (attr, value))
-        return object.__setattr__(self, attr, value)
-
-    def load(self):
-        raise NotImplementedError("TODO!")
-    def save(self):
-        raise NotImplementedError("TODO!")
-
-
-
-class BaseTkinterGUIConfig(object):
-    """
-    14.318180 Mhz crystal / 16 = 0.894886 MHz CPU frequency * 1000000 = 894886 cycles/sec
-    14.218000 Mhz crystal / 16 = 0.888625 MHz CPU frequency * 1000000 = 888625 cycles/sec
-
-    894886 cycles/sec - 888625 cycles/sec = 6261 cycles/sec slower
-    14.218000 Mhz crystal = 0.00000113 Sec or 1.12533408356e-06 us cycle time
-    """
-    def __init__(self, gui, runtime_cfg):
-        self.gui = gui
-        self.runtime_cfg = runtime_cfg
-
-        self.root = tkinter.Toplevel(self.gui.root)
-        self.root.geometry("+%d+%d" % (
-            self.gui.root.winfo_rootx() + self.gui.root.winfo_width(),
-            self.gui.root.winfo_y() # FIXME: Different on linux.
-        ))
-
-        row = 0
-
-        #
-        # Speedlimit check button
-        #
-        # self.check_value_speedlimit = tkinter.BooleanVar( # FIXME: Doesn't work with PyPy ?!?!
-        self.check_value_speedlimit = tkinter.IntVar(
-            value=self.runtime_cfg.speedlimit
-        )
-        self.checkbutton_speedlimit = tkinter.Checkbutton(self.root,
-            text="speedlimit", variable=self.check_value_speedlimit,
-            command=self.command_checkbutton_speedlimit
-        )
-        self.checkbutton_speedlimit.grid(row=row, column=0)
-
-        #
-        # Cycles/sec entry
-        #
-        self.cycles_per_sec_var = tkinter.IntVar(
-            value=self.runtime_cfg.cycles_per_sec
-        )
-        self.cycles_per_sec_entry = tkinter.Entry(self.root,
-            textvariable=self.cycles_per_sec_var,
-            width=8, # validate = 'key', validatecommand = vcmd
-        )
-        self.cycles_per_sec_entry.bind('<KeyRelease>', self.command_cycles_per_sec)
-        self.cycles_per_sec_entry.grid(row=row, column=1)
-
-        self.cycles_per_sec_label_var = tkinter.StringVar()
-        self.cycles_per_sec_label = tkinter.Label(
-            self.root, textvariable=self.cycles_per_sec_label_var
-        )
-        self.root.after_idle(self.command_cycles_per_sec) # Add Text
-        self.cycles_per_sec_label.grid(row=row, column=2)
-
-        row += 1
-
-        #
-        # CPU burst max running time - self.runtime_cfg.max_run_time
-        #
-        self.max_run_time_var = tkinter.DoubleVar(
-            value=self.runtime_cfg.max_run_time
-        )
-        self.max_run_time_entry = tkinter.Entry(self.root,
-            textvariable=self.max_run_time_var, width=8,
-        )
-        self.max_run_time_entry.bind('<KeyRelease>', self.command_max_run_time)
-        self.max_run_time_entry.grid(row=row, column=1)
-        self.max_run_time_label = tkinter.Label(self.root,
-            text="How long should a CPU Op burst loop take (max_run_time)"
-        )
-        self.max_run_time_label.grid(row=row, column=2, sticky=tkinter.W)
-
-        row += 1
-
-        #
-        # CPU sync OP count - self.runtime_cfg.sync_op_count
-        #
-        self.sync_op_count_var = tkinter.IntVar(
-            value=self.runtime_cfg.sync_op_count
-        )
-        self.sync_op_count_entry = tkinter.Entry(self.root,
-            textvariable=self.sync_op_count_var, width=8,
-        )
-        self.sync_op_count_entry.bind('<KeyRelease>', self.command_sync_op_count)
-        self.sync_op_count_entry.grid(row=row, column=1)
-        self.sync_op_count_label = tkinter.Label(self.root,
-            text="How many Ops should the CPU process before check sync calls e.g. IRQ (sync_op_count)"
-        )
-        self.sync_op_count_label.grid(row=row, column=2, sticky=tkinter.W)
-
-        row += 1
-
-        #
-        # max CPU burst op count - self.runtime_cfg.max_burst_count
-        #
-        self.max_burst_count_var = tkinter.IntVar(
-            value=self.runtime_cfg.max_burst_count
-        )
-        self.max_burst_count_entry = tkinter.Entry(self.root,
-            textvariable=self.max_burst_count_var, width=8,
-        )
-        self.max_burst_count_entry.bind('<KeyRelease>', self.command_max_burst_count)
-        self.max_burst_count_entry.grid(row=row, column=1)
-        self.max_burst_count_label = tkinter.Label(self.root,
-            text="Max CPU op burst count (max_burst_count)"
-        )
-        self.max_burst_count_label.grid(row=row, column=2, sticky=tkinter.W)
-
-        self.root.update()
-
-    def command_checkbutton_speedlimit(self, event=None):
-        self.runtime_cfg.speedlimit = self.check_value_speedlimit.get()
-
-    def command_cycles_per_sec(self, event=None):
-        try:
-            cycles_per_sec = self.cycles_per_sec_var.get()
-        except ValueError:
-            self.cycles_per_sec_var.set(self.runtime_cfg.cycles_per_sec)
-            return
-
-        self.cycles_per_sec_label_var.set(
-            "cycles/sec / 1000000 = %f MHz CPU frequency * 16 = %f Mhz crystal" % (
-                cycles_per_sec / 1000000,
-                cycles_per_sec / 1000000 * 16,
-            )
-        )
-
-        self.runtime_cfg.cycles_per_sec = cycles_per_sec
-
-    def command_sync_op_count(self, event=None):
-        """ CPU burst max running time - self.runtime_cfg.sync_op_count """
-        try:
-            sync_op_count = self.sync_op_count_var.get()
-        except ValueError:
-            sync_op_count = self.runtime_cfg.sync_op_count
-
-        if sync_op_count < 1:
-            sync_op_count = self.runtime_cfg.sync_op_count
-
-        self.runtime_cfg.sync_op_count = sync_op_count
-        self.sync_op_count_var.set(self.runtime_cfg.sync_op_count)
-
-    def command_max_burst_count(self, event=None):
-        """ max CPU burst op count - self.runtime_cfg.max_burst_count """
-        try:
-            max_burst_count = self.max_burst_count_var.get()
-        except ValueError:
-            max_burst_count = self.runtime_cfg.max_burst_count
-
-        if max_burst_count < 1:
-            max_burst_count = self.runtime_cfg.max_burst_count
-
-        self.runtime_cfg.max_burst_count = max_burst_count
-        self.max_burst_count_var.set(self.runtime_cfg.max_burst_count)
-
-    def command_max_run_time(self, event=None):
-        """ CPU burst max running time - self.runtime_cfg.max_run_time """
-        try:
-            max_run_time = self.max_run_time_var.get()
-        except ValueError:
-            max_run_time = self.runtime_cfg.max_run_time
-
-        self.runtime_cfg.max_run_time = max_run_time
-        self.max_run_time_var.set(self.runtime_cfg.max_run_time)
-
-    def focus(self):
-        # see: http://www.python-forum.de/viewtopic.php?f=18&t=34643 (de)
-        self.root.attributes('-topmost', True)
-        self.root.attributes('-topmost', False)
-        self.root.focus_force()
-        self.root.lift(aboveThis=self.gui.root)
+log = logging.getLogger(__name__)
 
 
 class BaseTkinterGUI(object):
     """
     The complete Tkinter GUI window
     """
-    def __init__(self, cfg, display_queue, user_input_queue):
+
+    def __init__(self, cfg, user_input_queue):
         self.cfg = cfg
         self.runtime_cfg = RuntimeCfg()
-
-        # Queue which contains "write into Display RAM" information
-        # for render them in MC6847_TextModeCanvas():
-        self.display_queue = display_queue
 
         # Queue to send keyboard inputs to CPU Thread:
         self.user_input_queue = user_input_queue
@@ -341,7 +61,7 @@ class BaseTkinterGUI(object):
         self.init_statistics() # Called also after reset
 
         self.root = tkinter.Tk(className="DragonPy")
-#         self.root.config(font="Helvetica 16 bold italic")
+        # self.root.config(font="Helvetica 16 bold italic")
 
         self.root.geometry("+%d+%d" % (
             self.root.winfo_screenwidth() * 0.1, self.root.winfo_screenheight() * 0.1
@@ -352,7 +72,7 @@ class BaseTkinterGUI(object):
 
         menu_tk_font = TkFont.Font(
             family='Helvetica',
-#             family='clean',
+            # family='clean',
             size=11, weight='normal'
         )
 
@@ -420,7 +140,7 @@ class BaseTkinterGUI(object):
         except:
             pass
 
-    #-----------------------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------------------
 
     def close_config(self):
         self.config_window.root.destroy()
@@ -433,7 +153,7 @@ class BaseTkinterGUI(object):
         else:
             self.config_window.focus()
 
-    #-----------------------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------------------
 
     def status_paused(self):
         self.status.set("%s paused.\n" % self.cfg.MACHINE_NAME)
@@ -461,7 +181,7 @@ class BaseTkinterGUI(object):
         self.machine.hard_reset()
         self.init_statistics() # Reset statistics
 
-    #-----------------------------------------------------------------------------------------
+    # -----------------------------------------------------------------------------------------
 
     def add_user_input(self, txt):
         for char in txt:
@@ -500,6 +220,7 @@ class BaseTkinterGUI(object):
     total_burst_duration = 0
     cpu_interval_calls = 0
     last_display_queue_qsize = 0
+
     def cpu_interval(self, interval=None):
         self.cpu_interval_calls += 1
 
@@ -518,9 +239,6 @@ class BaseTkinterGUI(object):
         now = time.time()
         self.total_burst_duration += (now - start_time)
 
-        self.last_display_queue_qsize = (self.last_display_queue_qsize + self.display_queue.qsize()) / 2
-        self.process_display_queue()
-
         if interval is not None:
             if self.machine.cpu.running:
                 self.cpu_after_id = self.root.after(interval, self.cpu_interval, interval)
@@ -528,8 +246,8 @@ class BaseTkinterGUI(object):
                 log.critical("CPU stopped.")
 
     last_update = 0
-    def update_status_interval(self, interval=500):
 
+    def update_status_interval(self, interval=500):
         # Update CPU settings:
         self.machine.cpu.sync_op_count = self.runtime_cfg.sync_op_count
         self.machine.cpu.max_burst_count = self.runtime_cfg.max_burst_count
@@ -540,23 +258,22 @@ class BaseTkinterGUI(object):
         cycles_per_sec = new_cycles / duration
 
         msg = (
-            "%s cylces/sec (~%s burst op count)\n"
-            "%i CPU interval calls, display queue qsize: %.2f"
-        ) % (
-            locale_format_number(cycles_per_sec),
-            locale_format_number(self.machine.cpu.burst_op_count),
-            self.cpu_interval_calls,
-            self.last_display_queue_qsize
-        )
+                  "%s cylces/sec (~%s burst op count)\n"
+                  "%i CPU interval calls"
+              ) % (
+                  locale_format_number(cycles_per_sec),
+                  locale_format_number(self.machine.cpu.burst_op_count),
+                  self.cpu_interval_calls,
+              )
 
         if self.runtime_cfg.speedlimit:
             msg += (
-                "\ncylces/sec diff: %s"
-            ) % (
-                locale_format_number(
-                    abs(self.runtime_cfg.cycles_per_sec - cycles_per_sec)
-                ),
-            )
+                       "\ncylces/sec diff: %s"
+                   ) % (
+                       locale_format_number(
+                           abs(self.runtime_cfg.cycles_per_sec - cycles_per_sec)
+                       ),
+                   )
 
         self.status.set(msg)
 
@@ -566,23 +283,6 @@ class BaseTkinterGUI(object):
         self.last_update = time.time()
 
         self.root.after(interval, self.update_status_interval, interval)
-
-    def process_display_queue(self):
-        """
-        consume all exiting "display RAM write" queue items and render them.
-        """
-#        log.critical("start process_display_queue()")
-        while True:
-            try:
-                cpu_cycles, op_address, address, value = self.display_queue.get_nowait()
-            except queue.Empty:
-#                log.critical("display_queue empty -> exit loop")
-                return
-#                log.critical(
-#                    "call display.write_byte() (display_queue._qsize(): %i)",
-#                    self.display_queue._qsize()
-#                )
-            self.display.write_byte(cpu_cycles, op_address, address, value)
 
     def mainloop(self, machine):
         self.machine = machine
@@ -603,6 +303,7 @@ class DragonTkinterGUI(BaseTkinterGUI):
     """
     The complete Tkinter GUI window
     """
+
     def __init__(self, *args, **kwargs):
         super(DragonTkinterGUI, self).__init__(*args, **kwargs)
 
@@ -621,7 +322,10 @@ class DragonTkinterGUI(BaseTkinterGUI):
         self.root.config(menu=self.menubar)
         self.root.update()
 
-    #-------------------------------------------------------------------------------------
+    def display_callback(self, cpu_cycles, op_address, address, value):
+        """ called via memory write_byte_middleware """
+        self.display.write_byte(cpu_cycles, op_address, address, value)
+        return value
 
     def close_basic_editor(self):
         if messagebox.askokcancel("Quit", "Do you really wish to close the Editor?"):
@@ -660,60 +364,63 @@ class DragonTkinterGUI(BaseTkinterGUI):
         self.add_user_input_and_wait("\r") # FIXME: Sometimes this input will be "ignored"
         self.add_user_input_and_wait("RUN\r")
 
-    ###########################################################################
+    # ##########################################################################
 
-    #-------------------------------------------------------------------------------------
+    # -------------------------------------------------------------------------------------
 
     def dump_rnd(self):
         start_addr = 0x0019
         end_addr = 0x0020
         dump, start_addr, end_addr = self.request_comm.request_memory_dump(
-#            start_addr=0x0115, end_addr=0x0119 # RND seed
+            # start_addr=0x0115, end_addr=0x0119 # RND seed
             start_addr, end_addr
         )
+
         def format_dump(dump, start_addr, end_addr):
             lines = []
             for addr, value in zip(range(start_addr, end_addr + 1), dump):
                 log.critical("$%04x: $%02x (dez.: %i)", addr, value, value)
                 lines.append("$%04x: $%02x (dez.: %i)" % (addr, value, value))
             return lines
+
         lines = format_dump(dump, start_addr, end_addr)
         messagebox.showinfo("TODO", "dump_program:\n%s" % "\n".join(lines))
 
 
-
-#------------------------------------------------------------------------------
+# ------------------------------------------------------------------------------
 
 
 def test_run():
     import sys
     import os
     import subprocess
+
     cmd_args = [
         sys.executable,
         os.path.join("..", "DragonPy_CLI.py"),
-#         "--log_list",
+        # "--log_list",
 
-#         "--verbosity", " 1", # hardcode DEBUG ;)
-#         "--verbosity", "10", # DEBUG
-#         "--verbosity", "20", # INFO
-#         "--verbosity", "30", # WARNING
-#         "--verbosity", "40", # ERROR
-#         "--verbosity", "50", # CRITICAL/FATAL
-        "--verbosity", "99", # nearly all off
+        # "--verbosity", " 1", # hardcode DEBUG ;)
+        # "--verbosity", "10", # DEBUG
+        # "--verbosity", "20", # INFO
+        #         "--verbosity", "30", # WARNING
+        #         "--verbosity", "40", # ERROR
+        #         "--verbosity", "50", # CRITICAL/FATAL
+        #         "--verbosity", "99", # nearly all off
+        "--verbosity", "100", # all off
 
-        "--log",
-        "dragonpy.components.cpu6809,40",
-        "dragonpy.Dragon32.MC6821_PIA,50",
-
+        # "--log",
+        # "dragonpy.components.cpu6809,40",
+        # "dragonpy.Dragon32.MC6821_PIA,50",
 
         "--machine", "Dragon32", "run",
-#        "--machine", "Vectrex", "run",
-#        "--max_ops", "1",
-#        "--trace",
+        #        "--machine", "Vectrex", "run",
+        #        "--max_ops", "1",
+        #        "--trace",
     ]
     print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
     subprocess.Popen(cmd_args, cwd="..").wait()
+
 
 if __name__ == "__main__":
     test_run()

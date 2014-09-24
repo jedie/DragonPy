@@ -10,5 +10,5 @@ if NOT exist %python% (
 )
 
 echo on
-%python% -OO DragonPy_CLI.py --machine=Dragon64 run
+%python% -OO DragonPy_CLI.py --verbosity 99 --machine=Dragon64 run
 @pause

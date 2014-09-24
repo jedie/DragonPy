@@ -42,13 +42,13 @@ def test_run():
         # "--log_list",
         # "--log", "DragonPy.cpu6809,50", "dragonpy.Dragon32.MC6821_PIA,40",
 
-        "--verbosity", "0", # hardcode DEBUG ;)
+        # "--verbosity", "0", # hardcode DEBUG ;)
         # "--verbosity", "10", # DEBUG
         # "--verbosity", "20", # INFO
         # "--verbosity", "30", # WARNING
         # "--verbosity", "40", # ERROR
         # "--verbosity", "50", # CRITICAL/FATAL
-        # "--verbosity", "99", # nearly all off
+        "--verbosity", "99", # nearly all off
         # "--verbosity", "100", # complete off
 
         # "--machine", "Dragon32", "run",

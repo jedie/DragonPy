@@ -85,29 +85,20 @@ class MulticompTkinterGUI(BaseTkinterGUI):
         # back from the machine!
         return "break"
 
-    def process_display_queue(self):
-        """
-        consume all exiting "display RAM write" queue items and render them.
-        """
-#         log.critical("start process_display_queue()")
-        while True:
-            try:
-                char = self.display_queue.get_nowait()
-            except queue.Empty:
-                return
-            log.debug("Add to text: %s", repr(char))
-            if char == "\x08":
-                # Delete last input char
-                self.text.delete(tkinter.INSERT + "-1c")
-            else:
-                # insert the new character:
-                self.text.insert(tkinter.END, char)
+    def display_callback(self, char):
+        log.debug("Add to text: %s", repr(char))
+        if char == "\x08":
+            # Delete last input char
+            self.text.delete(tkinter.INSERT + "-1c")
+        else:
+            # insert the new character:
+            self.text.insert(tkinter.END, char)
 
-                # scroll down if needed:
-                self.text.see(tkinter.END)
+            # scroll down if needed:
+            self.text.see(tkinter.END)
 
-                # Set cursor to the END position:
-                self.text.mark_set(tkinter.INSERT, tkinter.END)
+            # Set cursor to the END position:
+            self.text.mark_set(tkinter.INSERT, tkinter.END)
 
 
 #------------------------------------------------------------------------------
@@ -122,7 +113,7 @@ def test_run():
         os.path.join("..", "DragonPy_CLI.py"),
 #         "-h"
 #         "--log_list",
-        "--log", "dragonpy.Multicomp6809,10", "dragonpy.core.gui,10",
+#         "--log", "dragonpy.Multicomp6809,10", "dragonpy.core.gui,10",
 
 #          "--verbosity", "10", # DEBUG
 #         "--verbosity", "20", # INFO
@@ -130,6 +121,7 @@ def test_run():
 #         "--verbosity", "40", # ERROR
 #         "--verbosity", "50", # CRITICAL/FATAL
         "--verbosity", "99", # nearly all off
+
 #         "--machine", "Dragon32", "run",
         "--machine", "Multicomp6809", "run",
 #        "--max_ops", "1",

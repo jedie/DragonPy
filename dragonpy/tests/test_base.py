@@ -168,12 +168,11 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
         cfg = Simple6809Cfg(cls.UNITTEST_CFG_DICT)
 
         cls.user_input_queue = queue.Queue()
-        cls.display_queue = queue.Queue()
 
         cls.machine = Machine(
             cfg,
             periphery_class=Simple6809PeripheryUnittest,
-            display_queue=cls.display_queue,
+            display_callback=None,
             user_input_queue=cls.user_input_queue,
         )
         cls.cpu = cls.machine.cpu
@@ -276,12 +275,12 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         cfg = SBC09Cfg(cls.UNITTEST_CFG_DICT)
 
         cls.user_input_queue = queue.Queue()
-        cls.display_queue = queue.Queue()
+        cls.display_callback = queue.Queue()
 
         cls.machine = Machine(
             cfg,
             periphery_class=SBC09PeripheryUnittest,
-            display_queue=cls.display_queue,
+            display_callback=cls.display_callback,
             user_input_queue=cls.user_input_queue,
         )
         cls.cpu = cls.machine.cpu
@@ -388,12 +387,11 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
         cfg = Dragon32Cfg(cls.UNITTEST_CFG_DICT)
 
         cls.user_input_queue = queue.Queue()
-        cls.display_queue = queue.Queue()
 
         cls.machine = Machine(
             cfg,
             periphery_class=Dragon32PeripheryUnittest,
-            display_queue=cls.display_queue,
+            display_callback=None,
             user_input_queue=cls.user_input_queue,
         )
         cls.cpu = cls.machine.cpu

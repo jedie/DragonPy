@@ -34,11 +34,11 @@ except ImportError:
 
 
 class Multicomp6809Periphery(object):
-    def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
+    def __init__(self, cfg, cpu, memory, display_callback, user_input_queue):
         self.cfg = cfg
         self.cpu = cpu
         self.memory = memory
-        self.display_queue = display_queue
+        self.display_callback = display_callback
         self.user_input_queue = user_input_queue
 
 #     BUS_ADDR_AREAS = (
@@ -88,7 +88,7 @@ class Multicomp6809Periphery(object):
 #             char = chr(value)
 # #            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
 
-        self.display_queue.put(char)
+        self.display_callback(char)
 
 
 """
