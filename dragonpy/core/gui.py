@@ -74,7 +74,7 @@ class MC6847_TextModeCanvas(object):
             height=self.total_height,
             bd=0, # no border
             highlightthickness=0, # no highlight border
-#             bg="#ff0000",
+            # bg="#ff0000",
             bg="#%s" % background,
         )
 
@@ -322,13 +322,9 @@ class BaseTkinterGUI(object):
     """
     The complete Tkinter GUI window
     """
-    def __init__(self, cfg, display_queue, user_input_queue):
+    def __init__(self, cfg, user_input_queue):
         self.cfg = cfg
         self.runtime_cfg = RuntimeCfg()
-
-        # Queue which contains "write into Display RAM" information
-        # for render them in MC6847_TextModeCanvas():
-        self.display_queue = display_queue
 
         # Queue to send keyboard inputs to CPU Thread:
         self.user_input_queue = user_input_queue
@@ -518,9 +514,6 @@ class BaseTkinterGUI(object):
         now = time.time()
         self.total_burst_duration += (now - start_time)
 
-        self.last_display_queue_qsize = (self.last_display_queue_qsize + self.display_queue.qsize()) / 2
-        self.process_display_queue()
-
         if interval is not None:
             if self.machine.cpu.running:
                 self.cpu_after_id = self.root.after(interval, self.cpu_interval, interval)
@@ -541,12 +534,11 @@ class BaseTkinterGUI(object):
 
         msg = (
             "%s cylces/sec (~%s burst op count)\n"
-            "%i CPU interval calls, display queue qsize: %.2f"
+            "%i CPU interval calls"
         ) % (
             locale_format_number(cycles_per_sec),
             locale_format_number(self.machine.cpu.burst_op_count),
             self.cpu_interval_calls,
-            self.last_display_queue_qsize
         )
 
         if self.runtime_cfg.speedlimit:
@@ -566,23 +558,6 @@ class BaseTkinterGUI(object):
         self.last_update = time.time()
 
         self.root.after(interval, self.update_status_interval, interval)
-
-    def process_display_queue(self):
-        """
-        consume all exiting "display RAM write" queue items and render them.
-        """
-#        log.critical("start process_display_queue()")
-        while True:
-            try:
-                cpu_cycles, op_address, address, value = self.display_queue.get_nowait()
-            except queue.Empty:
-#                log.critical("display_queue empty -> exit loop")
-                return
-#                log.critical(
-#                    "call display.write_byte() (display_queue._qsize(): %i)",
-#                    self.display_queue._qsize()
-#                )
-            self.display.write_byte(cpu_cycles, op_address, address, value)
 
     def mainloop(self, machine):
         self.machine = machine
@@ -621,7 +596,10 @@ class DragonTkinterGUI(BaseTkinterGUI):
         self.root.config(menu=self.menubar)
         self.root.update()
 
-    #-------------------------------------------------------------------------------------
+    def display_callback(self, cpu_cycles, op_address, address, value):
+        """ called via memory write_byte_middleware """
+        self.display.write_byte(cpu_cycles, op_address, address, value)
+        return value
 
     def close_basic_editor(self):
         if messagebox.askokcancel("Quit", "Do you really wish to close the Editor?"):
@@ -700,12 +678,12 @@ def test_run():
 #         "--verbosity", "30", # WARNING
 #         "--verbosity", "40", # ERROR
 #         "--verbosity", "50", # CRITICAL/FATAL
-        "--verbosity", "99", # nearly all off
+#         "--verbosity", "99", # nearly all off
+        "--verbosity", "100", # all off
 
-        "--log",
-        "dragonpy.components.cpu6809,40",
-        "dragonpy.Dragon32.MC6821_PIA,50",
-
+        # "--log",
+        # "dragonpy.components.cpu6809,40",
+        # "dragonpy.Dragon32.MC6821_PIA,50",
 
         "--machine", "Dragon32", "run",
 #        "--machine", "Vectrex", "run",

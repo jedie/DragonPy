@@ -17,27 +17,23 @@
 
 from __future__ import absolute_import, division, print_function
 
-import os
-import sys
-
 import logging
 
 log=logging.getLogger(__name__)
 from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.Dragon32.MC6883_SAM import SAM
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
-from dragonpy.components.periphery import PeripheryBase
 
 
 class Dragon32PeripheryBase(object):
     """
     GUI independent stuff
     """
-    def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
+
+    def __init__(self, cfg, cpu, memory, user_input_queue):
         self.cfg = cfg
         self.cpu = cpu
         self.memory = memory
-        self.display_queue = display_queue # Buffer for output from CPU
         self.user_input_queue = user_input_queue
 
         self.kbd = 0xBF
@@ -71,49 +67,22 @@ class Dragon32PeripheryBase(object):
 
 
 class Dragon32Periphery(Dragon32PeripheryBase):
-    def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
-        super(Dragon32Periphery, self).__init__(cfg, cpu, memory, display_queue, user_input_queue)
+    def __init__(self, cfg, cpu, memory, display_callback, user_input_queue):
+        super(Dragon32Periphery, self).__init__(cfg, cpu, memory, user_input_queue)
 
         # redirect writes to display RAM area 0x0400-0x0600 into display_queue:
-        DragonDisplayOutputHandler(display_queue, memory)
-
-
-class DragonDisplayOutputHandler(object):
-    """
-    redirect writes to display RAM area 0x0400-0x0600 into display_queue.
-    """
-    def __init__(self, display_queue, memory):
-        self.display_queue = display_queue
-        self.memory = memory
-
-        # Add a hook in the display RAM:
         self.memory.add_write_byte_middleware(
-            self.to_display_queue, 0x0400, 0x0600
+            display_callback, 0x0400, 0x0600
         )
 
-    def to_display_queue(self, cpu_cycles, op_address, address, value):
-        """
-        Send a "write to Display RAM" information to GUI main thread.
-        So the GUI can display it.
-
-        Block until a free slot is available in display_queue buffer.
-        """
-        self.display_queue.put(
-            (cpu_cycles, op_address, address, value),
-            block=True, timeout=3
-        )
-        return value
-
-
-#------------------------------------------------------------------------------
 
 class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
-    def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
+    def __init__(self, cfg, cpu, memory, display_callback, user_input_queue):
         self.cfg = cfg
         self.cpu = cpu
-        self.display_queue = display_queue
+        self.display_callback = display_callback
         self.user_input_queue = user_input_queue
-        super(Dragon32PeripheryUnittest, self).__init__(cfg, cpu, memory, self.display_queue, self.user_input_queue)
+        super(Dragon32PeripheryUnittest, self).__init__(cfg, cpu, memory, self.display_callback, self.user_input_queue)
 
         self.rows = 32
         self.columns = 16
@@ -204,7 +173,21 @@ def test_run():
     cmd_args = [
         sys.executable,
         os.path.join("..", "DragonPy_CLI.py"),
-#        "--verbosity", "5",
+#         "--log_list",
+
+#         "--verbosity", " 1", # hardcode DEBUG ;)
+#         "--verbosity", "10", # DEBUG
+#         "--verbosity", "20", # INFO
+#         "--verbosity", "30", # WARNING
+#         "--verbosity", "40", # ERROR
+#         "--verbosity", "50", # CRITICAL/FATAL
+        "--verbosity", "99", # nearly all off
+#         "--verbosity", "100", # all off
+
+        # "--log",
+        # "dragonpy.components.cpu6809,40",
+        # "dragonpy.Dragon32.MC6821_PIA,50",
+
         "--machine", "Dragon32", "run",
 #        "--max_ops", "1",
 #        "--trace",

@@ -36,14 +36,13 @@ except ImportError:
 
 
 class Machine(object):
-    def __init__(self, cfg, periphery_class, display_queue, user_input_queue):
+    def __init__(self, cfg, periphery_class, display_callback, user_input_queue):
         self.cfg = cfg
         self.machine_api = cfg.machine_api
         self.periphery_class = periphery_class
 
-        # Queue which contains "write into Display RAM" information
-        # for render them in DragonTextDisplayCanvas():
-        self.display_queue = display_queue
+        # "write into Display RAM" for render them in DragonTextDisplayCanvas():
+        self.display_callback = display_callback
 
         # Queue to send keyboard inputs to CPU Thread:
         self.user_input_queue = user_input_queue
@@ -54,7 +53,7 @@ class Machine(object):
 
         try:
             self.periphery = self.periphery_class(
-                self.cfg, self.cpu, memory, self.display_queue, self.user_input_queue
+                self.cfg, self.cpu, memory, self.display_callback, self.user_input_queue
             )
         except TypeError as err:
             raise TypeError("%s - class: %s" % (err, self.periphery_class.__name__))
@@ -127,11 +126,11 @@ class MachineThread(threading.Thread):
     """
     run machine in a seperated thread.
     """
-    def __init__(self, cfg, periphery_class, display_queue, user_input_queue):
+    def __init__(self, cfg, periphery_class,  user_input_queue):
         super(MachineThread, self).__init__(name="CPU-Thread")
         log.critical(" *** MachineThread init *** ")
         self.machine = Machine(
-            cfg, periphery_class, display_queue, user_input_queue
+            cfg, periphery_class,  user_input_queue
         )
 
     def run(self):
@@ -150,9 +149,9 @@ class MachineThread(threading.Thread):
 
 
 class ThreadedMachine(object):
-    def __init__(self, cfg, periphery_class, display_queue, user_input_queue):
+    def __init__(self, cfg, periphery_class,  user_input_queue):
         self.cpu_thread = MachineThread(
-            cfg, periphery_class, display_queue, user_input_queue
+            cfg, periphery_class,  user_input_queue
         )
         self.cpu_thread.deamon = True
         self.cpu_thread.start()
@@ -177,9 +176,6 @@ class MachineGUI(object):
         # Queue to send keyboard inputs from GUI to CPU Thread:
         self.user_input_queue = queue.Queue()
 
-        # Queue which contains "write into Display RAM" information
-        # for render them in DragonTextDisplayCanvas():
-        self.display_queue = queue.Queue()
 
     def run(self, PeripheryClass, GUI_Class):
         log.log(99, "Startup '%s' machine...", self.cfg.MACHINE_NAME)
@@ -188,7 +184,7 @@ class MachineGUI(object):
         # e.g. TkInter GUI
         gui = GUI_Class(
             self.cfg,
-            self.display_queue, self.user_input_queue
+            self.user_input_queue
         )
 
         log.critical("init machine")
@@ -196,7 +192,8 @@ class MachineGUI(object):
         machine = Machine(
             self.cfg,
             PeripheryClass,
-            self.display_queue, self.user_input_queue
+            gui.display_callback,
+            self.user_input_queue
         )
 
         try:
