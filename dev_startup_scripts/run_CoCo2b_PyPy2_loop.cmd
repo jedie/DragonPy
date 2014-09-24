@@ -3,7 +3,7 @@
 title "%~nx0"
 
 REM ~ set python=C:\Python27\python.exe
-set python=C:\pypy-2.3.1-win32\pypy.exe
+set python=C:\pypy-2.4.0-win32\pypy.exe
 if NOT exist %python% (
     echo Error: '%python%' doesn't exists?!?
     pause

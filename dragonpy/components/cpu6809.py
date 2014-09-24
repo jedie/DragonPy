@@ -2529,9 +2529,9 @@ class CPU(object):
     irq_enabled = False
     def irq(self):
         if not self.irq_enabled or self.cc.I == 1:
-            log.critical("$%04x *** IRQ, ignore!\t%s" % (
-                self.program_counter.get(), self.cc.get_info
-            ))
+            # log.critical("$%04x *** IRQ, ignore!\t%s" % (
+            #     self.program_counter.get(), self.cc.get_info
+            # ))
             return
 
         if self.cc.E:
@@ -2540,9 +2540,9 @@ class CPU(object):
             self.push_firq_registers()
 
         ea = self.memory.read_word(self.IRQ_VECTOR)
-        log.critical("$%04x *** IRQ, set PC to $%04x\t%s" % (
-            self.program_counter.get(), ea, self.cc.get_info
-        ))
+        # log.critical("$%04x *** IRQ, set PC to $%04x\t%s" % (
+        #     self.program_counter.get(), ea, self.cc.get_info
+        # ))
         self.program_counter.set(ea)
 
     def push_irq_registers(self):
