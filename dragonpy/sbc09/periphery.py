@@ -140,7 +140,7 @@ class SBC09PeripheryUnittest(SBC09Periphery):
             self.user_input_queue.put(char)
 
     def write_acia_data(self, cpu_cycles, op_address, address, value):
-        char = self.value2char(value)
+        char = chr(value)
 #         log.info("%04x| Write to screen: %s ($%x)", op_address, repr(char), value)
 
         self.output_len += 1
