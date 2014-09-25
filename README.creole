@@ -121,6 +121,16 @@ start CoCo with Extended Color Basic v1.1:
 ...path/to/DragonPy$ python2 DragonPy_CLI.py --machine=CoCo2b run
 }}}
 
+start Multicomp 6809:
+{{{
+...path/to/DragonPy$ python2 DragonPy_CLI.py --machine=Multicomp6809 run
+}}}
+
+start Lennart's 6809 single board computer:
+{{{
+...path/to/DragonPy$ python2 DragonPy_CLI.py --machine=sbc09 run
+}}}
+
 == unittests ==
 
 [[https://travis-ci.org/jedie/DragonPy|Travis CI Status]]: {{https://secure.travis-ci.org/jedie/DragonPy.svg?branch=master|DragonPy build status on travis-ci.org}}
@@ -204,18 +214,13 @@ Then just **RUN** and then it looks like this:
 
 === DragonPy schematic
 
-The main thread with GUI starts the sub thread with CPU+Memory+Periphery.
-It looks like this:
-
 {{{
-    Main Thread                                     Sub Thread      
 +------------------+                         +---------------------+
 |                  |                         |                     |
-| +-------------+  |  CPU cycles/sec queue   |                     |
-| |            <------------------------------------+6809 CPU      |
+| +-------------+  |                         |       6809 CPU      |
 | |             |  |                         |       +     ^       |
 | |     GUI     |  |                         |       |     |       |
-| |             |  | Display RAM write queue |    +--v-----+--+    |
+| |             |  | Display RAM callback    |    +--v-----+--+    |
 | |  .--------------------------------------------+   Memory  |    |
 | |  |          |  |                         |    +--+-----^--+    |
 | |  |          |  |                         |       |     |       |
@@ -261,16 +266,12 @@ There is a simple benchmark. Run e.g.:
 
 == TODO:
 
-# Add hard-/soft-reset in GUI
-# Test multiprocessing solution, again
-# Add sbc variants to CLI
 # Use bottle for http control server part
 # implement more Dragon 32 periphery
 
 unimplemented OPs:
 
  * RESET
- * RTI
  * SWI / SWI2 / SWI3
  * SYNC
 
