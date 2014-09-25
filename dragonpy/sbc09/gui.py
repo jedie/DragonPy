@@ -13,7 +13,8 @@ from __future__ import absolute_import, division, print_function
 
 
 import logging
-
+import string
+from dragonlib.utils.auto_shift import invert_shift
 
 log = logging.getLogger(__name__)
 
@@ -38,7 +39,7 @@ from dragonpy.core.gui import ScrolledTextGUI
 
 
 
-class MulticompTkinterGUI(ScrolledTextGUI):
+class SBC09TkinterGUI(ScrolledTextGUI):
     pass
 
 

@@ -33,6 +33,8 @@ from dragonpy.core import configs
 from dragonpy.core.base_cli import Base_CLI
 from dragonpy.core.bechmark import run_benchmark
 from dragonpy.core.configs import machine_dict
+from dragonpy.sbc09.config import SBC09Cfg
+from dragonpy.sbc09.machine import run_sbc09
 from dragonpy.vectrex.config import VectrexCfg
 from dragonpy.vectrex.machine import run_Vectrex
 
@@ -42,7 +44,7 @@ log = logging.getLogger(__name__)
 machine_dict.register(configs.DRAGON32, (run_Dragon32, Dragon32Cfg), default=True)
 machine_dict.register(configs.DRAGON64, (run_Dragon64, Dragon64Cfg))
 machine_dict.register(configs.COCO2B, (run_CoCo2b, CoCo2bCfg))
-# machine_dict.register(configs.SBC09, SBC09Cfg)
+machine_dict.register(configs.SBC09, (run_sbc09,SBC09Cfg))
 # machine_dict.register(configs.SIMPLE6809, Simple6809Cfg)
 machine_dict.register(configs.MULTICOMP6809, (run_Multicomp6809, Multicomp6809Cfg))
 machine_dict.register(configs.VECTREX, (run_Vectrex, VectrexCfg))

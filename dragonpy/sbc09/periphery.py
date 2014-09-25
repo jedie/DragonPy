@@ -39,7 +39,7 @@ except ImportError:
 
 
 
-class SBC09PeripheryBase(object):
+class SBC09Periphery(object):
     TITLE = "DragonPy - Buggy machine language monitor and rudimentary O.S. version 1.0"
     INITAL_INPUT = (
 #        # Dump registers
@@ -65,11 +65,11 @@ class SBC09PeripheryBase(object):
 #         "ubasic\r\n"
     )
 
-    def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
+    def __init__(self, cfg, cpu, memory, display_callback, user_input_queue):
         self.cfg = cfg
         self.cpu = cpu
         self.memory = memory
-        self.display_queue = display_queue
+        self.display_callback = display_callback
         self.user_input_queue = user_input_queue
 
         self.memory.add_read_byte_callback(self.read_acia_status, 0xe000) #  Control/status port of ACIA
@@ -95,30 +95,17 @@ class SBC09PeripheryBase(object):
         )
         return value
 
-    def value2char(self, value):
-        char = chr(value)
-        if value >= 0x90: # FIXME: Why?
-            value -= 0x60
-            char = chr(value)
-#            log.error("convert value -= 0x30 to %s ($%x)" , repr(char), value)
-
-        if value <= 9: # FIXME: Why?
-            value += 0x41
-            char = chr(value)
-#            log.error("convert value += 0x41 to %s ($%x)" , repr(char), value)
-        return char
-
     def write_acia_data(self, cpu_cycles, op_address, address, value):
-        char = self.value2char(value)
+        char = chr(value)
+        log.debug("Write to screen: %s ($%x)" , repr(char), value)
 #        log.error("*"*79)
 #        log.error("Write to screen: %s ($%x)" , repr(char), value)
 #        log.error("*"*79)
 
-        self.display_queue.put(char)
+        self.display_callback(char)
 
 
-class SBC09PeripheryTk(SBC09PeripheryBase, TkPeripheryBase):
-    GEOMETRY = "+500+300"
+
 
 
 class DummyStdout(object):
@@ -128,7 +115,7 @@ class DummyStdout(object):
     flush = dummy_func
 
 
-class SBC09PeripheryConsole(SBC09PeripheryBase, ConsolePeripheryBase):
+class SBC09PeripheryConsole(SBC09Periphery, ConsolePeripheryBase):
     """
     A simple console to interact with the 6809 simulation.
     """
@@ -137,7 +124,7 @@ class SBC09PeripheryConsole(SBC09PeripheryBase, ConsolePeripheryBase):
         sys.stdout.flush()
 
 
-class SBC09PeripheryUnittest(SBC09PeripheryBase):
+class SBC09PeripheryUnittest(SBC09Periphery):
     def __init__(self, *args, **kwargs):
         super(SBC09PeripheryUnittest, self).__init__(*args, **kwargs)
         self.memory.add_write_byte_callback(self.write_acia_data, 0xa001) #  Data port of ACIA

@@ -29,6 +29,7 @@ class SBC09Cfg(BaseConfig):
     More info read ./sbc09/README.creole
     """
     CONFIG_NAME = SBC09
+    MACHINE_NAME="Lennart's 6809 single board computer"
 
     RAM_START = 0x0000
     RAM_END = 0x7FFF
