@@ -17,7 +17,8 @@ xrange = six.moves.xrange
 
 import os
 
-from .MC6809_data import OP_DATA, BYTE, WORD
+from dragonpy.components.MC6809data.MC6809_op_data import OP_DATA, BYTE, WORD
+from dragonpy.components.MC6809data.MC6809_op_docs import OP_DOC
 
 
 OUTFILENAME = "CPU6809_opcodes.html"
@@ -70,6 +71,9 @@ headlines = (
 data = []
 for instruction, instr_data in sorted(OP_DATA.items()):
     for mnemonic, memoric_data in sorted(instr_data["mnemonic"].items()):
+        instruction_doc = OP_DOC[instruction]
+        mnemonic_doc = instruction_doc["mnemonic"][mnemonic]
+
         for op_code, op_data in sorted(memoric_data["ops"].items()):
 
             addr_mode = op_data["addr_mode"]
@@ -85,8 +89,8 @@ for instruction, instr_data in sorted(OP_DATA.items()):
             data.append([
                 instruction,
                 mnemonic,
-                memoric_data["HNZVC"] or "",
-                memoric_data["desc"] or "",
+                mnemonic_doc["HNZVC"] or "",
+                mnemonic_doc["desc"] or "",
                 op_code,
                 op_data["bytes"],
                 op_data["cycles"],

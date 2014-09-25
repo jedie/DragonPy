@@ -13,7 +13,7 @@ from __future__ import absolute_import, division, print_function
 import os
 import sys
 
-from dragonpy.components.MC6809data.MC6809_data import (
+from dragonpy.components.MC6809data.MC6809_op_data import (
     OP_DATA, BYTE, WORD, REG_A, REG_B, REG_CC, REG_D , REG_DP, REG_PC,
     REG_S, REG_U, REG_X, REG_Y
 )
