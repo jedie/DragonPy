@@ -357,6 +357,10 @@ Six is a Python 2 and 3 compatibility library.
 
 == History
 
+* 25.09.2014 - Release v0.3.0:
+** [[https://github.com/jedie/DragonPy/commit/f396551df730b509498d1b884cdda8f7075737c4|Change Display Queue to a simple Callback]]
+** Reimplement [[https://github.com/jedie/DragonPy/commit/f3bfbdb2ae9906d8e051436173225c3fa8de1373|Multicomp 6809]] and [[https://github.com/jedie/DragonPy/commit/61c26911379d2b7ea6d07a8b479ab14c5d5a7154|SBC09]]
+** Many code refactoring and cleanup
 * 14.09.2014 - Release v0.2.0 - Add a speedlimit, config dialog and IRQ: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&p=11780#p11780|Forum post 11780]] 
 * 05.09.2014 - Release v0.1.0 - Implement pause/resume, hard-/soft-reset 6809 in GUI and improve a little the GUI/Editor stuff: [[https://github.com/jedie/DragonPy/releases/tag/v0.1.0|v0.1.0]] see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&p=11719#p11719|Forum post 11719]].
 * 27.08.2014 - Run CoCo with Extended Color Basic v1.1, bugfix transfer BASIC Listing with [[https://github.com/jedie/DragonPy/compare/8fe24e5...697d39e|8fe24e5...697d39e]] see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=90#p11696|Forum post 11696]].
