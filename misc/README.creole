@@ -1,0 +1,233 @@
+
+== filter_xroar_trace.py
+
+Filter Xroar trace files.
+
+The idea is simple: Skip lines with addresses that are calles very often, e.g.:
+* The "how many RAM is installed" ROM routine
+* The BASIC Interpreter idle loop
+
+=== usage
+
+{{{
+$ python filter_xroar_trace.py --help
+usage: filter_xroar_trace.py [-h] [--display [MAX]] [--filter [MAX]]
+                             infile [outfile]
+
+Filter Xroar traces
+
+positional arguments:
+  infile           Xroar trace file.
+  outfile          If given: write output in a new file else: Display it.
+
+optional arguments:
+  -h, --help       show this help message and exit
+  --display [MAX]  Display statistics how often a address is called.
+  --filter [MAX]   Filter the trace: skip addresses that called more than
+                   given count.
+}}}
+
+
+=== examples
+
+==== Live filter
+Create a startup trace:
+{{{
+$ xroar -trace  | python filter_xroar_trace.py --unique | tee startup_trace.txt 
+}}}
+Let xroar start the machine e.g.: until the prompt is blicking.
+Then quit xroar.
+ 
+The **--unique** will only collect a address one time. So "startup_trace.txt" is very small.
+In other words: All trace lines are skip if the addresses was called in the past.
+
+
+Start again with the created **startup_trace.txt** file:
+{{{
+$ xroar -trace | python filter_xroar_trace.py --loop-filter startup_trace.txt
+}}}
+
+Now you will see only trace output for addresses that aren't in **startup_trace.txt** ;)
+
+
+==== Start / Stop filtering
+If you know the entry point in ROM and whant only see a area as a trace used this.
+
+e.g. See only traces after address **$8c37** was called and then until address **$91c1** called:
+{{{
+$ xroar -trace | python filter_xroar_trace.py --start-stop=8c37-91c1 | tee routine_trace.txt 
+}}}
+Note: You will not only see trace lines if address is between 8c37 and 91c1!
+You can also do this: {{{--start-stop=9876-1234}}} So, it starts if $9876 is called and stops if $1234 is called.
+
+==== Display statistics
+Just display the most often called addresses:
+{{{
+$ python filter_xroar_trace.py --display=10 ~/xroar_trace.txt 
+
+Read /home/jens/xroar_trace.txt...
+
+Analyzed 43512 op calls, complete.
+
+The tracefile contains 64 unique addresses.
+
+List of the 10 most called addresses:
+Address: $b3d1 called 4851 times.
+Address: $b3d5 called 4851 times.
+Address: $b3d3 called 4851 times.
+Address: $b3ca called 4851 times.
+Address: $b3cc called 4851 times.
+Address: $b3cf called 4851 times.
+Address: $b3cd called 4851 times.
+Address: $b3d7 called 4850 times.
+Address: $b3c1 called 1025 times.
+Address: $b3bf called 1025 times.
+}}}
+
+
+==== Filter
+Filter the trace and list only addresses that called not more than one time:
+{{{
+$ python filter_xroar_trace.py --filter=1 ~/xroar_trace.txt 
+
+Read /home/jens/xroar_trace.txt...
+
+Analyzed 43512 op calls, complete.
+
+The tracefile contains 64 unique addresses.
+
+
+Filter with 1:
+fffe| b3b4        [RESET]
+b3b4| 318ce4      LEAY    -$1c,PCR            cc=50 a=00 b=00 dp=00 x=0000 y=b39b u=0000 s=0000
+b3b7| 7e8000      JMP     $8000               cc=50 a=00 b=00 dp=00 x=0000 y=b39b u=0000 s=0000
+8000| 7ebb40      JMP     $bb40               cc=50 a=00 b=00 dp=00 x=0000 y=b39b u=0000 s=0000
+bb40| cc0034      LDD     #$0034              cc=50 a=00 b=34 dp=00 x=0000 y=b39b u=0000 s=0000
+bb43| 8eff00      LDX     #$ff00              cc=58 a=00 b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb46| a701        STA     1,X                 cc=54 a=00 b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb48| a703        STA     3,X                 cc=54 a=00 b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb4a| a784        STA     ,X                  cc=54 a=00 b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb4c| 43          COMA                        cc=59 a=ff b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb4d| a702        STA     2,X                 cc=59 a=ff b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb4f| e701        STB     1,X                 cc=51 a=ff b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb51| e703        STB     3,X                 cc=51 a=ff b=34 dp=00 x=ff00 y=b39b u=0000 s=0000
+bb53| 8eff20      LDX     #$ff20              cc=59 a=ff b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb56| 6f01        CLR     1,X                 cc=54 a=ff b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb58| 6f03        CLR     3,X                 cc=54 a=ff b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb5a| 4a          DECA                        cc=58 a=fe b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb5b| a784        STA     ,X                  cc=58 a=fe b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb5d| 86f8        LDA     #$f8                cc=58 a=f8 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb5f| a702        STA     2,X                 cc=58 a=f8 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb61| e701        STB     1,X                 cc=50 a=f8 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb63| e703        STB     3,X                 cc=50 a=f8 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb65| 6f84        CLR     ,X                  cc=54 a=f8 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb67| 6f02        CLR     2,X                 cc=54 a=f8 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb69| a602        LDA     2,X                 cc=54 a=00 b=34 dp=00 x=ff20 y=b39b u=0000 s=0000
+bb6b| 8effc0      LDX     #$ffc0              cc=58 a=00 b=34 dp=00 x=ffc0 y=b39b u=0000 s=0000
+bb6e| c610        LDB     #$10                cc=50 a=00 b=10 dp=00 x=ffc0 y=b39b u=0000 s=0000
+... [Skip 48 lines] ...
+bb75| f7ffc9      STB     $ffc9               cc=54 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=0000
+bb78| 8504        BITA    #$04                cc=54 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=0000
+bb7a| 2705        BEQ     $bb81               cc=54 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=0000
+bb81| f7ffdd      STB     $ffdd               cc=54 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=0000
+bb84| 1f9b        TFR     B,DP                cc=54 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=0000
+bb86| 1f25        TFR     Y,PC                cc=54 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=0000
+b39b| 10ce03d7    LDS     #$03d7              cc=50 a=00 b=00 dp=00 x=ffe0 y=b39b u=0000 s=03d7
+b39f| 8637        LDA     #$37                cc=50 a=37 b=00 dp=00 x=ffe0 y=b39b u=0000 s=03d7
+b3a1| b7ff23      STA     $ff23               cc=50 a=37 b=00 dp=00 x=ffe0 y=b39b u=0000 s=03d7
+b3a4| 9671        LDA     <$71                cc=58 a=ff b=00 dp=00 x=ffe0 y=b39b u=0000 s=03d7
+b3a6| 8155        CMPA    #$55                cc=58 a=ff b=00 dp=00 x=ffe0 y=b39b u=0000 s=03d7
+b3a8| 2610        BNE     $b3ba               cc=58 a=ff b=00 dp=00 x=ffe0 y=b39b u=0000 s=03d7
+b3ba| 8e0401      LDX     #$0401              cc=50 a=ff b=00 dp=00 x=0401 y=b39b u=0000 s=03d7
+... [Skip 3075 lines] ...
+b3c3| bdba77      JSR     $ba77               cc=54 a=ff b=00 dp=00 x=0000 y=b39b u=0000 s=03d5
+ba77| c660        LDB     #$60                cc=50 a=ff b=60 dp=00 x=0000 y=b39b u=0000 s=03d5
+ba79| 8e0400      LDX     #$0400              cc=50 a=ff b=60 dp=00 x=0400 y=b39b u=0000 s=03d5
+ba7c| 9f88        STX     <$88                cc=50 a=ff b=60 dp=00 x=0400 y=b39b u=0000 s=03d5
+... [Skip 1536 lines] ...
+ba85| 39          RTS                         cc=50 a=ff b=60 dp=00 x=0600 y=b39b u=0000 s=03d7
+b3c6| 6f80        CLR     ,X+                 cc=54 a=ff b=60 dp=00 x=0601 y=b39b u=0000 s=03d7
+b3c8| 9f19        STX     <$19                cc=50 a=ff b=60 dp=00 x=0601 y=b39b u=0000 s=03d7
+
+43466 lines was filtered.
+}}}
+
+
+==== Filter into new file
+
+{{{
+$ python filter_xroar_trace.py --filter=10 ~/xroar_trace.txt filtered_trace.txt
+
+Read /home/jens/xroar_trace.txt...
+
+Analyzed 43512 op calls, complete.
+
+The tracefile contains 64 unique addresses.
+
+
+Filter with 10:
+Create file 'filtered_trace.txt'...
+
+43466 lines was filtered.
+}}}
+
+
+
+
+== add_info_in_trace.py
+
+Add address info on Xroar trace lines.
+Used informationfiles from: https://github.com/6809/rom-info
+
+usage:
+{{{
+$ ./add_info_in_trace.py --help
+usage: add_info_in_trace.py [-h] [--infofile FILENAME] [--add_cc]
+                            [infile] [outfile]
+
+Add info to Xroar traces
+
+positional arguments:
+  infile               Xroar trace file or stdin
+  outfile              If given: write output in a new file else: Display it.
+
+optional arguments:
+  -h, --help           show this help message and exit
+  --infofile FILENAME  ROM Info file from: https://github.com/6809/rom-info ;)
+  --add_cc             Add CC info like '.F.IN..C' on every line.
+}}}
+
+e.g.:
+{{{
+xroar -trace | python add_info_in_trace.py --infofile Dragon32.txt
+# or better:
+$ xroar -trace | python filter_xroar_trace.py --loop-filter startup_trace.txt | python add_info_in_trace.py --infofile Dragon32.txt
+}}}
+
+example output:
+{{{
+... [Skip 14 lines] ...
+897a| 9e64        LDX     <$64                cc=a1 a=ff b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $897a: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+897c| 9fa6        STX     <$a6                cc=a1 a=ff b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $897c: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+897e| 39          RTS                         cc=a1 a=ff b=fd dp=00 x=02e2 y=804b u=7fff s=7f2e | $897e: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+8897| 0f3f        CLR     <$3f                cc=a4 a=ff b=fd dp=00 x=02e2 y=804b u=7fff s=7f2e | $8897: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+8899| 9da5        JSR     <$a5                cc=a4 a=ff b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $8899: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+00a5| b602e2      LDA     $02e2               cc=a4 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $a5: $a5-$a7 -  LDA >xxxx
+00a8| 7ebb26      JMP     $bb26               cc=a4 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $a8: $a8-$aa -  JMP $BB26
+bb26| 813a        CMPA    #$3a                cc=a9 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $bb26: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+bb28| 240a        BCC     $bb34               cc=a9 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $bb28: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+bb2a| 8120        CMPA    #$20                cc=a9 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $bb2a: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+bb2c| 2602        BNE     $bb30               cc=a9 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $bb2c: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+bb30| 8030        SUBA    #$30                cc=a9 a=d0 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $bb30: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+bb32| 80d0        SUBA    #$d0                cc=a4 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2c | $bb32: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+bb34| 39          RTS                         cc=a4 a=00 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2e | $bb34: $bb26-$bb34 -  Jumped to from selfmodifying CHRGET routine at $009f
+889b| 80ca        SUBA    #$ca                cc=a1 a=36 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2e | $889b: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+889d| 2513        BCS     $88b2               cc=a1 a=36 b=fd dp=00 x=02e2 y=804b u=7fff s=7f2e | $889d: $8000-$9fff -  CoCo - Extended Color BASIC ROM
+}}}
+
+A trace with with **--add_cc** looks like:
+{{{
+93da| 8e0040      LDX     #$0040              cc=a0 a=00 b=05 dp=00 x=0040 y=b39b u=02e1 s=7f28| E.H..... | $93da: $8000-$9fff - CoCo - Extended Color BASIC ROM
+93dd| 8c9e3b      CMPX    #$9e3b              cc=a1 a=00 b=05 dp=00 x=0040 y=b39b u=02e1 s=7f28| E.H....C | $93dd: $8000-$9fff - CoCo - Extended Color BASIC ROM
+93e0| 964f        LDA     <$4f                cc=a5 a=00 b=05 dp=00 x=0040 y=b39b u=02e1 s=7f28| E.H..Z.C | $93e0: $8000-$9fff - CoCo - Extended Color BASIC ROM
+}}}

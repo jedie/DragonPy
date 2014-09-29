@@ -1,0 +1,144 @@
+
+== PyDC - Python Dragon 32 converter
+
+Convert dragon 32 Cassetts WAV files into plain text.
+
+copyleft: 2013 by Jens Diemer
+license: GNU GPL v3 or above, see LICENSE for more details.
+
+=== PyDC_cli.py - usage
+
+{{{
+Python dragon 32 converter 0.1.0.dev
+-------------------------------------------------------------------------------
+
+usage: PyDC_cli.py [-h] [-v] [--verbosity {5,7,0,10,20,30,40,50}]
+                   [--logfile {5,7,0,10,20,30,40,50}]
+                   [--log_format LOG_FORMAT] [--dst DST] [--analyze]
+                   [--bit_one_hz BIT_ONE_HZ] [--bit_nul_hz BIT_NUL_HZ]
+                   [--hz_variation HZ_VARIATION]
+                   [--min_volume_ratio MIN_VOLUME_RATIO]
+                   [--avg_count AVG_COUNT] [--end_count END_COUNT]
+                   [--mid_count MID_COUNT]
+                   src
+
+Python dragon 32 converter
+
+positional arguments:
+  src                   Source filename (.wav/.cas/.bas)
+
+optional arguments:
+  -h, --help            show this help message and exit
+  -v, --version         show program's version number and exit
+  --verbosity {5,7,0,10,20,30,40,50}
+                        verbosity level to stdout (lower == more output!)
+                        (default: 20)
+  --logfile {5,7,0,10,20,30,40,50}
+                        verbosity level to log file (lower == more output!)
+                        (default: 10)
+  --log_format LOG_FORMAT
+                        see: http://docs.python.org/2/library/logging.html
+                        #logrecord-attributes
+  --dst DST             Destination filename (.wav/.cas/.bas)
+  --analyze             Display zeror crossing information in the given wave
+                        file.
+  --bit_one_hz BIT_ONE_HZ
+                        Frequency of bit '1' in Hz (default: 2100)
+  --bit_nul_hz BIT_NUL_HZ
+                        Frequency of bit '0' in Hz (default: 1100)
+  --hz_variation HZ_VARIATION
+                        How much Hz can signal scatter to match 1 or 0 bit ?
+                        (default: 450)
+  --min_volume_ratio MIN_VOLUME_RATIO
+                        percent volume to ignore sample (default: 5)
+  --avg_count AVG_COUNT
+                        How many samples should be merged into a average
+                        value? (default: 0)
+  --end_count END_COUNT
+                        Sample count that must be pos/neg at once (default: 2)
+  --mid_count MID_COUNT
+                        Sample count that can be around null (default: 1)
+  --case_convert        Convert to uppercase if source is .bas and to
+                        lowercase if destination is .bas
+
+PyDC v0.1.0.dev copyleft 2013 by htfx.de - Jens Diemer, GNU GPL v3 or above
+
+}}}
+
+Example:
+{{{
+~$ python PyDC_cli.py FooBar.wav --dst=FooBar.bas
+~$ python PyDC_cli.py FooBar.wav --dst=FooBar.cas --verbosity=7
+}}}
+
+Not every convert variant between {{{.wav}}}, {{{.cas}}}, {{{.bas}}} is useable.
+So you can also use {{{.wav}}} as source and {{{.wav}}} as destination, too.
+
+
+==== analyze
+
+To display statistics about zeror crossing counts, to this:
+{{{
+~$ python PyDC_cli.py --analyze FooBar.wav
+}}}
+
+The Output will look like this:
+{{{
+Found this zeror crossing timings in the wave file:
+
+  394Hz (   28 Samples) exist:    1 
+  613Hz (   18 Samples) exist:    1 
+  788Hz (   14 Samples) exist:    1 
+  919Hz (   12 Samples) exist:  329 *********
+ 1002Hz (   11 Samples) exist: 1704 **********************************************
+ 1103Hz (   10 Samples) exist: 1256 **********************************
+ 1225Hz (    9 Samples) exist: 1743 ***********************************************
+ 1378Hz (    8 Samples) exist:    1 
+ 1575Hz (    7 Samples) exist:  322 *********
+ 1838Hz (    6 Samples) exist: 1851 **************************************************
+ 2205Hz (    5 Samples) exist: 1397 **************************************
+ 2756Hz (    4 Samples) exist:  913 *************************
+
+Notes:
+ - Hz values are converted to full sinus cycle duration.
+ - Sample cound is from half sinus cycle.
+}}}
+
+Some statistics from WAVES files are here:
+* http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4326 
+
+
+==== case convertion
+
+With {{{--case_convert}}} you can convert upper and lower case:
+# if source is a {{.bas}} file: All cased characters converted to lowercase
+# if destination is {{.cas}} or {{.wav}}: All cased characters converted to uppercase
+
+So you can write a local {{{.bas}}} files on pc in "normal" way, like this:
+{{{
+10 print "hello world!"
+}}}
+With {{{--case_convert}}} the content will be saved in {{.cas}} or {{.wav}} so:
+{{{
+10 PRINT "HELLO WORLD!"
+}}}
+Other way around, vice versa.
+
+
+=== TODO
+
+* add tokenized BASIC output, too. Currently {{{.wav}}} and {{{.cas}}} would be always output as ASCII BASIC.
+
+=== Links
+
+
+Spec links:
+ * http://www.onastick.clara.net/cosio.htm
+ * http://www.cs.unc.edu/~yakowenk/coco/text/tapeformat.html
+ * http://dragon32.info/info/basicfmt.html
+ * http://archive.worldofdragon.org/index.php?title=Tape\Disk_Preservation#File_Formats
+
+
+Many thanks to the people from:
+ * http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4231 (en)
+ * http://www.python-forum.de/viewtopic.php?f=1&t=32102 (de)

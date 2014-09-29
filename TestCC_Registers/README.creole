@@ -1,0 +1,102 @@
+
+=== Test CC Registers
+
+A BASIC programm with inserted machine code to diplay the CC registers of the CPU.
+
+copyleft: 2013 by Jens Diemer
+license: GNU GPL v3 or above, see LICENSE for more details.
+
+
+{{http://www.jensdiemer.de/media/jensdiemer.de/screenshots/test_cc_register01.PNG|test_cc_register01.PNG}}
+
+{{http://www.jensdiemer.de/media/jensdiemer.de/screenshots/test_cc_register02.PNG|test_cc_register02.PNG}}
+
+testCC_ADDA.bas:
+{{https://www.jensdiemer.de/media/jensdiemer.de/screenshots/testCC_ADDA_01.png|testCC_ADDA_01.png}}
+
+
+=== test
+
+XRoar trace output machine code part from **testCC_ADDA.bas** (except first JMP line):
+{{{
+b777| 6e9f009d    JMP     [$009D]             cc=a0 a=00 b=00 dp=00 x=4000 y=890b u=203d s=7f33
+4000| b64500      LDA     $4500               cc=a8 a=fc b=00 dp=00 x=4000 y=890b u=203d s=7f33
+4003| 8b01        ADDA    #$01                cc=88 a=fd b=00 dp=00 x=4000 y=890b u=203d s=7f33
+4005| 1fa9        TFR     CC,B                cc=88 a=fd b=88 dp=00 x=4000 y=890b u=203d s=7f33
+4007| fd4502      STD     $4502               cc=88 a=fd b=88 dp=00 x=4000 y=890b u=203d s=7f33
+400a| b64500      LDA     $4500               cc=88 a=fc b=88 dp=00 x=4000 y=890b u=203d s=7f33
+400d| 8b02        ADDA    #$02                cc=88 a=fe b=88 dp=00 x=4000 y=890b u=203d s=7f33
+400f| 1fa9        TFR     CC,B                cc=88 a=fe b=88 dp=00 x=4000 y=890b u=203d s=7f33
+4011| fd4504      STD     $4504               cc=88 a=fe b=88 dp=00 x=4000 y=890b u=203d s=7f33
+4014| b64500      LDA     $4500               cc=88 a=fc b=88 dp=00 x=4000 y=890b u=203d s=7f33
+4017| 8b03        ADDA    #$03                cc=88 a=ff b=88 dp=00 x=4000 y=890b u=203d s=7f33
+4019| 1fa9        TFR     CC,B                cc=88 a=ff b=88 dp=00 x=4000 y=890b u=203d s=7f33
+401b| fd4506      STD     $4506               cc=88 a=ff b=88 dp=00 x=4000 y=890b u=203d s=7f33
+401e| b64500      LDA     $4500               cc=88 a=fc b=88 dp=00 x=4000 y=890b u=203d s=7f33
+4021| 8b04        ADDA    #$04                cc=a5 a=00 b=88 dp=00 x=4000 y=890b u=203d s=7f33
+4023| 1fa9        TFR     CC,B                cc=a5 a=00 b=a5 dp=00 x=4000 y=890b u=203d s=7f33
+4025| fd4508      STD     $4508               cc=a1 a=00 b=a5 dp=00 x=4000 y=890b u=203d s=7f33
+4028| b64500      LDA     $4500               cc=a9 a=fc b=a5 dp=00 x=4000 y=890b u=203d s=7f33
+402b| 8b05        ADDA    #$05                cc=a1 a=01 b=a5 dp=00 x=4000 y=890b u=203d s=7f33
+402d| 1fa9        TFR     CC,B                cc=a1 a=01 b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+402f| fd450a      STD     $450a               cc=a1 a=01 b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+4032| b64500      LDA     $4500               cc=a9 a=fc b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+4035| 8b06        ADDA    #$06                cc=a1 a=02 b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+4037| 1fa9        TFR     CC,B                cc=a1 a=02 b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+4039| fd450c      STD     $450c               cc=a1 a=02 b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+403c| b64500      LDA     $4500               cc=a9 a=fc b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+403f| 8b07        ADDA    #$07                cc=a1 a=03 b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+4041| 1fa9        TFR     CC,B                cc=a1 a=03 b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+4043| fd450e      STD     $450e               cc=a1 a=03 b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+4046| b64500      LDA     $4500               cc=a9 a=fc b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+4049| 8b08        ADDA    #$08                cc=a1 a=04 b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+404b| 1fa9        TFR     CC,B                cc=a1 a=04 b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+404d| fd4510      STD     $4510               cc=a1 a=04 b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+4050| 39          RTS                         cc=a1 a=04 b=a1 dp=00 x=4000 y=890b u=203d s=7f35
+84da| 20c3        BRA     $849f               cc=a1 a=04 b=a1 dp=00 x=4000 y=890b u=203d s=7f35
+849f| bd019a      JSR     $019a               cc=a1 a=04 b=a1 dp=00 x=4000 y=890b u=203d s=7f33
+019a| 39          RTS                         cc=a1 a=04 b=a1 dp=00 x=4000 y=890b u=203d s=7f35
+}}}
+
+
+XRoar trace output machine code part from **testCC_SUBA.bas** (except first JMP line):
+{{{
+b777| 6e9f009d    JMP     [$009D]             cc=a0 a=00 b=00 dp=00 x=4000 y=890b u=2037 s=7f33
+4000| b64500      LDA     $4500               cc=a0 a=03 b=00 dp=00 x=4000 y=890b u=2037 s=7f33
+4003| 8001        SUBA    #$01                cc=a0 a=02 b=00 dp=00 x=4000 y=890b u=2037 s=7f33
+4005| 1fa9        TFR     CC,B                cc=a0 a=02 b=a0 dp=00 x=4000 y=890b u=2037 s=7f33
+4007| fd4502      STD     $4502               cc=a0 a=02 b=a0 dp=00 x=4000 y=890b u=2037 s=7f33
+400a| b64500      LDA     $4500               cc=a0 a=03 b=a0 dp=00 x=4000 y=890b u=2037 s=7f33
+400d| 8002        SUBA    #$02                cc=a0 a=01 b=a0 dp=00 x=4000 y=890b u=2037 s=7f33
+400f| 1fa9        TFR     CC,B                cc=a0 a=01 b=a0 dp=00 x=4000 y=890b u=2037 s=7f33
+4011| fd4504      STD     $4504               cc=a0 a=01 b=a0 dp=00 x=4000 y=890b u=2037 s=7f33
+4014| b64500      LDA     $4500               cc=a0 a=03 b=a0 dp=00 x=4000 y=890b u=2037 s=7f33
+4017| 8003        SUBA    #$03                cc=a4 a=00 b=a0 dp=00 x=4000 y=890b u=2037 s=7f33
+4019| 1fa9        TFR     CC,B                cc=a4 a=00 b=a4 dp=00 x=4000 y=890b u=2037 s=7f33
+401b| fd4506      STD     $4506               cc=a0 a=00 b=a4 dp=00 x=4000 y=890b u=2037 s=7f33
+401e| b64500      LDA     $4500               cc=a0 a=03 b=a4 dp=00 x=4000 y=890b u=2037 s=7f33
+4021| 8004        SUBA    #$04                cc=a9 a=ff b=a4 dp=00 x=4000 y=890b u=2037 s=7f33
+4023| 1fa9        TFR     CC,B                cc=a9 a=ff b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+4025| fd4508      STD     $4508               cc=a9 a=ff b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+4028| b64500      LDA     $4500               cc=a1 a=03 b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+402b| 8005        SUBA    #$05                cc=a9 a=fe b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+402d| 1fa9        TFR     CC,B                cc=a9 a=fe b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+402f| fd450a      STD     $450a               cc=a9 a=fe b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+4032| b64500      LDA     $4500               cc=a1 a=03 b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+4035| 8006        SUBA    #$06                cc=a9 a=fd b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+4037| 1fa9        TFR     CC,B                cc=a9 a=fd b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+4039| fd450c      STD     $450c               cc=a9 a=fd b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+403c| b64500      LDA     $4500               cc=a1 a=03 b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+403f| 8007        SUBA    #$07                cc=a9 a=fc b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+4041| 1fa9        TFR     CC,B                cc=a9 a=fc b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+4043| fd450e      STD     $450e               cc=a9 a=fc b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+4046| b64500      LDA     $4500               cc=a1 a=03 b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+4049| 8008        SUBA    #$08                cc=a9 a=fb b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+404b| 1fa9        TFR     CC,B                cc=a9 a=fb b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+404d| fd4510      STD     $4510               cc=a9 a=fb b=a9 dp=00 x=4000 y=890b u=2037 s=7f33
+4050| 39          RTS                         cc=a9 a=fb b=a9 dp=00 x=4000 y=890b u=2037 s=7f35
+}}}
+
+
+Many thanks to the people from:
+ * [[http://archive.worldofdragon.org/phpBB3/| World Of Dragon - Forum]]

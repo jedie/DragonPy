@@ -282,6 +282,42 @@ missing 6809 unittests after coverage run:
  * BVS
 
 
+== PyDragon32
+
+Some Python/BASIC tools/scripts around Dragon32/64 / CoCo homecomputer.
+
+All script are copyleft 2013-2014 by Jens Diemer and license unter GNU GPL v3 or above, see LICENSE for more details.
+
+=== Python scripts:
+
+* PyDC - Convert dragon 32 Cassetts WAV files into plain text:
+** https://github.com/jedie/DragonPy/tree/master/PyDC
+* Filter Xroar traces:
+** https://github.com/jedie/DragonPy/tree/master/misc
+
+=== BASIC programms:
+
+* Simple memory HEX viewer:
+** https://github.com/jedie/DragonPy/tree/master/HexViewer
+
+* Test CC Registers:
+** https://github.com/jedie/DragonPy/tree/master/TestCC_Registers
+
+==== Input/Output Tests
+
+[[https://github.com/jedie/DragonPy/tree/master/InputOutput/keyboard.bas|/InputOutput/keyboard.bas]]
+Display memory Locations $0152 - $0159 (Keyboard matrix state table)
+
+Example screenshow with the "Y" key is pressed down. You see that this is saved in $0153:
+
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/keyboard01.png|KeyBoard Screenshot 01}}
+
+Example with "U" is hold down:
+
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/keyboard02.png|KeyBoard Screenshot 02}}
+
+
+
 == Links
 
  * Grant Searle's Multicomp FPGA project:
@@ -357,6 +393,7 @@ Six is a Python 2 and 3 compatibility library.
 
 == History
 
+* 29.09.2014 - Merge [[https://github.com/jedie/PyDragon32|PyDragon32]] project
 * 25.09.2014 - Release v0.3.0:
 ** [[https://github.com/jedie/DragonPy/commit/f396551df730b509498d1b884cdda8f7075737c4|Change Display Queue to a simple Callback]]
 ** Reimplement [[https://github.com/jedie/DragonPy/commit/f3bfbdb2ae9906d8e051436173225c3fa8de1373|Multicomp 6809]] and [[https://github.com/jedie/DragonPy/commit/61c26911379d2b7ea6d07a8b479ab14c5d5a7154|SBC09]]
@@ -381,3 +418,7 @@ Six is a Python 2 and 3 compatibility library.
 | Jabber              | pylucid@conference.jabber.org
 | PyPi                | [[https://pypi.python.org/pypi/DragonPyEmulator/]]
 | Github              | [[https://github.com/jedie/DragonPy]]
+
+= donation
+
+* Send [[http://www.bitcoin.org/|Bitcoins]] to [[https://blockexplorer.com/address/1823RZ5Md1Q2X5aSXRC5LRPcYdveCiVX6F|1823RZ5Md1Q2X5aSXRC5LRPcYdveCiVX6F]]
