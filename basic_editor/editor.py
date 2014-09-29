@@ -19,33 +19,33 @@ import os
 import string
 import sys
 
+from basic_editor.scrolled_text import ScrolledText
 import dragonlib
 from basic_editor.editor_base import BaseExtension
 from basic_editor.highlighting import TkTextHighlighting
 from dragonlib.utils.auto_shift import invert_shift
 from dragonlib.utils.logging_utils import pformat_program_dump
 
-log = logging.getLogger(__name__)
 
+log = logging.getLogger(__name__)
 
 try:
     # Python 3
     import tkinter
     from tkinter import filedialog
     from tkinter import messagebox
-    from tkinter import scrolledtext
 except ImportError:
     # Python 2
     import Tkinter as tkinter
     import tkFileDialog as filedialog
     import tkMessageBox as messagebox
-    import ScrolledText as scrolledtext
 
 
 class MultiStatusBar(tkinter.Frame):
     """
     code from idlelib.MultiStatusBar.MultiStatusBar
     """
+
     def __init__(self, master, **kw):
         tkinter.Frame.__init__(self, master, **kw)
         self.labels = {}
@@ -63,6 +63,7 @@ class MultiStatusBar(tkinter.Frame):
 class TkTextHighlightCurrentLine(BaseExtension):
     after_id = None
     TAG_CURRENT_LINE = "current_line"
+
     def __init__(self, editor):
         super(TkTextHighlightCurrentLine, self).__init__(editor)
 
@@ -92,22 +93,8 @@ class TkTextHighlightCurrentLine(BaseExtension):
         self.after_id = self.text.after(10, self.__update_interval)
 
 
-class ScrolledText2(scrolledtext.ScrolledText):
-    def save_position(self):
-        # save text cursor position:
-        self.old_text_pos = self.index(tkinter.INSERT)
-        # save scroll position:
-        self.old_first, self.old_last = self.yview()
-
-    def restore_position(self):
-        # restore text cursor position:
-        self.mark_set(tkinter.INSERT, self.old_text_pos)
-        # restore scroll position:
-        self.yview_moveto(self.old_first)
-
-
 class EditorWindow(object):
-    FILETYPES = [ # For filedialog
+    FILETYPES = [# For filedialog
         ("BASIC Listings", "*.bas", "TEXT"),
         ("Text files", "*.txt", "TEXT"),
         ("All files", "*"),
@@ -142,7 +129,7 @@ class EditorWindow(object):
         self.base_title = "%s - BASIC Editor" % self.cfg.MACHINE_NAME
         self.root.title(self.base_title)
 
-        self.text = ScrolledText2(
+        self.text = ScrolledText(
             master=self.root, height=30, width=80
         )
         self.text.config(
@@ -232,15 +219,15 @@ class EditorWindow(object):
         self.text.insert(tkinter.INSERT, converted_char) # Insert converted char
         return "break"
 
-#     def event_syntax_check(self, event):
-#         index = self.text.search(r'\s', "insert", backwards=True, regexp=True)
-#         if index == "":
-#             index ="1.0"
-#         else:
-#             index = self.text.index("%s+1c" % index)
-#         word = self.text.get(index, "insert")
-#         log.critical("inserted word: %r", word)
-#         print self.machine_api.parse_ascii_listing(word)
+    #     def event_syntax_check(self, event):
+    #         index = self.text.search(r'\s', "insert", backwards=True, regexp=True)
+    #         if index == "":
+    #             index ="1.0"
+    #         else:
+    #             index = self.text.index("%s+1c" % index)
+    #         word = self.text.get(index, "insert")
+    #         log.critical("inserted word: %r", word)
+    #         print self.machine_api.parse_ascii_listing(word)
 
     def setup_filepath(self, filepath):
         log.critical(filepath)
@@ -362,6 +349,7 @@ def test():
         "use_bus": False,
     }
     from dragonpy.Dragon32.config import Dragon32Cfg
+
     cfg = Dragon32Cfg(CFG_DICT)
 
     filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
