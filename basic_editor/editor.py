@@ -364,11 +364,9 @@ def test():
     from dragonpy.Dragon32.config import Dragon32Cfg
     cfg = Dragon32Cfg(CFG_DICT)
 
-
-
     filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-        "..", "BASIC examples",
-        "hex_view01.bas"
+        # "..", "BASIC examples", "hex_view01.bas"
+        "..", "BASIC games", "INVADER.bas"
     )
 
     with open(filepath, "r") as f:
