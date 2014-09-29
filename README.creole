@@ -298,14 +298,14 @@ All script are copyleft 2013-2014 by Jens Diemer and license unter GNU GPL v3 or
 === BASIC programms:
 
 * Simple memory HEX viewer:
-** https://github.com/jedie/DragonPy/tree/master/HexViewer
+** https://github.com/jedie/DragonPy/tree/master/BASIC/HexViewer
 
 * Test CC Registers:
-** https://github.com/jedie/DragonPy/tree/master/TestCC_Registers
+** https://github.com/jedie/DragonPy/tree/master/BASIC/TestCC_Registers
 
 ==== Input/Output Tests
 
-[[https://github.com/jedie/DragonPy/tree/master/InputOutput/keyboard.bas|/InputOutput/keyboard.bas]]
+[[https://github.com/jedie/DragonPy/tree/master/BASIC/InputOutput/keyboard.bas|/BASIC/InputOutput/keyboard.bas]]
 Display memory Locations $0152 - $0159 (Keyboard matrix state table)
 
 Example screenshow with the "Y" key is pressed down. You see that this is saved in $0153:
