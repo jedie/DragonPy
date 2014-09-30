@@ -119,12 +119,7 @@ class BasicTokenUtil(object):
                 tokens += self.chars2tokens(code_object.content)
         return tokens
 
-    def pformat_tokens(self, tokens):
-        """
-        format a tokenized BASIC program line. Useful for debugging.
-        returns a list of formated string lines.
-        """
-        result = []
+    def iter_token_values(self, tokens):
         token_value = None
         for token in tokens:
             if token == 0xff:
@@ -132,16 +127,23 @@ class BasicTokenUtil(object):
                 continue
 
             if token_value is not None:
-                token_value = (token_value << 8) + token
+                yield (token_value << 8) + token
+                token_value = None
             else:
-                token_value = token
+                yield token
 
+    def pformat_tokens(self, tokens):
+        """
+        format a tokenized BASIC program line. Useful for debugging.
+        returns a list of formated string lines.
+        """
+        result = []
+        for token_value in self.iter_token_values(tokens):
             char = self.token2ascii(token_value)
             if token_value > 0xff:
                 result.append("\t$%04x -> %s" % (token_value, repr(char)))
             else:
                 result.append("\t  $%02x -> %s" % (token_value, repr(char)))
-            token_value = None
 
         return result
 
@@ -210,24 +212,55 @@ class BasicLine(object):
         return list(word2bytes(self.line_number)) + self.line_code
 
     def reformat(self):
+        # TODO: Use BASICParser to exclude string/comments etc.
         space = self.token_util.ascii2token(" ")[0]
 
-        temp1 = []
-        temp2 = []
-        for token in self.line_code:
-            temp1.append(token)
-            if token in self.token_util.basic_token_dict:
+        to_split=self.token_util.basic_token_dict.copy()
+        dont_split_tokens=self.token_util.ascii2token(":()+-*/^<=>")
+
+        for token_value in dont_split_tokens:
+            try:
+                del(to_split[token_value])
+            except KeyError: # e.g.: () are not tokens
+                pass
+
+        tokens=tuple(self.token_util.iter_token_values(self.line_code))
+
+        temp = []
+        was_token=False
+        for no, token in enumerate(tokens):
+            try:
+                next_token=tokens[no+1]
+            except IndexError:
+                next_token=None
+
+            if token in to_split:
+                print("X%sX" % to_split[token])
+
                 try:
-                    if not temp2[-1]==space:
-                        temp1.append(space)
+                    if temp[-1]!=space:
+                        temp.append(space)
                 except IndexError:
                     pass
-                temp2 += temp1
-                temp1=[]
-        temp2 += temp1
+                temp.append(token)
 
-        self.line_code = temp2
-        print("new line code: %r" % self.line_code)
+                if not (next_token and next_token in dont_split_tokens):
+                    temp.append(space)
+                was_token=True
+            else:
+                if was_token and token==space:
+                    was_token=False
+                    continue
+                print("Y%rY" % self.token_util.tokens2ascii([token]))
+                temp.append(token)
+
+        temp = list_replace(temp, self.token_util.ascii2token("GO TO"), self.token_util.ascii2token("GOTO"))
+        temp = list_replace(temp, self.token_util.ascii2token("GO SUB"), self.token_util.ascii2token("GOSUB"))
+        temp = list_replace(temp, self.token_util.ascii2token(": "), self.token_util.ascii2token(":"))
+        temp = list_replace(temp, self.token_util.ascii2token("( "), self.token_util.ascii2token("("))
+        temp = list_replace(temp, self.token_util.ascii2token(", "), self.token_util.ascii2token(","))
+
+        self.line_code = temp
 
 
     def get_content(self, code=None):
@@ -467,7 +500,8 @@ class RenumTool(object):
             renum_dict[old_number] = new_number
         return renum_dict
 
-if __name__ == "__main__":
+
+def _test_renum():
     from dragonlib.api import Dragon32API
 
     api = Dragon32API()
@@ -488,3 +522,44 @@ if __name__ == "__main__":
     print("-" * 79)
     print(api.renum_tool.get_destinations(listing))
     print("-" * 79)
+
+
+def _test_reformat():
+    import os
+    from dragonlib.utils.logging_utils import setup_logging
+
+    setup_logging(
+#        level=1 # hardcore debug ;)
+#         level=10  # DEBUG
+#         level=20  # INFO
+#         level=30  # WARNING
+#         level=40 # ERROR
+#         level=50 # CRITICAL/FATAL
+        level=99
+    )
+
+    from dragonlib.api import Dragon32API
+    api = Dragon32API()
+
+    # filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+    #     # "..", "BASIC examples", "hex_view01.bas"
+    #     "..", "..", "BASIC games", "INVADER.bas"
+    # )
+    #
+    # with open(filepath, "r") as f:
+    #     listing_ascii = f.read()
+
+    listing_ascii="""\
+10 ONPOINT(Y,K)GOTO250,250'ONPOINT(Y,K)GOTO250,250
+20 FORT=479TO 542:T(T)=0:Y(T)=28:NEXT
+30 I=I+1:PRINT"FORX=1TO 2:Y(Y)=0:NEXT"
+730 CLS:PRINT"FIXME: PLEASE WAIT [           ]";
+"""
+
+    print(
+        api.reformat_ascii_listing(listing_ascii)
+    )
+
+if __name__ == "__main__":
+    # _test_renum()
+    _test_reformat()
