@@ -56,10 +56,7 @@ class BaseAPI(object):
         log.info("Parsed BASIC: %s", repr(parsed_lines))
         return parsed_lines
 
-    def ascii_listing2basic_lines(self, basic_program_ascii, program_start=None):
-        if program_start is None:
-            program_start = self.DEFAULT_PROGRAM_START
-
+    def ascii_listing2basic_lines(self, basic_program_ascii, program_start):
         parsed_lines = self.parse_ascii_listing(basic_program_ascii)
 
         basic_lines = []
@@ -76,6 +73,9 @@ class BaseAPI(object):
         This tokens list can be used to insert it into the
         Emulator RAM.
         """
+        if program_start is None:
+            program_start = self.DEFAULT_PROGRAM_START
+
         basic_lines = self.ascii_listing2basic_lines(basic_program_ascii, program_start)
 
         return self.listing.basic_lines2program_dump(basic_lines, program_start)          
