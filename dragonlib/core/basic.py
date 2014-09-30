@@ -204,7 +204,10 @@ class BasicLine(object):
         self.line_code = self.token_util.code_objects2token(code_objects)
 
     def get_tokens(self):
-        return [self.line_number] + self.line_code
+        """
+        return two bytes line number + the code
+        """
+        return list(word2bytes(self.line_number)) + self.line_code
 
     def get_content(self, code=None):
         if code is None: # start
@@ -266,7 +269,7 @@ class BasicListing(object):
         count = len(basic_lines)
         for no, line in enumerate(basic_lines, 1):
             line.log_line()
-            line_tokens = [0x00] + line.get_tokens() + [0x00]
+            line_tokens = line.get_tokens() + [0x00]
 
             current_address += len(line_tokens) + 2
             program_dump += word2bytes(current_address)

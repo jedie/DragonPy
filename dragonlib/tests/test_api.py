@@ -145,7 +145,7 @@ class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):
         )
         tokens = basic_lines[0].get_tokens()
         self.assertHexList(tokens, [
-            0x0a,  # 10
+            0x00, 0x0a,  # 10
             0xa0,  # CLS
         ])
         self.assertEqual(len(basic_lines), 1)
@@ -156,7 +156,7 @@ class Dragon32BASIC_LowLevel_ApiTest(BaseDragon32ApiTestCase):
         )
         tokens = basic_lines[0].get_tokens()
         self.assertHexList(tokens, [
-            0x32,  # 50
+            0x00, 0x32,  # 50
             # I$ = INKEY$:IF I$="" THEN 50
             0x49, 0x24, 0x20, 0xcb, 0x20, 0xff, 0x9a, 0x3a, 0x85, 0x20, 0x49, 0x24, 0xcb, 0x22, 0x22, 0x20, 0xbf, 0x20, 0x35, 0x30,
         ])
@@ -358,6 +358,57 @@ class Dragon32BASIC_HighLevel_ApiTest(BaseDragon32ApiTestCase):
         )
         self.assertDump2Listing(ascii_listing,program_dump)
 
+    def test_two_byte_line_numbers(self):
+        """
+        Every line number is saved as one word!
+        """
+        ascii_listing = self._prepare_text("""
+            254 PRINT "A"
+            255 PRINT "B"
+            256 PRINT "C"
+            257 PRINT "D"
+        """)
+        program_dump = (
+            # program start address: $1e01
+            0x1e, 0x0b, # -> next address (length: 10)
+            0x00, 0xfe, # -> 254 (line number)
+            0x87, # -> 'PRINT'
+            0x20, # -> ' '
+            0x22, # -> '"'
+            0x41, # -> 'A'
+            0x22, # -> '"'
+            0x00, # -> '\x00'
+            0x1e, 0x15, # -> next address (length: 10)
+            0x00, 0xff, # -> 255 (line number)
+            0x87, # -> 'PRINT'
+            0x20, # -> ' '
+            0x22, # -> '"'
+            0x42, # -> 'B'
+            0x22, # -> '"'
+            0x00, # -> '\x00'
+            0x1e, 0x1f, # -> next address (length: 10)
+            0x01, 0x00, # -> 256 (line number)
+            0x87, # -> 'PRINT'
+            0x20, # -> ' '
+            0x22, # -> '"'
+            0x43, # -> 'C'
+            0x22, # -> '"'
+            0x00, # -> '\x00'
+            0x1e, 0x29, # -> next address (length: 10)
+            0x01, 0x01, # -> 257 (line number)
+            0x87, # -> 'PRINT'
+            0x20, # -> ' '
+            0x22, # -> '"'
+            0x44, # -> 'D'
+            0x22, # -> '"'
+            0x00, # -> '\x00'
+            0x00, 0x00, # -> end address
+        )
+        self.assertListing2Dump(ascii_listing,program_dump,
+            # debug=True
+        )
+        self.assertDump2Listing(ascii_listing,program_dump)
+
 
 class RenumTests(BaseDragon32ApiTestCase):
     def test_renum01(self):
@@ -478,7 +529,7 @@ class RenumTests(BaseDragon32ApiTestCase):
 if __name__ == '__main__':
     from dragonlib.utils.logging_utils import setup_logging
 
-    setup_logging(log,
+    setup_logging(
 #        level=1 # hardcore debug ;)
 #         level=10 # DEBUG
 #         level=20 # INFO
@@ -492,6 +543,7 @@ if __name__ == '__main__':
         argv=(
             sys.argv[0],
 #             "Dragon32BASIC_HighLevel_ApiTest.test_listing2program_strings_dont_in_comment",
+#             "Dragon32BASIC_HighLevel_ApiTest.test_two_byte_line_numbers",
         ),
         #         verbosity=1,
         verbosity=2,
