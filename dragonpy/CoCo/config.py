@@ -113,8 +113,8 @@ class CoCo2bCfg(Dragon32Cfg):
         log.critical("%04x| write $%04x to $%04x", last_op_address, word, address)
         return word
 
-    def pia_keymatrix_result(self, char_or_code, pia0b):
-        return get_coco_keymatrix_pia_result(char_or_code, pia0b, auto_shift=True)
+    def pia_keymatrix_result(self, inkey, pia0b):
+        return get_coco_keymatrix_pia_result(inkey, pia0b)
 
 
 config = CoCo2bCfg

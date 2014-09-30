@@ -11,12 +11,15 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from dragonlib.utils import six
+from dragonpy.Dragon32.keyboard_map import inkey_from_tk_event, add_to_input_queue
+
+xrange = six.moves.xrange
 
 import sys
 import time
 import logging
 import string
-from dragonlib.utils.auto_shift import invert_shift
 
 try:
     # Python 3
@@ -116,6 +119,8 @@ class BaseTkinterGUI(object):
         helpmenu.add_command(label="about", command=self.menu_event_about)
         self.menubar.add_cascade(label="help", menu=helpmenu)
 
+        self.auto_shift=True # auto shift all input characters?
+
     def init_statistics(self):
         self.op_count = 0
         self.last_op_count = 0
@@ -187,8 +192,7 @@ class BaseTkinterGUI(object):
     # -----------------------------------------------------------------------------------------
 
     def add_user_input(self, txt):
-        for char in txt:
-            self.user_input_queue.put(char)
+        add_to_input_queue(self.user_input_queue, txt)
 
     def wait_until_input_queue_empty(self):
         for count in xrange(1, 10):
@@ -217,8 +221,12 @@ class BaseTkinterGUI(object):
             self.add_user_input(line + "\r")
 
     def event_key_pressed(self, event):
-        char_or_code = event.char or event.keycode
-        self.user_input_queue.put(char_or_code)
+        log.critical("event.char: %-6r event.keycode: %-3r event.keysym: %-11r event.keysym_num: %5r",
+                event.char, event.keycode, event.keysym, event.keysym_num
+        )
+        inkey = inkey_from_tk_event(event, auto_shift=self.auto_shift)
+        log.critical("inkey: %r", inkey)
+        self.user_input_queue.put(inkey)
 
     total_burst_duration = 0
     cpu_interval_calls = 0
@@ -353,19 +361,19 @@ class DragonTkinterGUI(BaseTkinterGUI):
         self.add_user_input_and_wait("'SAVE TO EDITOR")
         listing_ascii = self.machine.get_basic_program()
         self._editor_window.set_content(listing_ascii)
-        self.add_user_input_and_wait("\r")
+        self.add_user_input_and_wait("\n")
 
     def command_inject_into_DragonPy(self):
         self.add_user_input_and_wait("'LOAD FROM EDITOR")
         content = self._editor_window.get_content()
         result = self.machine.inject_basic_program(content)
         log.critical("program loaded: %s", result)
-        self.add_user_input_and_wait("\r")
+        self.add_user_input_and_wait("\n")
 
     def command_inject_and_run_into_DragonPy(self):
         self.command_inject_into_DragonPy()
-        self.add_user_input_and_wait("\r") # FIXME: Sometimes this input will be "ignored"
-        self.add_user_input_and_wait("RUN\r")
+        self.add_user_input_and_wait("\n") # FIXME: Sometimes this input will be "ignored"
+        self.add_user_input_and_wait("RUN\n")
 
     # ##########################################################################
 

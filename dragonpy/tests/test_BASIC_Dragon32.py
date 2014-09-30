@@ -33,17 +33,17 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
 #        super(Test_Dragon32_BASIC, cls).setUpClass()
 
     def test_print01(self):
-        self.periphery.add_to_input_queue('? "FOO"\r\n')
+        self.periphery.add_to_input_queue('? "FOO"\r')
         op_call_count, cycles, output = self._run_until_OK(max_ops=57000)
-#         print op_call_count, cycles, output
+        print(op_call_count, cycles, output)
         self.assertEqual(output,
             ['? "FOO"', 'FOO', 'OK']
         )
-        self.assertEqual(op_call_count, 56137)
-        self.assertEqual(cycles, 316144) # TODO: cycles are probably not set corrent in CPU, yet!
+        self.assertEqual(op_call_count, 56143)
+        self.assertEqual(cycles, 316192) # TODO: cycles are probably not set corrent in CPU, yet!
 
     def test_poke(self):
-        self.periphery.add_to_input_queue('POKE &H05ff,88\r\n')
+        self.periphery.add_to_input_queue('POKE &H05ff,88\r')
         op_call_count, cycles, output = self._run_until_OK(max_ops=114000)
 #        print op_call_count, cycles, output
         self.assertEqual(output,
@@ -55,9 +55,9 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
         self.assertEqual(output, [])
 
         self.periphery.add_to_input_queue(
-            '10A=1\r\n'
-            '20B=2\r\n'
-            'LIST\r\n'
+            '10A=1\r'
+            '20B=2\r'
+            'LIST\r'
         )
         op_call_count, cycles, output = self._run_until_OK(max_ops=143000)
 #        print op_call_count, cycles, output
@@ -77,7 +77,7 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
         )
 
         # Check the lising
-        self.periphery.add_to_input_queue('LIST\r\n')
+        self.periphery.add_to_input_queue('LIST\r')
         op_call_count, cycles, output = self._run_until_OK(max_ops=4000000)
 #        print op_call_count, cycles, output
         self.assertEqual(output,
@@ -87,9 +87,9 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
     @unittest.expectedFailure # TODO:
     def test_tokens_in_string(self):
         self.periphery.add_to_input_queue(
-            # "10 PRINT ' FOR NEXT COMMENT\r\n"
-            "10 PRINT ' FOR NEXT\r\n"
-            'LIST\r\n'
+            # "10 PRINT ' FOR NEXT COMMENT\r"
+            "10 PRINT ' FOR NEXT\r"
+            'LIST\r'
         )
         op_call_count, cycles, output = self._run_until_OK(max_ops=1430000)
         print(op_call_count, cycles, output)
@@ -103,13 +103,13 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
 
 if __name__ == '__main__':
     setup_logging(
-       # level=1 # hardcore debug ;)
-#        level=10 # DEBUG
-#        level=20 # INFO
-#        level=30 # WARNING
-       level=40 # ERROR
-#        level=50 # CRITICAL/FATAL
-#         level=99 # nearly off
+        # level=1 # hardcore debug ;)
+        # level=10 # DEBUG
+        # level=20 # INFO
+        # level=30 # WARNING
+        # level=40 # ERROR
+        level=50 # CRITICAL/FATAL
+        # level=99 # nearly off
     )
 
     unittest.main(

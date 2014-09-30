@@ -104,22 +104,22 @@ DRAGON_KEYMAP = {
     "X": ((0, 5),), # X
     "Y": ((1, 5),), # Y
     "Z": ((2, 5),), # Z
-    0x6f: ((3, 5),), # UP
-    0x74: ((4, 5),), # DOWN
-    0x71: ((5, 5),), # LEFT
-    0x72: ((6, 5),), # RIGHT
+    'Up': ((3, 5),), # UP
+    'Down': ((4, 5),), # DOWN
+    'Left': ((5, 5),), # LEFT
+    'Right': ((6, 5),), # RIGHT
     " ": ((7, 5),), # " " (Space)
 
-    "\r": ((0, 6),), # ENTER - Char: '\r'   - keycode: dez.: 36,  hex: $24
-    0x6e: ((1, 6),), # CLEAR - $6e is "Home" / "Pos 1" button
-    "\x1b": ((2, 6),), # BREAK - $09 is "Escape" button
+    'Return': ((0, 6),), # ENTER - Char: '\r'   - keycode: dez.: 36,  hex: $24
+    'Home': ((1, 6),), # CLEAR - $6e is "Home" / "Pos 1" button
+    'Escape': ((2, 6),), # BREAK - $09 is "Escape" button
 
-    0x32: ((7, 6),), # SHIFT (shift left)
-    0x3e: ((7, 6),), # SHIFT (shift right)
+    'Shift_L': ((7, 6),), # SHIFT (shift left)
+    'Shift_R': ((7, 6),), # SHIFT (shift right)
 
     # Additional:
 
-    "\x08": ((5, 5),), # $08 is Backspace mapped to "LEFT"
+    'BackSpace': ((5, 5),), # $08 is Backspace mapped to "LEFT"
 
     # Shifted keys:
 
@@ -192,15 +192,12 @@ for key, coordinates in list(DRAGON_KEYMAP.items()):
 
 
 
-def _get_col_row_values(char_or_code, keymap, auto_shift=True):
-    if auto_shift and isinstance(char_or_code, str):
-        char_or_code = invert_shift(char_or_code)
-
+def _get_col_row_values(inkey, keymap):
     try:
-        col_row_values = keymap[char_or_code]
+        col_row_values = keymap[inkey]
     except KeyError:
         col_row_values = ()
-        log.critical("Key %s not supported or unknown.", repr(char_or_code))
+        log.critical("Key %r not supported or unknown.", inkey)
     return col_row_values
 
 
@@ -212,19 +209,36 @@ def _set_bits(pia0b, col_row_values):
     return result
 
 
-def get_dragon_keymatrix_pia_result(char_or_code, pia0b, auto_shift=True):
-    col_row_values = _get_col_row_values(char_or_code, DRAGON_KEYMAP, auto_shift=auto_shift)
+def get_dragon_keymatrix_pia_result(inkey, pia0b):
+    col_row_values = _get_col_row_values(inkey, DRAGON_KEYMAP)
     result = _set_bits(pia0b, col_row_values)
     return result
 
 
-def get_coco_keymatrix_pia_result(char_or_code, pia0b, auto_shift=True):
-    col_row_values = _get_col_row_values(char_or_code, COCO_KEYMAP, auto_shift=auto_shift)
+def get_coco_keymatrix_pia_result(inkey, pia0b):
+    col_row_values = _get_col_row_values(inkey, COCO_KEYMAP)
     result = _set_bits(pia0b, col_row_values)
     return result
 
+def inkey_from_tk_event(event, auto_shift=True):
+    if event.keysym_num>64000: # FIXME: Found a boundary number
+        inkey=event.keysym
+    else:
+        inkey=event.char
+        if auto_shift:
+            inkey = invert_shift(inkey)
+    return inkey
 
-def test(char_or_code, matrix_name, auto_shift=False):
+def add_to_input_queue(user_input_queue, txt):
+    log.debug("Add %s to input queue.", repr(txt))
+    txt=txt.replace("\r\n", "\r").replace("\n","\r")
+    for char in txt:
+        if char == "\r":
+            char="Return" # tkinter event.keysym string
+        log.debug("Add: %r", char)
+        user_input_queue.put(char)
+
+def test(inkey, matrix_name, auto_shift=False):
     """
     >>> test("P", "dragon")
     char/keycode: 'P' -> cols/rows: ((0, 2),)
@@ -255,20 +269,20 @@ def test(char_or_code, matrix_name, auto_shift=False):
     col            col: 76543210              row -> 6543210
     """
     if matrix_name == "dragon":
-        col_row_values = _get_col_row_values(char_or_code, DRAGON_KEYMAP, auto_shift=auto_shift)
+        col_row_values = _get_col_row_values(inkey, DRAGON_KEYMAP)
     elif matrix_name == "coco":
-        col_row_values = _get_col_row_values(char_or_code, COCO_KEYMAP, auto_shift=auto_shift)
+        col_row_values = _get_col_row_values(inkey, COCO_KEYMAP)
     else:
         raise RuntimeError
 
-    print("char/keycode: %s -> cols/rows: %s" % (repr(char_or_code), repr(col_row_values)))
+    print("char/keycode: %s -> cols/rows: %s" % (repr(inkey), repr(col_row_values)))
 
     for i in xrange(8):
         pia0b = invert_byte(2 ** i) # written into $ff02
         if matrix_name == "dragon":
-            result = get_dragon_keymatrix_pia_result(char_or_code, pia0b, auto_shift=auto_shift) # read from $ff00
+            result = get_dragon_keymatrix_pia_result(inkey, pia0b) # read from $ff00
         else:
-            result = get_coco_keymatrix_pia_result(char_or_code, pia0b, auto_shift=auto_shift) # read from $ff00
+            result = get_coco_keymatrix_pia_result(inkey, pia0b) # read from $ff00
         addr = 0x152 + i
         print("PB%i - $ff02 in $%02x (%s) -> $ff00 out $%02x (%s) stored in $%04x" % (
             i, pia0b, '{0:08b}'.format(pia0b),
@@ -308,16 +322,15 @@ if __name__ == '__main__':
             self.root.update()
 
         def event_key_pressed(self, event):
-            char_or_code = event.char or event.keycode
-
-            print("Char: %s - keycode: %s - char_or_code: %s" % (
-                repr(event.char), verbose_value(event.keycode),
-                repr(char_or_code)
+            print("event.char: %-6r event.keycode: %-3r event.keysym: %-11r event.keysym_num: %5r" % (
+                event.char, event.keycode, event.keysym, event.keysym_num
             ))
+            inkey = inkey_from_tk_event(event, auto_shift=True)
+            print("inkey from event: %r" % inkey)
             try:
-                test(char_or_code,
-#                     auto_shift=True
-                    auto_shift=False
+                test(inkey,
+                    matrix_name="dragon",
+                    # matrix_name="coco",
                 )
             except:
                 self.root.destroy()

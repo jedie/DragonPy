@@ -18,6 +18,7 @@
 from __future__ import absolute_import, division, print_function
 
 import logging
+from dragonpy.Dragon32.keyboard_map import add_to_input_queue
 
 log=logging.getLogger(__name__)
 from dragonpy.Dragon32.MC6821_PIA import PIA
@@ -29,7 +30,6 @@ class Dragon32PeripheryBase(object):
     """
     GUI independent stuff
     """
-
     def __init__(self, cfg, cpu, memory, user_input_queue):
         self.cfg = cfg
         self.cpu = cpu
@@ -101,9 +101,8 @@ class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
         self.display_buffer = {} # for striped_output()
 
     def add_to_input_queue(self, txt):
-        log.debug("Add %s to input queue.", repr(txt))
-        for char in txt:
-            self.user_input_queue.put(char)
+        assert "\n" not in txt, "remove all \\n in unittests! Use only \\r as Enter!"
+        add_to_input_queue(self.user_input_queue, txt)
 
     def to_line_buffer(self, cpu_cycles, op_address, address, value):
         char, color = self.charmap[value]

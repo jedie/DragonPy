@@ -153,8 +153,8 @@ class Dragon32Cfg(BaseConfig):
 
         return mem
 
-    def pia_keymatrix_result(self, char_or_code, pia0b):
-        return get_dragon_keymatrix_pia_result(char_or_code, pia0b, auto_shift=True)
+    def pia_keymatrix_result(self, inkey, pia0b):
+        return get_dragon_keymatrix_pia_result(inkey, pia0b)
 
 config = Dragon32Cfg
 

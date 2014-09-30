@@ -159,21 +159,6 @@ class PIA(object):
         self.current_input_char = None
         self.input_repead = 0
 
-    #--------------------------------------------------------------------------
-
-    def key_down(self, char_or_code, block=False):
-        log.error(
-            "Add user key down %r to PIA input queue.", repr(char_or_code))
-        self.user_input_queue.put(char_or_code, block=False)
-#         try:
-#             self.user_input_queue.put(char_or_code, block=block)
-#         except Queue.Full:
-#             log.log(level=99,
-#                 msg="Ignore key press %s, because input queue is full!" % repr(char_or_code)
-#             )
-
-    #--------------------------------------------------------------------------
-
     def read_PIA1_A_data(self, cpu_cycles, op_address, address):
         """ read from 0xff20 -> PIA 1 A side Data reg. """
         log.error("TODO: read from 0xff20 -> PIA 1 A side Data reg.")
