@@ -54,6 +54,20 @@ class BasicTokenUtil(object):
         else:
             return result
 
+    def tokens2ascii(self, values):
+        line=""
+        old_value = None
+        for value in values:
+            if value == 0xff:
+                old_value = value
+                continue
+            if old_value is not None:
+                value = (old_value << 8) + value
+                old_value = None
+            code = self.token2ascii(value)
+            line += code
+        return line
+
     def chars2tokens(self, chars):
         return [ord(char) for char in chars]
 
@@ -197,16 +211,8 @@ class BasicLine(object):
             code = self.line_code
 
         line = "%i " % self.line_number
-        old_value = None
-        for value in code:
-            if value == 0xff:
-                old_value = value
-                continue
-            if old_value is not None:
-                value = (old_value << 8) + value
-                old_value = None
-            code = self.token_util.token2ascii(value)
-            line += code
+        line += self.token_util.tokens2ascii(code)
+
         return line
 
     def log_line(self):
