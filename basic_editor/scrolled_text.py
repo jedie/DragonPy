@@ -36,7 +36,7 @@ class ScrolledText(tkinter.Text):
         xscrollbar.grid(row=1, column=0, sticky=tkinter.EW)
         yscrollbar.grid(row=0, column=1, sticky=tkinter.NS)
 
-        _defaults_options={'wrap': tkinter.NONE}
+        _defaults_options={"wrap": tkinter.NONE, "undo": tkinter.YES}
         options = _defaults_options.copy()
         options.update(kw)
         options.update({'yscrollcommand': yscrollbar.set})
