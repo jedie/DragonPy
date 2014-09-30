@@ -175,7 +175,7 @@ class Memory(object):
         for ea, datum in enumerate(data, address):
             try:
                 self._mem[ea] = datum
-            except OverflowError, err:
+            except OverflowError as err:
                 msg="%s - datum=$%x ea=$%04x (load address was: $%04x - data length: %iBytes)" % (
                     err, datum, ea, address, len(data)
                 )
