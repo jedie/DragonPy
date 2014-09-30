@@ -23,8 +23,8 @@ def list_replace(iterable, src, dst):
     >>> list_replace([1,2,3,4], (2,3), 9)
     [1, 9, 4]
     
-    >>> list_replace([1,2,3], (2,), "X")
-    [1, 'X', 3]
+    >>> list_replace([1,2,3], (2,), [9,8])
+    [1, 9, 8, 3]
     
     >>> list_replace([1,2,3,4,5], (2,3,4), "X")
     [1, 'X', 5]
@@ -37,6 +37,9 @@ def list_replace(iterable, src, dst):
     
     >>> list_replace([1,2,3,3,3,4,5], (3,3), "X")
     [1, 2, 'X', 3, 4, 5]
+
+    >>> list_replace([1,2,3,3,3,4,5], (3,3), ("A","B","C"))
+    [1, 2, 'A', 'B', 'C', 3, 4, 5]
     
     >>> list_replace((58, 131, 73, 70), (58, 131), 131)
     [131, 73, 70]
