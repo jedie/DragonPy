@@ -12,6 +12,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from basic_editor.tkinter_utils import TkTextTag
 from dragonlib.utils import six
 xrange = six.moves.xrange
 
@@ -134,3 +135,40 @@ class TkTextHighlighting(BaseExtension):
     def removecolors(self):
         for tag in self.tagdefs:
             self.text.tag_remove(tag, "1.0", "end")
+
+
+
+
+class TkTextHighlightCurrentLine(BaseExtension):
+    after_id = None
+
+    def __init__(self, editor):
+        super(TkTextHighlightCurrentLine, self).__init__(editor)
+
+        self.tag_current_line = TkTextTag(self.text,
+            background="#e8f2fe"
+            # relief='raised', borderwidth=1,
+        )
+
+        self.current_line = None
+        self.__update_interval()
+
+    def update(self, force=False):
+        """ highlight the current line """
+        line_no = self.text.index(tkinter.INSERT).split('.')[0]
+
+        if not force:
+            if line_no == self.current_line:
+#                 log.critical("no highlight line needed.")
+                return
+
+#         log.critical("highlight line: %s" % line_no)
+        self.current_line = line_no
+
+        self.text.tag_remove(self.tag_current_line.id, "1.0", "end")
+        self.text.tag_add(self.tag_current_line.id, "%s.0" % line_no, "%s.0+1lines" % line_no)
+
+    def __update_interval(self):
+        """ highlight the current line """
+        self.update()
+        self.after_id = self.text.after(10, self.__update_interval)

@@ -19,12 +19,11 @@ import os
 import string
 import sys
 
+import dragonlib
 from basic_editor.scrolled_text import ScrolledText
 from basic_editor.status_bar import MultiStatusBar
 from basic_editor.token_window import TokenWindow
-import dragonlib
-from basic_editor.editor_base import BaseExtension
-from basic_editor.highlighting import TkTextHighlighting
+from basic_editor.highlighting import TkTextHighlighting, TkTextHighlightCurrentLine
 from dragonlib.utils.auto_shift import invert_shift
 
 
@@ -41,39 +40,6 @@ except ImportError:
     import tkFileDialog as filedialog
     import tkMessageBox as messagebox
 
-
-
-class TkTextHighlightCurrentLine(BaseExtension):
-    after_id = None
-    TAG_CURRENT_LINE = "current_line"
-
-    def __init__(self, editor):
-        super(TkTextHighlightCurrentLine, self).__init__(editor)
-
-        self.text.tag_config(self.TAG_CURRENT_LINE, background="#e8f2fe")
-
-        self.current_line = None
-        self.__update_interval()
-
-    def update(self, force=False):
-        """ highlight the current line """
-        line_no = self.text.index(tkinter.INSERT).split('.')[0]
-
-        if not force:
-            if line_no == self.current_line:
-#                 log.critical("no highlight line needed.")
-                return
-
-#         log.critical("highlight line: %s" % line_no)
-        self.current_line = line_no
-
-        self.text.tag_remove(self.TAG_CURRENT_LINE, "1.0", "end")
-        self.text.tag_add(self.TAG_CURRENT_LINE, "%s.0" % line_no, "%s.0+1lines" % line_no)
-
-    def __update_interval(self):
-        """ highlight the current line """
-        self.update()
-        self.after_id = self.text.after(10, self.__update_interval)
 
 
 class EditorWindow(object):

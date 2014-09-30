@@ -16,6 +16,7 @@ from __future__ import absolute_import, division, print_function
 
 import logging
 
+
 log = logging.getLogger(__name__)
 
 try:
@@ -25,14 +26,10 @@ except ImportError:
     # Python 2
     import Tkinter as tkinter
 
-from basic_editor.tkinter_utils import TkTextTag
 
-
-class BaseExtension(object):
-    def __init__(self, editor):
-        self.editor = editor
-        
-        self.cfg=editor.cfg
-        self.root = editor.root
-        self.text = editor.text # ScrolledText() instance
-
+class TkTextTag(object):
+    _id=0
+    def __init__(self, text_widget, **config):
+        self.id = self._id
+        self._id+=1
+        text_widget.tag_configure(self.id, config)
