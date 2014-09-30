@@ -8,6 +8,10 @@
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
+from __future__ import absolute_import, division, print_function
+
+import logging
+log = logging.getLogger(__name__)
 
 try:
     # Python 3
@@ -49,7 +53,36 @@ class ScrolledText(tkinter.Text):
         xscrollbar.config(command=self.xview)
         yscrollbar.config(command=self.yview)
 
+        self.bind('<Control-KeyPress-a>', self.event_select_all)
+        self.bind('<Control-KeyPress-x>', self.event_cut)
+        self.bind('<Control-KeyPress-c>', self.event_copy)
+        self.bind('<Control-KeyPress-v>', self.event_paste)
 
+    def event_select_all(self, event=None):
+        log.critical("Select all.")
+        self.tag_add(tkinter.SEL, "1.0", tkinter.END)
+        self.mark_set(tkinter.INSERT, "1.0")
+        self.see(tkinter.INSERT)
+        return "break"
+
+    def event_cut(self, event=None):
+        if self.tag_ranges(tkinter.SEL):
+            self.event_copy()
+            self.delete(tkinter.SEL_FIRST, tkinter.SEL_LAST)
+
+    def event_copy(self, event=None):
+        if self.tag_ranges(tkinter.SEL): 
+            text = self.get(tkinter.SEL_FIRST, tkinter.SEL_LAST)  
+            self.clipboard_clear()              
+            self.clipboard_append(text)
+
+    def event_paste(self, event=None):
+        text = self.selection_get(selection='CLIPBOARD')
+        if text:
+            self.insert(tkinter.INSERT, text)
+            self.tag_remove(tkinter.SEL, '1.0', tkinter.END) 
+            self.see(tkinter.INSERT)
+    
     def __str__(self):
         return str(self.frame)
 
