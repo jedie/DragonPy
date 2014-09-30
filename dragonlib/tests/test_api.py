@@ -526,16 +526,36 @@ class RenumTests(BaseDragon32ApiTestCase):
             [10, 20, 30, 40, 50, 70, 999]
         )
 
+    def test_on_gosub_and_goto(self):
+        old_listing = self._prepare_text("""
+            2 PRINT "2"
+            13 ON X GOSUB 18 :ONY GOSUB 2,2:NEXT:GOTO99
+            18 PRINT "18"
+            99 PRINT "99"
+        """)
+        # print(old_listing)
+        # print("-"*79)
+        new_listing = self.dragon32api.renum_ascii_listing(old_listing)
+        # print(new_listing)
+        self.assertEqual(new_listing, self._prepare_text("""
+            10 PRINT "2"
+            20 ON X GOSUB 30 :ONY GOSUB 10,10:NEXT:GOTO40
+            30 PRINT "18"
+            40 PRINT "99"
+        """))
+
+
+
 if __name__ == '__main__':
     from dragonlib.utils.logging_utils import setup_logging
 
     setup_logging(
-#        level=1 # hardcore debug ;)
-#         level=10 # DEBUG
-#         level=20 # INFO
-#        level=30 # WARNING
-#         level=40 # ERROR
-        level=50  # CRITICAL/FATAL
+       level=1 # hardcore debug ;)
+       # level=10 # DEBUG
+       # level=20 # INFO
+       # level=30 # WARNING
+       # level=40 # ERROR
+       # level=50  # CRITICAL/FATAL
     )
 
     unittest.main(
@@ -544,6 +564,7 @@ if __name__ == '__main__':
             sys.argv[0],
 #             "Dragon32BASIC_HighLevel_ApiTest.test_listing2program_strings_dont_in_comment",
 #             "Dragon32BASIC_HighLevel_ApiTest.test_two_byte_line_numbers",
+#             "RenumTests.test_on_gosub_and_goto"
         ),
         #         verbosity=1,
         verbosity=2,

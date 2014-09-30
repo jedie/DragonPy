@@ -378,6 +378,7 @@ class RenumTool(object):
             new_number *= 10
             line = self.line_no_regex.sub("%s\g<code>" % new_number, line)
             new_line = self.renum_regex.sub(self.renum_inline, line)
+            log.debug("%r -> %r", line, new_line)
             new_listing.append(new_line)
         return "\n".join(new_listing)
 
@@ -387,19 +388,16 @@ class RenumTool(object):
         """
         self.destinations = set()
         def collect_destinations(matchobj):
-            numbers = matchobj.group("on_goto_no")
+            numbers = matchobj.group("no")
             if numbers:
                 self.destinations.update(set(
                     [n.strip() for n in numbers.split(",")]
                 ))
-            number = matchobj.group("no")
-            if number:
-                self.destinations.add(number)
 
         for line in self._iter_lines(ascii_listing):
             self.renum_regex.sub(collect_destinations, line)
 
-        return sorted([int(no) for no in self.destinations])
+        return sorted([int(no) for no in self.destinations if no])
 
     def _iter_lines(self, ascii_listing):
         lines = ascii_listing.splitlines()
@@ -418,17 +416,9 @@ class RenumTool(object):
             new_number = old_number
         return new_number
 
-    def _replace_statement(self, matchobj):
-        old_number = matchobj.group("no")
-        new_number = self._get_new_line_number(matchobj.group(0), old_number)
-        return "".join([
-            matchobj.group("statement"),
-            matchobj.group("space"),
-            new_number
-        ])
-
-    def _replace_on_goto(self, matchobj):
-        old_numbers = matchobj.group("on_goto_no")
+    def renum_inline(self, matchobj):
+#         log.critical(matchobj.groups())
+        old_numbers = matchobj.group("no")
         if old_numbers[-1] == " ":
             # e.g.: space before comment: ON X GOTO 1,2 ' Comment
             space_after = " "
@@ -440,17 +430,10 @@ class RenumTool(object):
             for old_number in old_numbers
         ]
         return "".join([
-            matchobj.group("on_goto_statement"),
-            matchobj.group("on_goto_space"),
+            matchobj.group("statement"),
+            matchobj.group("space"),
             ",".join(new_numbers), space_after
         ])
-
-    def renum_inline(self, matchobj):
-#         log.critical(matchobj.groups())
-        if matchobj.group("on_goto_statement"):
-            return self._replace_on_goto(matchobj)
-        else:
-            return self._replace_statement(matchobj)
 
     def create_renum_dict(self, ascii_listing):
         old_numbers = [match[0] for match in self.line_no_regex.findall(ascii_listing)]
