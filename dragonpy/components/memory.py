@@ -176,11 +176,10 @@ class Memory(object):
             try:
                 self._mem[ea] = datum
             except OverflowError, err:
-                msg="%s - ea=$%04x (load address was: $%04x - data length: %iBytes)" % (
-                    err, ea, address, len(data)
+                msg="%s - datum=$%x ea=$%04x (load address was: $%04x - data length: %iBytes)" % (
+                    err, datum, ea, address, len(data)
                 )
                 raise OverflowError(msg)
-                # six.reraise(OverflowError, OverflowError(msg))
 
     def load_file(self, romfile):
         data = romfile.get_data()
