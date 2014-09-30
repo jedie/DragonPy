@@ -209,6 +209,27 @@ class BasicLine(object):
         """
         return list(word2bytes(self.line_number)) + self.line_code
 
+    def reformat(self):
+        space = self.token_util.ascii2token(" ")[0]
+
+        temp1 = []
+        temp2 = []
+        for token in self.line_code:
+            temp1.append(token)
+            if token in self.token_util.basic_token_dict:
+                try:
+                    if not temp2[-1]==space:
+                        temp1.append(space)
+                except IndexError:
+                    pass
+                temp2 += temp1
+                temp1=[]
+        temp2 += temp1
+
+        self.line_code = temp2
+        print("new line code: %r" % self.line_code)
+
+
     def get_content(self, code=None):
         if code is None: # start
             code = self.line_code
@@ -217,6 +238,9 @@ class BasicLine(object):
         line += self.token_util.tokens2ascii(code)
 
         return line
+
+    def __repr__(self):
+        return "%r: %s" % (self.get_content(), " ".join(["$%02x" % t for t in self.line_code]))
 
     def log_line(self):
         log.critical("%r:\n\t%s",

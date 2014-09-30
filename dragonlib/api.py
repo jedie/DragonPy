@@ -56,23 +56,28 @@ class BaseAPI(object):
         log.info("Parsed BASIC: %s", repr(parsed_lines))
         return parsed_lines
 
+    def ascii_listing2basic_lines(self, basic_program_ascii, program_start=None):
+        if program_start is None:
+            program_start = self.DEFAULT_PROGRAM_START
+
+        parsed_lines = self.parse_ascii_listing(basic_program_ascii)
+
+        basic_lines = []
+        for line_no, code_objects in sorted(parsed_lines.items()):
+            basic_line = BasicLine(self.token_util)
+            basic_line.code_objects_load(line_no,code_objects)
+            basic_lines.append(basic_line)
+
+        return basic_lines
+
     def ascii_listing2program_dump(self, basic_program_ascii, program_start=None):
         """
         convert a ASCII BASIC program listing into tokens.
         This tokens list can be used to insert it into the
         Emulator RAM.
         """
-        if program_start is None:
-            program_start = self.DEFAULT_PROGRAM_START
-            
-        parsed_lines = self.parse_ascii_listing(basic_program_ascii)
-         
-        basic_lines = []       
-        for line_no, code_objects in sorted(parsed_lines.items()):
-            basic_line = BasicLine(self.token_util)
-            basic_line.code_objects_load(line_no,code_objects)
-            basic_lines.append(basic_line)
-         
+        basic_lines = self.ascii_listing2basic_lines(basic_program_ascii, program_start)
+
         return self.listing.basic_lines2program_dump(basic_lines, program_start)          
 
     def pformat_tokens(self, tokens):
@@ -93,6 +98,25 @@ class BaseAPI(object):
 
     def renum_ascii_listing(self, content):
         return self.renum_tool.renum(content)
+
+    def reformat_ascii_listing(self, basic_program_ascii):
+
+        parsed_lines = self.parse_ascii_listing(basic_program_ascii)
+
+        ascii_lines = []
+        for line_no, code_objects in sorted(parsed_lines.items()):
+            print()
+            print(line_no, code_objects)
+            basic_line = BasicLine(self.token_util)
+            basic_line.code_objects_load(line_no,code_objects)
+
+            print(basic_line)
+            basic_line.reformat()
+            new_line = basic_line.get_content()
+            print(new_line)
+            ascii_lines.append(new_line)
+
+        return "\n".join(ascii_lines)
 
 
 class Dragon32API(BaseAPI):
@@ -117,3 +141,30 @@ class CoCoAPI(Dragon32API):
     MACHINE_NAME = "CoCo"
     BASIC_TOKENS = COCO_BASIC_TOKENS
 
+if __name__ == '__main__':
+    import os
+    from dragonlib.utils.logging_utils import setup_logging
+
+    setup_logging(
+#        level=1 # hardcore debug ;)
+#         level=10  # DEBUG
+#         level=20  # INFO
+#         level=30  # WARNING
+#         level=40 # ERROR
+#         level=50 # CRITICAL/FATAL
+        level=99
+    )
+
+    api = Dragon32API()
+
+    filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
+        # "..", "BASIC examples", "hex_view01.bas"
+        "..", "BASIC games", "INVADER.bas"
+    )
+
+    with open(filepath, "r") as f:
+        listing_ascii = f.read()
+
+    print(
+        api.reformat_ascii_listing(listing_ascii)
+    )

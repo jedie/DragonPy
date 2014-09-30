@@ -104,6 +104,7 @@ class EditorWindow(object):
 
         editmenu = tkinter.Menu(self.menubar, tearoff=0)
         editmenu.add_command(label="renum", command=self.renumber_listing)
+        editmenu.add_command(label="reformat", command=self.reformat_listing)
         editmenu.add_command(label="display tokens", command=self.debug_display_tokens)
         self.menubar.add_cascade(label="tools", menu=editmenu)
 
@@ -234,6 +235,18 @@ class EditorWindow(object):
         # restore text cursor and scroll position
         self.text.restore_position()
 
+    def reformat_listing(self):
+        # save text cursor and scroll position
+        self.text.save_position()
+
+        # renumer the content
+        content = self.get_content()
+        content = self.machine_api.reformat_ascii_listing(content)
+        self.set_content(content)
+
+        # restore text cursor and scroll position
+        self.text.restore_position()
+
     def get_content(self):
         content = self.text.get("1.0", tkinter.END)
         content = content.strip()
@@ -323,5 +336,4 @@ def test():
 
 
 if __name__ == "__main__":
-
     test()
