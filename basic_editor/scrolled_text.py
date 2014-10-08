@@ -69,12 +69,14 @@ class ScrolledText(tkinter.Text):
         if self.tag_ranges(tkinter.SEL):
             self.event_copy()
             self.delete(tkinter.SEL_FIRST, tkinter.SEL_LAST)
+        return "break"
 
     def event_copy(self, event=None):
         if self.tag_ranges(tkinter.SEL): 
             text = self.get(tkinter.SEL_FIRST, tkinter.SEL_LAST)  
             self.clipboard_clear()              
             self.clipboard_append(text)
+        return "break"
 
     def event_paste(self, event=None):
         text = self.selection_get(selection='CLIPBOARD')
@@ -82,6 +84,7 @@ class ScrolledText(tkinter.Text):
             self.insert(tkinter.INSERT, text)
             self.tag_remove(tkinter.SEL, '1.0', tkinter.END) 
             self.see(tkinter.INSERT)
+        return "break"
     
     def __str__(self):
         return str(self.frame)
