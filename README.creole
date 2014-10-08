@@ -421,6 +421,6 @@ Six is a Python 2 and 3 compatibility library.
 | PyPi                | [[https://pypi.python.org/pypi/DragonPyEmulator/]]
 | Github              | [[https://github.com/jedie/DragonPy]]
 
-= donation
+== donation
 
 * Send [[http://www.bitcoin.org/|Bitcoins]] to [[https://blockexplorer.com/address/1823RZ5Md1Q2X5aSXRC5LRPcYdveCiVX6F|1823RZ5Md1Q2X5aSXRC5LRPcYdveCiVX6F]]
