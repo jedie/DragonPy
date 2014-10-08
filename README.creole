@@ -394,6 +394,7 @@ Six is a Python 2 and 3 compatibility library.
 == History
 
 * 08.10.2014 - Release as v0.3.1
+* 30.09.2014 - Enhance the BASIC editor
 * 29.09.2014 - Merge [[https://github.com/jedie/PyDragon32|PyDragon32]] project
 * 25.09.2014 - Release v0.3.0:
 ** [[https://github.com/jedie/DragonPy/commit/f396551df730b509498d1b884cdda8f7075737c4|Change Display Queue to a simple Callback]]
