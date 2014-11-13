@@ -28,6 +28,7 @@ except ImportError:
     import Queue as queue # Python 2
 
 from dragonlib.tests.test_base import BaseTestCase
+
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.periphery_dragon import Dragon32PeripheryUnittest
 from dragonpy.Simple6809.config import Simple6809Cfg
@@ -100,22 +101,6 @@ class BaseStackTestCase(BaseCPUTestCase):
         super(BaseStackTestCase, self).setUp()
         self.cpu.system_stack_pointer.set(self.INITIAL_SYSTEM_STACK_ADDR)
         self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
-
-
-class TextTestResult2(unittest.TextTestResult):
-    def startTest(self, test):
-        if not self.showAll:
-            super(TextTestResult2, self).startTest(test)
-            return
-        print()
-        print("_"*70)
-        self.showAll = False
-        print(self.getDescription(test), "...")
-        super(TextTestResult2, self).startTest(test)
-        self.showAll = True
-
-class TextTestRunner2(unittest.TextTestRunner):
-    resultclass = TextTestResult2
 
 
 class TestCPU(object):

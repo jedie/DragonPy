@@ -18,12 +18,11 @@ import functools
 import itertools
 import logging
 import os
-import sys
 
 log = logging.getLogger("PyDC")
 
 # own modules
-from utils import find_iter_window, iter_steps, MaxPosArraived, \
+from dragonlib.utils import find_iter_window, iter_steps, MaxPosArraived, \
     print_bitlist, bits2codepoint, list2str, bitstream2codepoints, \
     PatternNotFound, count_the_same, codepoints2bitstream, pformat_codepoints
 

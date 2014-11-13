@@ -18,7 +18,7 @@ import sys
 
 # own modules
 from basic_tokens import bytes2codeline
-from utils import get_word, codepoints2string, string2codepoint, LOG_LEVEL_DICT, \
+from dragonlib.utils import get_word, codepoints2string, string2codepoint, LOG_LEVEL_DICT, \
     LOG_FORMATTER, pformat_codepoints
 from wave2bitstream import Wave2Bitstream, Bitstream2Wave
 from bitstream_handler import BitstreamHandler, CasStream, BytestreamHandler

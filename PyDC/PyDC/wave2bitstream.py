@@ -6,7 +6,6 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import sys
 import wave
 import functools
 import array
@@ -25,7 +24,7 @@ except ImportError, err:
 
 
 # own modules
-from utils import average, diff_info, TextLevelMeter, iter_window, \
+from dragonlib.utils import average, diff_info, TextLevelMeter, iter_window, \
     human_duration, ProcessInfo, count_sign, iter_steps, sinus_values_by_hz, \
     hz2duration, duration2hz, codepoints2bitstream, bits2codepoint
 

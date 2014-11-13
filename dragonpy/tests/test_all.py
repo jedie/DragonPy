@@ -15,9 +15,6 @@ from __future__ import absolute_import, division, print_function
 
 import unittest
 
-from dragonlib.utils.logging_utils import setup_logging
-from dragonpy.tests.test_base import TextTestRunner2
-
 
 if __name__ == '__main__':
     from dragonlib.utils.logging_utils import setup_logging

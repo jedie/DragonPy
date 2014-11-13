@@ -14,12 +14,12 @@
 
 from __future__ import absolute_import, division, print_function
 
-
 import logging
 import sys
 import unittest
 
-from dragonpy.tests.test_base import TextTestRunner2, BaseStackTestCase
+from dragonlib.utils.unittest_utils import TextTestRunner2
+from dragonpy.tests.test_base import BaseStackTestCase
 
 
 log = logging.getLogger("DragonPy")

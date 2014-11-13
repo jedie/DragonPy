@@ -12,12 +12,10 @@ from __future__ import absolute_import, division, print_function
 from dragonlib.utils import six
 xrange = six.moves.xrange
 
-import logging
-import sys
 import unittest
 
-from dragonpy.tests.test_base import BaseCPUTestCase, TextTestRunner2
-from dragonpy.utils.byte_word_values import signed8
+from dragonpy.tests.test_base import BaseCPUTestCase
+from dragonlib.utils.byte_word_values import signed8
 
 
 class CCTestCase(BaseCPUTestCase):

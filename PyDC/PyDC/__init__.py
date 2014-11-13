@@ -13,8 +13,6 @@ import os
 import sys
 
 from CassetteObjects import Cassette
-from utils import print_bitlist
-from wave2bitstream import Wave2Bitstream, Bitstream2Wave
 
 
 __version__ = (0, 1, 0, 'dev')

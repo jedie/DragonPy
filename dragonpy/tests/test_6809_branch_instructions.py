@@ -8,16 +8,14 @@
 
 from __future__ import absolute_import, division, print_function
 
-
-
 import itertools
 import logging
 import operator
 import sys
 import unittest
 
-from dragonpy.tests.test_base import TextTestRunner2, BaseCPUTestCase
-from dragonlib.utils.logging_utils import setup_logging
+from dragonlib.utils.unittest_utils import TextTestRunner2
+from dragonpy.tests.test_base import BaseCPUTestCase
 
 
 log = logging.getLogger("DragonPy")

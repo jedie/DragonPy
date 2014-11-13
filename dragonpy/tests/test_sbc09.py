@@ -18,16 +18,15 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from dragonlib.utils.unittest_utils import TextTestRunner2
 from dragonlib.utils import six
 xrange = six.moves.xrange
 
 import logging
-import pprint
 import sys
 import unittest
 
-from dragonlib.utils.logging_utils import setup_logging
-from dragonpy.tests.test_base import TextTestRunner2, Test6809_sbc09_Base
+from dragonpy.tests.test_base import Test6809_sbc09_Base
 from dragonpy.utils import srecord_utils
 
 

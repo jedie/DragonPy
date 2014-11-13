@@ -15,7 +15,7 @@ xrange = six.moves.xrange
 import math
 import decimal
 
-from dragonpy.utils.byte_word_values import unsigned8, signed16
+from dragonlib.utils.byte_word_values import unsigned8, signed16
 
 
 class BASIC09FloatingPoint(object):

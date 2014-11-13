@@ -13,6 +13,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from dragonlib.utils.unittest_utils import TextTestRunner2
 from dragonlib.utils import six
 xrange = six.moves.xrange
 
@@ -20,8 +21,7 @@ import logging
 import sys
 import unittest
 
-from dragonpy.tests.test_base import TextTestRunner2, BaseCPUTestCase
-from dragonlib.utils.logging_utils import setup_logging
+from dragonpy.tests.test_base import BaseCPUTestCase
 from dragonpy.utils.bits import is_bit_set, get_bit
 
 

@@ -8,6 +8,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from dragonlib.utils.unittest_utils import TextTestRunner2
 from dragonlib.utils import six
 xrange = six.moves.xrange
 
@@ -18,8 +19,7 @@ import unittest
 from dragonpy.components.cpu6809 import CPU
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.mem_info import DragonMemInfo
-from dragonpy.tests.test_base import TextTestRunner2, BaseCPUTestCase, BaseStackTestCase
-from dragonlib.utils.logging_utils import setup_logging
+from dragonpy.tests.test_base import BaseCPUTestCase, BaseStackTestCase
 
 
 log = logging.getLogger("DragonPy")

@@ -18,8 +18,10 @@ import sys
 import unittest
 import logging
 
-from dragonlib.utils.logging_utils import log, setup_logging
-from dragonpy.tests.test_base import TextTestRunner2, Test6809_Dragon32_Base
+from dragonlib.utils.unittest_utils import TextTestRunner2
+from dragonlib.utils.logging_utils import setup_logging
+from dragonpy.tests.test_base import Test6809_Dragon32_Base
+
 
 log = logging.getLogger(__name__)
 

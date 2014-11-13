@@ -49,7 +49,7 @@ from dragonpy.components.cpu_utils.MC6809_registers import (
 )
 from dragonpy.components.cpu_utils.instruction_caller import OpCollection
 from dragonpy.utils.bits import is_bit_set, get_bit
-from dragonpy.utils.byte_word_values import signed8, signed16, signed5
+from dragonlib.utils.byte_word_values import signed8, signed16, signed5
 from dragonpy.components.MC6809data.MC6809_op_data import (
     REG_A, REG_B, REG_CC, REG_D, REG_DP, REG_PC,
     REG_S, REG_U, REG_X, REG_Y

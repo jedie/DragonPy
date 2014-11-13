@@ -21,7 +21,7 @@ class BaseConfig(object):
     VOLUME_RATIO = 90 # "Loundness" in percent of the created wave file
 
     def print_debug_info(self):
-        from utils import byte2bit_string
+        from dragonlib.utils import byte2bit_string
 
         print "Config: '%s'" % self.__class__.__name__
 
