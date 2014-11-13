@@ -89,6 +89,8 @@ There is a simple shell script to automatic download and extract the Dragon ROMs
 
 === Quick start:
 
+**TODO:** External {{{dragonlib}}} dependency is needed: https://github.com/6809/dragonlib
+
 {{{
 # clone the repro:
 ~$ git clone https://github.com/jedie/DragonPy.git

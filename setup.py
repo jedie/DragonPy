@@ -38,6 +38,9 @@ setup(
     version=dragonpy.__version__,
     py_modules=["DragonPy"],
     provides=["DragonPy"],
+    install_requires=[
+        "dragonlib",
+    ],
     author="Jens Diemer",
     author_email="DragonPy@jensdiemer.de",
     description="Emulator for 6809 CPU based system like Dragon 32 / CoCo written in Python...",
