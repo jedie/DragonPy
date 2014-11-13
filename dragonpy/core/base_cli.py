@@ -16,24 +16,9 @@ from __future__ import absolute_import, division, print_function
 import argparse
 import sys
 import logging
-from dragonlib.utils.logging_utils import setup_logging
+from dragonlib.utils.logging_utils import setup_logging, LOG_LEVELS
 
 log = logging.getLogger(__name__)
-
-
-def get_log_levels():
-    levels = [100, 99] # FIXME
-    try:
-        # Python 3
-        levels += logging._nameToLevel.values()
-    except AttributeError:
-        # Python 2
-        levels += [level for level in logging._levelNames if isinstance(level, int)]
-
-    levels.sort()
-    return levels
-
-LOG_LEVELS = get_log_levels()
 
 
 class ActionLogList(argparse.Action):

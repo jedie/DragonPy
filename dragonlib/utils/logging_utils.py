@@ -26,6 +26,22 @@ log = logging.getLogger(__name__)
 #     log.critical("Fixed Log handlers: %s", repr(log.handlers))
 
 
+def get_log_levels(additional_levels=[100,99]):
+    levels = additional_levels[:]
+    try:
+        # Python 3
+        levels += logging._nameToLevel.values()
+    except AttributeError:
+        # Python 2
+        levels += [level for level in logging._levelNames if isinstance(level, int)]
+
+    levels.sort()
+    return levels
+
+LOG_LEVELS = get_log_levels()
+
+
+
 def setup_logging(level, logger_name=None, handler=None, log_formatter=None):
     """
     levels:
