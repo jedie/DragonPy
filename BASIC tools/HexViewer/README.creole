@@ -1,7 +1,7 @@
 
 Simple memory HEX viewer written in BASIC
 
-{{http://www.jensdiemer.de/media/jensdiemer.de/screenshots/hex_view_v01.png|hex_view_v01.png}}
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/hex_view_v01.png|hex_view_v01.png}}
 
 copyleft: 2013 by Jens Diemer
 license: GNU GPL v3 or above, see LICENSE for more details.
