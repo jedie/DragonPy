@@ -4,6 +4,7 @@ python:
   - "3.4"
   - "pypy"
 install: true # There is no dependencies, yet.
+  - pip install dragonlib
 #  - pip install coveralls
 script:
   # "python setup.py test" will not run the tests from dragonlib
