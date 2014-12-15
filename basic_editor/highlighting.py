@@ -12,9 +12,13 @@
 """
 
 from __future__ import absolute_import, division, print_function
+
+import pygments
+from pygments.styles import get_style_by_name
+
 from basic_editor.tkinter_utils import TkTextTag
-from dragonlib.utils import six
-xrange = six.moves.xrange
+from dragonlib.dragon32.pygments_lexer import BasicLexer
+
 
 try:
     # python 3
@@ -30,6 +34,7 @@ from basic_editor.editor_base import BaseExtension
 from dragonlib.core import basic_parser
 
 
+
 class TkTextHighlighting(BaseExtension):
     """
     code based on idlelib.ColorDelegator.ColorDelegator
@@ -40,101 +45,117 @@ class TkTextHighlighting(BaseExtension):
     def __init__(self, editor):
         super(TkTextHighlighting, self).__init__(editor)
 
+        self.lexer = BasicLexer()
+
         self.machine_api = editor.machine_api
 
-        bold_font = font.Font(self.text, self.text.cget("font"))
-        bold_font.configure(weight="bold")
-        self.text.tag_configure("bold", font=bold_font)
+        self.tags = self.create_tags()
+        self.existing_tags = tuple(self.tags.values())
 
-        self.tagdefs = {
-            self.TAG_LINE_NUMBER: {"foreground": "#333333", "background":"#f4f4f4"},
-            self.TAG_JUMP_ADDESS: {"foreground":"#0000aa", "background":"#f4f4f4", "font":bold_font},
+        # TODO: Add a bind callback list
+        # see: http://www.python-forum.de/viewtopic.php?f=18&t=35275 (de)
+        # self.editor.root.bind("<KeyRelease>", self.update)
+        # self.editor.root.bind("<KeyRelease>", self.force_update)
 
-            basic_parser.CODE_TYPE_CODE: {"foreground":"#222222", "font":bold_font},
-            basic_parser.CODE_TYPE_DATA: {"foreground":"#ddaaff", "font":bold_font},
-            basic_parser.CODE_TYPE_STRING: {"foreground":"#0000ff"},# , "font":bold_font},
-            basic_parser.CODE_TYPE_COMMENT: {"foreground":"#00aa00"},
-        }
-        for tag, args in list(self.tagdefs.items()):
-            self.text.tag_configure(tag, **args)
-
-#         self.notify_range("1.0", "end")
-
-        self.old_pos = None
+        self.old_pos=None
         self.__update_interval()
 
-    def update(self, force=False):
-        pos = self.text.index(tkinter.INSERT)
+    def __update_interval(self):
+        """ highlight the current line """
+        self.update()
+        self.after_id = self.text.after(250, self.__update_interval)
 
-        if not force:
-            if pos == self.old_pos:
-#                 log.critical("No recolorize needed.")
-                return
+
+    def force_update(self, event):
+        print("force update")
+        self.update(event, force=True)
+
+    def update(self, event=None, force=False):
+        pos = self.text.index(tkinter.INSERT)
+        # print("update %s" % pos)
+        if not force and pos == self.old_pos:
+            # print("Skip")
+            return
 
         self.recolorize()
         self.old_pos = pos
 
-    def __update_interval(self):
-        """ highlight the current line_no """
-        self.update()
-        self.after_id = self.text.after(10, self.__update_interval)
+    # ---------------------------------------------------------------------------------------
 
-#     def notify_range(self, index1, index2=None):
-#         self.text.tag_add("TODO", index1, index2)
+    def create_tags(self):
+        tags={}
 
-    def colorize(self, part_type, start, end):
-#         print "colorize", part_type, start, end
-        self.text.tag_add(part_type, start, end)
+        bold_font = font.Font(self.text, self.text.cget("font"))
+        bold_font.configure(weight=font.BOLD)
+
+        italic_font = font.Font(self.text, self.text.cget("font"))
+        italic_font.configure(slant=font.ITALIC)
+
+        bold_italic_font = font.Font(self.text, self.text.cget("font"))
+        bold_italic_font.configure(weight=font.BOLD, slant=font.ITALIC)
+
+        style = get_style_by_name("default")
+        for ttype, ndef in style:
+            # print(ttype, ndef)
+            tag_font = None
+            if ndef["bold"] and ndef["italic"]:
+                tag_font = bold_italic_font
+            elif ndef["bold"]:
+                tag_font = bold_font
+            elif ndef["italic"]:
+                tag_font = italic_font
+
+            if ndef["color"]:
+                foreground = "#%s" % ndef["color"]
+            else:
+                foreground = None
+
+            tags[ttype]=str(ttype)
+            self.text.tag_configure(tags[ttype], foreground=foreground, font=tag_font)
+            # self.text.tag_configure(str(ttype), foreground=foreground, font=tag_font)
+
+        return tags
 
     def recolorize(self):
-        self.removecolors()
+        # print("recolorize")
+        listing = self.text.get("1.0", "end-1c")
 
-        listing = self.editor.get_content()
         destinations = self.machine_api.renum_tool.get_destinations(listing)
 
-        line_max = self.text.index(tkinter.END).split('.')[0]
-        line_max = int(line_max)
-        for line_no in xrange(line_max):
-            line_content = self.text.get("%s.0" % line_no, "%s.0+1lines" % line_no)
-#             print "line:", repr(line_content)
-            if not line_content.strip():
-                continue
+        tokensource = self.lexer.get_tokens(listing)
 
-            parsed_lines = self.machine_api.parse_ascii_listing(line_content)
-            try:
-                code_line_no, code_objects = list(parsed_lines.items())[0]
-            except IndexError:
-                continue
-#             print "parsed line:", code_line_no, code_objects
-
-            index = len(str(code_line_no) + " ")
-
-            if code_line_no in destinations:
-                # The current line number is used as a jump address
-                part_type = self.TAG_JUMP_ADDESS
+        start_line=1
+        start_index = 0
+        end_line=1
+        end_index = 0
+        for ttype, value in tokensource:
+            if "\n" in value:
+                end_line += value.count("\n")
+                end_index = len(value.rsplit("\n",1)[1])
             else:
-                part_type = self.TAG_LINE_NUMBER
-            self.colorize(part_type,
-                start="%s.0" % line_no,
-                end="%s.%s" % (line_no, index)
-            )
+                end_index += len(value)
 
-            for code_object in code_objects:
-                end = index + len(code_object.content)
-                self.colorize(code_object.PART_TYPE,
-                     start="%s.%s" % (line_no, index),
-                     end="%s.%s" % (line_no, end),
-                )
-                index = end
+            if value not in (" ", "\n"):
+                index1 = "%s.%s" % (start_line, start_index)
+                index2 = "%s.%s" % (end_line, end_index)
 
-#             print
+                for tagname in self.text.tag_names(index1): # FIXME
+                    # print("remove %s" % tagname)
+                    if tagname not in self.existing_tags: # Don"t remove e.g.: "current line"-tag
+                        # print("Skip...")
+                        continue
+                    self.text.tag_remove(tagname, index1, index2)
 
-#         line, column = self.text.index(Tkinter.INSERT).split('.')
-#         print "recolorize lines %s" % line
+                # Mark used line numbers extra:
+                if start_index==0 and ttype==pygments.token.Name.Label:
+                    if int(value) in destinations:
+                        ttype = pygments.token.Name.Tag
 
-    def removecolors(self):
-        for tag in self.tagdefs:
-            self.text.tag_remove(tag, "1.0", "end")
+                self.text.tag_add(self.tags[ttype], index1, index2)
+
+            start_line = end_line
+            start_index = end_index
+
 
 
 
@@ -147,23 +168,25 @@ class TkTextHighlightCurrentLine(BaseExtension):
 
         self.tag_current_line = TkTextTag(self.text,
             background="#e8f2fe"
-            # relief='raised', borderwidth=1,
+            # relief="raised", borderwidth=1,
         )
 
         self.current_line = None
         self.__update_interval()
 
-    def update(self, force=False):
-        """ highlight the current line """
-        line_no = self.text.index(tkinter.INSERT).split('.')[0]
+        # self.editor.root.bind("<KeyRelease>", self.update)
 
-        if not force:
-            if line_no == self.current_line:
+    def update(self, event=None, force=False):
+        """ highlight the current line """
+        line_no = self.text.index(tkinter.INSERT).split(".")[0]
+
+        # if not force:
+            # if line_no == self.current_line:
 #                 log.critical("no highlight line needed.")
-                return
+#                 return
 
 #         log.critical("highlight line: %s" % line_no)
-        self.current_line = line_no
+#         self.current_line = line_no
 
         self.text.tag_remove(self.tag_current_line.id, "1.0", "end")
         self.text.tag_add(self.tag_current_line.id, "%s.0" % line_no, "%s.0+1lines" % line_no)
@@ -171,4 +194,6 @@ class TkTextHighlightCurrentLine(BaseExtension):
     def __update_interval(self):
         """ highlight the current line """
         self.update()
-        self.after_id = self.text.after(10, self.__update_interval)
+        self.after_id = self.text.after(250, self.__update_interval)
+
+

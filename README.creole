@@ -395,6 +395,7 @@ Six is a Python 2 and 3 compatibility library.
 
 == History
 
+* 15.12.2014 - v0.3.2 - Use [[http://pygments.org/|Pygments]] syntax highlighter in BASIC editor
 * 08.10.2014 - Release as v0.3.1
 * 30.09.2014 - Enhance the BASIC editor
 * 29.09.2014 - Merge [[https://github.com/jedie/PyDragon32|PyDragon32]] project

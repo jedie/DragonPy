@@ -261,7 +261,7 @@ class EditorWindow(object):
 
         for line in listing_ascii:
             line = "%s\n" % line # use os.sep ?!?
-            log.critical("\t%s", repr(line))
+            log.debug("\t%s", repr(line))
             self.text.insert(tkinter.END, line)
 #        self.text.config(state=Tkinter.DISABLED)
         self.text.mark_set(tkinter.INSERT, '1.0') # Set cursor at start

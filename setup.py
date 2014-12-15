@@ -40,6 +40,7 @@ setup(
     provides=["DragonPy"],
     install_requires=[
         "dragonlib",
+        "pygments",
     ],
     author="Jens Diemer",
     author_email="DragonPy@jensdiemer.de",
