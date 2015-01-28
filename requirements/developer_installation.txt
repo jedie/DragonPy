@@ -1,0 +1,25 @@
+#
+# This is only for developer, which has git write access!
+#
+
+# For rest2html from python-creole in setup.py
+docutils
+
+virtualenv
+
+# clone own projects with git push access
+#----------------------------------------
+
+# https://github.com/6809/dragonlib
+# https://pypi.python.org/pypi/dragonlib
+-e git+git@github.com:6809/dragonlib.git#egg=dragonlib
+
+# https://github.com/jedie/bootstrap_env
+# https://pypi.python.org/pypi/bootstrap_env/
+-e git+git@github.com:jedie/bootstrap_env.git#egg=bootstrap_env
+
+# https://github.com/jedie/DragonPy
+# https://pypi.python.org/pypi/DragonPy
+-e git+git@github.com:jedie/DragonPy.git#egg=DragonPy
+
+
