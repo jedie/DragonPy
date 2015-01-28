@@ -43,7 +43,7 @@ The Hardware are //only// the 6809 CPU, a 6522 Versatile Interface Adapter and t
 Current state is completely not usable. The 6522 is only a dummy implementation.
 It makes only sense to display some trace lines, e.g.:
 {{{
-...path/to/DragonPy$ python2 DragonPy_CLI.py --verbosity 5 --machine=Vectrex run --trace --max_ops 1
+(DragonPy_env)~/DragonPy_env$ bin/python src/dragonpy/DragonPy_CLI.py --verbosity 5 --machine=Vectrex run --trace --max_ops 1
 }}}
 
 
@@ -60,7 +60,7 @@ The "renumbering" tool can be found in the editor window under "tools"
 You can also run the BASIC Editor without the Emulator:
 
 {{{
-...path/to/DragonPy$ python2 DragonPy_CLI.py editor
+(DragonPy_env)~/DragonPy_env$ bin/python src/dragonpy/DragonPy_CLI.py editor
 }}}
 
 A rudimentary BASIC source code highlighting is available and looks like this:
@@ -69,27 +69,56 @@ A rudimentary BASIC source code highlighting is available and looks like this:
 
 Special feature: The Line number that are used in GOTO, SOGUB etc. are extra marked on the left side.
 
-Currently the code are only differate into:
-* DATA
-* Strings
-* Comments
-* Code
 
-TODO: parse the code, to coloring it differently.
+== installation
 
-=== ROMs
+=== Linux
 
-The Dragon ROMs can be downloaded here:
-* http://archive.worldofdragon.org/archive/index.php?dir=Roms/Dragon/
+The is a virtualenv bootstrap file, created with [[https://github.com/jedie/bootstrap_env|bootstrap_env]], for easy installation.
 
-There is a simple shell script to automatic download and extract the Dragon ROMs:
+Get the bootstrap file:
 {{{
-...path/to/DragonPy$ ./download_ROMs.sh
+/home/FooBar$ wget https://raw.githubusercontent.com/jedie/DragonPy/master/boot_dragonpy.py
 }}}
 
-=== Quick start:
 
-**TODO:** External {{{dragonlib}}} dependency is needed: https://github.com/6809/dragonlib
+There are tree types of installation:
+|=option           |= desciption
+| **pypi**         | use [[http://www.python.org/pypi/|Python Package Index]] (for all normal user!)
+| **git_readonly** | use {{{git}}} to get the sourcecode (for developer without write access)
+| **dev**          | use {{{git}}} with write access
+
+e.g.:
+{{{
+/home/FooBar$ python3 boot_dragonpy.py ~/DragonPy_env --install_type git_readonly
+}}}
+This creates a virtualenv in **{{{~/DragonPy_env}}}** and used {{{git}}} to checkout the needed repositories.
+
+In this case (using --install_type=**git_readonly**) the git repository are in: **.../DragonPy_env/src/**
+So you can easy update them e.g.:
+{{{
+/home/FooBar$ cd ~/DragonPy_env/src/dragonpy
+/home/FooBar/DragonPy_env/src/dragonpy$ git pull
+}}}
+
+=== Windows
+
+There are several ways to install the project under windows.
+
+The following is hopeful the easiest one:
+
+* Install Python 3, e.g.: https://www.python.org/downloads/
+* Download the {{{DWLOAD Server}}} git snapshot from Github: [[https://github.com/jedie/DragonPy/archive/master.zip|master.zip]]
+* Extract the Archive somewhere
+* Maybe, adjust paths in {{{boot_dwload_server.cmd}}}
+* Run {{{boot_dwload_server.cmd}}}
+
+The default {{{boot_dwload_server.cmd}}} will install via {{{Python Package Index}}} (PyPi) into {{{%APPDATA%\DragonPy_env}}}
+
+There exist a batch file for easy startup the server under Windows:
+* [[https://github.com/jedie/DragonPy/blob/master/scripts/start_dwload_server.cmd|/scripts/start_dwload_server.cmd]]
+
+Copy it into {{{%APPDATA%\DragonPy_env\start_dwload_server.cmd}}} and edit it for your needs.
 
 {{{
 # clone the repro:
@@ -106,31 +135,65 @@ There is a simple shell script to automatic download and extract the Dragon ROMs
 ~/DragonPy$ python2 DragonPy_CLI.py --machine=Dragon32 run
 }}}
 
-== example
+
+== ROMs
+
+The Dragon ROMs can be downloaded here:
+* http://archive.worldofdragon.org/archive/index.php?dir=Roms/Dragon/
+
+There is a simple shell script to automatic download and extract the Dragon ROMs:
+{{{
+/home/FooBar/DragonPy_env$ cd src/dragonpy/
+/home/FooBar/DragonPy_env/src/dragonpy$ ./download_ROMs.sh
+}}}
+To verify existing ROMs, just call the script again:
+{{{
+/home/FooBar/DragonPy_env$ cd src/dragonpy/
+/home/FooBar/DragonPy_env/src/dragonpy$ ./download_ROMs.sh
++ cd dragonpy/Dragon32/
++ source download_Dragon32_rom.sh
+++ '[' '!' -f d32.rom ']'
+++ set -x
+++ sha1sum -c d32.rom.sha1
+d32.rom: OK
+========================================================================
+...
+d64_ic17.rom: OK
+d64_ic18.rom: OK
+bas13.rom: OK
+extbas11.rom: OK
+EXT_BASIC_NO_USING.bin: OK
+ExBasROM.bin: OK
+}}}
+
+
+== cli example
 
 start Dragon 32:
 {{{
-...path/to/DragonPy$ python2 DragonPy_CLI.py --machine=Dragon32 run
+/home/FooBar$ cd DragonPy_env
+/home/FooBar/DragonPy_env$ source bin/activate
+(DragonPy_env)~/DragonPy_env$ bin/python src/dragonpy/DragonPy_CLI.py --machine=Dragon32 run
 }}}
 
 start Dragon 64:
 {{{
-...path/to/DragonPy$ python2 DragonPy_CLI.py --machine=Dragon64 run
+(DragonPy_env)~/DragonPy_env$ bin/python src/dragonpy/DragonPy_CLI.py --machine=Dragon64 run
 }}}
 
 start CoCo with Extended Color Basic v1.1:
 {{{
-...path/to/DragonPy$ python2 DragonPy_CLI.py --machine=CoCo2b run
+(DragonPy_env)~/DragonPy_env$ bin/python src/dragonpy/DragonPy_CLI.py --machine=CoCo2b run
 }}}
 
 start Multicomp 6809:
 {{{
-...path/to/DragonPy$ python2 DragonPy_CLI.py --machine=Multicomp6809 run
+(DragonPy_env)~/DragonPy_env$ bin/python src/dragonpy/DragonPy_CLI.py --machine=Multicomp6809 run
 }}}
 
 start Lennart's 6809 single board computer:
 {{{
-...path/to/DragonPy$ python2 DragonPy_CLI.py --machine=sbc09 run
+(DragonPy_env)~/DragonPy_env$ bin/python src/dragonpy/DragonPy_CLI.py --machine=sbc09 run
 }}}
 
 == unittests ==
@@ -143,14 +206,14 @@ start Lennart's 6809 single board computer:
 You can run tests with PyPy, Python 2 and Python 3:
 
 {{{
-...path/to/DragonPy$ python -m unittest discover
+...path/to/env/src/dragonpy$ python -m unittest discover
 }}}
 
 All variants:
 {{{
-...path/to/DragonPy$ python2 -m unittest discover
-...path/to/DragonPy$ python3 -m unittest discover
-...path/to/DragonPy$ pypy -m unittest discover
+...path/to/env/src/dragonpy$ python2 -m unittest discover
+...path/to/env/src/dragonpy$ python3 -m unittest discover
+...path/to/env/src/dragonpy$ pypy -m unittest discover
 }}}
 
 
@@ -162,10 +225,10 @@ install [[https://pypi.python.org/pypi/coverage|coverage]] for python 2:
 }}}
 
 {{{
-...path/to/DragonPy$ coverage2 run --source=dragonpy setup.py test
-...path/to/DragonPy$ coverage2 coverage2 html
+...path/to/env/src/dragonpy$ coverage2 run --source=dragonpy setup.py test
+...path/to/env/src/dragonpy$ coverage2 coverage2 html
 # e.g.:
-...path/to/DragonPy$ firefox htmlcov/index.html
+...path/to/env/src/dragonpy$ firefox htmlcov/index.html
 }}}
 
 
@@ -259,10 +322,10 @@ e.g. The Dragon 32 6809 machine with a 14.31818 MHz crystal runs with:
 
 There is a simple benchmark. Run e.g.:
 {{{
-...path/to/DragonPy$ python2 DragonPy_CLI.py benchmark
-...path/to/DragonPy$ python3 DragonPy_CLI.py benchmark
-...path/to/DragonPy$ pypy DragonPy_CLI.py benchmark
-...path/to/DragonPy$ pypy3 DragonPy_CLI.py benchmark --loops 10
+(DragonPy_env)~/DragonPy_env$ bin/python src/dragonpy/DragonPy_CLI.py benchmark
+...path/to/env/src/dragonpy$ python3 DragonPy_CLI.py benchmark
+...path/to/env/src/dragonpy$ pypy DragonPy_CLI.py benchmark
+...path/to/env/src/dragonpy$ pypy3 DragonPy_CLI.py benchmark --loops 10
 }}}
 
 
