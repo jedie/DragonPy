@@ -2,6 +2,9 @@
 # Normal installation requirements, using all packages from pypi.
 #
 
+# include the basic requirements
+-r basic_requirements.txt
+
 # https://pypi.python.org/pypi/dragonlib/
 # https://github.com/6809/dragonlib
 dragonlib

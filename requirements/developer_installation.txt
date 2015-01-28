@@ -2,6 +2,9 @@
 # This is only for developer, which has git write access!
 #
 
+# include the basic requirements
+-r basic_requirements.txt
+
 # For rest2html from python-creole in setup.py
 docutils
 
