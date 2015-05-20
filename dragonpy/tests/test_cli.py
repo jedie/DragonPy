@@ -15,9 +15,11 @@ import subprocess
 import sys
 import unittest
 
-CLI = os.path.normpath(os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                                    "..", "..", "DragonPy_CLI.py"
-                                    ))
+CLI = os.path.normpath(
+    os.path.join(
+        os.path.abspath(os.path.dirname(__file__)), "..", "..", "DragonPy_CLI.py"
+    )
+)
 
 
 class CLITestCase(unittest.TestCase):
