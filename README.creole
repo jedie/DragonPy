@@ -24,6 +24,10 @@ Future goals are:
 
 A full featured Dragon / CoCo emulator is [[http://www.6809.org.uk/dragon/xroar.shtml|XRoar]].
 
+| {{https://travis-ci.org/jedie/DragonPy.svg|Build Status on travis-ci.org}} | [[https://travis-ci.org/jedie/DragonPy/|travis-ci.org/jedie/DragonPy]] |
+| {{https://coveralls.io/repos/jedie/DragonPy/badge.svg|Coverage Status on coveralls.io}} | [[https://coveralls.io/r/jedie/DragonPy|coveralls.io/r/jedie/DragonPy]] |
+| {{https://requires.io/github/jedie/DragonPy/requirements.svg?branch=django-cms|Requirements Status on requires.io}} | [[https://requires.io/github/jedie/DragonPy/requirements/|requires.io/github/jedie/DragonPy/requirements/]] |
+
 === Current state
 The Dragon 32 / 64 and CoCo ROMs works in Text mode.
 Also the "single board computer" ROMs sbc09, Simple6809 and Multicomp6809 works well.
@@ -197,9 +201,6 @@ start Lennart's 6809 single board computer:
 }}}
 
 == unittests ==
-
-[[https://travis-ci.org/jedie/DragonPy|Travis CI Status]]: {{https://secure.travis-ci.org/jedie/DragonPy.svg?branch=master|DragonPy build status on travis-ci.org}}
-* https://travis-ci.org/jedie/DragonPy
 
 === run unittests ===
 
