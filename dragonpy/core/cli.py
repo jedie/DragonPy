@@ -18,8 +18,16 @@ import locale
 import logging
 
 
-# https://pypi.python.org/pypi/click/
-import click
+try:
+    # https://pypi.python.org/pypi/click/
+    import click
+except ImportError as err:
+    print("\nERROR: 'click' can't be imported!")
+    print("\tIs the virtual environment activated?!?")
+    print("\tIs 'click' installed?!?")
+    print("\nOrigin error is:\n")
+    raise
+
 
 from dragonlib.utils.logging_utils import setup_logging, LOG_LEVELS
 
