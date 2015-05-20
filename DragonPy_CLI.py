@@ -13,8 +13,7 @@
 from __future__ import absolute_import, division, print_function
 
 
-from dragonpy.DragonPy_CLI import get_cli
+from dragonpy.DragonPy_CLI import cli
 
 if __name__ == "__main__":
-    cli = get_cli()
-    cli.run()
+    cli()
