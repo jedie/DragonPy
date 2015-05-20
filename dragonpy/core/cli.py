@@ -143,6 +143,13 @@ cli_config = click.make_pass_decorator(CliConfig)
     help="see: http://docs.python.org/2/library/logging.html#logrecord-attributes")
 @click.pass_context
 def cli(ctx, **kwargs):
+    """
+    DragonPy is a Open source (GPL v3 or later) emulator
+    for the 30 years old homecomputer Dragon 32
+    and Tandy TRS-80 Color Computer (CoCo)...
+
+    Homepage: https://github.com/jedie/DragonPy
+    """
     log.critical("cli kwargs: %s", repr(kwargs))
     ctx.obj = CliConfig(**kwargs)
 
