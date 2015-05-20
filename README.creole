@@ -2,6 +2,12 @@
 
 DragonPy is a Open source (GPL v3 or later) emulator for the 30 years old homecomputer {{{Dragon 32}}} and {{{Tandy TRS-80 Color Computer}}} (CoCo)...
 
+
+| {{https://travis-ci.org/jedie/DragonPy.svg|Build Status on travis-ci.org}} | [[https://travis-ci.org/jedie/DragonPy/|travis-ci.org/jedie/DragonPy]] |
+| {{https://coveralls.io/repos/jedie/DragonPy/badge.svg|Coverage Status on coveralls.io}} | [[https://coveralls.io/r/jedie/DragonPy|coveralls.io/r/jedie/DragonPy]] |
+| {{https://requires.io/github/jedie/DragonPy/requirements.svg?branch=django-cms|Requirements Status on requires.io}} | [[https://requires.io/github/jedie/DragonPy/requirements/|requires.io/github/jedie/DragonPy/requirements/]] |
+
+
 Dragon 32 and 64 ROMs in Text mode:
 
 {{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon64_01.png|screenshot Dragon 64}}
@@ -23,10 +29,6 @@ Future goals are:
 * Implement a integrated development environment for BASIC programs
 
 A full featured Dragon / CoCo emulator is [[http://www.6809.org.uk/dragon/xroar.shtml|XRoar]].
-
-| {{https://travis-ci.org/jedie/DragonPy.svg|Build Status on travis-ci.org}} | [[https://travis-ci.org/jedie/DragonPy/|travis-ci.org/jedie/DragonPy]] |
-| {{https://coveralls.io/repos/jedie/DragonPy/badge.svg|Coverage Status on coveralls.io}} | [[https://coveralls.io/r/jedie/DragonPy|coveralls.io/r/jedie/DragonPy]] |
-| {{https://requires.io/github/jedie/DragonPy/requirements.svg?branch=django-cms|Requirements Status on requires.io}} | [[https://requires.io/github/jedie/DragonPy/requirements/|requires.io/github/jedie/DragonPy/requirements/]] |
 
 === Current state
 The Dragon 32 / 64 and CoCo ROMs works in Text mode.
