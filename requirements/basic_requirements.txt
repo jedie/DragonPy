@@ -2,5 +2,5 @@
 #-------------------------
 
 # http://click.pocoo.org
-# https://pypi.python.org/pypi/Click/
-Click
+# https://pypi.python.org/pypi/click/
+click
