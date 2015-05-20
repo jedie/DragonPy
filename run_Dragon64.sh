@@ -1,10 +1,12 @@
 #!/bin/bash
 
-# https://github.com/jedie/PyDragon32/tree/master/misc#readme
+# https://github.com/jedie/DragonPy
+
+source ../../bin/activate
 
 (
     set -x
-    python2 -OO DragonPy_CLI.py --verbosity 99 --machine=Dragon64 run
+    python -OO DragonPy_CLI.py --verbosity 99 --machine=Dragon64 run
 )
 echo
 read -n1 -p "Start bash? [y,n]" doit
