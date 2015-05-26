@@ -18,7 +18,7 @@ import os
 
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon64.mem_info import get_dragon_meminfo
-from MC6809.components.rom import ROMFile
+from dragonpy.core.rom import ROMFile
 from dragonpy.core.configs import DRAGON64
 
 
