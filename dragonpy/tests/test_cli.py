@@ -86,10 +86,10 @@ class CLITestCase(unittest.TestCase):
             "Usage: DragonPy_CLI.py [OPTIONS] COMMAND [ARGS]...",
             "--machine [CoCo2b|Dragon32|Dragon64|Multicomp6809|Vectrex|sbc09]",
             "Commands:",
-            "benchmark  Run a 6809 Emulation benchmark",
-            "editor     Run only the BASIC editor",
-            "log_list   List all exiting loggers and exit.",
-            "run        Run a machine emulation",
+            "editor    Run only the BASIC editor",
+            "log_list  List all exiting loggers and exit.",
+            "run       Run a machine emulation",
+            "tests     Run unittests",
         ], cli_out)
 
         errors = ["Error", "Traceback"]
@@ -134,17 +134,6 @@ class CLITestCase(unittest.TestCase):
         self.assertNotInMultiline(errors, cli_out)
         self.assertNotInMultiline(errors, cli_err)
 
-    def test_benchmark_help(self):
-        cli_out, cli_err = self._get("benchmark", "--help")
-        #        print(cli_out)
-        #        print(cli_err)
-        self.assertInMultiline([
-            "Usage: DragonPy_CLI.py benchmark [OPTIONS]",
-        ], cli_out)
-
-        errors = ["Error", "Traceback"]
-        self.assertNotInMultiline(errors, cli_out)
-        self.assertNotInMultiline(errors, cli_err)
 
 
 if __name__ == '__main__':

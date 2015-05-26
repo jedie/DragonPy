@@ -19,7 +19,7 @@ import sys
 import logging
 
 log=logging.getLogger(__name__)
-from dragonpy.components.periphery import PeripheryBase
+from MC6809.components.periphery import PeripheryBase
 from dragonpy.vectrex.MOS6522 import MOS6522VIA
 
 

@@ -14,7 +14,7 @@ from __future__ import absolute_import, division, print_function
 
 
 import logging
-from dragonpy.core.memory_info import BaseMemoryInfo
+from MC6809.core.memory_info import BaseMemoryInfo
 
 log = logging.getLogger("DragonPy.Simple6809.mem_info")
 

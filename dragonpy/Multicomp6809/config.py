@@ -17,7 +17,7 @@ import os
 from dragonpy.core.configs import BaseConfig, MULTICOMP6809
 # from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
 from dragonpy.Multicomp6809.periphery_Multicomp6809 import Multicomp6809Periphery
-from dragonpy.components.rom import ROMFile
+from MC6809.components.rom import ROMFile
 
 
 

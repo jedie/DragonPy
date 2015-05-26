@@ -22,7 +22,7 @@ import tempfile
 import threading
 import time
 
-from dragonpy.components.MC6809data.MC6809_data_utils import MC6809OP_DATA_DICT
+from MC6809.components.MC6809data.MC6809_data_utils import MC6809OP_DATA_DICT
 from dragonpy.utils.humanize import cc_value2txt
 from dragonpy.sbc09.mem_info import SBC09MemInfo
 

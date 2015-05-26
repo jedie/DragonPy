@@ -26,7 +26,7 @@ from __future__ import absolute_import, division, print_function
 import logging
 
 log=logging.getLogger(__name__)
-from dragonpy.core.memory_info import BaseMemoryInfo
+from MC6809.core.memory_info import BaseMemoryInfo
 from dragonpy.utils.humanize import nice_hex
 
 

@@ -321,13 +321,7 @@ e.g. The Dragon 32 6809 machine with a 14.31818 MHz crystal runs with:
 0,895MHz (14,31818Mhz/16=0,895MHz) in other words: 895.000 CPU-cycles/sec.
 
 
-There is a simple benchmark. Run e.g.:
-{{{
-(DragonPy_env)~/DragonPy_env$ bin/python src/dragonpy/DragonPy_CLI.py benchmark
-...path/to/env/src/dragonpy$ python3 DragonPy_CLI.py benchmark
-...path/to/env/src/dragonpy$ pypy DragonPy_CLI.py benchmark
-...path/to/env/src/dragonpy$ pypy3 DragonPy_CLI.py benchmark --loops 10
-}}}
+
 
 
 == TODO:

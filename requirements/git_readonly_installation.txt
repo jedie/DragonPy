@@ -17,6 +17,10 @@ virtualenv
 # https://pypi.python.org/pypi/dragonlib
 -e git+https://github.com/6809/dragonlib.git#egg=dragonlib
 
+# https://pypi.python.org/pypi/MC6809/
+# https://github.com/6809/MC6809
+-e git+https://github.com/6809/MC6809.git#egg=MC6809
+
 # https://github.com/jedie/bootstrap_env
 # https://pypi.python.org/pypi/bootstrap_env/
 -e git+https://github.com/jedie/bootstrap_env.git#egg=bootstrap_env

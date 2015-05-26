@@ -1859,13 +1859,14 @@ def create_bootstrap_script(extra_text, python_version=''):
 ###############################################################################
 ## 'prefix code' START
 # requirements from normal_installation.txt
-NORMAL_INSTALLATION = ['click', 'dragonlib', 'DragonPy']
+NORMAL_INSTALLATION = ['click', 'dragonlib', 'MC6809', 'DragonPy']
 
 # requirements from git_readonly_installation.txt
 GIT_READONLY_INSTALLATION = ['click',
  'docutils',
  'virtualenv',
  '--editable=git+https://github.com/6809/dragonlib.git#egg=dragonlib',
+ '--editable=git+https://github.com/6809/MC6809.git#egg=MC6809',
  '--editable=git+https://github.com/jedie/bootstrap_env.git#egg=bootstrap_env',
  '--editable=git+https://github.com:jedie/DragonPy.git#egg=DragonPy']
 
@@ -1874,6 +1875,7 @@ DEVELOPER_INSTALLATION = ['click',
  'docutils',
  'virtualenv',
  '--editable=git+git@github.com:6809/dragonlib.git#egg=dragonlib',
+ '--editable=git+git@github.com:6809/MC6809.git#egg=MC6809',
  '--editable=git+git@github.com:jedie/bootstrap_env.git#egg=bootstrap_env',
  '--editable=git+git@github.com:jedie/DragonPy.git#egg=DragonPy']
 ###############################################################################

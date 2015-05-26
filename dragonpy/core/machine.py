@@ -18,8 +18,8 @@ from dragonlib.core.basic import log_program_dump
 import logging
 
 log=logging.getLogger(__name__)
-from dragonpy.components.cpu6809 import CPU
-from dragonpy.components.memory import Memory
+from MC6809.components.cpu6809 import CPU
+from MC6809.components.memory import Memory
 from dragonpy.utils.simple_debugger import print_exc_plus
 
 

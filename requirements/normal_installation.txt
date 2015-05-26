@@ -9,6 +9,10 @@
 # https://github.com/6809/dragonlib
 dragonlib
 
+# https://pypi.python.org/pypi/MC6809/
+# https://github.com/6809/MC6809
+MC6809
+
 # https://github.com/jedie/DragonPy
 # https://pypi.python.org/pypi/DragonPy
 DragonPy

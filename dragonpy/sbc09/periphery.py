@@ -19,7 +19,7 @@ import sys
 import logging
 
 log=logging.getLogger(__name__)
-from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase, \
+from MC6809.components.periphery import PeripheryBase, TkPeripheryBase, \
     ConsolePeripheryBase, PeripheryUnittestBase
 
 

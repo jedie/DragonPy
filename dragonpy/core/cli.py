@@ -16,7 +16,7 @@ from __future__ import absolute_import, division, print_function
 import atexit
 import locale
 import logging
-
+import unittest
 
 try:
     # https://pypi.python.org/pypi/click/
@@ -43,7 +43,6 @@ from dragonpy.Dragon64.machine import run_Dragon64
 from dragonpy.Multicomp6809.config import Multicomp6809Cfg
 from dragonpy.Multicomp6809.machine import run_Multicomp6809
 from dragonpy.core import configs
-from dragonpy.core.bechmark import run_benchmark
 from dragonpy.core.configs import machine_dict
 from dragonpy.sbc09.config import SBC09Cfg
 from dragonpy.sbc09.machine import run_sbc09
@@ -178,20 +177,31 @@ def run(cli_config, **kwargs):
     cli_config.machine_run_func(cli_config.cfg_dict)
 
 
-DEFAULT_LOOPS = 5
-@cli.command(help="Run a 6809 Emulation benchmark")
-@click.option("--loops", default=DEFAULT_LOOPS,
-    help="How many benchmark loops should be run? (default: %i)" % DEFAULT_LOOPS)
-def benchmark(loops):
-    log.critical("Run a benchmark only...")
-    run_benchmark(loops)
-
-
 @cli.command(help="List all exiting loggers and exit.")
 def log_list():
     print("A list of all loggers:")
     for log_name in sorted(logging.Logger.manager.loggerDict):
         print("\t%s" % log_name)
+
+
+@cli.command(help="Run unittests")
+# @click.option('--verbosity', default=2, help='Number for verbosity settings')
+# @click.option('--failfast', default=False, help='Number for verbosity settings')
+@click.option('--help', default=False, help='Number for verbosity settings')
+def tests(help):
+    unittest.TestProgram(module="dragonpy")
+
+
+    # loader = unittest.TestLoader()
+    # tests = loader.discover('.')
+    #
+    # # test_runner = TextTestRunner2(
+    # test_runner = unittest.TextTestRunner(
+    #     # verbosity=1,
+    #     verbosity=verbosity,
+    #     # failfast=True,
+    # )
+    # test_runner.run(tests)
 
 
 if __name__ == "__main__":
