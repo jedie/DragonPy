@@ -8,6 +8,8 @@
 # For rest2html from python-creole in setup.py
 docutils
 
+wheel
+
 virtualenv
 
 # clone own projects with git push access
