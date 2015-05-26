@@ -20,7 +20,7 @@ import os
 import logging
 
 log=logging.getLogger(__name__)
-from dragonpy.core.rom import ROMFile
+from dragonpy.components.rom import ROMFile
 from dragonpy.core.configs import BaseConfig, VECTREX
 from dragonpy.vectrex.mem_info import VectrexMemInfo
 

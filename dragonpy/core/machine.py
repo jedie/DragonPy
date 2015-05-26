@@ -19,7 +19,7 @@ import logging
 
 log=logging.getLogger(__name__)
 from MC6809.components.cpu6809 import CPU
-from MC6809.components.memory import Memory
+from dragonpy.components.memory import Memory
 from dragonpy.utils.simple_debugger import print_exc_plus
 
 

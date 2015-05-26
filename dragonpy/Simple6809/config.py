@@ -14,7 +14,7 @@ from __future__ import absolute_import, division, print_function
 import os
 
 from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
-from dragonpy.core.rom import ROMFile
+from dragonpy.components.rom import ROMFile
 from dragonpy.core.configs import BaseConfig, SIMPLE6809
 from dragonlib.api import CoCoAPI
 

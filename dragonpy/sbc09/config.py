@@ -13,7 +13,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-from dragonpy.core.rom import ROMFile
+from dragonpy.components.rom import ROMFile
 from dragonpy.core.configs import BaseConfig, SBC09
 from dragonpy.sbc09.mem_info import get_sbc09_meminfo
 from dragonpy.sbc09.periphery import SBC09Periphery
