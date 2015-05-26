@@ -17,6 +17,7 @@ import atexit
 import locale
 import logging
 import unittest
+from dragonpy.tests import run_tests
 
 try:
     # https://pypi.python.org/pypi/click/
@@ -185,23 +186,10 @@ def log_list():
 
 
 @cli.command(help="Run unittests")
-# @click.option('--verbosity', default=2, help='Number for verbosity settings')
-# @click.option('--failfast', default=False, help='Number for verbosity settings')
-@click.option('--help', default=False, help='Number for verbosity settings')
-def tests(help):
-    unittest.TestProgram(module="dragonpy")
-
-
-    # loader = unittest.TestLoader()
-    # tests = loader.discover('.')
-    #
-    # # test_runner = TextTestRunner2(
-    # test_runner = unittest.TextTestRunner(
-    #     # verbosity=1,
-    #     verbosity=verbosity,
-    #     # failfast=True,
-    # )
-    # test_runner.run(tests)
+@click.option('--verbosity', default=2, help='Number for verbosity settings')
+@click.option('--failfast', default=False, help='Number for verbosity settings', is_flag=True)
+def tests(verbosity, failfast):
+    run_tests(verbosity, failfast)
 
 
 if __name__ == "__main__":
