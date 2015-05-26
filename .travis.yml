@@ -9,11 +9,11 @@ python:
 
 install:
     - "pip install ."
-    - "pip install dragonlib coveralls"
+    - "pip install coveralls"
 
 script:
     # - python -m unittest discover
-    - coverage run ./setup.py test
+    - coverage run --source=dragonpy ./setup.py test
 
 after_success:
     coveralls
