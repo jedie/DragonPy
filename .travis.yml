@@ -10,6 +10,7 @@ python:
 install:
     - "pip install ."
     - "pip install coveralls"
+    - ./download_ROMs.sh
 
 script:
     # - python -m unittest discover
