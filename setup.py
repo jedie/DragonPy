@@ -21,6 +21,18 @@ import dragonpy
 PACKAGE_ROOT = os.path.dirname(os.path.abspath(__file__))
 
 
+if "publish" in sys.argv:
+    import subprocess
+    args = [sys.executable or "python", "setup.py", "sdist", "bdist_wheel", "upload"]
+    print("\nCall: %r\n" %  " ".join(args))
+    subprocess.call(args)
+
+    print("\nDon't forget to tag this version, e.g.:")
+    print("\tgit tag v%s" % dragonpy.__version__)
+    print("\tgit push --tags")
+    sys.exit()
+
+
 # convert creole to ReSt on-the-fly, see also:
 # https://code.google.com/p/python-creole/wiki/UseInSetup
 try:
