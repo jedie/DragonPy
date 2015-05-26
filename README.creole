@@ -2,6 +2,7 @@
 
 DragonPy is a Open source (GPL v3 or later) emulator for the 30 years old homecomputer {{{Dragon 32}}} and {{{Tandy TRS-80 Color Computer}}} (CoCo)...
 
+The [[https://github.com/6809/MC6809|MC6809]] project is used to emulate the 6809 CPU.
 
 | {{https://travis-ci.org/jedie/DragonPy.svg|Build Status on travis-ci.org}} | [[https://travis-ci.org/jedie/DragonPy/|travis-ci.org/jedie/DragonPy]] |
 | {{https://coveralls.io/repos/jedie/DragonPy/badge.svg|Coverage Status on coveralls.io}} | [[https://coveralls.io/r/jedie/DragonPy|coveralls.io/r/jedie/DragonPy]] |
@@ -321,20 +322,9 @@ e.g. The Dragon 32 6809 machine with a 14.31818 MHz crystal runs with:
 0,895MHz (14,31818Mhz/16=0,895MHz) in other words: 895.000 CPU-cycles/sec.
 
 
-
-
-
 == TODO:
 
-# Use bottle for http control server part
 # implement more Dragon 32 periphery
-
-unimplemented OPs:
-
- * RESET
- * SWI / SWI2 / SWI3
- * SYNC
-
 
 missing 6809 unittests after coverage run:
 
