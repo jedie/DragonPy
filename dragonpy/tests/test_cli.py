@@ -15,11 +15,8 @@ import subprocess
 import sys
 import unittest
 
-CLI = os.path.normpath(
-    os.path.join(
-        os.path.abspath(os.path.dirname(__file__)), "..", "..", "DragonPy_CLI.py"
-    )
-)
+
+CLI = "DragonPy" # entry_points in setup.py !
 
 
 class CLITestCase(unittest.TestCase):
@@ -28,12 +25,18 @@ class CLITestCase(unittest.TestCase):
     """
 
     def _get(self, *args):
-        cmd_args = [
-            sys.executable,
-            CLI
-        ]
-        cmd_args += args
-        # print("\nStartup CLI with: %s" % " ".join(cmd_args[1:]))
+        try:
+            VIRTUAL_ENV = os.environ["VIRTUAL_ENV"]
+        except KeyError as err:
+            # e.g.: started by PyCharm
+            cli = os.path.join(os.path.dirname(sys.executable), CLI)
+        else:
+            cli = os.path.join(VIRTUAL_ENV, "bin", CLI)
+
+        self.assertTrue(os.path.isfile(cli), "CLI file %r not found!" % cli)
+
+        cmd_args = [cli] + list(args)
+        # print("\nStartup CLI with: %r" % " ".join(cmd_args))
 
         p = subprocess.Popen(
             cmd_args,
@@ -73,17 +76,12 @@ class CLITestCase(unittest.TestCase):
             if member in container:
                 self.fail("%r found in:\n%s" % (member, container))
 
-    def test_exists(self):
-        self.assertTrue(
-            os.path.isfile(CLI), "CLI file not found here: %s" % CLI
-        )
-
     def test_main_help(self):
         cli_out, cli_err = self._get("--help")
         #        print(cli_out)
         #        print(cli_err)
         self.assertInMultiline([
-            "Usage: DragonPy_CLI.py [OPTIONS] COMMAND [ARGS]...",
+            "Usage: DragonPy [OPTIONS] COMMAND [ARGS]...",
             "--machine [CoCo2b|Dragon32|Dragon64|Multicomp6809|Vectrex|sbc09]",
             "Commands:",
             "editor    Run only the BASIC editor",
@@ -115,7 +113,7 @@ class CLITestCase(unittest.TestCase):
         #        print(cli_out)
         #        print(cli_err)
         self.assertInMultiline([
-            "Usage: DragonPy_CLI.py run [OPTIONS]",
+            "Usage: DragonPy run [OPTIONS]",
         ], cli_out)
 
         errors = ["Error", "Traceback"]
@@ -127,7 +125,7 @@ class CLITestCase(unittest.TestCase):
         #        print(cli_out)
         #        print(cli_err)
         self.assertInMultiline([
-            "Usage: DragonPy_CLI.py editor [OPTIONS]",
+            "Usage: DragonPy editor [OPTIONS]",
         ], cli_out)
 
         errors = ["Error", "Traceback"]

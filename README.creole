@@ -180,28 +180,27 @@ start Dragon 32:
 {{{
 /home/FooBar$ cd DragonPy_env
 /home/FooBar/DragonPy_env$ source bin/activate
-(DragonPy_env)~/DragonPy_env$ cd src/dragonpy/
-(DragonPy_env)~/DragonPy_env/src/dragonpy$ ./DragonPy_CLI.py --machine=Dragon32 run
+(DragonPy_env)~/DragonPy_env$ DragonPy --machine=Dragon32 run
 }}}
 
 start Dragon 64:
 {{{
-(DragonPy_env)~/DragonPy_env/src/dragonpy$ ./DragonPy_CLI.py --machine=Dragon64 run
+(DragonPy_env)~/DragonPy_env$ DragonPy --machine=Dragon64 run
 }}}
 
 start CoCo with Extended Color Basic v1.1:
 {{{
-(DragonPy_env)~/DragonPy_env/src/dragonpy$ ./DragonPy_CLI.py --machine=CoCo2b run
+(DragonPy_env)~/DragonPy_env$ DragonPy --machine=CoCo2b run
 }}}
 
 start Multicomp 6809:
 {{{
-(DragonPy_env)~/DragonPy_env/src/dragonpy$ ./DragonPy_CLI.py --machine=Multicomp6809 run
+(DragonPy_env)~/DragonPy_env$ DragonPy --machine=Multicomp6809 run
 }}}
 
 start Lennart's 6809 single board computer:
 {{{
-(DragonPy_env)~/DragonPy_env/src/dragonpy$ ./DragonPy_CLI.py --machine=sbc09 run
+(DragonPy_env)~/DragonPy_env$ DragonPy --machine=sbc09 run
 }}}
 
 == unittests ==

@@ -61,10 +61,9 @@ setup(
     keywords="Emulator 6809 Dragon CoCo Vectrex tkinter pypy",
     long_description=long_description,
     url="https://github.com/jedie/DragonPy",
-    # TODO:
-#    entry_points={
-#        "console_scripts": ["DragonPy_CLI = mod:func"],
-#    },
+    entry_points={
+        "console_scripts": ["DragonPy = dragonpy.core.cli:cli"],
+    },
     license="GPL v3+",
     classifiers=[
         # https://pypi.python.org/pypi?%3Aaction=list_classifiers
