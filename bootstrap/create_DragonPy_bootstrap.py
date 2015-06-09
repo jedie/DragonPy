@@ -2,9 +2,8 @@
 # coding: utf-8
 
 import os
-from bootstrap_env import create_bootstrap
-from bootstrap_env.pip_utils import requirements_definitions
-
+from bootstrap_env import generate_bootstrap
+from bootstrap_env.utils.pip_utils import requirements_definitions
 
 REQ_FILENAMES=(
     "normal_installation.txt",
@@ -23,10 +22,10 @@ print("requirement files path: %r" % REQ_BASE_PATH)
 if __name__ == '__main__':
     prefix_code = "\n".join([
         requirements_definitions(REQ_BASE_PATH, REQ_FILENAMES),
-        create_bootstrap.get_code(PREFIX_SCRIPT, create_bootstrap.INSTALL_PIP_MARK),
+        generate_bootstrap.get_code(PREFIX_SCRIPT, generate_bootstrap.INSTALL_PIP_MARK),
     ])
 
-    create_bootstrap.generate_bootstrap(
+    generate_bootstrap.generate_bootstrap(
         out_filename=os.path.join("..", "boot_dragonpy.py"),
         add_extend_parser="source_extend_parser.py",
         add_adjust_options="source_adjust_options.py",
