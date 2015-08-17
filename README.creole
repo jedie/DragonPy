@@ -6,7 +6,7 @@ The [[https://github.com/6809/MC6809|MC6809]] project is used to emulate the 680
 
 | {{https://travis-ci.org/jedie/DragonPy.svg|Build Status on travis-ci.org}} | [[https://travis-ci.org/jedie/DragonPy/|travis-ci.org/jedie/DragonPy]] |
 | {{https://coveralls.io/repos/jedie/DragonPy/badge.svg|Coverage Status on coveralls.io}} | [[https://coveralls.io/r/jedie/DragonPy|coveralls.io/r/jedie/DragonPy]] |
-| {{https://requires.io/github/jedie/DragonPy/requirements.svg?branch=django-cms|Requirements Status on requires.io}} | [[https://requires.io/github/jedie/DragonPy/requirements/|requires.io/github/jedie/DragonPy/requirements/]] |
+| {{https://requires.io/github/jedie/DragonPy/requirements.svg?branch=master|Requirements Status on requires.io}} | [[https://requires.io/github/jedie/DragonPy/requirements/|requires.io/github/jedie/DragonPy/requirements/]] |
 
 
 Dragon 32 and 64 ROMs in Text mode:
