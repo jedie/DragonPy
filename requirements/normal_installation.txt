@@ -14,5 +14,8 @@ dragonlib
 MC6809
 
 # https://github.com/jedie/DragonPy
-# https://pypi.python.org/pypi/DragonPy
-DragonPy
+# https://pypi.python.org/pypi/DragonPyEmulator
+DragonPyEmulator
+#
+# IMPORTANT: The PyPi package name is DragonPyEmulator and not only DragonPy!!!
+#

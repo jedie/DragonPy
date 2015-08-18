@@ -79,6 +79,8 @@ Special feature: The Line number that are used in GOTO, SOGUB etc. are extra mar
 
 == installation
 
+IMPORTANT: The **PyPi package** name is **DragonPyEmulator** and [[https://github.com/jpanganiban/dragonpy/issues/3|not only DragonPy]]!!!
+
 === Linux
 
 The is a virtualenv bootstrap file, created with [[https://github.com/jedie/bootstrap_env|bootstrap_env]], for easy installation.

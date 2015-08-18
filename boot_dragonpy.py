@@ -1870,7 +1870,7 @@ def create_bootstrap_script(extra_text, python_version=''):
 ###############################################################################
 ## 'prefix code' START
 # requirements from normal_installation.txt
-NORMAL_INSTALLATION = ['click', 'dragonlib', 'MC6809', 'DragonPy']
+NORMAL_INSTALLATION = ['click', 'dragonlib', 'MC6809', 'DragonPyEmulator']
 
 # requirements from git_readonly_installation.txt
 GIT_READONLY_INSTALLATION = ['click',
