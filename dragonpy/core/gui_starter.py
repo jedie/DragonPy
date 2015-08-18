@@ -23,22 +23,24 @@ import string
 import dragonpy
 from dragonpy.core import configs
 
-try:
-    # Python 3
-    import queue
-    import tkinter
-    from tkinter import filedialog
-    from tkinter import messagebox
-    from tkinter import scrolledtext
-    from tkinter import font as TkFont
-except ImportError:
+if sys.version_info[0] == 2:
     # Python 2
     import Queue as queue
-    import Tkinter as tkinter
+    import Tkinter as tk
     import tkFileDialog as filedialog
     import tkMessageBox as messagebox
     import ScrolledText as scrolledtext
     import tkFont as TkFont
+else:
+    # Python 3
+    import queue
+    import tkinter as tk
+    from tkinter import filedialog
+    from tkinter import messagebox
+    from tkinter import scrolledtext
+    from tkinter import font as TkFont
+
+
 
 log = logging.getLogger(__name__)
 
@@ -75,64 +77,83 @@ assert VERBOSITY_DICT2[VERBOSITY_DEFAULT] == VERBOSITY_DEFAULT_VALUE
 
 # sys.exit()
 
+class RunButtonsFrame(tk.LabelFrame):
+    def __init__(self, master, **kwargs):
+        tk.LabelFrame.__init__(self, master, text="Run machines")
+        self.grid(**kwargs)
+
+        self.machine_dict = master.machine_dict
+
+        self.var_machine = tk.StringVar()
+        self.var_machine.set(configs.DRAGON64)
+        for row, machine_name in enumerate(sorted(self.machine_dict)):
+            print(row, machine_name)
+            b = tk.Radiobutton(self, text=machine_name,
+                        variable=self.var_machine, value=machine_name)
+            b.grid(row=row, column=1, sticky=tk.W)
+
+        button_run = tk.Button(self,
+            width=25,
+            text="run machine",
+            command=master.run_machine
+        )
+        button_run.grid(row=row+1, column=1)
 
 
-class GuiStarter(object):
+class GuiStarter(tk.Tk):
     def __init__(self, cli_file, machine_dict):
+        tk.Tk.__init__(self)
+        
         self.cli_file = os.path.abspath(cli_file)
         self.machine_dict = machine_dict
 
-        self.root = tkinter.Tk(className="STARTER")
-        self.root.geometry("+%d+%d" % (
-            self.root.winfo_screenwidth() * 0.1, self.root.winfo_screenheight() * 0.1
+        self.geometry("+%d+%d" % (
+            self.winfo_screenwidth() * 0.1, self.winfo_screenheight() * 0.1
         ))
-        self.root.title("DragonPy v%s GUI starter" % dragonpy.__version__)
+        self.title("DragonPy v%s GUI starter" % dragonpy.__version__)
 
-        _row = -1
+        _row = 0
 
-        self.var_machine = tkinter.StringVar()
-        self.var_machine.set(configs.DRAGON64)
-        for machine_name, data in self.machine_dict.items():
-            b = tkinter.Radiobutton(self.root, text=machine_name,
-                        variable=self.var_machine, value=machine_name)
-            _row += 1
-            b.grid(row=_row, column=1, columnspan=2, sticky=tkinter.W)
-
-        _row += 1
-
-        self.var_verbosity=tkinter.StringVar()
+        self.var_verbosity=tk.StringVar()
         self.var_verbosity.set(VERBOSITY_DEFAULT)
-        w = tkinter.Label(self.root, text="Verbosity:")
-        w.grid(row=_row, column=1, sticky=tkinter.E)
-        w = tkinter.OptionMenu(
-            self.root, self.var_verbosity,
+        w = tk.Label(self, text="Verbosity:")
+        w.grid(row=_row, column=1, sticky=tk.E)
+        w = tk.OptionMenu(
+            self, self.var_verbosity,
             *VERBOSITY_STRINGS
         )
         w.config(width=20)
-        w.grid(row=_row, column=2, sticky=tkinter.W)
+        w.grid(row=_row, column=2, sticky=tk.W)
 
         _row += 1
 
-        button_run = tkinter.Button(self.root,
-            width=25,
-            text="run",
-            command=self.run_machine
-        )
-        button_run.grid(row=_row, column=1, columnspan=2)
-
-        _row += 1
-
-        w = tkinter.Label(
-            self.root,
+        w = tk.Label(
+            self,
             text="CLI script:\n%r" % self.cli_file,
-            justify=tkinter.LEFT
+            justify=tk.LEFT
         )
         w.grid(row=_row, column=1, columnspan=2)
 
-        self.root.update()
+        self.add_widgets()
+
+        self.update()
+
+    def add_widgets(self):
+        padding = 5
+        defaults = {
+            "ipadx": padding, # add internal padding in x direction
+            "ipady": padding, # add internal padding in y direction
+            "padx": padding, # add padding in x direction
+            "pady": padding, # add padding in y direction
+            "sticky": tk.NSEW, # stick to the cell boundary
+        }
+
+        self.run_buttons = RunButtonsFrame(self, column=0, row=0, **defaults)
+        # self.inputs = Inputs(self, column=0, row=1, **defaults)
+        # self.actions = Buttons(self, column=1, row=0, rowspan=2, **defaults)
 
     def run_machine(self):
-        machine_name = self.var_machine.get()
+        machine_name = self.run_buttons.var_machine.get()
         print("run: %r" % machine_name)
 
         verbosity = self.var_verbosity.get()
@@ -165,9 +186,6 @@ class GuiStarter(object):
         print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
         subprocess.Popen(cmd_args)
 
-    def mainloop(self):
-        """ for standalone usage """
-        self.root.mainloop()
 
 def start_gui(cli_file, machine_dict):
     gui = GuiStarter(cli_file, machine_dict)
@@ -176,4 +194,4 @@ def start_gui(cli_file, machine_dict):
 
 if __name__ == "__main__":
     from dragonpy.core.cli import main
-    main()
+    main(confirm_exit=False)

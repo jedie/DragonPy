@@ -205,13 +205,14 @@ def tests(verbosity, failfast):
     run_tests(verbosity, failfast)
 
 
-def main():
+def main(confirm_exit=True):
     if len(sys.argv)==1:
-        def confirm():
-            # don't close the terminal window directly
-            # important for windows users ;)
-            click.prompt("Please press [ENTER] to exit", default="", show_default=False)
-        atexit.register(confirm)
+        if confirm_exit:
+            def confirm():
+                # don't close the terminal window directly
+                # important for windows users ;)
+                click.prompt("Please press [ENTER] to exit", default="", show_default=False)
+            atexit.register(confirm)
 
         start_gui(__file__, machine_dict)
     else:
