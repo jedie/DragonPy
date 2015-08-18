@@ -6,7 +6,7 @@ source ../../bin/activate
 
 (
     set -x
-    python -OO DragonPy_CLI.py --verbosity 99 --machine=Dragon64 run
+    ./DragonPy_CLI.py
 )
 echo
 read -n1 -p "Start bash? [y,n]" doit
