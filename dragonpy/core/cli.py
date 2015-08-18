@@ -16,8 +16,7 @@ from __future__ import absolute_import, division, print_function
 import atexit
 import locale
 import logging
-import unittest
-from dragonpy.tests import run_tests
+import sys
 
 try:
     # https://pypi.python.org/pypi/click/
@@ -35,6 +34,8 @@ from dragonlib.utils.logging_utils import setup_logging, LOG_LEVELS
 from basic_editor.editor import run_basic_editor
 
 import dragonpy
+from dragonpy.core.gui_starter import start_gui
+from dragonpy.tests import run_tests
 from dragonpy.CoCo.config import CoCo2bCfg
 from dragonpy.CoCo.machine import run_CoCo2b
 from dragonpy.Dragon32.config import Dragon32Cfg
@@ -204,5 +205,17 @@ def tests(verbosity, failfast):
     run_tests(verbosity, failfast)
 
 
+def main():
+    if len(sys.argv)==1:
+        def confirm():
+            # don't close the terminal window directly
+            # important for windows users ;)
+            click.prompt("Please press [ENTER] to exit", default="", show_default=False)
+        atexit.register(confirm)
+
+        start_gui(__file__, machine_dict)
+    else:
+        cli()
+
 if __name__ == "__main__":
-    cli()
+    main()

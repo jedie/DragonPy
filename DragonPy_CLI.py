@@ -27,5 +27,5 @@ if __name__ == "__main__":
         print("-"*79)
         print()
 
-    from dragonpy.core.cli import cli
-    cli()
+    from dragonpy.core.cli import main
+    main()
