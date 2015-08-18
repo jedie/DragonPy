@@ -152,7 +152,7 @@ class Test_sbc09(Test6809_sbc09_Base):
         data = extract_s_record_data(srec)
 
         # get the reference from the used ROM file:
-        ROM_FILE = self.cpu.cfg.DEFAULT_ROMS[0].filepath
+        ROM_FILE = self.cpu.cfg.DEFAULT_ROMS[0].rom_path
         with open(ROM_FILE, "rb") as f:
             f.seek(start_addr - 0x8000)
             reference = f.read(byte_count)

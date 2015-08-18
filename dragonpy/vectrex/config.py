@@ -13,16 +13,14 @@
 
 from __future__ import absolute_import, division, print_function
 
-
-import logging
-import os
-
 import logging
 
-log=logging.getLogger(__name__)
-from dragonpy.components.rom import ROMFile
+from dragonpy.vectrex.vectrex_rom import VectrexRom
 from dragonpy.core.configs import BaseConfig, VECTREX
 from dragonpy.vectrex.mem_info import VectrexMemInfo
+
+
+log=logging.getLogger(__name__)
 
 
 # from dragonlib.api import VectrexAPI
@@ -49,10 +47,9 @@ class VectrexCfg(BaseConfig):
     ROM_SIZE = 0x2000
 
     DEFAULT_ROMS = (
-        ROMFile(address=0xE000, # max_size=0x4000,
-            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                "SYSTEM.IMG"
-            )
+        VectrexRom(
+            address=0xE000,
+            # max_size=0x4000
         ),
     )
 

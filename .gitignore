@@ -1,5 +1,7 @@
-*.py[cod]
 *.rom
+/roms/*
+
+*.py[cod]
 *~
 
 # C extensions

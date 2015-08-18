@@ -126,10 +126,6 @@ def print_cpu_state_data(state):
 #-----------------------------------------------------------------------------
 
 
-SIMPLE6809ROM_FILENAME = Simple6809Cfg.DEFAULT_ROMS[0].filepath
-SIMPLE6809ROM_EXISTS = os.path.isfile(SIMPLE6809ROM_FILENAME)
-
-@unittest.skipUnless(SIMPLE6809ROM_EXISTS, "No Simple6809 ROM file: %r" % SIMPLE6809ROM_FILENAME)
 class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
     """
     Run tests with the BASIC Interpreter from simple6809 ROM.
@@ -231,10 +227,6 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
 #-----------------------------------------------------------------------------
 
 
-SBC09ROM_FILENAME = SBC09Cfg.DEFAULT_ROMS[0].filepath
-SBC09ROM_EXISTS = os.path.isfile(SBC09ROM_FILENAME)
-
-@unittest.skipUnless(SBC09ROM_EXISTS, "No sbc09 ROM file: %r" % SBC09ROM_FILENAME)
 class Test6809_sbc09_Base(BaseCPUTestCase):
     """
     Run tests with the sbc09 ROM.
@@ -345,10 +337,6 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
 #-----------------------------------------------------------------------------
 
 
-DRAGON32ROM_FILENAME = Dragon32Cfg.DEFAULT_ROMS[0].filepath
-DRAGON32ROM_EXISTS = os.path.isfile(DRAGON32ROM_FILENAME)
-
-@unittest.skipUnless(DRAGON32ROM_EXISTS, "No Dragon 32 ROM file: %r" % DRAGON32ROM_FILENAME)
 class Test6809_Dragon32_Base(BaseCPUTestCase):
     """
     Run tests with the Dragon32 ROM.

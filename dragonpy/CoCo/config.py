@@ -5,7 +5,7 @@
     ================
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2014-2015 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -13,14 +13,14 @@ from __future__ import absolute_import, division, print_function
 
 
 import logging
-import os
 
 from dragonlib.api import CoCoAPI
+from dragonpy.CoCo.CoCo2b_rom import CoCo2b_Basic13_ROM, \
+    CoCo2b_ExtendedBasic11_ROM
 
 from dragonpy.CoCo.mem_info import get_coco_meminfo
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.keyboard_map import get_coco_keymatrix_pia_result
-from dragonpy.components.rom import ROMFile
 from dragonpy.core.configs import COCO2B
 
 
@@ -59,16 +59,8 @@ class CoCo2bCfg(Dragon32Cfg):
     """
     ROM_START = 0x8000
     DEFAULT_ROMS = (
-        ROMFile(address=0x8000, max_size=0x4000,
-            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                "extbas11.rom"
-            )
-        ),
-        ROMFile(address=0xA000, max_size=0x4000,
-            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                "bas13.rom"
-            )
-        ),
+        CoCo2b_ExtendedBasic11_ROM(address=0x8000, max_size=0x4000),
+        CoCo2b_Basic13_ROM(address=0xA000, max_size=0x4000),
     )
 
     def __init__(self, cmd_args):

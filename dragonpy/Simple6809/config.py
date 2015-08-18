@@ -4,8 +4,8 @@
     DragonPy - Dragon 32 emulator in Python
     =======================================
 
-    :created: 2013-2014 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
+    :created: 2013 by Jens Diemer - www.jensdiemer.de
+    :copyleft: 2013-2015 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -14,7 +14,7 @@ from __future__ import absolute_import, division, print_function
 import os
 
 from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
-from dragonpy.components.rom import ROMFile
+from dragonpy.Simple6809.Simple6809_rom import Simple6809Rom
 from dragonpy.core.configs import BaseConfig, SIMPLE6809
 from dragonlib.api import CoCoAPI
 
@@ -47,11 +47,7 @@ class Simple6809Cfg(BaseConfig):
     )
 
     DEFAULT_ROMS = (
-        ROMFile(address=0xC000, max_size=None,
-            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                "ExBasROM.bin"
-            )
-        ),
+        Simple6809Rom(address=0xC000, max_size=None),
     )
     # Used in unittest for init the BASIC Interpreter:
     STARTUP_END_ADDR = 0xdf2b # == JSR  LA390          GO GET AN INPUT LINE

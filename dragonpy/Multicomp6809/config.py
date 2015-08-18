@@ -5,19 +5,15 @@
     =======================================
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2014-2015 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 from __future__ import absolute_import, division, print_function
 
-
-import os
-
+from dragonpy.Multicomp6809.Multicomp6809_rom import Multicomp6809Rom
 from dragonpy.core.configs import BaseConfig, MULTICOMP6809
-# from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
 from dragonpy.Multicomp6809.periphery_Multicomp6809 import Multicomp6809Periphery
-from dragonpy.components.rom import ROMFile
 
 
 
@@ -54,11 +50,7 @@ class Multicomp6809Cfg(BaseConfig):
     )
 
     DEFAULT_ROMS = (
-        ROMFile(address=0xE000, max_size=0x4000,
-            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                "EXT_BASIC_NO_USING.bin"
-            )
-        ),
+        Multicomp6809Rom(address=0xE000, max_size=0x4000),
     )
 
     def __init__(self, cmd_args):

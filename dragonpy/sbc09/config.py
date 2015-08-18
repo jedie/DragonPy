@@ -5,7 +5,7 @@
     =======================================
 
     :created: 2013 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2013 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2013-2015 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -13,11 +13,11 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
-from dragonpy.components.rom import ROMFile
 from dragonpy.core.configs import BaseConfig, SBC09
 from dragonpy.sbc09.mem_info import get_sbc09_meminfo
 from dragonpy.sbc09.periphery import SBC09Periphery
 from dragonlib.api import CoCoAPI
+from dragonpy.sbc09.sbc09_rom import SBC09Rom
 
 
 class SBC09Cfg(BaseConfig):
@@ -45,11 +45,7 @@ class SBC09Cfg(BaseConfig):
     )
 
     DEFAULT_ROMS = (
-        ROMFile(address=0x8000, max_size=None,
-            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                "v09.rom" # Source for this is monitor.asm
-            )
-        ),
+        SBC09Rom(address=0x8000, max_size=None),
     )
 
     # Used in unittest for init the machine:

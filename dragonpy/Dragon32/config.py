@@ -4,26 +4,27 @@
     DragonPy - Dragon 32 emulator in Python
     =======================================
 
-    :created: 2013-2014 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2013-2014 by the DragonPy team, see AUTHORS for more details.
+    :created: 2013 by Jens Diemer - www.jensdiemer.de
+    :copyleft: 2013-2015 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 from __future__ import absolute_import, division, print_function
+
+import logging
+
 from dragonlib.utils import six
+
 xrange = six.moves.xrange
 
-import logging
-import os
-
 from dragonlib.api import Dragon32API
-import logging
-
-log=logging.getLogger(__name__)
 from dragonpy.Dragon32.keyboard_map import get_dragon_keymatrix_pia_result
 from dragonpy.Dragon32.mem_info import get_dragon_meminfo
-from dragonpy.components.rom import ROMFile
 from dragonpy.core.configs import BaseConfig, DRAGON32
+from dragonpy.Dragon32.Dragon32_rom import Dragon32Rom
+
+
+log=logging.getLogger(__name__)
 
 
 class Dragon32Cfg(BaseConfig):
@@ -65,13 +66,8 @@ class Dragon32Cfg(BaseConfig):
     FF00-FFFF I/O, machine configuration, reset vectors
     """
     DEFAULT_ROMS = (
-        ROMFile(address=0x8000, max_size=0x4000,
-            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                "d32.rom"
-            )
-        ),
+        Dragon32Rom(address=0x8000, max_size=0x4000),
     )
-
 
     # for unittests init:
     STARTUP_END_ADDR = 0xbbe5 # scan keyboard

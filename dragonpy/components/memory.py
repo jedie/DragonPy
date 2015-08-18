@@ -184,7 +184,7 @@ class Memory(object):
     def load_file(self, romfile):
         data = romfile.get_data()
         self.load(romfile.address, data)
-        log.critical("Load ROM file %r to $%04x", romfile.filepath, romfile.address)
+        log.critical("Load ROM file %r to $%04x", romfile.rom_path, romfile.address)
 
     #---------------------------------------------------------------------------
 

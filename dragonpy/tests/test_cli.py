@@ -9,6 +9,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
+from dragonlib.utils.unittest_utils import TextTestRunner2
 
 import os
 import subprocess
@@ -84,10 +85,11 @@ class CLITestCase(unittest.TestCase):
             "Usage: DragonPy [OPTIONS] COMMAND [ARGS]...",
             "--machine [CoCo2b|Dragon32|Dragon64|Multicomp6809|Vectrex|sbc09]",
             "Commands:",
-            "editor    Run only the BASIC editor",
-            "log_list  List all exiting loggers and exit.",
-            "run       Run a machine emulation",
-            "tests     Run unittests",
+            "download_roms  Download/Test only ROM files",
+            "editor         Run only the BASIC editor",
+            "log_list       List all exiting loggers and exit.",
+            "run            Run a machine emulation",
+            "tests          Run unittests",
         ], cli_out)
 
         errors = ["Error", "Traceback"]
@@ -132,7 +134,33 @@ class CLITestCase(unittest.TestCase):
         self.assertNotInMultiline(errors, cli_out)
         self.assertNotInMultiline(errors, cli_err)
 
+    def test_download_roms(self):
+        cli_out, cli_err = self._get("download_roms")
+        # print(cli_out)
+        # print(cli_err)
+        self.assertInMultiline([
+            "ROM file: d64_ic17.rom",
+            "Read ROM file",
+            "ROM SHA1:",
+            "ok",
+            "file size is",
+        ], cli_out)
+
+        errors = ["Error", "Traceback"]
+        self.assertNotInMultiline(errors, cli_out)
+        self.assertNotInMultiline(errors, cli_err)
+
 
 
 if __name__ == '__main__':
-    unittest.main(verbosity=2)
+    unittest.main(
+        argv=(
+            sys.argv[0],
+            # "CLITestCase.test_download_roms",
+        ),
+        testRunner=TextTestRunner2,
+        # verbosity=1,
+        verbosity=2,
+        failfast=False,
+        # failfast=True,
+    )

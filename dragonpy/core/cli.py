@@ -95,7 +95,6 @@ class CliConfig(object):
             "verbosity":self.verbosity,
             "trace":None,
         }
-        machine_name = self.machine
         self.machine_run_func, self.machine_cfg = machine_dict[machine]
 
     def setup_logging(self):
@@ -183,6 +182,19 @@ def log_list():
     print("A list of all loggers:")
     for log_name in sorted(logging.Logger.manager.loggerDict):
         print("\t%s" % log_name)
+
+
+@cli.command(help="Download/Test only ROM files")
+def download_roms():
+    for machine_name, data in machine_dict.items():
+        machine_config = data[1]
+        click.secho("Download / test ROM for %s:" % click.style(machine_name, bold=True), bg='blue', fg='white')
+
+        for rom in machine_config.DEFAULT_ROMS:
+            click.echo("\tROM file: %s" % click.style(rom.FILENAME, bold=True))
+            content = rom.get_data()
+            size = len(content)
+            click.echo("\tfile size is $%04x (dez.: %i) Bytes\n" % (size,size))
 
 
 @cli.command(help="Run unittests")

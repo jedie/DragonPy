@@ -5,20 +5,21 @@
     ================
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2014-2015 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 from __future__ import absolute_import, division, print_function
-from dragonlib.utils import six
-xrange = six.moves.xrange
 
 import logging
-import os
+
+from dragonlib.utils import six
+
+xrange = six.moves.xrange
 
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon64.mem_info import get_dragon_meminfo
-from dragonpy.components.rom import ROMFile
+from dragonpy.Dragon64.Dragon64_rom import Dragon64RomIC17, Dragon64RomIC18
 from dragonpy.core.configs import DRAGON64
 
 
@@ -49,16 +50,8 @@ class Dragon64Cfg(Dragon32Cfg):
     $c000-$ffff - d64_ic18.rom - size: $3fff (dez.: 16383) Bytes
     """
     DEFAULT_ROMS = (
-        ROMFile(address=0x8000, max_size=0x4000,
-            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                "d64_ic17.rom"
-            )
-        ),
-        ROMFile(address=0xC000, max_size=0x4000,
-            filepath=os.path.join(os.path.abspath(os.path.dirname(__file__)),
-                "d64_ic18.rom"
-            )
-        ),
+        Dragon64RomIC17(address=0x8000, max_size=0x4000),
+        Dragon64RomIC18(address=0xC000, max_size=0x4000),
     )
 
     def __init__(self, cmd_args):

@@ -115,63 +115,30 @@ There are several ways to install the project under windows.
 The following is hopeful the easiest one:
 
 * Install Python 3, e.g.: https://www.python.org/downloads/
-* Download the {{{DWLOAD Server}}} git snapshot from Github: [[https://github.com/jedie/DragonPy/archive/master.zip|master.zip]]
+* Download the {{{DragonPy}}} git snapshot from Github: [[https://github.com/jedie/DragonPy/archive/master.zip|master.zip]]
 * Extract the Archive somewhere
-* Maybe, adjust paths in {{{boot_dwload_server.cmd}}}
-* Run {{{boot_dwload_server.cmd}}}
+* Maybe, adjust paths in {{{boot_dragonpy.cmd}}}
+* Run {{{boot_dragonpy.cmd}}}
 
-The default {{{boot_dwload_server.cmd}}} will install via {{{Python Package Index}}} (PyPi) into {{{%APPDATA%\DragonPy_env}}}
+The default {{{boot_dragonpy.cmd}}} will install via {{{Python Package Index}}} (PyPi) into {{{%APPDATA%\DragonPy_env}}}
 
-There exist a batch file for easy startup the server under Windows:
-* [[https://github.com/jedie/DragonPy/blob/master/scripts/start_dwload_server.cmd|/scripts/start_dwload_server.cmd]]
-
-Copy it into {{{%APPDATA%\DragonPy_env\start_dwload_server.cmd}}} and edit it for your needs.
-
-{{{
-# clone the repro:
-~$ git clone https://github.com/jedie/DragonPy.git
-
-# Alternative download as .zip: https://github.com/jedie/DragonPy/archive/master.zip
-
-~$ cd DragonPy
-
-# Download all ROM files:
-~/DragonPy$ ./download_ROMs.sh
-
-# Start Dragon 32
-~/DragonPy$ python2 DragonPy_CLI.py --machine=Dragon32 run
-}}}
+There exist some {{{.cmd}}} batch files for easy startup in {{{%APPDATA%\DragonPy_env\}}}
 
 
 == ROMs
 
-The Dragon ROMs can be downloaded here:
-* http://archive.worldofdragon.org/archive/index.php?dir=Roms/Dragon/
+All needed ROM files, will be downloaded automatically.
 
-There is a simple shell script to automatic download and extract the Dragon ROMs:
-{{{
-/home/FooBar/DragonPy_env$ cd src/dragonpy/
-/home/FooBar/DragonPy_env/src/dragonpy$ ./download_ROMs.sh
-}}}
-To verify existing ROMs, just call the script again:
-{{{
-/home/FooBar/DragonPy_env$ cd src/dragonpy/
-/home/FooBar/DragonPy_env/src/dragonpy$ ./download_ROMs.sh
-+ cd dragonpy/Dragon32/
-+ source download_Dragon32_rom.sh
-++ '[' '!' -f d32.rom ']'
-++ set -x
-++ sha1sum -c d32.rom.sha1
-d32.rom: OK
-========================================================================
-...
-d64_ic17.rom: OK
-d64_ic18.rom: OK
-bas13.rom: OK
-extbas11.rom: OK
-EXT_BASIC_NO_USING.bin: OK
-ExBasROM.bin: OK
-}}}
+The files will be downloaded from:
+
+| Dragon 32 + 64 | http://archive.worldofdragon.org/archive/index.php?dir=Roms/Dragon/
+| CoCo 2b        | http://mess.oldos.net/
+| Multicomp      | http://searle.hostei.com/grant/Multicomp/
+| Simple6809     | http://searle.hostei.com/grant/6809/Simple6809.html
+
+sbc09 and vectrex ROMs are included.
+
+All ROM files and download will be checked by SHA1 value, before use.
 
 
 == cli example
@@ -323,6 +290,7 @@ e.g. The Dragon 32 6809 machine with a 14.31818 MHz crystal runs with:
 
 == TODO:
 
+# implement a easy tkinter startup helper
 # implement more Dragon 32 periphery
 
 missing 6809 unittests after coverage run:
@@ -442,6 +410,7 @@ Six is a Python 2 and 3 compatibility library.
 
 == History
 
+* 18.08.2015 - v0.5.0 - ROM files will be downloaded on-the-fly ({{{.sh}}} scripts are removed. So it's easier to use under Windows)
 * 26.05.2015 - v0.4.0 - The MC6809 code is out sourced to: https://github.com/6809/MC6809
 * 15.12.2014 - v0.3.2 - Use [[http://pygments.org/|Pygments]] syntax highlighter in BASIC editor
 * 08.10.2014 - Release as v0.3.1
