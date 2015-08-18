@@ -14,17 +14,22 @@ install:
     - pip install coveralls
 
 script:
-    # - python -m unittest discover
     - coverage run --source=dragonpy ./setup.py test
 
 after_success:
     - coveralls
 
+# blacklist
 branches:
-    only:
-        - master
-        - stable
-        - refactory_rom_downloads
+  except:
+    - wip
+    - experimental
+
+# whitelist
+#branches:
+#  only:
+#    - master
+#    - stable
 
 notifications:
     irc: "irc.freenode.org#pylucid"
