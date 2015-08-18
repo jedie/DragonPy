@@ -410,18 +410,25 @@ Six is a Python 2 and 3 compatibility library.
 
 == History
 
-* 18.08.2015 - v0.5.0 - ROM files will be downloaded on-the-fly ({{{.sh}}} scripts are removed. So it's easier to use under Windows)
-* 26.05.2015 - v0.4.0 - The MC6809 code is out sourced to: https://github.com/6809/MC6809
-* 15.12.2014 - v0.3.2 - Use [[http://pygments.org/|Pygments]] syntax highlighter in BASIC editor
-* 08.10.2014 - Release as v0.3.1
+* [[https://github.com/jedie/DragonPy/compare/v0.4.0...v0.5.0|18.08.2015 - v0.5.0]]:
+* ROM files will be downloaded on-the-fly ({{{.sh}}} scripts are removed. So it's easier to use under Windows)
+* [[https://github.com/jedie/DragonPy/compare/v0.3.2...v0.4.0|26.05.2015 - v0.4.0]]:
+* The MC6809 code is out sourced to: https://github.com/6809/MC6809
+* [[https://github.com/jedie/DragonPy/compare/v0.3.1...v0.3.2|15.12.2014 - v0.3.2]]:
+** Use [[http://pygments.org/|Pygments]] syntax highlighter in BASIC editor
+* [[https://github.com/jedie/DragonPy/compare/v0.3.0...v0.3.1|08.10.2014 - v0.3.1]]:
+** Release as v0.3.1
 * 30.09.2014 - Enhance the BASIC editor
 * 29.09.2014 - Merge [[https://github.com/jedie/PyDragon32|PyDragon32]] project
-* 25.09.2014 - Release v0.3.0:
+* [[https://github.com/jedie/DragonPy/compare/v0.2.0...v0.3.0|25.09.2014 - v0.3.0]]:
 ** [[https://github.com/jedie/DragonPy/commit/f396551df730b509498d1b884cdda8f7075737c4|Change Display Queue to a simple Callback]]
 ** Reimplement [[https://github.com/jedie/DragonPy/commit/f3bfbdb2ae9906d8e051436173225c3fa8de1373|Multicomp 6809]] and [[https://github.com/jedie/DragonPy/commit/61c26911379d2b7ea6d07a8b479ab14c5d5a7154|SBC09]]
 ** Many code refactoring and cleanup
-* 14.09.2014 - Release v0.2.0 - Add a speedlimit, config dialog and IRQ: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&p=11780#p11780|Forum post 11780]] 
-* 05.09.2014 - Release v0.1.0 - Implement pause/resume, hard-/soft-reset 6809 in GUI and improve a little the GUI/Editor stuff: [[https://github.com/jedie/DragonPy/releases/tag/v0.1.0|v0.1.0]] see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&p=11719#p11719|Forum post 11719]].
+* [[https://github.com/jedie/DragonPy/compare/v0.1.0...v0.2.0|14.09.2014 - v0.2.0]]:
+** Add a speedlimit, config dialog and IRQ: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&p=11780#p11780|Forum post 11780]]
+* [[https://github.com/jedie/DragonPy/compare/8fe24e5...v0.1.0|05.09.2014 - v0.1.0]]:
+** Implement pause/resume, hard-/soft-reset 6809 in GUI and improve a little the GUI/Editor stuff
+** see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&p=11719#p11719|Forum post 11719]].
 * 27.08.2014 - Run CoCo with Extended Color Basic v1.1, bugfix transfer BASIC Listing with [[https://github.com/jedie/DragonPy/compare/8fe24e5...697d39e|8fe24e5...697d39e]] see: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=90#p11696|Forum post 11696]].
 * 20.08.2014 - rudimenary BASIC IDE works with [[https://github.com/jedie/DragonPy/compare/7e0f16630...ce12148|7e0f16630...ce12148]], see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4439#p11645|Forum post 11645]].
 * 05.08.2014 - Start to support CoCo, too with [[https://github.com/jedie/DragonPy/commit/0df724b3ee9d87088b524c3623040a41e9772eb4|0df724b]], see also: [[http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4308&start=80#p11573|Forum post 11573]].
