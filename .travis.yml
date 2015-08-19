@@ -14,7 +14,7 @@ install:
     - pip install coveralls
 
 script:
-    - coverage run --source=dragonpy ./setup.py test
+    - coverage run --source=dragonpy ./setup.py nosetests
 
 after_success:
     - coveralls

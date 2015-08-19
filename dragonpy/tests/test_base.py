@@ -75,6 +75,7 @@ class BaseCPUTestCase(BaseTestCase):
         if end is None:
             end = start + len(mem)
         self.cpu.test_run(start, end)
+    cpu_test_run.__test__=False # Exclude from nose
 
     def cpu_test_run2(self, start, count, mem):
         for cell in mem:
@@ -82,6 +83,7 @@ class BaseCPUTestCase(BaseTestCase):
             self.assertGreater(0x100, cell, "$%x > 0xff" % cell)
         self.cpu.memory.load(start, mem)
         self.cpu.test_run2(start, count)
+    cpu_test_run2.__test__=False # Exclude from nose
 
     def assertMemory(self, start, mem):
         for index, should_byte in enumerate(mem):
