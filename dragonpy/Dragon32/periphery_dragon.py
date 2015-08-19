@@ -163,34 +163,3 @@ class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
 #------------------------------------------------------------------------------
 
 
-def test_run():
-    import sys
-    import os
-    import subprocess
-    cmd_args = [
-        sys.executable,
-        os.path.join("..", "DragonPy_CLI.py"),
-#         "--log_list",
-
-#         "--verbosity", " 1", # hardcode DEBUG ;)
-#         "--verbosity", "10", # DEBUG
-#         "--verbosity", "20", # INFO
-#         "--verbosity", "30", # WARNING
-#         "--verbosity", "40", # ERROR
-#         "--verbosity", "50", # CRITICAL/FATAL
-        "--verbosity", "99", # nearly all off
-#         "--verbosity", "100", # all off
-
-        # "--log",
-        # "dragonpy.components.cpu6809,40",
-        # "dragonpy.Dragon32.MC6821_PIA,50",
-
-        "--machine", "Dragon32", "run",
-#        "--max_ops", "1",
-#        "--trace",
-    ]
-    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
-    subprocess.Popen(cmd_args, cwd="..").wait()
-
-if __name__ == "__main__":
-    test_run()

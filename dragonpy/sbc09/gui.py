@@ -44,32 +44,3 @@ class SBC09TkinterGUI(ScrolledTextGUI):
 
 
 
-def test_run():
-    import os
-    import sys
-    import subprocess
-    cmd_args = [
-        sys.executable,
-        os.path.join("..", "DragonPy_CLI.py"),
-#         "-h"
-#         "--log_list",
-#         "--log", "dragonpy.Multicomp6809,10", "dragonpy.core.gui,10",
-
-#          "--verbosity", "10", # DEBUG
-#         "--verbosity", "20", # INFO
-#         "--verbosity", "30", # WARNING
-#         "--verbosity", "40", # ERROR
-#         "--verbosity", "50", # CRITICAL/FATAL
-        "--verbosity", "99", # nearly all off
-
-#         "--machine", "Dragon32", "run",
-        "--machine", "Multicomp6809", "run",
-#        "--max_ops", "1",
-#        "--trace",
-    ]
-    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
-    subprocess.Popen(cmd_args, cwd="..").wait()
-
-
-if __name__ == "__main__":
-    test_run()

@@ -331,23 +331,3 @@ class Memory(object):
         print("\n".join(["\t%s" % line for line in dump_lines]))
 
 
-def test_run():
-    import subprocess
-    cmd_args = [sys.executable,
-        "DragonPy_CLI.py",
-#         "--verbosity=5",
-#         "--verbosity=10",
-#         "--verbosity=20",
-#         "--verbosity=30",
-#         "--verbosity=40",
-        "--verbosity=50",
-        "--machine=Simple6809",
-#         "--max=100000",
-#         "--max=30000",
-#         "--max=20000",
-    ]
-    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
-    subprocess.Popen(cmd_args, cwd="..").wait()
-
-if __name__ == "__main__":
-    test_run()

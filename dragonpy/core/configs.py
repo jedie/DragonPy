@@ -139,23 +139,3 @@ class BaseConfig(object):
                 print("%20s = %s" % (name, value))
 
 
-def test_run():
-    import os, sys, subprocess
-    cmd_args = [sys.executable,
-        os.path.join("..", "..", "DragonPy_CLI.py"),
-
-#         "--verbosity=5",
-        "--verbosity=10", # DEBUG
-#         "--verbosity=20", # INFO
-#         "--verbosity=30", # WARNING
-#         "--verbosity=40", # ERROR
-#         "--verbosity=50", # CRITICAL/FATAL
-
-#         "--machine=Simple6809",
-        "--machine=sbc09",
-    ]
-    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
-    subprocess.Popen(cmd_args, cwd=".").wait()
-
-if __name__ == "__main__":
-    test_run()

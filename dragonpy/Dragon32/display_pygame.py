@@ -76,14 +76,3 @@ class DragonTextDisplay(DragonTextDisplayBase):
 
 
 
-def test_run():
-    import sys, os, subprocess
-    cmd_args = [
-        sys.executable,
-        os.path.join("..", "Dragon64_test.py"),
-    ]
-    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
-    subprocess.Popen(cmd_args, cwd="..").wait()
-
-if __name__ == "__main__":
-    test_run()

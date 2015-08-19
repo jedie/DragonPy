@@ -153,28 +153,3 @@ class SBC09PeripheryUnittest(SBC09Periphery):
 SBC09Periphery = SBC09PeripheryConsole
 
 
-def test_run():
-    import subprocess
-    cmd_args = [
-        sys.executable,
-#        "/usr/bin/pypy",
-        os.path.join("..", "DragonPy_CLI.py"),
-#         "--verbosity=5",
-#         "--verbosity=10", # DEBUG
-#         "--verbosity=20", # INFO
-#         "--verbosity=30", # WARNING
-#         "--verbosity=40", # ERROR
-        "--verbosity=50", # CRITICAL/FATAL
-
-#         "--trace",
-
-        "--machine=sbc09",
-#         "--max=500000",
-#         "--max=30000",
-#         "--max=20000",
-    ]
-    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
-    subprocess.Popen(cmd_args, cwd="..").wait()
-
-if __name__ == "__main__":
-    test_run()

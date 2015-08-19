@@ -158,20 +158,3 @@ config = Dragon32Cfg
 #------------------------------------------------------------------------------
 
 
-def test_run():
-    import sys
-    import os
-    import subprocess
-    cmd_args = [
-        sys.executable,
-        os.path.join("..", "DragonPy_CLI.py"),
-#        "--verbosity", "5",
-        "--machine", "Dragon32", "run",
-#        "--max_ops", "1",
-#        "--trace",
-    ]
-    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
-    subprocess.Popen(cmd_args, cwd="..").wait()
-
-if __name__ == "__main__":
-    test_run()

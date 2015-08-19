@@ -87,24 +87,3 @@ class Simple6809Cfg(BaseConfig):
 config = Simple6809Cfg
 
 
-def test_run():
-    import sys, subprocess
-    cmd_args = [sys.executable,
-        os.path.join("..", "DragonPy_CLI.py"),
-#        "--verbosity=5",
-#         "--verbosity=10", # DEBUG
-#         "--verbosity=20", # INFO
-#        "--verbosity=30", # WARNING
-#         "--verbosity=40", # ERROR
-        "--verbosity=50", # CRITICAL/FATAL
-
-        "--machine=Simple6809",
-#         "--max=500000",
-#         "--max=20000",
-        "--max=1",
-    ]
-    print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
-    subprocess.Popen(cmd_args, cwd="..").wait()
-
-if __name__ == "__main__":
-    test_run()
