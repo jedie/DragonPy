@@ -15,9 +15,15 @@
 from __future__ import absolute_import, division, print_function
 
 
-from dragonpy.Dragon32.DragonFont import png
 import sys
 import unicodedata
+
+try:
+    import png
+except ImportError as err:
+    raise ImportError(
+        "Import error: %s - Please install 'pypng' package!" % err
+    )
 
 
 def group(lst, n):
