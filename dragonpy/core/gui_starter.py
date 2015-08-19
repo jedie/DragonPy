@@ -158,7 +158,7 @@ class GuiStarter(tk.Tk):
         self.rowconfigure(0, weight=1)
 
         self.add_widgets()
-        self.add_status_bar()
+        self.set_status_bar()
 
         self.update()
 
@@ -174,12 +174,11 @@ class GuiStarter(tk.Tk):
 
         self.frame_settings = SettingsFrame(self, column=0, row=0, **defaults)
         self.frame_buttons = RunButtonsFrame(self, column=1, row=0, **defaults)
-
-    def add_status_bar(self):
-        self.status_bar = MultiStatusBar(self,
-            column=0, row=2, columnspan=2,
+        self.status_bar = MultiStatusBar(self, column=0, row=1, columnspan=2,
             sticky=tk.NSEW,
         )
+
+    def set_status_bar(self):
         self.status_bar.set_label("cli_file", self.cli_file)
         self.status_bar.set_label("python_info", get_python_info())
 
