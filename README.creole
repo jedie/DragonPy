@@ -79,7 +79,7 @@ Special feature: The Line number that are used in GOTO, SOGUB etc. are extra mar
 
 == installation
 
-IMPORTANT: The **PyPi package** name is **DragonPyEmulator** and [[https://github.com/jpanganiban/dragonpy/issues/3|not only DragonPy]]!!!
+IMPORTANT: The **PyPi package** name is **DragonPyEmulator** and [[https://github.com/jpanganiban/dragonpy/issues/3|not only "DragonPy"]]!!!
 
 === Linux
 
@@ -147,8 +147,6 @@ The following is hopeful the easiest one:
 * Run {{{boot_dragonpy.cmd}}}
 
 The default {{{boot_dragonpy.cmd}}} will install via {{{Python Package Index}}} (PyPi) into {{{%APPDATA%\DragonPy_env}}}
-
-There exist some {{{.cmd}}} batch files for easy startup in {{{%APPDATA%\DragonPy_env\}}}
 
 ==== start DragonPy
 
@@ -294,7 +292,6 @@ e.g. The Dragon 32 6809 machine with a 14.31818 MHz crystal runs with:
 
 == TODO:
 
-# implement a easy tkinter startup helper
 # implement more Dragon 32 periphery
 
 missing 6809 unittests after coverage run:
@@ -435,7 +432,7 @@ generic syntax highlighter
 
 == History
 
-* [[https://github.com/jedie/DragonPy/compare/v0.5.0...v0.5.1|??.08.2015 - v0.5.1]]: (not released, yet)
+* [[https://github.com/jedie/DragonPy/compare/v0.5.0...v0.5.1|19.08.2015 - v0.5.1]]: (not released, yet)
 ** Add a "starter GUI"
 ** Add work-a-round for tkinter usage with virtualenv under windows, see: [[https://github.com/pypa/virtualenv/issues/93|virtualenv issues #93]]
 ** bugfix e.g.: keyboard input in "sbc09" emulation
