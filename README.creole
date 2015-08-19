@@ -110,6 +110,30 @@ So you can easy update them e.g.:
 /home/FooBar/DragonPy_env/src/dragonpy$ git pull
 }}}
 
+==== start DragonPy
+
+The is a simple "starter GUI", just call the cli without arguments:
+
+{{{~/DragonPy_env/bin/DragonPy}}}
+
+Or call it in a activated environment, e.g.:
+{{{
+/home/FooBar$ cd DragonPy_env
+/home/FooBar/DragonPy_env$ source bin/activate
+(DragonPy_env)~/DragonPy_env$ DragonPy
+}}}
+
+It is possible to start machines directly:
+{{{
+(DragonPy_env)~/DragonPy_env$ DragonPy --machine=Dragon32 run
+}}}
+
+more info:
+{{{
+(DragonPy_env)~/DragonPy_env$ DragonPy --help
+}}}
+
+
 === Windows
 
 There are several ways to install the project under windows.
@@ -125,6 +149,13 @@ The following is hopeful the easiest one:
 The default {{{boot_dragonpy.cmd}}} will install via {{{Python Package Index}}} (PyPi) into {{{%APPDATA%\DragonPy_env}}}
 
 There exist some {{{.cmd}}} batch files for easy startup in {{{%APPDATA%\DragonPy_env\}}}
+
+==== start DragonPy
+
+The is a simple "starter GUI", just call the cli without arguments:
+
+{{{%APPDATA%\DragonPy_env\Scripts\DragonPy.exe}}}
+
 
 
 == ROMs
@@ -142,35 +173,6 @@ sbc09 and vectrex ROMs are included.
 
 All ROM files and download will be checked by SHA1 value, before use.
 
-
-== cli example
-
-start Dragon 32:
-{{{
-/home/FooBar$ cd DragonPy_env
-/home/FooBar/DragonPy_env$ source bin/activate
-(DragonPy_env)~/DragonPy_env$ DragonPy --machine=Dragon32 run
-}}}
-
-start Dragon 64:
-{{{
-(DragonPy_env)~/DragonPy_env$ DragonPy --machine=Dragon64 run
-}}}
-
-start CoCo with Extended Color Basic v1.1:
-{{{
-(DragonPy_env)~/DragonPy_env$ DragonPy --machine=CoCo2b run
-}}}
-
-start Multicomp 6809:
-{{{
-(DragonPy_env)~/DragonPy_env$ DragonPy --machine=Multicomp6809 run
-}}}
-
-start Lennart's 6809 single board computer:
-{{{
-(DragonPy_env)~/DragonPy_env$ DragonPy --machine=sbc09 run
-}}}
 
 == unittests ==
 
