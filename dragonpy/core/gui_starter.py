@@ -18,6 +18,7 @@ import logging
 import os
 
 import dragonpy
+from dragonpy.utils.humanize import get_python_info
 from dragonpy.core import configs
 
 if sys.version_info[0] == 2:
@@ -102,12 +103,23 @@ class RunButtonsFrame(tk.LabelFrame):
                 variable=self.var_machine, value=machine_name)
             b.grid(row=row, column=1, sticky=tk.W)
 
+        _row=len(self.machine_dict)
+
         button_run = tk.Button(self,
             width=25,
             text="run machine",
             command=master.run_machine
         )
-        button_run.grid(row=len(self.machine_dict), column=1)
+        button_run.grid(row=_row, column=1)
+
+        _row+=1
+
+        button_run = tk.Button(self,
+            width=25,
+            text="run only BASIC editor",
+            command=master.run_basic_editor
+        )
+        button_run.grid(row=_row, column=1)
 
 
 class MultiStatusBar(tk.Frame):
@@ -169,12 +181,9 @@ class GuiStarter(tk.Tk):
             sticky=tk.NSEW,
         )
         self.status_bar.set_label("cli_file", self.cli_file)
-        # self.status_bar.set_label('bar', "bar")
+        self.status_bar.set_label("python_info", get_python_info())
 
-    def run_machine(self):
-        machine_name = self.frame_buttons.var_machine.get()
-        print("run: %r" % machine_name)
-
+    def _run(self, *args):
         verbosity = self.frame_settings.var_verbosity.get()
         verbosity_no = VERBOSITY_DICT2[verbosity]
         print("Verbosity: %i (%s)" % (verbosity_no, verbosity))
@@ -188,11 +197,26 @@ class GuiStarter(tk.Tk):
             # "--log",
             # "dragonpy.components.cpu6809,40",
             # "dragonpy.Dragon32.MC6821_PIA,50",
-
-            "--machine", machine_name, "run",
         ]
+        cmd_args += args
         print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
         subprocess.Popen(cmd_args)
+
+    def _run_command(self, command):
+        """
+        :param command: string like "run" or "editor"
+        :return: None
+        """
+        machine_name = self.frame_buttons.var_machine.get()
+        self._run("--machine", machine_name, command)
+
+    def run_machine(self):
+        print("Run machine emulation")
+        self._run_command("run")
+
+    def run_basic_editor(self):
+        print("Run only the BASIC editor")
+        self._run_command("editor")
 
 
 def start_gui(cli_file, machine_dict):
