@@ -12,38 +12,30 @@
 
 from __future__ import absolute_import, division, print_function
 import subprocess
-import os
-import distutils
-from dragonlib.utils import six
-
 import sys
-import time
 import logging
-import string
+
+import os
+
 import dragonpy
 from dragonpy.core import configs
 
 if sys.version_info[0] == 2:
     # Python 2
-    import Queue as queue
     import Tkinter as tk
-    import tkFileDialog as filedialog
-    import tkMessageBox as messagebox
-    import ScrolledText as scrolledtext
-    import tkFont as TkFont
+    # import tkFileDialog as filedialog
+    # import tkMessageBox as messagebox
+    # import ScrolledText as scrolledtext
+    # import tkFont as TkFont
 else:
     # Python 3
-    import queue
     import tkinter as tk
-    from tkinter import filedialog
-    from tkinter import messagebox
-    from tkinter import scrolledtext
-    from tkinter import font as TkFont
-
-
+    # from tkinter import filedialog
+    # from tkinter import messagebox
+    # from tkinter import scrolledtext
+    # from tkinter import font as TkFont
 
 log = logging.getLogger(__name__)
-
 
 VERBOSITY_DICT = {
     1: "hardcode DEBUG ;)",
@@ -57,14 +49,14 @@ VERBOSITY_DICT = {
 }
 VERBOSITY_DEFAULT_VALUE = 100
 
-VERBOSITY_DICT2={}
+VERBOSITY_DICT2 = {}
 VERBOSITY_STRINGS = []
-VERBOSITY_DEFAULT=None
+VERBOSITY_DEFAULT = None
 
-for no,text in sorted(VERBOSITY_DICT.items()):
-    text = "%3i: %s" % (no,text)
-    if no==VERBOSITY_DEFAULT_VALUE:
-        VERBOSITY_DEFAULT=text
+for no, text in sorted(VERBOSITY_DICT.items()):
+    text = "%3i: %s" % (no, text)
+    if no == VERBOSITY_DEFAULT_VALUE:
+        VERBOSITY_DEFAULT = text
     VERBOSITY_STRINGS.append(text)
     VERBOSITY_DICT2[text] = no
 
@@ -75,7 +67,25 @@ for no,text in sorted(VERBOSITY_DICT.items()):
 assert VERBOSITY_DEFAULT is not None
 assert VERBOSITY_DICT2[VERBOSITY_DEFAULT] == VERBOSITY_DEFAULT_VALUE
 
+
 # sys.exit()
+
+class SettingsFrame(tk.LabelFrame):
+    def __init__(self, master, **kwargs):
+        tk.LabelFrame.__init__(self, master, text="Settings")
+        self.grid(**kwargs)
+
+        self.var_verbosity = tk.StringVar()
+        self.var_verbosity.set(VERBOSITY_DEFAULT)
+        w = tk.Label(self, text="Verbosity:")
+        w.grid(row=0, column=1, sticky=tk.E)
+        w = tk.OptionMenu(
+            self, self.var_verbosity,
+            *VERBOSITY_STRINGS
+        )
+        w.config(width=20)
+        w.grid(row=0, column=2, sticky=tk.W)
+
 
 class RunButtonsFrame(tk.LabelFrame):
     def __init__(self, master, **kwargs):
@@ -89,7 +99,7 @@ class RunButtonsFrame(tk.LabelFrame):
         for row, machine_name in enumerate(sorted(self.machine_dict)):
             print(row, machine_name)
             b = tk.Radiobutton(self, text=machine_name,
-                        variable=self.var_machine, value=machine_name)
+                variable=self.var_machine, value=machine_name)
             b.grid(row=row, column=1, sticky=tk.W)
 
         button_run = tk.Button(self,
@@ -97,13 +107,33 @@ class RunButtonsFrame(tk.LabelFrame):
             text="run machine",
             command=master.run_machine
         )
-        button_run.grid(row=row+1, column=1)
+        button_run.grid(row=len(self.machine_dict), column=1)
+
+
+class MultiStatusBar(tk.Frame):
+    """
+    code from idlelib.MultiStatusBar.MultiStatusBar
+    """
+
+    def __init__(self, master, **kwargs):
+        tk.Frame.__init__(self, master)
+        self.grid(**kwargs)
+        self.labels = {}
+
+    def set_label(self, name, text='', side=tk.LEFT):
+        if name not in self.labels:
+            label = tk.Label(self, bd=1, relief=tk.SUNKEN, anchor=tk.W)
+            label.pack(side=side)
+            self.labels[name] = label
+        else:
+            label = self.labels[name]
+        label.config(text=text)
 
 
 class GuiStarter(tk.Tk):
     def __init__(self, cli_file, machine_dict):
         tk.Tk.__init__(self)
-        
+
         self.cli_file = os.path.abspath(cli_file)
         self.machine_dict = machine_dict
 
@@ -112,29 +142,11 @@ class GuiStarter(tk.Tk):
         ))
         self.title("DragonPy v%s GUI starter" % dragonpy.__version__)
 
-        _row = 0
-
-        self.var_verbosity=tk.StringVar()
-        self.var_verbosity.set(VERBOSITY_DEFAULT)
-        w = tk.Label(self, text="Verbosity:")
-        w.grid(row=_row, column=1, sticky=tk.E)
-        w = tk.OptionMenu(
-            self, self.var_verbosity,
-            *VERBOSITY_STRINGS
-        )
-        w.config(width=20)
-        w.grid(row=_row, column=2, sticky=tk.W)
-
-        _row += 1
-
-        w = tk.Label(
-            self,
-            text="CLI script:\n%r" % self.cli_file,
-            justify=tk.LEFT
-        )
-        w.grid(row=_row, column=1, columnspan=2)
+        self.columnconfigure(0, weight=1)
+        self.rowconfigure(0, weight=1)
 
         self.add_widgets()
+        self.add_status_bar()
 
         self.update()
 
@@ -148,40 +160,36 @@ class GuiStarter(tk.Tk):
             "sticky": tk.NSEW, # stick to the cell boundary
         }
 
-        self.run_buttons = RunButtonsFrame(self, column=0, row=0, **defaults)
-        # self.inputs = Inputs(self, column=0, row=1, **defaults)
-        # self.actions = Buttons(self, column=1, row=0, rowspan=2, **defaults)
+        self.frame_settings = SettingsFrame(self, column=0, row=0, **defaults)
+        self.frame_buttons = RunButtonsFrame(self, column=1, row=0, **defaults)
+
+    def add_status_bar(self):
+        self.status_bar = MultiStatusBar(self,
+            column=0, row=2, columnspan=2,
+            sticky=tk.NSEW,
+        )
+        self.status_bar.set_label("cli_file", self.cli_file)
+        # self.status_bar.set_label('bar', "bar")
 
     def run_machine(self):
-        machine_name = self.run_buttons.var_machine.get()
+        machine_name = self.frame_buttons.var_machine.get()
         print("run: %r" % machine_name)
 
-        verbosity = self.var_verbosity.get()
+        verbosity = self.frame_settings.var_verbosity.get()
         verbosity_no = VERBOSITY_DICT2[verbosity]
         print("Verbosity: %i (%s)" % (verbosity_no, verbosity))
 
         cmd_args = [
             sys.executable,
             self.cli_file,
-        #     # "--log_list",
             "--verbosity", "%s" % verbosity_no,
 
-        #     # "--verbosity", "10", # DEBUG
-        #     # "--verbosity", "20", # INFO
-        #     #         "--verbosity", "30", # WARNING
-        #     #         "--verbosity", "40", # ERROR
-        #     #         "--verbosity", "50", # CRITICAL/FATAL
-        #     #         "--verbosity", "99", # nearly all off
-        #     "--verbosity", "100", # all off
-        #
-        #     # "--log",
-        #     # "dragonpy.components.cpu6809,40",
-        #     # "dragonpy.Dragon32.MC6821_PIA,50",
-        #
+            # "--log_list",
+            # "--log",
+            # "dragonpy.components.cpu6809,40",
+            # "dragonpy.Dragon32.MC6821_PIA,50",
+
             "--machine", machine_name, "run",
-        #     #        "--machine", "Vectrex", "run",
-        #     #        "--max_ops", "1",
-        #     #        "--trace",
         ]
         print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
         subprocess.Popen(cmd_args)
@@ -194,4 +202,5 @@ def start_gui(cli_file, machine_dict):
 
 if __name__ == "__main__":
     from dragonpy.core.cli import main
+
     main(confirm_exit=False)
