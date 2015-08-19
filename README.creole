@@ -391,6 +391,7 @@ A really cool Dragon / CoCo emulator
  * http://www.6809.org.uk/xroar/
  * License: GNU GPL v2
 
+
 === included Python modules:
 
 **python-pager**
@@ -407,10 +408,30 @@ Motorola S-Record utilities
  * Homepage: https://github.com/gabtremblay/pysrec
  * Stored here: [[https://github.com/jedie/DragonPy/blob/master/dragonpy/utils/srecord_utils.py|/dragonpy/utils/srecord_utils.py]]
 
-**six**
-Six is a Python 2 and 3 compatibility library.
- * https://pypi.python.org/pypi/six
- * https://bitbucket.org/gutworth/six
+
+=== requirements
+
+**dragonlib**
+Dragon/CoCO Python Library
+ * Author: Jens Diemer
+ * https://pypi.python.org/pypi/DragonLib/
+ * https://github.com/6809/dragonlib
+ * License: GNU GPL v3
+
+**MC6809**
+Implementation of the MC6809 CPU in Python
+ * Author: Jens Diemer
+ * https://pypi.python.org/pypi/MC6809
+ * https://github.com/6809/MC6809
+ * License: GNU GPL v3
+
+**pygments**
+generic syntax highlighter
+ * Author: Georg Brandl
+ * https://pypi.python.org/pypi/Pygments
+ * http://pygments.org/
+ * License: BSD License
+
 
 == History
 
