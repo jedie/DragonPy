@@ -75,11 +75,11 @@ def get_rgb_color(color):
 
 def get_hex_color(color):
     """
-    >>> get_hex_color(BLUE)
-    ('000000', '2110b5')
+    >>> get_hex_color(BLUE) == ('000000', '2110b5')
+    True
 
-    >>> get_hex_color(NORMAL)
-    ('004100', '00ff00')
+    >>> get_hex_color(NORMAL) == ('004100', '00ff00')
+    True
     """
     foreground, background = get_rgb_color(color)
     return (
@@ -282,10 +282,21 @@ def get_charmap_dict():
 
 
 if __name__ == "__main__":
+    create_wiki_page()
+
+    print()
+    print("="*79)
+    print()
+
+    create_dict()
+
+    print()
+    print("="*79)
+    print()
+
     import doctest
     print(doctest.testmod(
-        # verbose=1
+        verbose=1
     ))
 
-#     create_wiki_page()
-    create_dict()
+
