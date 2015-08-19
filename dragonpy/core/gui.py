@@ -6,13 +6,15 @@
     =======================================
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2014-2015 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
 from __future__ import absolute_import, division, print_function
+
 from dragonlib.utils import six
 from dragonpy.Dragon32.keyboard_map import inkey_from_tk_event, add_to_input_queue
+from dragonlib.utils.auto_shift import invert_shift
 
 xrange = six.moves.xrange
 

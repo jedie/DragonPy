@@ -438,6 +438,7 @@ generic syntax highlighter
 * [[https://github.com/jedie/DragonPy/compare/v0.5.0...v0.5.1|??.08.2015 - v0.5.1]]: (not released, yet)
 ** Add a "starter GUI"
 ** Add work-a-round for tkinter usage with virtualenv under windows, see: [[https://github.com/pypa/virtualenv/issues/93|virtualenv issues #93]]
+** bugfix e.g.: keyboard input in "sbc09" emulation
 ** use nose to run unittests
 * [[https://github.com/jedie/DragonPy/compare/v0.4.0...v0.5.0|18.08.2015 - v0.5.0]]:
 ** ROM files will be downloaded on-the-fly ({{{.sh}}} scripts are removed. So it's easier to use under Windows)
