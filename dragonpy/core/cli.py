@@ -35,7 +35,6 @@ from basic_editor.editor import run_basic_editor
 
 import dragonpy
 from dragonpy.core.gui_starter import start_gui
-from dragonpy.tests import run_tests
 from dragonpy.CoCo.config import CoCo2bCfg
 from dragonpy.CoCo.machine import run_CoCo2b
 from dragonpy.Dragon32.config import Dragon32Cfg
@@ -196,13 +195,6 @@ def download_roms():
             content = rom.get_data()
             size = len(content)
             click.echo("\tfile size is $%04x (dez.: %i) Bytes\n" % (size,size))
-
-
-@cli.command(help="Run unittests")
-@click.option('--verbosity', default=2, help='Number for verbosity settings')
-@click.option('--failfast', default=False, help='Number for verbosity settings', is_flag=True)
-def tests(verbosity, failfast):
-    run_tests(verbosity, failfast)
 
 
 def main(confirm_exit=True):

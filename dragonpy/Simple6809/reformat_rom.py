@@ -1,66 +1,72 @@
 
 """
+    Hacked script to:
     insert the destination address to all lables in ExBasROM.LST
 """
+import os
+from dragonpy.Simple6809.Simple6809_rom import Simple6809Rom
 
 IN_FILENAME = "ExBasROM.LST"
 
-print("Read %s" % IN_FILENAME)
-lst_file = open(IN_FILENAME, "r")
+if __name__ == "__main__":
+    rom = Simple6809Rom(address=None)
+    rom.get_data() # download ROM if not exists
 
-OUT_FILENAME = IN_FILENAME + "2"
-new_lst_file = open(OUT_FILENAME, "w")
+    in_filepath = os.path.join(rom.ROM_PATH, IN_FILENAME)
+    out_filepath = os.path.join(rom.ROM_PATH, IN_FILENAME + "2")
 
-addr_dict = {}
-for line in lst_file:
-#     print line
-#     continue
-    
-    line = line.replace("\x97", "-")
-    line = line.replace("\x91", "'")
-    line = line.replace("\x92", "'")
-    line = line.replace("\x93", '"')
+    print("Read %s" % in_filepath)
+    with open(in_filepath, "rb") as lst_file:
+        with open(out_filepath, "w") as new_lst_file:
+            addr_dict = {}
+            for line in lst_file:
+                # print(line)
+                line = line.decode("ASCII", errors="replace")
+                # print(line)
+            #     continue
 
-    addr = line[5:9].strip()
-#     print repr(addr)
-    if addr:
-        desc = line[59:]
-        code = line[:59]
-#         print code, desc
+                line = line.replace("\x97", "-")
+                line = line.replace("\x91", "'")
+                line = line.replace("\x92", "'")
+                line = line.replace("\x93", '"')
 
-        lable = line[29:39].strip()
-        if lable:
-#             print repr(lable)
-            addr_dict[lable] = addr
+                addr = line[5:9].strip()
+            #     print repr(addr)
+                if addr:
+                    desc = line[59:]
+                    code = line[:59]
+            #         print code, desc
 
-        dst_raw = line[44:59] # .strip()
-#         print repr(dst_raw)
+                    lable = line[29:39].strip()
+                    if lable:
+            #             print repr(lable)
+                        addr_dict[lable] = addr
 
-        dst = dst_raw.strip()
-        dst = dst.lstrip("#")
-        dst = dst.split("+", 1)[0]
-        dst = dst.split("-", 1)[0]
+                    dst_raw = line[44:59] # .strip()
+            #         print repr(dst_raw)
 
-        print(repr(dst), addr_dict.get(dst, "-"))
+                    dst = dst_raw.strip()
+                    dst = dst.lstrip("#")
+                    dst = dst.split("+", 1)[0]
+                    dst = dst.split("-", 1)[0]
 
-        if dst in addr_dict:
-            print("%r -> %r" % (dst, addr_dict[dst]))
-            print("1:", code)
-            new_dst = "%s(%s)" % (addr_dict[dst], dst)
-            code = code.replace(dst, new_dst)
-            print("2:", code)
-            print()
+                    print(repr(dst), addr_dict.get(dst, "-"))
 
-        line = "%-70s %s" % (code, desc)
+                    if dst in addr_dict:
+                        print("%r -> %r" % (dst, addr_dict[dst]))
+                        print("1:", code)
+                        new_dst = "%s(%s)" % (addr_dict[dst], dst)
+                        code = code.replace(dst, new_dst)
+                        print("2:", code)
+                        print()
 
-    line = line[5:] # cut line number
-    line = line.rstrip()
-#     print repr(line)
+                    line = "%-70s %s" % (code, desc)
 
-#     print line
-    new_lst_file.write(line + "\n")
+                line = line[5:] # cut line number
+                line = line.rstrip()
+            #     print repr(line)
 
-lst_file.close()
-new_lst_file.close()
+            #     print line
+                new_lst_file.write(line + "\n")
 
-print("\nnew file %r written." % OUT_FILENAME)
+    print("\nnew file %r written." % out_filepath)

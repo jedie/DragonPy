@@ -89,7 +89,6 @@ class CLITestCase(unittest.TestCase):
             "editor         Run only the BASIC editor",
             "log_list       List all exiting loggers and exit.",
             "run            Run a machine emulation",
-            "tests          Run unittests",
         ], cli_out)
 
         errors = ["Error", "Traceback"]
