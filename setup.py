@@ -192,7 +192,7 @@ setup(
     long_description=long_description,
     url="https://github.com/jedie/DragonPy",
     entry_points={
-        "console_scripts": ["DragonPy = dragonpy.core.cli:cli"],
+        "console_scripts": ["DragonPy = dragonpy.core.cli:main"],
     },
     license="GPL v3+",
     classifiers=[
