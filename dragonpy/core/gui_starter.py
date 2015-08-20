@@ -14,6 +14,7 @@ from __future__ import absolute_import, division, print_function
 import subprocess
 import sys
 import logging
+import click
 
 import os
 
@@ -103,23 +104,37 @@ class RunButtonsFrame(tk.LabelFrame):
                 variable=self.var_machine, value=machine_name)
             b.grid(row=row, column=1, sticky=tk.W)
 
-        _row=len(self.machine_dict)
-
         button_run = tk.Button(self,
             width=25,
             text="run machine",
             command=master.run_machine
         )
-        button_run.grid(row=_row, column=1)
+        button_run.grid(row=len(self.machine_dict), column=1)
 
-        _row+=1
+
+
+class ActionButtonsFrame(tk.LabelFrame):
+    def __init__(self, master, **kwargs):
+        tk.LabelFrame.__init__(self, master, text="other actions")
+        self.grid(**kwargs)
+
+        _column=0
 
         button_run = tk.Button(self,
             width=25,
-            text="run only BASIC editor",
+            text="BASIC editor",
             command=master.run_basic_editor
         )
-        button_run.grid(row=_row, column=1)
+        button_run.grid(row=0, column=_column)
+
+        _column+=1
+
+        button_run = tk.Button(self,
+            width=25,
+            text="MC6809 benchmark",
+            command=master.run_6809_benchmark
+        )
+        button_run.grid(row=0, column=1)
 
 
 class MultiStatusBar(tk.Frame):
@@ -142,11 +157,10 @@ class MultiStatusBar(tk.Frame):
         label.config(text=text)
 
 
-class GuiStarter(tk.Tk):
-    def __init__(self, cli_file, machine_dict):
+class StarterGUI(tk.Tk):
+    def __init__(self, machine_dict):
         tk.Tk.__init__(self)
 
-        self.cli_file = os.path.abspath(cli_file)
         self.machine_dict = machine_dict
 
         self.geometry("+%d+%d" % (
@@ -173,54 +187,80 @@ class GuiStarter(tk.Tk):
         }
 
         self.frame_settings = SettingsFrame(self, column=0, row=0, **defaults)
-        self.frame_buttons = RunButtonsFrame(self, column=1, row=0, **defaults)
-        self.status_bar = MultiStatusBar(self, column=0, row=1, columnspan=2,
+        self.frame_run_buttons = RunButtonsFrame(self, column=1, row=0, **defaults)
+        self.frame_action_buttons = ActionButtonsFrame(self, column=0, row=1, columnspan=2, **defaults)
+        self.status_bar = MultiStatusBar(self, column=0, row=2, columnspan=2,
             sticky=tk.NSEW,
         )
 
     def set_status_bar(self):
-        self.status_bar.set_label("cli_file", self.cli_file)
         self.status_bar.set_label("python_info", get_python_info())
 
+    def _print_run_info(self, txt):
+        click.echo("\n")
+        click.secho(txt, bg='blue', fg='white', bold=True, underline=True)
+
+    def _print_args_info(self, *args):
+        click.echo("\tadd: %s" % click.style(" ".join(args), bold=True))
+
     def _run(self, *args):
+        """
+        Run current executable via subprocess and given args
+        """
+        print("execute: %s" % " ".join(args))
+        subprocess.Popen(args)
+
+    def _run_dragonpy_cli(self, *args):
+        """
+        Run DragonPy cli with given args.
+        Add "--verbosity" from GUI.
+        """
         verbosity = self.frame_settings.var_verbosity.get()
         verbosity_no = VERBOSITY_DICT2[verbosity]
-        print("Verbosity: %i (%s)" % (verbosity_no, verbosity))
+        log.debug("Verbosity: %i (%s)" % (verbosity_no, verbosity))
+
+        verbosity_args = ["--verbosity", "%s" % verbosity_no]
+        self._print_args_info(*verbosity_args)
 
         cmd_args = [
-            sys.executable,
-            self.cli_file,
-            "--verbosity", "%s" % verbosity_no,
+            "DragonPy",
 
             # "--log_list",
             # "--log",
             # "dragonpy.components.cpu6809,40",
             # "dragonpy.Dragon32.MC6821_PIA,50",
         ]
+        cmd_args += verbosity_args
         cmd_args += args
-        print("Startup CLI with: %s" % " ".join(cmd_args[1:]))
-        subprocess.Popen(cmd_args)
+        self._run(*cmd_args)
 
     def _run_command(self, command):
         """
-        :param command: string like "run" or "editor"
-        :return: None
+        Run DragonPy cli with given command like "run" or "editor"
+        Add "--machine" from GUI.
+        "--verbosity" will also be set, later.
         """
-        machine_name = self.frame_buttons.var_machine.get()
-        self._run("--machine", machine_name, command)
+        machine_name = self.frame_run_buttons.var_machine.get()
+        args = ["--machine", machine_name]
+        self._print_args_info(*args)
+        args.append(command)
+        self._run_dragonpy_cli(*args)
 
     def run_machine(self):
-        print("Run machine emulation")
+        self._print_run_info("Run machine emulation")
         self._run_command("run")
 
     def run_basic_editor(self):
-        print("Run only the BASIC editor")
+        self._print_run_info("Run only the BASIC editor")
         self._run_command("editor")
 
+    def run_6809_benchmark(self):
+        self._print_run_info("Run MC6809 benchmark")
+        cmd_args = [
+            "MC6809", "benchmark"
+        ]
+        self._run(*cmd_args)
 
-def start_gui(cli_file, machine_dict):
-    gui = GuiStarter(cli_file, machine_dict)
-    gui.mainloop()
 
 
 if __name__ == "__main__":

@@ -34,7 +34,7 @@ from dragonlib.utils.logging_utils import setup_logging, LOG_LEVELS
 from basic_editor.editor import run_basic_editor
 
 import dragonpy
-from dragonpy.core.gui_starter import start_gui
+from dragonpy.core.gui_starter import StarterGUI
 from dragonpy.CoCo.config import CoCo2bCfg
 from dragonpy.CoCo.machine import run_CoCo2b
 from dragonpy.Dragon32.config import Dragon32Cfg
@@ -206,7 +206,8 @@ def main(confirm_exit=True):
                 click.prompt("Please press [ENTER] to exit", default="", show_default=False)
             atexit.register(confirm)
 
-        start_gui(__file__, machine_dict)
+        gui = StarterGUI(machine_dict)
+        gui.mainloop()
     else:
         cli()
 
