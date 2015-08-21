@@ -15,7 +15,6 @@ import os
 import unittest
 import sys
 
-from dragonlib.utils.unittest_utils import TextTestRunner2
 from dragonlib.utils.logging_utils import setup_logging
 
 from dragonpy.CoCo.CoCo2b_rom import CoCo2b_Basic13_ROM, \
@@ -59,28 +58,3 @@ class ROMTest(unittest.TestCase):
         self._test_rom(Simple6809Rom(address=None))
 
 
-if __name__ == '__main__':
-    setup_logging(
-        # level=1 # hardcore debug ;)
-        # level=10 # DEBUG
-        # level=20 # INFO
-        # level=30 # WARNING
-        # level=40 # ERROR
-        level=50 # CRITICAL/FATAL
-        # level=99 # nearly off
-    )
-
-    unittest.main(
-        argv=(
-            sys.argv[0],
-            # "ROMTest.test_Multicomp6809Rom",
-            # "ROMTest.test_Simple6809Rom",
-            # "ROMTest.test_CoCo2b_Basic13_ROM",
-            # "ROMTest.test_CoCo2b_ExtendedBasic11_ROM",
-        ),
-        testRunner=TextTestRunner2,
-        # verbosity=1,
-        verbosity=2,
-        failfast=False,
-        # failfast=True,
-    )

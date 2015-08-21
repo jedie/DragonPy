@@ -206,6 +206,7 @@ def main(confirm_exit=True):
                 click.prompt("Please press [ENTER] to exit", default="", show_default=False)
             atexit.register(confirm)
 
+        click.secho("\nrun DragonPy starter GUI...\n", bold=True)
         gui = StarterGUI(machine_dict)
         gui.mainloop()
     else:

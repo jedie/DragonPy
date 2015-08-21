@@ -20,7 +20,7 @@
 """
 
 from __future__ import absolute_import, division, print_function
-from dragonlib.utils import six
+import six
 xrange = six.moves.xrange
 
 import array
@@ -28,7 +28,7 @@ import os
 import sys
 import logging
 
-from dragonlib.utils import six
+import six
 from dragonlib.utils.logging_utils import log_hexlist
 
 

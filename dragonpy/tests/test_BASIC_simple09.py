@@ -18,7 +18,6 @@ import logging
 import sys
 import unittest
 
-from dragonlib.utils.unittest_utils import TextTestRunner2
 from dragonpy.tests.test_base import Test6809_BASIC_simple6809_Base
 from dragonpy.utils.BASIC09_floating_point import BASIC09FloatingPoint
 
@@ -653,32 +652,3 @@ WIP:
 '''
 
 
-if __name__ == '__main__':
-    from dragonlib.utils.logging_utils import setup_logging
-
-    setup_logging(log,
-#         level=1 # hardcore debug ;)
-#        level=10 # DEBUG
-#        level=20 # INFO
-#        level=30 # WARNING
-#         level=40 # ERROR
-        level=50 # CRITICAL/FATAL
-    )
-
-    unittest.main(
-        argv=(
-            sys.argv[0],
-#             "Test_simple6809_BASIC.test_print01",
-
-#             "Test_simple6809_BASIC_Float1",
-#             "Test_simple6809_BASIC_NumericFunctions",
-#             "Test_simple6809_BASIC_Float2",
-#            "Test_simple6809_BASIC_Float2.test_divide_FPA0_by_10",
-#            "Test_simple6809_BASIC_Float2.test_FPA0_to_D",
-#            "Test_simple6809_BASIC_Float2.test_division",
-        ),
-        testRunner=TextTestRunner2,
-#         verbosity=1,
-        verbosity=2,
-        failfast=True,
-    )

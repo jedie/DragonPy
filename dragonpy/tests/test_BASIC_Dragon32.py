@@ -18,7 +18,6 @@ import sys
 import unittest
 import logging
 
-from dragonlib.utils.unittest_utils import TextTestRunner2
 from dragonlib.utils.logging_utils import setup_logging
 from dragonpy.tests.test_base import Test6809_Dragon32_Base
 
@@ -102,27 +101,3 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
         self.assertEqual(output, ['10 A=1', '20 B=2'])
 
 
-
-if __name__ == '__main__':
-    setup_logging(
-        # level=1 # hardcore debug ;)
-        # level=10 # DEBUG
-        # level=20 # INFO
-        # level=30 # WARNING
-        # level=40 # ERROR
-        level=50 # CRITICAL/FATAL
-        # level=99 # nearly off
-    )
-
-    unittest.main(
-        argv=(
-            sys.argv[0],
-#            "Test_Dragon32_BASIC.test_code_load02",
-#             "Test_Dragon32_BASIC.test_code_save01",
-#            "Test_Dragon32_BASIC.test_tokens_in_string",
-        ),
-        testRunner=TextTestRunner2,
-#         verbosity=1,
-        verbosity=2,
-        failfast=True,
-    )

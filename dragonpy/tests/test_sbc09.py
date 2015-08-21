@@ -18,8 +18,8 @@
 """
 
 from __future__ import absolute_import, division, print_function
-from dragonlib.utils.unittest_utils import TextTestRunner2
-from dragonlib.utils import six
+
+import six
 xrange = six.moves.xrange
 
 import logging
@@ -213,32 +213,3 @@ class Test_sbc09(Test6809_sbc09_Base):
             'E416 CE0000     LDU   #$0000\r\n'
         ])
 
-
-if __name__ == '__main__':
-    from dragonlib.utils.logging_utils import setup_logging
-
-    setup_logging(log,
-        level=1 # hardcore debug ;)
-#        level=10 # DEBUG
-#        level=20 # INFO
-#        level=30 # WARNING
-#        level=40 # ERROR
-#        level=50 # CRITICAL/FATAL
-    )
-
-    import doctest
-    print(doctest.testmod(verbose=0))
-
-    unittest.main(
-        argv=(
-            sys.argv[0],
-#            "Create_sbc09_trace",
-#             "Test_sbc09.test_S_records",
-#            "Test_sbc09.test_calculate_hex_negative",
-        ),
-        testRunner=TextTestRunner2,
-#         verbosity=1,
-        verbosity=2,
-#         failfast=True,
-    )
-    print(" --- END --- ")

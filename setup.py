@@ -18,8 +18,7 @@ import sys
 import subprocess
 import shutil
 
-from dragonpy import __version__
-
+from dragonpy import __version__, DISTRIBUTION_NAME, DIST_GROUP, ENTRY_POINT
 
 PACKAGE_ROOT = os.path.dirname(os.path.abspath(__file__))
 
@@ -199,7 +198,11 @@ if "test" in sys.argv or "nosetests" in sys.argv:
 
 
 setup(
-    name="DragonPyEmulator", # Name conflict with https://github.com/jpanganiban/dragonpy :(
+    name=DISTRIBUTION_NAME,
+    # PyPi package is: "DragonPyEmulator" and not "DragonPy"
+    # because of name conflict with https://github.com/jpanganiban/dragonpy :(
+    # see:https://github.com/jpanganiban/dragonpy/issues/3
+
     version=__version__,
     py_modules=["DragonPy"],
     provides=["DragonPy"],
@@ -207,16 +210,27 @@ setup(
         "dragonlib",
         "MC6809",
         "pygments",
+        "click",
+        "six",
     ],
+    tests_require=[
+        "nose", # https://pypi.python.org/pypi/nose
+    ],
+    # https://pythonhosted.org/setuptools/setuptools.html#automatic-script-creation
+    entry_points={
+        # Here we use constants, because of usage in "starter GUI", too.
+        # DIST_GROUP = "console_scripts"
+        # ENTRY_POINT = "DragonPy"
+        DIST_GROUP: ["%s = dragonpy.core.cli:main" % ENTRY_POINT],
+        # e.g.:
+        #   "console_scripts": ["DragonPy = dragonpy.core.cli:main"],
+    },
     author="Jens Diemer",
     author_email="DragonPy@jensdiemer.de",
     description="Emulator for 6809 CPU based system like Dragon 32 / CoCo written in Python...",
     keywords="Emulator 6809 Dragon CoCo Vectrex tkinter pypy",
     long_description=long_description,
     url="https://github.com/jedie/DragonPy",
-    entry_points={
-        "console_scripts": ["DragonPy = dragonpy.core.cli:main"],
-    },
     license="GPL v3+",
     classifiers=[
         # https://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -243,8 +257,4 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     zip_safe=False,
-    test_suite="dragonpy.tests.get_tests",
-    tests_require=[
-        "nose", # https://pypi.python.org/pypi/nose
-    ],
 )

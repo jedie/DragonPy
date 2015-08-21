@@ -13,7 +13,7 @@
 """
 
 from __future__ import absolute_import, division, print_function, unicode_literals
-from dragonlib.utils import six
+import six
 xrange = six.moves.xrange
 
 import unicodedata

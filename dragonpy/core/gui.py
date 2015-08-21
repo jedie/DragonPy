@@ -12,21 +12,18 @@
 
 from __future__ import absolute_import, division, print_function
 
-from dragonlib.utils import six
-from dragonpy.Dragon32.keyboard_map import inkey_from_tk_event, add_to_input_queue
-from dragonlib.utils.auto_shift import invert_shift
-
-xrange = six.moves.xrange
-
 import sys
 import time
 import logging
 import string
+import six
+
+xrange = six.moves.xrange
 
 try:
     # Python 3
     import queue
-    import tkinter
+    import tkinter as tk
     from tkinter import filedialog
     from tkinter import messagebox
     from tkinter import scrolledtext
@@ -34,13 +31,19 @@ try:
 except ImportError:
     # Python 2
     import Queue as queue
-    import Tkinter as tkinter
+    import Tkinter as tk
     import tkFileDialog as filedialog
     import tkMessageBox as messagebox
     import ScrolledText as scrolledtext
     import tkFont as TkFont
 
 from basic_editor.editor import EditorWindow
+
+from dragonpy.Dragon32.keyboard_map import inkey_from_tk_event, add_to_input_queue
+from dragonlib.utils.auto_shift import invert_shift
+import dragonpy
+from dragonpy.Dragon32.keyboard_map import inkey_from_tk_event, add_to_input_queue
+from dragonpy.core.gui_starter import MultiStatusBar
 from dragonpy.Dragon32.MC6847 import MC6847_TextModeCanvas
 from dragonpy.Dragon32.gui_config import RuntimeCfg, BaseTkinterGUIConfig
 from dragonpy.utils.humanize import locale_format_number, get_python_info
@@ -67,7 +70,7 @@ class BaseTkinterGUI(object):
 
         self.init_statistics() # Called also after reset
 
-        self.root = tkinter.Tk(className="DragonPy")
+        self.root = tk.Tk(className="DragonPy")
         # self.root.config(font="Helvetica 16 bold italic")
 
         self.root.geometry("+%d+%d" % (
@@ -83,28 +86,29 @@ class BaseTkinterGUI(object):
             size=11, weight='normal'
         )
 
-        self.status = tkinter.StringVar(value="startup %s...\n" % self.cfg.MACHINE_NAME)
-        self.status_widget = tkinter.Label(
+        self.status = tk.StringVar(value="startup %s...\n" % self.cfg.MACHINE_NAME)
+        self.status_widget = tk.Label(
             self.root, textvariable=self.status, text="Info:", borderwidth=1,
             font=menu_tk_font
         )
         self.status_widget.grid(row=1, column=0)
 
-        self.python_info_label = tkinter.Label(
-            self.root, borderwidth=1, text=get_python_info(),
+        self.status_bar = MultiStatusBar(self.root, row=2, column=0,
+            sticky=tk.NSEW,
         )
-        self.python_info_label.grid(row=2, column=0)
+        self.status_bar.set_label("python_version", get_python_info())
+        self.status_bar.set_label("dragonpy_version", "DragonPy v%s" % dragonpy.__version__)
 
-        self.menubar = tkinter.Menu(self.root)
+        self.menubar = tk.Menu(self.root)
 
-        filemenu = tkinter.Menu(self.menubar, tearoff=0)
+        filemenu = tk.Menu(self.menubar, tearoff=0)
         filemenu.add_command(label="Exit", command=self.exit)
         self.menubar.add_cascade(label="File", menu=filemenu)
 
         # 6809 menu
-        self.cpu_menu = tkinter.Menu(self.menubar, tearoff=0)
+        self.cpu_menu = tk.Menu(self.menubar, tearoff=0)
         self.cpu_menu.add_command(label="pause", command=self.command_cpu_pause)
-        self.cpu_menu.add_command(label="resume", command=self.command_cpu_pause, state=tkinter.DISABLED)
+        self.cpu_menu.add_command(label="resume", command=self.command_cpu_pause, state=tk.DISABLED)
         self.cpu_menu.add_separator()
         self.cpu_menu.add_command(label="soft reset", command=self.command_cpu_soft_reset)
         self.cpu_menu.add_command(label="hard reset", command=self.command_cpu_hard_reset)
@@ -116,7 +120,7 @@ class BaseTkinterGUI(object):
         # self.root.after(200, self.command_config)
 
         # help menu
-        helpmenu = tkinter.Menu(self.menubar, tearoff=0)
+        helpmenu = tk.Menu(self.menubar, tearoff=0)
         helpmenu.add_command(label="help", command=self.menu_event_help)
         helpmenu.add_command(label="about", command=self.menu_event_about)
         self.menubar.add_cascade(label="help", menu=helpmenu)
@@ -174,13 +178,13 @@ class BaseTkinterGUI(object):
             self.root.after_cancel(self.cpu_after_id)
             self.cpu_after_id = None
             self.status_paused()
-            self.cpu_menu.entryconfig(index=0, state=tkinter.DISABLED)
-            self.cpu_menu.entryconfig(index=1, state=tkinter.NORMAL)
+            self.cpu_menu.entryconfig(index=0, state=tk.DISABLED)
+            self.cpu_menu.entryconfig(index=1, state=tk.NORMAL)
         else:
             # restart
             self.cpu_interval(interval=1)
-            self.cpu_menu.entryconfig(index=0, state=tkinter.NORMAL)
-            self.cpu_menu.entryconfig(index=1, state=tkinter.DISABLED)
+            self.cpu_menu.entryconfig(index=0, state=tk.NORMAL)
+            self.cpu_menu.entryconfig(index=1, state=tk.DISABLED)
             self.init_statistics() # Reset statistics
 
     def command_cpu_soft_reset(self):
@@ -351,7 +355,7 @@ class DragonTkinterGUI(BaseTkinterGUI):
             self._editor_window.root.protocol("WM_DELETE_WINDOW", self.close_basic_editor)
 
             # insert menu to editor window
-            editmenu = tkinter.Menu(self._editor_window.menubar, tearoff=0)
+            editmenu = tk.Menu(self._editor_window.menubar, tearoff=0)
             editmenu.add_command(label="load from DragonPy", command=self.command_load_from_DragonPy)
             editmenu.add_command(label="inject into DragonPy", command=self.command_inject_into_DragonPy)
             editmenu.add_command(label="inject + RUN into DragonPy", command=self.command_inject_and_run_into_DragonPy)
@@ -414,7 +418,7 @@ class ScrolledTextGUI(BaseTkinterGUI):
             highlightthickness=0,
             font=('courier', 11),
         )
-        self.text.grid(row=0, column=0, sticky=tkinter.NSEW)
+        self.text.grid(row=0, column=0, sticky=tk.NSEW)
 
 #         self._editor_window = None
 #         self.menubar.insert_command(index=3, label="BASIC editor", command=self.open_basic_editor)
@@ -450,15 +454,15 @@ class ScrolledTextGUI(BaseTkinterGUI):
         log.debug("Add to text: %s", repr(char))
         if char == "\x08":
             # Delete last input char
-            self.text.delete(tkinter.INSERT + "-1c")
+            self.text.delete(tk.INSERT + "-1c")
         else:
             # insert the new character:
-            self.text.insert(tkinter.END, char)
+            self.text.insert(tk.END, char)
 
             # scroll down if needed:
-            self.text.see(tkinter.END)
+            self.text.see(tk.END)
 
             # Set cursor to the END position:
-            self.text.mark_set(tkinter.INSERT, tkinter.END)
+            self.text.mark_set(tk.INSERT, tk.END)
 
 

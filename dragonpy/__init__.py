@@ -2,7 +2,13 @@ import os
 import sys
 
 
-__version__ = "0.5.1"
+__version__ = "0.5.2"
+
+
+# Used in setup.py and starter GUI to find the cli-executeable:
+DISTRIBUTION_NAME="DragonPyEmulator"
+DIST_GROUP = "console_scripts"
+ENTRY_POINT = "DragonPy"
 
 
 def fix_virtualenv_tkinter():
