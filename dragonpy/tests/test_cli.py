@@ -58,12 +58,12 @@ class TestStarter(CliTestCase):
     """
     Test the "starter functions" that invoke DragonPy / MC6809 via subprocess.
     """
-    def _run(self, func, *args, verbose=False):
+    def _run(self, func, *args, **kwargs):
         p = func(*args,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             universal_newlines=True,
-            verbose=verbose
+            **kwargs
         )
         retcode = p.wait()
 
