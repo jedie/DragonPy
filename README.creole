@@ -154,6 +154,9 @@ The is a simple "starter GUI", just call the cli without arguments:
 
 {{{%APPDATA%\DragonPy_env\Scripts\DragonPy.exe}}}
 
+It looks like this:
+
+{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20150821_DragonPy_starterGUI.png|starter GUI}}
 
 
 == ROMs
@@ -432,8 +435,9 @@ generic syntax highlighter
 
 == History
 
-* [[https://github.com/jedie/DragonPy/compare/v0.5.1...v0.5.2|20.08.2015 - v0.5.2]]: (not released, yet)
+* [[https://github.com/jedie/DragonPy/compare/v0.5.1...v0.5.2|20.08.2015 - v0.5.2]]:
 ** Add run 'MC6809 benchmark' button to 'starter GUI'
+** bugfix 'file not found' in 'starter GUI'
 ** change the GUI a little bit
 * [[https://github.com/jedie/DragonPy/compare/v0.5.0...v0.5.1|19.08.2015 - v0.5.1]]:
 ** Add a "starter GUI"
