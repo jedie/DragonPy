@@ -5,6 +5,9 @@
     DragonPy - Dragon 32 emulator in Python
     =======================================
 
+    TODO: The config / speed limit stuff must be completely refactored!
+
+
     :created: 2014 by Jens Diemer - www.jensdiemer.de
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
@@ -12,6 +15,8 @@
 from __future__ import absolute_import, division, print_function
 
 import logging
+import sys
+from MC6809.components.cpu6809 import CPU
 
 log = logging.getLogger(__name__)
 
@@ -32,15 +37,33 @@ except ImportError:
 class RuntimeCfg(object):
     """
     TODO: Load/save to ~/.DragonPy.ini
+
+    TODO: refactor: move code to CPU!
     """
-    speedlimit = False
-    cycles_per_sec = 888625 # cycles/sec
-    sync_op_count = 100
-    max_run_time = 0.1
-    max_burst_count = 1000
+    speedlimit = False # run emulation in realtime or as fast as it can be?
+
+    cycles_per_sec = 888625 # target cycles/sec if speed-limit is activated
+
+    max_run_time = 0.01 # target duration of one CPU Op burst run
+                        # important for CPU vs. GUI updates
+
+    # Use the default value from MC6809 class:
+    min_burst_count = CPU.min_burst_count # minimum outer op count per burst
+    max_burst_count = CPU.max_burst_count # maximum outer op count per burst
+    max_delay = CPU.max_delay # maximum time.sleep() value per burst run
+    inner_burst_op_count = CPU.inner_burst_op_count # How many ops calls, before next sync call
+
+    def __init(self):
+        is_pypy = hasattr(sys, 'pypy_version_info')
+        if is_pypy:
+            # Activate realtime mode if pypy is used
+            # TODO: add a automatic mode, that activate
+            # realtime mode if performance has enough reserves.
+            self.speedlimit = True
 
     def __setattr__(self, attr, value):
         log.critical("Set RuntimeCfg %r to: %r" % (attr, value))
+        setattr(CPU, attr, value) # TODO: refactor!
         return object.__setattr__(self, attr, value)
 
     def load(self):
@@ -48,6 +71,7 @@ class RuntimeCfg(object):
 
     def save(self):
         raise NotImplementedError("TODO!")
+
 
 
 class BaseTkinterGUIConfig(object):
@@ -125,20 +149,20 @@ class BaseTkinterGUIConfig(object):
         row += 1
 
         #
-        # CPU sync OP count - self.runtime_cfg.sync_op_count
+        # CPU sync OP count - self.runtime_cfg.inner_burst_op_count
         #
-        self.sync_op_count_var = tkinter.IntVar(
-            value=self.runtime_cfg.sync_op_count
+        self.inner_burst_op_count_var = tkinter.IntVar(
+            value=self.runtime_cfg.inner_burst_op_count
         )
-        self.sync_op_count_entry = tkinter.Entry(self.root,
-            textvariable=self.sync_op_count_var, width=8,
+        self.inner_burst_op_count_entry = tkinter.Entry(self.root,
+            textvariable=self.inner_burst_op_count_var, width=8,
         )
-        self.sync_op_count_entry.bind('<KeyRelease>', self.command_sync_op_count)
-        self.sync_op_count_entry.grid(row=row, column=1)
-        self.sync_op_count_label = tkinter.Label(self.root,
-            text="How many Ops should the CPU process before check sync calls e.g. IRQ (sync_op_count)"
+        self.inner_burst_op_count_entry.bind('<KeyRelease>', self.command_inner_burst_op_count)
+        self.inner_burst_op_count_entry.grid(row=row, column=1)
+        self.inner_burst_op_count_label = tkinter.Label(self.root,
+            text="How many Ops should the CPU process before check sync calls e.g. IRQ (inner_burst_op_count)"
         )
-        self.sync_op_count_label.grid(row=row, column=2, sticky=tkinter.W)
+        self.inner_burst_op_count_label.grid(row=row, column=2, sticky=tkinter.W)
 
         row += 1
 
@@ -157,6 +181,24 @@ class BaseTkinterGUIConfig(object):
             text="Max CPU op burst count (max_burst_count)"
         )
         self.max_burst_count_label.grid(row=row, column=2, sticky=tkinter.W)
+        
+        row += 1
+
+        #
+        # max CPU burst delay - self.runtime_cfg.max_delay
+        #
+        self.max_delay_var = tkinter.DoubleVar(
+            value=self.runtime_cfg.max_delay
+        )
+        self.max_delay_entry = tkinter.Entry(self.root,
+            textvariable=self.max_delay_var, width=8,
+        )
+        self.max_delay_entry.bind('<KeyRelease>', self.command_max_delay)
+        self.max_delay_entry.grid(row=row, column=1)
+        self.max_delay_label = tkinter.Label(self.root,
+            text="Max CPU op burst delay (max_delay)"
+        )
+        self.max_delay_label.grid(row=row, column=2, sticky=tkinter.W)
 
         self.root.update()
 
@@ -164,6 +206,9 @@ class BaseTkinterGUIConfig(object):
         self.runtime_cfg.speedlimit = self.check_value_speedlimit.get()
 
     def command_cycles_per_sec(self, event=None):
+        """
+        TODO: refactor: move code to CPU!
+        """
         try:
             cycles_per_sec = self.cycles_per_sec_var.get()
         except ValueError:
@@ -179,18 +224,34 @@ class BaseTkinterGUIConfig(object):
 
         self.runtime_cfg.cycles_per_sec = cycles_per_sec
 
-    def command_sync_op_count(self, event=None):
-        """ CPU burst max running time - self.runtime_cfg.sync_op_count """
+    def command_max_delay(self, event=None):
+        """ CPU burst max running time - self.runtime_cfg.max_delay """
         try:
-            sync_op_count = self.sync_op_count_var.get()
+            max_delay = self.max_delay_var.get()
         except ValueError:
-            sync_op_count = self.runtime_cfg.sync_op_count
+            max_delay = self.runtime_cfg.max_delay
 
-        if sync_op_count < 1:
-            sync_op_count = self.runtime_cfg.sync_op_count
+        if max_delay < 0:
+            max_delay = self.runtime_cfg.max_delay
 
-        self.runtime_cfg.sync_op_count = sync_op_count
-        self.sync_op_count_var.set(self.runtime_cfg.sync_op_count)
+        if max_delay > 0.1:
+            max_delay = self.runtime_cfg.max_delay
+
+        self.runtime_cfg.max_delay = max_delay
+        self.max_delay_var.set(self.runtime_cfg.max_delay)
+        
+    def command_inner_burst_op_count(self, event=None):
+        """ CPU burst max running time - self.runtime_cfg.inner_burst_op_count """
+        try:
+            inner_burst_op_count = self.inner_burst_op_count_var.get()
+        except ValueError:
+            inner_burst_op_count = self.runtime_cfg.inner_burst_op_count
+
+        if inner_burst_op_count < 1:
+            inner_burst_op_count = self.runtime_cfg.inner_burst_op_count
+
+        self.runtime_cfg.inner_burst_op_count = inner_burst_op_count
+        self.inner_burst_op_count_var.set(self.runtime_cfg.inner_burst_op_count)
 
     def command_max_burst_count(self, event=None):
         """ max CPU burst op count - self.runtime_cfg.max_burst_count """

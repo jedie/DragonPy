@@ -266,7 +266,6 @@ class BaseTkinterGUI(object):
 
     def update_status_interval(self, interval=500):
         # Update CPU settings:
-        self.machine.cpu.sync_op_count = self.runtime_cfg.sync_op_count
         self.machine.cpu.max_burst_count = self.runtime_cfg.max_burst_count
 
         new_cycles = self.machine.cpu.cycles - self.last_cpu_cycles
@@ -275,22 +274,27 @@ class BaseTkinterGUI(object):
         cycles_per_sec = new_cycles / duration
 
         msg = (
-                  "%s cylces/sec (~%s burst op count)\n"
+                  "%s cylces/sec (burst op count: outer: %s - inner: %s)\n"
                   "%i CPU interval calls"
               ) % (
                   locale_format_number(cycles_per_sec),
-                  locale_format_number(self.machine.cpu.burst_op_count),
+
+                  locale_format_number(self.machine.cpu.outer_burst_op_count),
+                  locale_format_number(self.machine.cpu.inner_burst_op_count),
+
                   self.cpu_interval_calls,
               )
 
         if self.runtime_cfg.speedlimit:
             msg += (
-                       "\ncylces/sec diff: %s"
-                   ) % (
-                       locale_format_number(
-                           abs(self.runtime_cfg.cycles_per_sec - cycles_per_sec)
-                       ),
-                   )
+                " (Burst delay: %f)\nSpeed target: %s cylces/sec - diff: %s cylces/sec"
+            ) % (
+                self.machine.cpu.delay,
+                locale_format_number(self.runtime_cfg.cycles_per_sec),
+                locale_format_number(
+                    cycles_per_sec - self.runtime_cfg.cycles_per_sec
+                ),
+            )
 
         self.status.set(msg)
 
