@@ -24,6 +24,7 @@ after_success:
 branches:
   except:
     - wip
+    - WIP
     - experimental
 
 # whitelist
