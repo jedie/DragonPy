@@ -12,6 +12,7 @@
 from __future__ import absolute_import, division, print_function
 
 import logging
+from MC6809.components.cpu6809 import CPU
 
 log = logging.getLogger(__name__)
 
@@ -35,9 +36,15 @@ class RuntimeCfg(object):
     """
     speedlimit = False
     cycles_per_sec = 888625 # cycles/sec
-    sync_op_count = 100
-    max_run_time = 0.1
-    max_burst_count = 1000
+    max_run_time = 0.01
+
+    # min_burst_count = CPU.min_burst_count # TODO: Add to GUI config
+    # max_delay = CPU.max_delay # TODO: Add to GUI config
+
+    min_burst_count = CPU.min_burst_count # minimum outer op count per burst
+    max_burst_count = CPU.max_burst_count # maximum outer op count per burst
+    max_delay = CPU.max_delay # maximum time.sleep() value per burst run
+    inner_burst_op_count = CPU.inner_burst_op_count # How many ops calls, before next sync call
 
     def __setattr__(self, attr, value):
         log.critical("Set RuntimeCfg %r to: %r" % (attr, value))
@@ -125,7 +132,7 @@ class BaseTkinterGUIConfig(object):
         row += 1
 
         #
-        # CPU sync OP count - self.runtime_cfg.sync_op_count
+        # CPU sync OP count - self.runtime_cfg.inner_burst_op_count
         #
         self.sync_op_count_var = tkinter.IntVar(
             value=self.runtime_cfg.sync_op_count
@@ -136,7 +143,7 @@ class BaseTkinterGUIConfig(object):
         self.sync_op_count_entry.bind('<KeyRelease>', self.command_sync_op_count)
         self.sync_op_count_entry.grid(row=row, column=1)
         self.sync_op_count_label = tkinter.Label(self.root,
-            text="How many Ops should the CPU process before check sync calls e.g. IRQ (sync_op_count)"
+            text="How many Ops should the CPU process before check sync calls e.g. IRQ (inner_burst_op_count)"
         )
         self.sync_op_count_label.grid(row=row, column=2, sticky=tkinter.W)
 
@@ -180,7 +187,7 @@ class BaseTkinterGUIConfig(object):
         self.runtime_cfg.cycles_per_sec = cycles_per_sec
 
     def command_sync_op_count(self, event=None):
-        """ CPU burst max running time - self.runtime_cfg.sync_op_count """
+        """ CPU burst max running time - self.runtime_cfg.inner_burst_op_count """
         try:
             sync_op_count = self.sync_op_count_var.get()
         except ValueError:
