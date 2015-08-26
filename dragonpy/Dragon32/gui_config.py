@@ -16,7 +16,6 @@ from __future__ import absolute_import, division, print_function
 
 import logging
 import sys
-from MC6809.components.cpu6809 import CPU
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +32,8 @@ except ImportError:
     import tkMessageBox as messagebox
     import ScrolledText as scrolledtext
 
+from MC6809.components.cpu6809 import CPU, CPUSpeedLimit
+
 
 class RuntimeCfg(object):
     """
@@ -48,9 +49,9 @@ class RuntimeCfg(object):
                         # important for CPU vs. GUI updates
 
     # Use the default value from MC6809 class:
-    min_burst_count = CPU.min_burst_count # minimum outer op count per burst
-    max_burst_count = CPU.max_burst_count # maximum outer op count per burst
-    max_delay = CPU.max_delay # maximum time.sleep() value per burst run
+    min_burst_count = CPUSpeedLimit.min_burst_count # minimum outer op count per burst
+    max_burst_count = CPUSpeedLimit.max_burst_count # maximum outer op count per burst
+    max_delay = CPUSpeedLimit.max_delay # maximum time.sleep() value per burst run
     inner_burst_op_count = CPU.inner_burst_op_count # How many ops calls, before next sync call
 
     def __init(self):
@@ -203,7 +204,9 @@ class BaseTkinterGUIConfig(object):
         self.root.update()
 
     def command_checkbutton_speedlimit(self, event=None):
-        self.runtime_cfg.speedlimit = self.check_value_speedlimit.get()
+        use_speed_limit = bool(self.check_value_speedlimit.get())
+        self.gui.change_speed_limit(use_speed_limit)
+        self.runtime_cfg.speedlimit = use_speed_limit
 
     def command_cycles_per_sec(self, event=None):
         """

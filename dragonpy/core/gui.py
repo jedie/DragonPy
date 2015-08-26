@@ -238,6 +238,12 @@ class BaseTkinterGUI(object):
     cpu_interval_calls = 0
     last_display_queue_qsize = 0
 
+    def change_speed_limit(self, use_speed_limit):
+        if use_speed_limit:
+            self.machine.cpu = self.machine.cpu.to_speed_limit()
+        else:
+            self.machine.cpu = self.machine.cpu.to_normal()
+
     def cpu_interval(self, interval=None):
         self.cpu_interval_calls += 1
 
