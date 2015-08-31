@@ -14,10 +14,13 @@ from __future__ import absolute_import, division, print_function
 
 
 import atexit
+import os
 import locale
 import logging
 import sys
 
+import nose
+from nose.config import Config
 try:
     # https://pypi.python.org/pypi/click/
     import click
@@ -195,6 +198,15 @@ def download_roms():
             content = rom.get_data()
             size = len(content)
             click.echo("\tfile size is $%04x (dez.: %i) Bytes\n" % (size,size))
+
+
+@cli.command(help="Run all tests via nose")
+@cli_config
+def nosetests(cli_config, **kwargs):
+    path=os.path.abspath(os.path.dirname(dragonpy.__file__))
+    click.secho("Run all tests in %r" % path, bold=True)
+    config = Config(workingDir=path)
+    nose.main(defaultTest=path, argv=[sys.argv[0]], config=config)
 
 
 def main(confirm_exit=True):

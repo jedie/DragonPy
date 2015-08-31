@@ -50,6 +50,7 @@ class CliTestCase(unittest.TestCase):
             "download_roms  Download/Test only ROM files",
             "editor         Run only the BASIC editor",
             "log_list       List all exiting loggers and exit.",
+            "nosetests      Run all tests via nose",
             "run            Run a machine emulation",
         ], output)
 
