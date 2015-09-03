@@ -17,6 +17,7 @@ from __future__ import absolute_import, division, print_function
 import logging
 import sys
 from MC6809.components.cpu6809 import CPU
+from MC6809.components.mc6809_speedlimited import CPUSpeedLimitMixin
 
 log = logging.getLogger(__name__)
 
@@ -50,7 +51,7 @@ class RuntimeCfg(object):
     # Use the default value from MC6809 class:
     min_burst_count = CPU.min_burst_count # minimum outer op count per burst
     max_burst_count = CPU.max_burst_count # maximum outer op count per burst
-    max_delay = CPU.max_delay # maximum time.sleep() value per burst run
+    max_delay = CPUSpeedLimitMixin.max_delay # maximum time.sleep() value per burst run
     inner_burst_op_count = CPU.inner_burst_op_count # How many ops calls, before next sync call
 
     def __init(self):
