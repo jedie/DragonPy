@@ -487,7 +487,7 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
             self.cpu_test_run(start=0x0000, end=None, mem=[
                 0xBD, 0xe6, 0x82, #             JSR   $e682 - CONVERT FPA0 TO A TWO BYTE INTEGER to D
             ])
-            d = self.cpu.accu_d.get()
+            d = self.cpu.accu_d.value
 #            print "dez.: %i -> %i | hex: %04x -> %04x" % (d, test_value, d, test_value)
             self.assertEqual(d, test_value)
 
@@ -513,7 +513,7 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
                 0xBD, 0xE7, 0x77, # 0002  JSR  $e777 - CONVERT THE VALUE IN ACCB INTO A FP NUMBER IN FPA0
                 0xBD, 0xE9, 0x92, # 0005  JSR  $e992 - CONVERT FPA0 TO INTEGER IN ACCD
             ])
-            d = self.cpu.accu_d.get()
+            d = self.cpu.accu_d.value
 #            print "dez.: %i -> %i | hex: %04x -> %04x" % (d, test_value, d, test_value)
             self.assertEqual(d, test_value)
 
@@ -561,7 +561,7 @@ class Test_simple6809_BASIC_Float2(Test6809_BASIC_simple6809_Base):
             self.cpu_test_run(start=0x0000, end=None, mem=[
                 0xBD, 0xE9, 0x92, #             JSR   $e992 - CONVERT FPA0 TO INTEGER IN ACCD
             ])
-            d = self.cpu.accu_d.get()
+            d = self.cpu.accu_d.value
             self.assertEqual(d, test_value)
 
 #            print

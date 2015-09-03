@@ -228,7 +228,7 @@ class PIA(object):
         bit 1 | PA1 | keyboard matrix row 2 & left  joystick switch 1
         bit 0 | PA0 | keyboard matrix row 1 & right joystick switch 1
         """
-        pia0b = self.pia_0_B_data.get()  # $ff02
+        pia0b = self.pia_0_B_data.value  # $ff02
 
         # FIXME: Find a way to handle CoCo and Dragon in the same way!
         if self.cfg.CONFIG_NAME == COCO2B:
@@ -358,7 +358,7 @@ class PIA(object):
 
         bits 0-7 also printer data lines
         """
-        value = self.pia_0_B_data.get()  # $ff02
+        value = self.pia_0_B_data.value  # $ff02
         log.debug(
             "%04x| read $%04x (PIA 0 B side Data reg.) send $%02x (%s) back.\t|%s",
             op_address, address, value, byte2bit_string(value),
@@ -380,7 +380,7 @@ class PIA(object):
         """
         read from 0xff03 -> PIA 0 B side Control reg.
         """
-        value = self.pia_0_B_control.get()
+        value = self.pia_0_B_control.value
         log.error(
             "%04x| read $%04x (PIA 0 B side Control reg.) send $%02x (%s) back.\t|%s",
             op_address, address, value, byte2bit_string(value),

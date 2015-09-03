@@ -36,7 +36,7 @@ from dragonpy.Simple6809.periphery_simple6809 import Simple6809PeripheryUnittest
 from MC6809.components.cpu6809 import CPU
 from dragonpy.components.memory import Memory
 from dragonpy.core.machine import Machine
-from MC6809.components.cpu_utils.MC6809_registers import ConditionCodeRegister, ValueStorage8Bit
+from MC6809.components.cpu_utils.MC6809_registers import ValueStorage8Bit
 from dragonpy.sbc09.config import SBC09Cfg
 from dragonpy.sbc09.periphery import SBC09PeripheryUnittest
 from dragonpy.tests.test_config import TestCfg
@@ -105,12 +105,12 @@ class BaseStackTestCase(BaseCPUTestCase):
         self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
 
 
-class TestCPU(object):
-    def __init__(self):
-        self.accu_a = ValueStorage8Bit("A", 0) # A - 8 bit accumulator
-        self.accu_b = ValueStorage8Bit("B", 0) # B - 8 bit accumulator
-        # 8 bit condition code register bits: E F H I N Z V C
-        self.cc = ConditionCodeRegister()
+# class TestCPU(object):
+#     def __init__(self):
+#         self.accu_a = ValueStorage8Bit("A", 0) # A - 8 bit accumulator
+#         self.accu_b = ValueStorage8Bit("B", 0) # B - 8 bit accumulator
+#         # 8 bit condition code register bits: E F H I N Z V C
+#         self.cc = ConditionCodeRegister()
 
 
 
@@ -170,7 +170,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
             log.info("init machine...")
             init_start = time.time()
             cls.cpu.test_run(
-                start=cls.cpu.program_counter.get(),
+                start=cls.cpu.program_counter.value,
                 end=cfg.STARTUP_END_ADDR,
                 max_ops=500000,
             )
@@ -272,7 +272,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
             log.info("init machine...")
             init_start = time.time()
             cls.cpu.test_run(
-                start=cls.cpu.program_counter.get(),
+                start=cls.cpu.program_counter.value,
                 end=cfg.STARTUP_END_ADDR,
             )
             duration = time.time() - init_start
@@ -380,7 +380,7 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
             log.info("init machine...")
             init_start = time.time()
             cls.cpu.test_run(
-                start=cls.cpu.program_counter.get(),
+                start=cls.cpu.program_counter.value,
                 end=cfg.STARTUP_END_ADDR,
             )
             duration = time.time() - init_start

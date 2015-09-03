@@ -203,7 +203,7 @@ class Memory(object):
         try:
             byte = self._mem[address]
         except KeyError:
-            msg = "reading outside memory area (PC:$%x)" % self.cpu.program_counter.get()
+            msg = "reading outside memory area (PC:$%x)" % self.cpu.program_counter.value
             self.cfg.mem_info(address, msg)
             msg2 = "%s: $%x" % (msg, address)
             log.warning(msg2)
@@ -264,7 +264,7 @@ class Memory(object):
 
         if self.cfg.ROM_START <= address <= self.cfg.ROM_END:
             msg = "%04x| writing into ROM at $%04x ignored." % (
-                self.cpu.program_counter.get(), address
+                self.cpu.program_counter.value, address
             )
             self.cfg.mem_info(address, msg)
             msg2 = "%s: $%x" % (msg, address)
@@ -275,7 +275,7 @@ class Memory(object):
             self._mem[address] = value
         except (IndexError, KeyError):
             msg = "%04x| writing to %x is outside RAM/ROM !" % (
-                self.cpu.program_counter.get(), address
+                self.cpu.program_counter.value, address
             )
             self.cfg.mem_info(address, msg)
             msg2 = "%s: $%x" % (msg, address)
