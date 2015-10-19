@@ -46,6 +46,8 @@ from dragonpy.Dragon64.config import Dragon64Cfg
 from dragonpy.Dragon64.machine import run_Dragon64
 from dragonpy.Multicomp6809.config import Multicomp6809Cfg
 from dragonpy.Multicomp6809.machine import run_Multicomp6809
+from dragonpy.Simple6809.config import Simple6809Cfg
+from dragonpy.Simple6809.machine import run_Simple6809
 from dragonpy.core import configs
 from dragonpy.core.configs import machine_dict
 from dragonpy.sbc09.config import SBC09Cfg
@@ -69,7 +71,7 @@ machine_dict.register(configs.DRAGON32, (run_Dragon32, Dragon32Cfg), default=Tru
 machine_dict.register(configs.DRAGON64, (run_Dragon64, Dragon64Cfg))
 machine_dict.register(configs.COCO2B, (run_CoCo2b, CoCo2bCfg))
 machine_dict.register(configs.SBC09, (run_sbc09,SBC09Cfg))
-# machine_dict.register(configs.SIMPLE6809, Simple6809Cfg)
+machine_dict.register(configs.SIMPLE6809, (run_Simple6809, Simple6809Cfg))
 machine_dict.register(configs.MULTICOMP6809, (run_Multicomp6809, Multicomp6809Cfg))
 machine_dict.register(configs.VECTREX, (run_Vectrex, VectrexCfg))
 

@@ -264,7 +264,7 @@ class Memory(object):
 
         if self.cfg.ROM_START <= address <= self.cfg.ROM_END:
             msg = "%04x| writing into ROM at $%04x ignored." % (
-                self.cpu.program_counter.get(), address
+                self.cpu.program_counter.value, address
             )
             self.cfg.mem_info(address, msg)
             msg2 = "%s: $%x" % (msg, address)

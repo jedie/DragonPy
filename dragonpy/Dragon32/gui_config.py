@@ -50,7 +50,7 @@ class RuntimeCfg(object):
     # Use the default value from MC6809 class:
     min_burst_count = CPU.min_burst_count # minimum outer op count per burst
     max_burst_count = CPU.max_burst_count # maximum outer op count per burst
-    max_delay = CPU.max_delay # maximum time.sleep() value per burst run
+   # max_delay = CPU.max_delay # maximum time.sleep() value per burst run
     inner_burst_op_count = CPU.inner_burst_op_count # How many ops calls, before next sync call
 
     def __init(self):
