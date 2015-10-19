@@ -2,8 +2,8 @@
 # encoding:utf-8
 
 """
-    Multicomp 6809
-    ~~~~~~~~~~~~~~
+    Simple6809
+    ~~~~~~~~~~
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
