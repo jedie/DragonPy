@@ -10,7 +10,7 @@
 
 
     :created: 2014 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2014-2015 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
@@ -98,6 +98,23 @@ class Simple6809Periphery(object):
 """
 
 
-#------------------------------------------------------------------------------
+class Simple6809PeripheryUnittest(Simple6809Periphery):
+    def __init__(self, *args, **kwargs):
+        super(Simple6809PeripheryUnittest, self).__init__(*args, **kwargs)
+        self.display_callback = self._to_output
+
+    def setUp(self):
+        self.user_input_queue.queue.clear()
+        self.output = "" # for unittest run_until_OK()
+        self.output_len = 0
+
+    def add_to_input_queue(self, txt):
+        log.debug("Add %s to input queue.", repr(txt))
+        for char in txt:
+            self.user_input_queue.put(char)
+
+    def _to_output(self, char):
+        self.output_len += 1
+        self.output += char
 
 

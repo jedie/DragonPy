@@ -45,7 +45,7 @@ class CliTestCase(unittest.TestCase):
 
             "Homepage: https://github.com/jedie/DragonPy",
 
-            "--machine [CoCo2b|Dragon32|Dragon64|Multicomp6809|Vectrex|sbc09]",
+            "--machine [CoCo2b|Dragon32|Dragon64|Multicomp6809|Simple6809|Vectrex|sbc09]",
             "Commands:",
             "download_roms  Download/Test only ROM files",
             "editor         Run only the BASIC editor",
