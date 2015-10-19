@@ -25,6 +25,7 @@ class Simple6809Cfg(BaseConfig):
     More info read ./Simple6809/README.creole
     """
     CONFIG_NAME = SIMPLE6809
+    MACHINE_NAME = "Simple6809"
 
     RAM_START = 0x0000
     RAM_END = 0x03FF # 1KB
