@@ -208,7 +208,7 @@ setup(
     provides=["DragonPy"],
     install_requires=[
         "dragonlib>=0.1.7",
-        "MC6809>=0.4.6",
+        "MC6809>=0.5.0",
         "pygments",
         "click",
         "six",
