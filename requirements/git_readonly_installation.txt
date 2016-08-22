@@ -27,4 +27,4 @@ virtualenv
 
 # https://github.com/jedie/DragonPy
 # https://pypi.python.org/pypi/DragonPy
--e git+https://github.com:jedie/DragonPy.git#egg=DragonPy
+-e git+https://github.com/jedie/DragonPy.git#egg=DragonPy
