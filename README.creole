@@ -11,12 +11,12 @@ The [[https://github.com/6809/MC6809|MC6809]] project is used to emulate the 680
 
 Dragon 32 with CPython 3 under Linux:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20150820_DragonPy_Dragon32_CPython3_Linux_01.png|screenshot Dragon 32}}
+{{https://raw.githubusercontent.com/jedie/jedie.github.io/master/screenshots/DragonPy/20150820_DragonPy_Dragon32_CPython3_Linux_01.png|screenshot Dragon 32}}
 
 
 Tandy TRS-80 Color Computer 2b with CPython 2 under Windows:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20150820_DragonPy_CoCo2b_CPython2_Win_01.png|screenshot CoCo under Windows}}
+{{https://raw.githubusercontent.com/jedie/jedie.github.io/master/screenshots/DragonPy/20150820_DragonPy_CoCo2b_CPython2_Win_01.png|screenshot CoCo under Windows}}
 
 
 DragonPy is written in Python.
@@ -39,7 +39,7 @@ There is a rudimentary BASIC editor with save/load BASIC programm listings direc
 
 Looks like this:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140820_DragonPy_BASIC_Editor_01.png|old screenshot BASIC Editor}}
+{{https://raw.githubusercontent.com/jedie/jedie.github.io/master/screenshots/DragonPy/20140820_DragonPy_BASIC_Editor_01.png|old screenshot BASIC Editor}}
 (older version of the editor)
 
 ==== Vectrex
@@ -72,7 +72,7 @@ You can also run the BASIC Editor without the Emulator:
 
 A rudimentary BASIC source code highlighting is available and looks like this:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140826_DragonPy_BASIC_Editor_01.png|screenshot BASIC Editor}}
+{{https://raw.githubusercontent.com/jedie/jedie.github.io/master/screenshots/DragonPy/20140826_DragonPy_BASIC_Editor_01.png|screenshot BASIC Editor}}
 
 Special feature: The Line number that are used in GOTO, SOGUB etc. are extra marked on the left side.
 
@@ -156,7 +156,7 @@ The is a simple "starter GUI", just call the cli without arguments:
 
 It looks like this:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20150821_DragonPy_starterGUI.png|starter GUI}}
+{{https://raw.githubusercontent.com/jedie/jedie.github.io/master/screenshots/DragonPy/20150821_DragonPy_starterGUI.png|starter GUI}}
 
 
 == ROMs
@@ -209,12 +209,12 @@ install [[https://pypi.python.org/pypi/coverage|coverage]] for python 2:
 
 "sbc09" ROM in Tkinter window:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/DragonPy_sbc09_01.png|screenshot sbc09}}
+{{https://raw.githubusercontent.com/jedie/jedie.github.io/master/screenshots/DragonPy/DragonPy_sbc09_01.png|screenshot sbc09}}
 
 
 "Simple6809" ROM in Tkinter window:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/Simple6809_TK_04.PNG|screenshot simple6809}}
+{{https://raw.githubusercontent.com/jedie/jedie.github.io/master/screenshots/DragonPy/Simple6809_TK_04.PNG|screenshot simple6809}}
 
 
 === Dragon Keyboard
@@ -243,12 +243,12 @@ Focus the DragonPy window and use Ctrl-V to paste the content.
 
 Looks like:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon32_Listing.png}}
+{{https://raw.githubusercontent.com/jedie/jedie.github.io/master/screenshots/DragonPy/20140805_DragonPy_Dragon32_Listing.png}}
 
 
 Then just **RUN** and then it looks like this:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/20140805_DragonPy_Dragon32_CharMap.png}}
+{{https://raw.githubusercontent.com/jedie/jedie.github.io/master/screenshots/DragonPy/20140805_DragonPy_Dragon32_CharMap.png}}
 
 === DragonPy schematic
 
@@ -331,11 +331,11 @@ Display memory Locations $0152 - $0159 (Keyboard matrix state table)
 
 Example screenshow with the "Y" key is pressed down. You see that this is saved in $0153:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/keyboard01.png|KeyBoard Screenshot 01}}
+{{https://raw.githubusercontent.com/jedie/jedie.github.io/master/screenshots/DragonPy/keyboard01.png|KeyBoard Screenshot 01}}
 
 Example with "U" is hold down:
 
-{{http://www.jensdiemer.de/static/jensdiemer.de/screenshots/keyboard02.png|KeyBoard Screenshot 02}}
+{{https://raw.githubusercontent.com/jedie/jedie.github.io/master/screenshots/DragonPy/keyboard02.png|KeyBoard Screenshot 02}}
 
 
 
