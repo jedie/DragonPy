@@ -435,7 +435,8 @@ generic syntax highlighter
 
 == History
 
-* [[https://github.com/jedie/DragonPy/compare/v0.5.3...master|*not released yet* - v0.6.0]]:
+* [[https://github.com/jedie/DragonPy/compare/v0.6.0...master|*dev*]]:
+* [[https://github.com/jedie/DragonPy/compare/v0.5.3...v0.6.0|19.06.2018 - v0.6.0]]:
 ** Update to new MC6809 API
 ** reimplementing Simple6809, contributed by [[https://github.com/ctodobom|Claudemir Todo Bom]]
 ** TODO: Fix speedlimit
