@@ -81,6 +81,32 @@ Special feature: The Line number that are used in GOTO, SOGUB etc. are extra mar
 
 IMPORTANT: The **PyPi package** name is **DragonPyEmulator** and [[https://github.com/jpanganiban/dragonpy/issues/3|not only "DragonPy"]]!!!
 
+=== by foot
+
+e.g.:
+{{{
+# Create virtualenv:
+.../$ python3 -Im venv DragonPy
+
+# activate created virtualenv:
+.../$ cd DragonPy
+.../DragonPy$ source bin/activate
+
+# update pip before install:
+(DragonPy) .../DragonPy$ pip install -U pip
+...
+
+# Install DragonPy:
+(DragonPy) .../DragonPy$ pip install DragonPyEmulator
+Collecting DragonPyEmulator
+...
+Installing collected packages: click, six, dragonlib, pygments, MC6809, DragonPyEmulator
+Successfully installed DragonPyEmulator-0.5.3 MC6809-0.5.0 click-6.7 dragonlib-0.1.7 pygments-2.2.0 six-1.11.0
+
+# start Emulator
+(DragonPy) .../DragonPy$ DragonPy
+}}}
+
 === Linux
 
 The is a virtualenv bootstrap file, created with [[https://github.com/jedie/bootstrap_env|bootstrap_env]], for easy installation.
