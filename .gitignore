@@ -12,6 +12,7 @@
 *.egg-info/*
 /dist/*
 build
+build.log
 eggs
 parts
 bin
