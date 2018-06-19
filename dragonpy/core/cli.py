@@ -19,8 +19,6 @@ import locale
 import logging
 import sys
 
-import nose
-from nose.config import Config
 try:
     # https://pypi.python.org/pypi/click/
     import click
@@ -207,6 +205,15 @@ def download_roms():
 def nosetests(cli_config, **kwargs):
     path=os.path.abspath(os.path.dirname(dragonpy.__file__))
     click.secho("Run all tests in %r" % path, bold=True)
+    #
+    # import here, because normal PyPi installation has no nose installed ;)
+    try:
+        import nose
+    except ImportError as err:
+        print("Can't run test, requirements not installed: %s" % err)
+        sys.exit(-1)
+
+    from nose.config import Config
     config = Config(workingDir=path)
     nose.main(defaultTest=path, argv=[sys.argv[0]], config=config)
 

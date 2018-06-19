@@ -2,7 +2,7 @@ import os
 import sys
 
 
-__version__ = "0.6.0.rc1"
+__version__ = "0.6.0.rc2"
 
 
 # Used in setup.py and starter GUI to find the cli-executeable:

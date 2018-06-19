@@ -466,6 +466,7 @@ generic syntax highlighter
 ** Update to new MC6809 API
 ** reimplementing Simple6809, contributed by [[https://github.com/ctodobom|Claudemir Todo Bom]]
 ** TODO: Fix speedlimit
+** Fix {{{No module named 'nose'}}} on normal PyPi installation
 * [[https://github.com/jedie/DragonPy/compare/v0.5.2...v0.5.3|24.08.2015 - v0.5.3]]:
 ** Bugfix for "freeze" after "speed limit" was activated
 * [[https://github.com/jedie/DragonPy/compare/v0.5.1...v0.5.2|20.08.2015 - v0.5.2]]:
