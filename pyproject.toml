@@ -1,0 +1,57 @@
+[tool.poetry]
+name = "DragonPyEmulator"
+version = "0.7.0.dev0"
+description = "Emulator for 6809 CPU based system like Dragon 32 / CoCo written in Python..."
+authors = ["JensDiemer <git@jensdiemer.de>"]
+packages = [{ include = "dragonpy" }]
+keywords=["Emulator","6809","Dragon","CoCo","Vectrex","tkinter","pypy"]
+classifiers = [
+    # http://pypi.python.org/pypi?%3Aaction=list_classifiers
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: MacOS X",
+    "Environment :: Win32 (MS Windows)",
+    "Environment :: X11 Applications",
+    "Environment :: Other Environment",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Programming Language :: Python :: Implementation :: PyPy",
+    "Topic :: System :: Emulators",
+    "Topic :: Software Development :: Assemblers",
+    "Topic :: Software Development :: Testing",
+]
+
+# Will be generated from README.creole with: "poetry run update_rst_readme"
+readme="README.rst"
+
+[tool.poetry.dependencies]
+python = "^3.6"
+click = "^7.0"
+dragonlib = "^0.1.7"
+MC6809 = "^0.6.0"
+pygments = "^2.5.2"
+
+[tool.poetry.dev-dependencies]
+python-creole = "^1.4.4"
+poetry_publish = "^0.3.0"
+tox = "^3.14.3"
+pytest = "^4.6"
+pytest-cov = "^2.8.1"
+isort = "^4.3.21"
+flake8 = "^3.7.9"
+flynt = "^0.40.1"
+autopep8 = "^1.4.4"
+
+[tool.poetry.scripts]
+DragonPy = "dragonpy.core.cli:main"
+update_rst_readme = "dragonpy.publish:update_readme"
+publish = "dragonpy.publish:publish"
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
