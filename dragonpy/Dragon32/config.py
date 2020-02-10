@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
@@ -73,7 +71,7 @@ class Dragon32Cfg(BaseConfig):
     STARTUP_END_ADDR = 0xbbe5  # scan keyboard
 
     def __init__(self, cmd_args):
-        super(Dragon32Cfg, self).__init__(cmd_args)
+        super().__init__(cmd_args)
 
         self.machine_api = Dragon32API()
 

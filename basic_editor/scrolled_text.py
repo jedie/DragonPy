@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     Tkinter ScrolledText widget with horizontal and vertical scroll bars.

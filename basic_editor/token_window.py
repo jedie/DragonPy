@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -31,7 +30,7 @@ except ImportError:
     import tkinter as tkinter
 
 
-class TokenWindow(object):
+class TokenWindow:
     def __init__(self, cfg, master):
         self.cfg = cfg
         self.machine_api = self.cfg.machine_api
@@ -69,7 +68,7 @@ class TokenWindow(object):
         self.text.bind("<Any-Motion>", self.on_mouse_move)
 
     def on_mouse_move(self, event):
-        index = self.text.index("@%s,%s" % (event.x, event.y))
+        index = self.text.index(f"@{event.x},{event.y}")
 
         try:
             word = self.text.get("%s wordstart" % index, "%s wordend" % index)
@@ -85,10 +84,10 @@ class TokenWindow(object):
         log.critical("$%x", token_value)
         basic_word = self.machine_api.token_util.token2ascii(token_value)
 
-        info = "%s $%02x == %r" % (index, token_value, basic_word)
+        info = f"{index} ${token_value:02x} == {basic_word!r}"
 
         try:
-            selection_index = "%s-%s" % (self.text.index("sel.first"), self.text.index("sel.last"))
+            selection_index = "{}-{}".format(self.text.index("sel.first"), self.text.index("sel.last"))
             selection = self.text.selection_get()
         except tkinter.TclError:
             # no selection

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -37,7 +36,7 @@ except ImportError:
     import tkinter.scrolledtext as scrolledtext
 
 
-class RuntimeCfg(object):
+class RuntimeCfg:
     """
     TODO: Load/save to ~/.DragonPy.ini
 
@@ -76,7 +75,7 @@ class RuntimeCfg(object):
         raise NotImplementedError("TODO!")
 
 
-class BaseTkinterGUIConfig(object):
+class BaseTkinterGUIConfig:
     """
     14.318180 Mhz crystal / 16 = 0.894886 MHz CPU frequency * 1000000 = 894886 cycles/sec
     14.218000 Mhz crystal / 16 = 0.888625 MHz CPU frequency * 1000000 = 888625 cycles/sec
@@ -217,7 +216,7 @@ class BaseTkinterGUIConfig(object):
             return
 
         self.cycles_per_sec_label_var.set(
-            "cycles/sec / 1000000 = %f MHz CPU frequency * 16 = %f Mhz crystal" % (
+            "cycles/sec / 1000000 = {:f} MHz CPU frequency * 16 = {:f} Mhz crystal".format(
                 cycles_per_sec / 1000000,
                 cycles_per_sec / 1000000 * 16,
             )

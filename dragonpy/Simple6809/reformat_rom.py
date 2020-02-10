@@ -1,4 +1,3 @@
-
 """
     Hacked script to:
     insert the destination address to all lables in ExBasROM.LST
@@ -17,7 +16,7 @@ if __name__ == "__main__":
     in_filepath = os.path.join(rom.ROM_PATH, IN_FILENAME)
     out_filepath = os.path.join(rom.ROM_PATH, IN_FILENAME + "2")
 
-    print((f"Read {in_filepath}"))
+    print(f"Read {in_filepath}")
     with open(in_filepath, "rb") as lst_file:
         with open(out_filepath, "w") as new_lst_file:
             addr_dict = {}
@@ -55,14 +54,14 @@ if __name__ == "__main__":
                     print((repr(dst), addr_dict.get(dst, "-")))
 
                     if dst in addr_dict:
-                        print((f"{dst!r} -> {addr_dict[dst]!r}"))
+                        print(f"{dst!r} -> {addr_dict[dst]!r}")
                         print(("1:", code))
                         new_dst = f"{addr_dict[dst]}({dst})"
                         code = code.replace(dst, new_dst)
                         print(("2:", code))
                         print()
 
-                    line = "%-70s %s" % (code, desc)
+                    line = f"{code:<70} {desc}"
 
                 line = line[5:]  # cut line number
                 line = line.rstrip()
@@ -71,4 +70,4 @@ if __name__ == "__main__":
             #     print line
                 new_lst_file.write(line + "\n")
 
-    print((f"\nnew file {out_filepath!r} written."))
+    print(f"\nnew file {out_filepath!r} written.")

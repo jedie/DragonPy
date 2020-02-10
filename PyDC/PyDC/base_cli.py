@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-# coding: utf-8
 
 """
     base commandline interface
@@ -23,7 +22,7 @@ def get_log_levels():
 LOG_LEVELS = get_log_levels()
 
 
-class Base_CLI(object):
+class Base_CLI:
     LOG_NAME = None
     DESCRIPTION = None
     EPOLOG = None

@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
@@ -52,7 +50,7 @@ class Multicomp6809Cfg(BaseConfig):
     )
 
     def __init__(self, cmd_args):
-        super(Multicomp6809Cfg, self).__init__(cmd_args)
+        super().__init__(cmd_args)
 
         self.machine_api = None
 

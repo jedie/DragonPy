@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-# encoding:utf-8
 
 """
     Dragon Keyboard map:
@@ -290,8 +289,8 @@ def test(inkey, matrix_name, auto_shift=False):
             result = get_coco_keymatrix_pia_result(inkey, pia0b)  # read from $ff00
         addr = 0x152 + i
         print("PB%i - $ff02 in $%02x (%s) -> $ff00 out $%02x (%s) stored in $%04x" % (
-            i, pia0b, '{0:08b}'.format(pia0b),
-            result, '{0:08b}'.format(result),
+            i, pia0b, f'{pia0b:08b}',
+            result, f'{result:08b}',
             addr,
         ))
     print("  ^                 ^^^^^^^^                     ^^^^^^^")
@@ -316,7 +315,7 @@ if __name__ == '__main__':
     def verbose_value(value):
         return f"dez.: {value:d}, hex: ${value:02x}"
 
-    class TkKeycodes(object):
+    class TkKeycodes:
         def __init__(self):
             self.root = tkinter.Tk()
             self.root.title("Keycode Test")

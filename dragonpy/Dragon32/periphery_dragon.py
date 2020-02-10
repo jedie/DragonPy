@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -27,7 +26,7 @@ from dragonpy.Dragon32.MC6883_SAM import SAM
 log = logging.getLogger(__name__)
 
 
-class Dragon32PeripheryBase(object):
+class Dragon32PeripheryBase:
     """
     GUI independent stuff
     """
@@ -70,7 +69,7 @@ class Dragon32PeripheryBase(object):
 
 class Dragon32Periphery(Dragon32PeripheryBase):
     def __init__(self, cfg, cpu, memory, display_callback, user_input_queue):
-        super(Dragon32Periphery, self).__init__(cfg, cpu, memory, user_input_queue)
+        super().__init__(cfg, cpu, memory, user_input_queue)
 
         # redirect writes to display RAM area 0x0400-0x0600 into display_queue:
         self.memory.add_write_byte_middleware(
@@ -83,7 +82,7 @@ class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
         self.cfg = cfg
         self.cpu = cpu
         self.user_input_queue = user_input_queue
-        super(Dragon32PeripheryUnittest, self).__init__(cfg, cpu, memory, self.user_input_queue)
+        super().__init__(cfg, cpu, memory, self.user_input_queue)
 
         self.rows = 32
         self.columns = 16

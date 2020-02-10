@@ -19,7 +19,7 @@ from dragonlib.utils.byte_word_values import signed16, unsigned8
 xrange = six.moves.xrange
 
 
-class BASIC09FloatingPoint(object):
+class BASIC09FloatingPoint:
     """
     Calucalte the representation of a float value in the BASIC09
     FPA memory accumulator.
@@ -71,7 +71,7 @@ class BASIC09FloatingPoint(object):
         print(f"\texponent......: dez.: {self.exponent} hex: ${self.exponent:02x}")
         print(f"\texponent byte.: dez.: {self.exponent_byte} hex: ${self.exponent_byte:02x}")
         print(f"\tmantissa value: dez.: {self.mantissa}")
-        print("\tmantissa bytes: dez.: %s hex: %s" % (
+        print("\tmantissa bytes: dez.: {} hex: {}".format(
             repr(self.mantissa_bytes),
             ", ".join(["$%02x" % i for i in self.mantissa_bytes])
         ))
@@ -82,14 +82,12 @@ class BASIC09FloatingPoint(object):
         ))
         print("\texponent |            mantissa             | mantissa-sign")
         print("\t" + " ".join(
-            ['{0:08b}'.format(i) for i in byte_list]
+            [f'{i:08b}' for i in byte_list]
         ))
         print()
 
     def __repr__(self):
-        return "<BinaryFloatingPoint %f: %s>" % (
-            self.value, ", ".join(["$%02x" % i for i in self.get_bytes()])
-        )
+        return f"<BinaryFloatingPoint {self.value:f}: {', '.join([('$%02x' % i) for i in self.get_bytes()])}>"
 
 
 if __name__ == "__main__":
@@ -118,7 +116,4 @@ if __name__ == "__main__":
             print("\n...\n")
             continue
         fp = BASIC09FloatingPoint(test_value)
-        print("$%x (dez.: %s) -> %s" % (
-            test_value, test_value,
-            " ".join(["$%02x" % i for i in fp.get_bytes()])
-        ))
+        print(f"${test_value:x} (dez.: {test_value}) -> {' '.join([('$%02x' % i) for i in fp.get_bytes()])}")

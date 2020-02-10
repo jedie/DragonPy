@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -32,7 +31,7 @@ except ImportError:
     import tkinter as tkinter
 
 
-class Simple6809Periphery(object):
+class Simple6809Periphery:
     def __init__(self, cfg, cpu, memory, display_callback, user_input_queue):
         self.cfg = cfg
         self.cpu = cpu
@@ -100,7 +99,7 @@ class Simple6809Periphery(object):
 
 class Simple6809PeripheryUnittest(Simple6809Periphery):
     def __init__(self, *args, **kwargs):
-        super(Simple6809PeripheryUnittest, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.display_callback = self._to_output
 
     def setUp(self):

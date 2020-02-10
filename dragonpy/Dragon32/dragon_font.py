@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -1229,7 +1228,7 @@ CHARS_DICT = {
 }
 
 
-class TkImageFont(object):
+class TkImageFont:
     """
     Important is that image must be bind to a object, without:
     the garbage-collection by Python will "remove" the created images in Tkinter.Canvas!
@@ -1290,7 +1289,7 @@ class TkImageFont(object):
         return img
 
 
-class TestTkImageFont(object):
+class TestTkImageFont:
     CACHE = {}
 
     def __init__(self, row_count, tk_font, colors):

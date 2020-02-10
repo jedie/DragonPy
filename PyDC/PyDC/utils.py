@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-# encoding:utf-8
 
 """
     :copyleft: 2013 by Jens Diemer
@@ -73,10 +72,10 @@ def human_duration(t):
         if count >= 1:
             count = round(count, 1)
             break
-    return "%(number).1f %(type)s" % {'number': count, 'type': name}
+    return f"{count:.1f} {name}"
 
 
-class ProcessInfo(object):
+class ProcessInfo:
     """
     >>> p = ProcessInfo(100)
     >>> p.update(1)[0]
@@ -317,7 +316,7 @@ def diff_info(data):
 #             yield (current[0], current[1] + next_value[1])
 
 
-class TextLevelMeter(object):
+class TextLevelMeter:
     """
     TODO: Fix DocTest:
 
@@ -348,7 +347,7 @@ class TextLevelMeter(object):
     def __init__(self, max_value, width):
         self.max_value = max_value
 
-        fill_len = int(round(((width - 3) / 2)))
+        fill_len = int(round((width - 3) / 2))
         fill = " " * fill_len
         self.source_msg = "|" + fill + "|" + fill + "|"
 
@@ -461,7 +460,7 @@ def byte2bit_string(data):
         assert len(data) == 1
         data = ord(data)
 
-    bits = '{0:08b}'.format(data)
+    bits = f'{data:08b}'
     bits = bits[::-1]
     return bits
 
@@ -506,8 +505,7 @@ def bytes2bit_strings(data):
     ['00000000', '01111000', '11010001', '00000100', '10010010', '00000000']
     """
     for char in data:
-        for bit in byte2bit_string(char):
-            yield bit
+        yield from byte2bit_string(char)
 
 
 def bytes2bitstream(data):
@@ -539,17 +537,17 @@ def print_codepoint_stream(codepoint_stream, display_block_count=8, no_repr=Fals
         if "\\x" in r: # FIXME
             txt = "%s %i" % (hex(codepoint), codepoint)
         else:
-            txt = "%s %s" % (hex(codepoint), r)
+            txt = "{} {}".format(hex(codepoint), r)
 
         line.append(txt.center(8))
 
         in_line_count += 1
         if in_line_count >= display_block_count:
             in_line_count = 0
-            print("%4s | %s |" % (no, " | ".join(line)))
+            print("{:>4} | {} |".format(no, " | ".join(line)))
             line = []
     if line:
-        print("%4s | %s |" % (no, " | ".join(line)))
+        print("{:>4} | {} |".format(no, " | ".join(line)))
 
     if in_line_count > 0:
         print()
@@ -594,7 +592,7 @@ def print_block_bit_list(block_bit_list, display_block_count=8, no_repr=False):
            0x4c 'L' 0x49 'I'
     """
     def print_line(no, line, line_info):
-        print("%4s - %s" % (no, line))
+        print(f"{no:>4} - {line}")
         if no_repr:
             return
 
@@ -604,7 +602,7 @@ def print_block_bit_list(block_bit_list, display_block_count=8, no_repr=False):
             if "\\x" in r: # FIXME
                 txt = "%s" % hex(codepoint)
             else:
-                txt = "%s %s" % (hex(codepoint), r)
+                txt = "{} {}".format(hex(codepoint), r)
             txt = txt.center(8)
             line.append(txt)
 
@@ -668,7 +666,7 @@ def get_word(byte_iterator):
     try:
         word = (byte_values[0] << 8) | byte_values[1]
     except TypeError as err:
-        raise TypeError("Can't build word from %s: %s" % (repr(byte_values), err))
+        raise TypeError("Can't build word from {}: {}".format(repr(byte_values), err))
     return word
 
 

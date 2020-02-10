@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -36,7 +35,7 @@ def get_module_name(package):
     entry_info = distribution.get_entry_info(package.DIST_GROUP, package.ENTRY_POINT)
     if not entry_info:
         raise RuntimeError(
-            "Can't find entry info for distribution: %r (group: %r, entry point: %r)" % (
+            "Can't find entry info for distribution: {!r} (group: {!r}, entry point: {!r})".format(
                 package.DISTRIBUTION_NAME, package.DIST_GROUP, package.ENTRY_POINT
             )
         )

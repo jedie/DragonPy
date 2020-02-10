@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -34,7 +33,7 @@ except ImportError:
     import _thread as _thread
 
 
-class Machine(object):
+class Machine:
     def __init__(self, cfg, periphery_class, display_callback, user_input_queue):
         self.cfg = cfg
         self.machine_api = cfg.machine_api
@@ -127,7 +126,7 @@ class MachineThread(threading.Thread):
     """
 
     def __init__(self, cfg, periphery_class, user_input_queue):
-        super(MachineThread, self).__init__(name="CPU-Thread")
+        super().__init__(name="CPU-Thread")
         log.critical(" *** MachineThread init *** ")
         self.machine = Machine(
             cfg, periphery_class, user_input_queue
@@ -148,7 +147,7 @@ class MachineThread(threading.Thread):
         self.machine.quit()
 
 
-class ThreadedMachine(object):
+class ThreadedMachine:
     def __init__(self, cfg, periphery_class, user_input_queue):
         self.cpu_thread = MachineThread(
             cfg, periphery_class, user_input_queue
@@ -169,7 +168,7 @@ class ThreadedMachine(object):
         self.cpu_thread.quit()
 
 
-class MachineGUI(object):
+class MachineGUI:
     def __init__(self, cfg):
         self.cfg = cfg
 

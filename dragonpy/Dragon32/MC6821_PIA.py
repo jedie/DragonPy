@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -36,7 +35,7 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 
-class PIA_register(object):
+class PIA_register:
 
     def __init__(self, name):
         self.name = name
@@ -70,7 +69,7 @@ class PIA_register(object):
         self._pdr_selected = False
 
 
-class PIA(object):
+class PIA:
     """
     PIA - MC6821 - Peripheral Interface Adaptor
 

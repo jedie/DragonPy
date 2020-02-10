@@ -1,4 +1,3 @@
-
 """
     VectrexPy - Vectrex emulator in Python
     =======================================
@@ -83,4 +82,4 @@ if __name__ == "__main__":
         else:
             addr = f"{nice_hex(s)}-{nice_hex(e)}"
 
-        print("%-11s ; %s" % (addr, txt))
+        print(f"{addr:<11} ; {txt}")

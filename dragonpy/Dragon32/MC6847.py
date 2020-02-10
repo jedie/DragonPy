@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -34,7 +33,7 @@ except ImportError:
     import tkinter.font as TkFont
 
 
-class MC6847_TextModeCanvas(object):
+class MC6847_TextModeCanvas:
     """
     MC6847 Video Display Generator (VDG) in Alphanumeric Mode.
     This display mode consumes 512 bytes of memory and is a 32 character wide screen with 16 lines.

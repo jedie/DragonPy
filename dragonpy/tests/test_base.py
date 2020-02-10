@@ -101,7 +101,7 @@ class BaseStackTestCase(BaseCPUTestCase):
     INITIAL_USER_STACK_ADDR = 0x2000
 
     def setUp(self):
-        super(BaseStackTestCase, self).setUp()
+        super().setUp()
         self.cpu.system_stack_pointer.set(self.INITIAL_SYSTEM_STACK_ADDR)
         self.cpu.user_stack_pointer.set(self.INITIAL_USER_STACK_ADDR)
 
@@ -143,7 +143,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
         prerun ROM to complete initiate and ready for user input.
         save the CPU state to speedup unittest
         """
-        super(Test6809_BASIC_simple6809_Base, cls).setUpClass()
+        super().setUpClass()
 
         log.info(f"CPU state pickle file: {cls.TEMP_FILE!r}")
 #         if os.path.isfile(cls.TEMP_FILE):os.remove(cls.TEMP_FILE);print "Delete CPU data file!"
@@ -244,7 +244,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         prerun ROM to complete initiate and ready for user input.
         save the CPU state to speedup unittest
         """
-        super(Test6809_sbc09_Base, cls).setUpClass()
+        super().setUpClass()
 
         log.info(f"CPU state pickle file: {cls.TEMP_FILE!r}")
 #        if os.path.isfile(cls.TEMP_FILE):
@@ -268,7 +268,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
 
         try:
             temp_file = open(cls.TEMP_FILE, "rb")
-        except IOError:
+        except OSError:
             log.info("init machine...")
             init_start = time.time()
             cls.cpu.test_run(
@@ -354,7 +354,7 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
         prerun ROM to complete initiate and ready for user input.
         save the CPU state to speedup unittest
         """
-        super(Test6809_Dragon32_Base, cls).setUpClass()
+        super().setUpClass()
 
         log.info(f"CPU state pickle file: {cls.TEMP_FILE!r}")
 #         os.remove(cls.TEMP_FILE);print "Delete CPU date file!"
@@ -376,7 +376,7 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
 #        os.remove(cls.TEMP_FILE)
         try:
             temp_file = open(cls.TEMP_FILE, "rb")
-        except IOError:
+        except OSError:
             log.info("init machine...")
             init_start = time.time()
             cls.cpu.test_run(

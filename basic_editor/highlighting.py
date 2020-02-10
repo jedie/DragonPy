@@ -1,5 +1,3 @@
-# encoding:utf8
-
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
@@ -43,7 +41,7 @@ class TkTextHighlighting(BaseExtension):
     TAG_LINE_NUMBER = "lineno"
     TAG_JUMP_ADDESS = "jump"
     def __init__(self, editor):
-        super(TkTextHighlighting, self).__init__(editor)
+        super().__init__(editor)
 
         self.lexer = BasicLexer()
 
@@ -136,8 +134,8 @@ class TkTextHighlighting(BaseExtension):
                 end_index += len(value)
 
             if value not in (" ", "\n"):
-                index1 = "%s.%s" % (start_line, start_index)
-                index2 = "%s.%s" % (end_line, end_index)
+                index1 = f"{start_line}.{start_index}"
+                index2 = f"{end_line}.{end_index}"
 
                 for tagname in self.text.tag_names(index1): # FIXME
                     # print("remove %s" % tagname)
@@ -164,7 +162,7 @@ class TkTextHighlightCurrentLine(BaseExtension):
     after_id = None
 
     def __init__(self, editor):
-        super(TkTextHighlightCurrentLine, self).__init__(editor)
+        super().__init__(editor)
 
         self.tag_current_line = TkTextTag(self.text,
             background="#e8f2fe"

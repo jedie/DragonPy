@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 """
     Python dragon 32 converter - commandline interface
@@ -28,7 +27,7 @@ class PyDC_CLI(Base_CLI):
     LOG_FORMATTER = logging.Formatter("%(message)s")  # %(asctime)s %(message)s")
 
     def __init__(self):
-        super(PyDC_CLI, self).__init__()
+        super().__init__()
         self.cfg = Dragon32Config()
 
         self.parser.add_argument("src", help="Source filename (.wav/.cas/.bas)")
@@ -102,7 +101,7 @@ class PyDC_CLI(Base_CLI):
         )
 
     def parse_args(self):
-        args = super(PyDC_CLI, self).parse_args()
+        args = super().parse_args()
 
         self.source_file = args.src
         print("source file.......: %s" % self.source_file)

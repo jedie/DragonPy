@@ -164,7 +164,7 @@ if __name__ == "__main__":
 
     def pprint_formated(d):
         for k, v in sorted(d.items()):
-            print('    %s: "%s",' % (hex(k), v.strip()))
+            print('    {}: "{}",'.format(hex(k), v.strip()))
 
     print("BASIC_TOKENS = {")
     pprint_formated(BASIC_TOKENS)

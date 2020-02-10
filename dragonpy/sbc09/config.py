@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
@@ -52,7 +50,7 @@ class SBC09Cfg(BaseConfig):
     STARTUP_END_ADDR = 0xe45a  # == O.S. routine to read a character into B register.
 
     def __init__(self, cmd_args):
-        super(SBC09Cfg, self).__init__(cmd_args)
+        super().__init__(cmd_args)
 
         self.machine_api = CoCoAPI()  # FIXME!
 

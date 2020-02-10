@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -40,7 +39,7 @@ except ImportError:
     import tkinter.messagebox as messagebox
 
 
-class EditorWindow(object):
+class EditorWindow:
     FILETYPES = [  # For filedialog
         ("BASIC Listings", "*.bas", "TEXT"),
         ("Text files", "*.txt", "TEXT"),
@@ -182,7 +181,7 @@ class EditorWindow(object):
         self.filepath = os.path.normpath(os.path.abspath(filepath))
         self.current_dir, self.filename = os.path.split(self.filepath)
 
-        self.root.title("%s - %s" % (self.base_title, repr(self.filename)))
+        self.root.title("{} - {}".format(self.base_title, repr(self.filename)))
 
     def command_load_file(self):
         infile = filedialog.askopenfile(

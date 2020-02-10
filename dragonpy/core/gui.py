@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -51,7 +50,7 @@ except ImportError:
 log = logging.getLogger(__name__)
 
 
-class BaseTkinterGUI(object):
+class BaseTkinterGUI:
     """
     The complete Tkinter GUI window
     """
@@ -326,7 +325,7 @@ class DragonTkinterGUI(BaseTkinterGUI):
     """
 
     def __init__(self, *args, **kwargs):
-        super(DragonTkinterGUI, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         machine_name = self.cfg.MACHINE_NAME
         self.root.title(
@@ -410,7 +409,7 @@ class DragonTkinterGUI(BaseTkinterGUI):
 
 class ScrolledTextGUI(BaseTkinterGUI):
     def __init__(self, *args, **kwargs):
-        super(ScrolledTextGUI, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         self.root.title(f"DragonPy - {self.cfg.MACHINE_NAME}")
 

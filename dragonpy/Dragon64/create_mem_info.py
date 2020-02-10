@@ -1,4 +1,3 @@
-
 import os
 
 
@@ -24,4 +23,4 @@ if __name__ == "__main__":
                 end_addr = addr
 
             comment = comment.replace('"', '\"')
-            print((f'        ({start_addr}, {end_addr}, "{comment}"),'))
+            print(f'        ({start_addr}, {end_addr}, "{comment}"),')

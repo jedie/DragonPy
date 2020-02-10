@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 """
     borrowed from http://code.activestate.com/recipes/52215/

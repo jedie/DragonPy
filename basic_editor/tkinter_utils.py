@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -26,7 +25,7 @@ except ImportError:
     import tkinter as tkinter
 
 
-class TkTextTag(object):
+class TkTextTag:
     _id = 0
 
     def __init__(self, text_widget, **config):

@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
@@ -33,4 +31,4 @@ class TestCfg(BaseConfig):
 
     def __init__(self, cfg_dict):
 
-        super(TestCfg, self).__init__(cfg_dict)
+        super().__init__(cfg_dict)

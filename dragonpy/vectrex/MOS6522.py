@@ -1,5 +1,3 @@
-# encoding:utf8
-
 """
     DragonPy
     ========
@@ -42,7 +40,7 @@ FCYCLES_INIT = VECTREX_MHZ // VECTREX_PDECAY >> 0
 VECTOR_CNT = VECTREX_MHZ // VECTREX_PDECAY >> 0
 
 
-class MOS6522VIA(object):
+class MOS6522VIA:
     """
     MOS Technology 6522 Versatile Interface Adapter (VIA)
 

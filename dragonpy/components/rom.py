@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
@@ -37,7 +35,7 @@ class ROMFileNotFound(Exception):
     pass
 
 
-class ROMFile(object):
+class ROMFile:
     ROM_PATH = os.path.normpath(
         os.path.join(os.path.abspath(os.path.dirname(dragonpy.__file__)), "..", "roms")
     )

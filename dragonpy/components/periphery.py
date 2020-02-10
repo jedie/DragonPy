@@ -1,5 +1,3 @@
-# encoding:utf8
-
 """
     DragonPy - Base Periphery
     =========================
@@ -49,7 +47,7 @@ except ImportError:
         tkinter = None
 
 
-class PeripheryBase(object):
+class PeripheryBase:
     INITAL_INPUT = None  # For quick test
 
     def __init__(self, cfg, cpu, memory, display_queue=None, user_input_queue=None):
@@ -120,7 +118,7 @@ class TkPeripheryBase(PeripheryBase):
     ESC_KEYCODE = "\x03"  # What keycode to send, if escape Key pressed?
 
     def __init__(self, cfg):
-        super(TkPeripheryBase, self).__init__(cfg)
+        super().__init__(cfg)
         assert tkinter is not None, "ERROR: Tkinter is not available!"
         self.root = tkinter.Tk()
 
@@ -190,7 +188,7 @@ class TkPeripheryBase(PeripheryBase):
     def exit(self, msg):
         log.critical(msg)
         self.root.quit()
-        super(TkPeripheryBase, self).exit()
+        super().exit()
 
     def destroy(self, event=None):
         self.exit("Tk window closed.")
@@ -209,7 +207,7 @@ class TkPeripheryBase(PeripheryBase):
             self.text.config(state=tkinter.DISABLED)  # FIXME: make textbox "read-only"
             return
 
-        super(TkPeripheryBase, self).write_acia_data(cpu_cycles, op_address, address, value)
+        super().write_acia_data(cpu_cycles, op_address, address, value)
 
     def _new_output_char(self, char):
         """ insert in text field """
@@ -246,7 +244,7 @@ class TkPeripheryBase(PeripheryBase):
 
 class InputPollThread(threading.Thread):
     def __init__(self, cpu_process, user_input_queue):
-        super(InputPollThread, self).__init__(name="InputThread")
+        super().__init__(name="InputThread")
         self.cpu_process = cpu_process
         self.user_input_queue = user_input_queue
         self.check_cpu_interval(cpu_process)
@@ -302,7 +300,7 @@ class ConsolePeripheryBase(PeripheryBase):
 ###############################################################################
 
 
-class PeripheryUnittestBase(object):
+class PeripheryUnittestBase:
     def __init__(self, cfg, cpu, memory, display_queue, user_input_queue):
         self.cfg = cfg
         self.cpu = cpu
@@ -326,7 +324,7 @@ class PeripheryUnittestBase(object):
 
     def write_acia_data(self, cpu_cycles, op_address, address, value):
         raise
-        super(PeripheryUnittestBase, self).write_acia_data(cpu_cycles, op_address, address, value)
+        super().write_acia_data(cpu_cycles, op_address, address, value)
 
         while True:
             try:

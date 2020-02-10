@@ -5,7 +5,7 @@ import sys
 import time
 
 
-class MemoryInfo2Comments(object):
+class MemoryInfo2Comments:
     def __init__(self, rom_info_file):
         self.mem_info = self._get_rom_info(rom_info_file)
 

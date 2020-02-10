@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -34,7 +33,7 @@ class CoCoPeriphery(Dragon32Periphery):
     """
 
     def __init__(self, cfg, cpu, memory, display_callback, user_input_queue):
-        super(CoCoPeriphery, self).__init__(cfg, cpu, memory, display_callback, user_input_queue)
+        super().__init__(cfg, cpu, memory, display_callback, user_input_queue)
 #         self.read_byte_func_map.update({
 #             0xc000: self.no_dos_rom,
 #         })

@@ -24,4 +24,4 @@ class SBC09Rom(ROMFile):
         if not os.path.isfile(self.rom_path):
             raise RuntimeError(f"Rom file {self.rom_path!r} not there?!?")
 
-        return super(SBC09Rom, self).get_data()
+        return super().get_data()

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     :created: 2013 by Jens Diemer - www.jensdiemer.de

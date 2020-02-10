@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf-8
 
 """
     :created: 2014 by Jens Diemer - www.jensdiemer.de
@@ -28,7 +27,7 @@ def start_xroar(xroar_args, cwd):
     args += xroar_args
 
     sys.stderr.write(
-        "Start Xroar in %r with: '%s'\n" % (
+        "Start Xroar in {!r} with: '{}'\n".format(
             cwd,
             " ".join([str(i) for i in args])
         )
@@ -37,13 +36,13 @@ def start_xroar(xroar_args, cwd):
     return xroar_process
 
 
-class XroarGDB(object):
+class XroarGDB:
     """
     https://github.com/jedie/XRoar/blob/master/src/gdb.c
     """
 
     def __init__(self):
-        sys.stderr.write("Connect to %s:%s ..." % (GDB_IP, GDB_PORT))
+        sys.stderr.write(f"Connect to {GDB_IP}:{GDB_PORT} ...")
         self.s = socket.socket(
             family=socket.AF_INET,
             #             family=socket.AF_UNSPEC,

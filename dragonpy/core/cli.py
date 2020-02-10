@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-# coding: utf-8
 
 """
     DragonPy - CLI
@@ -81,7 +80,7 @@ def goodbye():
     print("\n --- END --- \n")
 
 
-class CliConfig(object):
+class CliConfig:
     def __init__(self, machine, log, verbosity, log_formatter):
         self.machine = machine
         self.log = log

@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     CoCo config
     ================
@@ -61,7 +59,7 @@ class CoCo2bCfg(Dragon32Cfg):
     )
 
     def __init__(self, cmd_args):
-        super(CoCo2bCfg, self).__init__(cmd_args)
+        super().__init__(cmd_args)
 
         self.machine_api = CoCoAPI()
 

@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
@@ -54,7 +52,7 @@ class Simple6809Cfg(BaseConfig):
     STARTUP_END_ADDR = 0xdf2b  # == JSR  LA390          GO GET AN INPUT LINE
 
     def __init__(self, cfg_dict):
-        super(Simple6809Cfg, self).__init__(cfg_dict)
+        super().__init__(cfg_dict)
 
         self.machine_api = CoCoAPI()  # FIXME!
 
@@ -69,7 +67,7 @@ class Simple6809Cfg(BaseConfig):
         }
 
     def float_accu_write0(self, cpu, addr, value):
-        print("%04x| Write float accu 0 $%x to $%x %s" % (
+        print("{:04x}| Write float accu 0 ${:x} to ${:x} {}".format(
             cpu.last_op_address, value, addr,
             self.mem_info.get_shortest(addr)
         ))
@@ -77,7 +75,7 @@ class Simple6809Cfg(BaseConfig):
         return value
 
     def float_accu_write1(self, cpu, addr, value):
-        print("%04x| Write float accu 1 $%x to $%x %s" % (
+        print("{:04x}| Write float accu 1 ${:x} to ${:x} {}".format(
             cpu.last_op_address, value, addr,
             self.mem_info.get_shortest(addr)
         ))

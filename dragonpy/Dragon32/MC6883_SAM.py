@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -53,7 +52,7 @@ import logging
 log = logging.getLogger(__name__)
 
 
-class SAM(object):
+class SAM:
     """
     MC6883 (74LS783) Synchronous Address Multiplexer (SAM)
     """

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 """
     Dragon 32 Character Map Information
@@ -267,7 +266,7 @@ def create_dict():
             name = item
 
         txt = f'0x{no:02x}: ("\\x{codepoint:02x}", {item_type}), #'
-        txt = "    %-29s %s" % (txt, name)
+        txt = f"    {txt:<29} {name}"
 
         print(txt)
     print("}")

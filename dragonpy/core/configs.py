@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
@@ -44,7 +42,7 @@ class MachineDict(dict):
 machine_dict = MachineDict()
 
 
-class DummyMemInfo(object):
+class DummyMemInfo:
     def get_shortest(self, *args):
         return ">>mem info not active<<"
 
@@ -62,7 +60,7 @@ class AddressAreas(dict):
     """
 
     def __init__(self, areas):
-        super(AddressAreas, self).__init__()
+        super().__init__()
         for start_addr, end_addr, txt in areas:
             self.add_area(start_addr, end_addr, txt)
 
@@ -71,7 +69,7 @@ class AddressAreas(dict):
             dict.__setitem__(self, addr, txt)
 
 
-class BaseConfig(object):
+class BaseConfig:
     #     # http address/port number for the CPU control server
     #     CPU_CONTROL_ADDR = "127.0.0.1"
     #     CPU_CONTROL_PORT = 6809
@@ -140,8 +138,6 @@ class BaseConfig(object):
             if not isinstance(value, (int, str, list, tuple, dict)):
                 continue
             if isinstance(value, int):
-                print("%20s = %-6s in hex: %7s" % (
-                    name, value, hex(value)
-                ))
+                print(f"{name:>20} = {value:<6} in hex: {hex(value):>7}")
             else:
-                print("%20s = %s" % (name, value))
+                print(f"{name:>20} = {value}")

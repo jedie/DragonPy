@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf-8
 
 """
     Filter Xroar trace files.
@@ -29,7 +28,7 @@ def cc_value2txt(status):
     )
 
 
-class MemoryInfo(object):
+class MemoryInfo:
     def __init__(self, rom_info_file):
         self.mem_info = self._get_rom_info(rom_info_file)
         self._cache = {}
@@ -99,14 +98,14 @@ class MemoryInfo(object):
         else:
             start, end, txt = shortest
             if start == end:
-                info = "$%x: %s" % (addr, txt)
+                info = f"${addr:x}: {txt}"
             else:
-                info = "$%x: $%x-$%x - %s" % (addr, start, end, txt)
+                info = f"${addr:x}: ${start:x}-${end:x} - {txt}"
         self._cache[addr] = info
         return info
 
 
-class XroarTraceInfo(object):
+class XroarTraceInfo:
     def __init__(self, infile, outfile, add_cc):
         self.infile = infile
         self.outfile = outfile
@@ -140,7 +139,7 @@ class XroarTraceInfo(object):
                     try:
                         cc = int(cc, 16)
                     except ValueError as err:
-                        msg = "ValueError: %s in line: %s" % (err, line)
+                        msg = f"ValueError: {err} in line: {line}"
                         line += "| %s" % msg
                     else:
                         cc_info = cc_value2txt(cc)
@@ -148,7 +147,7 @@ class XroarTraceInfo(object):
 
             addr_info = rom_info.get_shortest(addr)
             self.outfile.write(
-                "%s | %s\n" % (line, addr_info)
+                f"{line} | {addr_info}\n"
             )
 
 

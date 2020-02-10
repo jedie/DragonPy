@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -26,7 +25,7 @@ except ImportError:
     import tkinter as tkinter
 
 
-class BaseExtension(object):
+class BaseExtension:
     def __init__(self, editor):
         self.editor = editor
 

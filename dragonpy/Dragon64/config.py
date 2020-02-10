@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     Dragon 64 config
     ================
@@ -55,7 +53,7 @@ class Dragon64Cfg(Dragon32Cfg):
     )
 
     def __init__(self, cmd_args):
-        super(Dragon64Cfg, self).__init__(cmd_args)
+        super().__init__(cmd_args)
 
         if self.verbosity <= logging.ERROR:
             self.mem_info = get_dragon_meminfo()

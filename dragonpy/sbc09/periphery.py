@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -37,7 +36,7 @@ except ImportError:
         tkinter = None
 
 
-class SBC09Periphery(object):
+class SBC09Periphery:
     TITLE = "DragonPy - Buggy machine language monitor and rudimentary O.S. version 1.0"
     INITAL_INPUT = (
         #        # Dump registers
@@ -104,7 +103,7 @@ class SBC09Periphery(object):
         self.display_callback(char)
 
 
-class DummyStdout(object):
+class DummyStdout:
     def dummy_func(self, *args):
         pass
     write = dummy_func
@@ -123,7 +122,7 @@ class SBC09PeripheryConsole(SBC09Periphery, ConsolePeripheryBase):
 
 class SBC09PeripheryUnittest(SBC09Periphery):
     def __init__(self, *args, **kwargs):
-        super(SBC09PeripheryUnittest, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
         self.memory.add_write_byte_callback(self.write_acia_data, 0xa001)  # Data port of ACIA
 
     def setUp(self):

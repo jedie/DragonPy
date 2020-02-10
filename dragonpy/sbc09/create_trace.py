@@ -1,4 +1,3 @@
-
 """
     Hacked script to create a *short* trace
     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -143,10 +142,7 @@ def reformat_v09_trace(raw_trace, max_lines=None):
         else:
             line = old_line % register_line
 
-        old_line = "%04x| %-11s %-27s %%s | %s" % (
-            pc, "%x" % op_code, mnemonic,
-            mem
-        )
+        old_line = f"{pc:04x}| {f'{op_code:x}':<11} {mnemonic:<27} %s | {mem}"
 
         result.append(line)
 

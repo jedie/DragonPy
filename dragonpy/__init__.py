@@ -20,20 +20,20 @@ def fix_virtualenv_tkinter():
 
     There are "fix tk" file here:
 
-          C:\Python27\Lib\lib-tk\FixTk.py
-          C:\Python34\Lib\tkinter\_fix.py
+          C:\\Python27\\Lib\\lib-tk\\FixTk.py
+          C:\\Python34\\Lib\tkinter\\_fix.py
 
     These modules will be automatic imported by tkinter import.
 
     The fix set theses environment variables:
 
-        TCL_LIBRARY C:\Python27\tcl\tcl8.5
-        TIX_LIBRARY C:\Python27\tcl\tix8.4.3
-        TK_LIBRARY C:\Python27\tcl\tk8.5
+        TCL_LIBRARY C:\\Python27\tcl\tcl8.5
+        TIX_LIBRARY C:\\Python27\tcl\tix8.4.3
+        TK_LIBRARY C:\\Python27\tcl\tk8.5
 
-        TCL_LIBRARY C:\Python34\tcl\tcl8.6
-        TIX_LIBRARY C:\Python34\tcl\tix8.4.3
-        TK_LIBRARY C:\Python34\tcl\tk8.6
+        TCL_LIBRARY C:\\Python34\tcl\tcl8.6
+        TIX_LIBRARY C:\\Python34\tcl\tix8.4.3
+        TK_LIBRARY C:\\Python34\tcl\tk8.6
 
     but only if:
 
