@@ -11,11 +11,10 @@
 """
 
 
-
-
 import logging
 
 from dragonlib.utils.logging_utils import setup_logging
+
 from dragonpy.CoCo.config import CoCo2bCfg
 from dragonpy.CoCo.periphery_coco import CoCoPeriphery
 from dragonpy.core.gui import DragonTkinterGUI
@@ -33,6 +32,3 @@ def run_CoCo2b(cfg_dict):
         PeripheryClass=CoCoPeriphery,
         GUI_Class=DragonTkinterGUI
     )
-
-
-

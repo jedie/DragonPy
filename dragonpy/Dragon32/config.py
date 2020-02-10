@@ -10,21 +10,21 @@
 """
 
 
-
 import logging
 
 import six
+from dragonlib.api import Dragon32API
+
+from dragonpy.core.configs import DRAGON32, BaseConfig
+from dragonpy.Dragon32.Dragon32_rom import Dragon32Rom
+from dragonpy.Dragon32.keyboard_map import get_dragon_keymatrix_pia_result
+from dragonpy.Dragon32.mem_info import get_dragon_meminfo
+
 
 xrange = six.moves.xrange
 
-from dragonlib.api import Dragon32API
-from dragonpy.Dragon32.keyboard_map import get_dragon_keymatrix_pia_result
-from dragonpy.Dragon32.mem_info import get_dragon_meminfo
-from dragonpy.core.configs import BaseConfig, DRAGON32
-from dragonpy.Dragon32.Dragon32_rom import Dragon32Rom
 
-
-log=logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class Dragon32Cfg(BaseConfig):
@@ -51,7 +51,7 @@ class Dragon32Cfg(BaseConfig):
 #     RAM_END = 0x0FFF # 4KB # BASIC will always raise a OM ERROR!
 #     RAM_END = 0x1FFF # 8KB # BASIC will always raise a OM ERROR!
 #     RAM_END = 0x3FFF # 16KB # usable
-    RAM_END = 0x7FFF # 32KB
+    RAM_END = 0x7FFF  # 32KB
 
     ROM_START = 0x8000
     ROM_END = 0xBFFF
@@ -70,7 +70,7 @@ class Dragon32Cfg(BaseConfig):
     )
 
     # for unittests init:
-    STARTUP_END_ADDR = 0xbbe5 # scan keyboard
+    STARTUP_END_ADDR = 0xbbe5  # scan keyboard
 
     def __init__(self, cmd_args):
         super(Dragon32Cfg, self).__init__(cmd_args)
@@ -80,13 +80,13 @@ class Dragon32Cfg(BaseConfig):
         if self.verbosity and self.verbosity <= logging.ERROR:
             self.mem_info = get_dragon_meminfo()
 
-        self.periphery_class = None# Dragon32Periphery
+        self.periphery_class = None  # Dragon32Periphery
 
         self.memory_byte_middlewares = {
             # (start_addr, end_addr): (read_func, write_func)
-#             (0x0152, 0x0159): (None, self.keyboard_matrix_state),
-#             (0x0115, 0x0119): (self.rnd_seed_read, self.rnd_seed_write),
-#             (0x0112, 0x0113): (self.timer_value_read, self.timer_value_write),
+            #             (0x0152, 0x0159): (None, self.keyboard_matrix_state),
+            #             (0x0115, 0x0119): (self.rnd_seed_read, self.rnd_seed_write),
+            #             (0x0112, 0x0113): (self.timer_value_read, self.timer_value_write),
         }
         self.memory_word_middlewares = {
             # (0x0019, 0x001F): (None, self.basic_addresses_write),
@@ -96,7 +96,7 @@ class Dragon32Cfg(BaseConfig):
     def keyboard_matrix_state(self, cpu, addr, value):
         log.critical(
             "%04x|      Set keyboard matrix state $%04x to $%02x %s\t\t\t|%s",
-            cpu.last_op_address, addr, value, '{0:08b}'.format(value),
+            cpu.last_op_address, addr, value, f'{value:08b}',
             self.mem_info.get_shortest(addr)
         )
         # cpu.memory.ram.print_dump(0x004f, 0x0054)
@@ -127,10 +127,10 @@ class Dragon32Cfg(BaseConfig):
         return byte
 
     def basic_addresses_write(self, cycles, last_op_address, address, word):
-#        PROGRAM_START_ADDR = 0x0019
-#        VARIABLES_START_ADDR = 0x001B
-#        ARRAY_START_ADDR = 0x001D
-#        FREE_SPACE_START_ADDR = 0x001F
+        #        PROGRAM_START_ADDR = 0x0019
+        #        VARIABLES_START_ADDR = 0x001B
+        #        ARRAY_START_ADDR = 0x001D
+        #        FREE_SPACE_START_ADDR = 0x001F
         log.critical("%04x| write $%04x to $%04x", last_op_address, word, address)
         return word
 
@@ -152,9 +152,8 @@ class Dragon32Cfg(BaseConfig):
     def pia_keymatrix_result(self, inkey, pia0b):
         return get_dragon_keymatrix_pia_result(inkey, pia0b)
 
+
 config = Dragon32Cfg
 
 
-#------------------------------------------------------------------------------
-
-
+# ------------------------------------------------------------------------------

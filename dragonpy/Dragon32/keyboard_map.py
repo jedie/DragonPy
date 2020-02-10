@@ -40,145 +40,148 @@
 """
 
 
-import six
-xrange = six.moves.xrange
-
+import logging
 import string
 
+import six
 from dragonlib.utils.auto_shift import invert_shift
-import logging
+
+from dragonpy.utils.bits import clear_bit, invert_byte, is_bit_set
+
+
+xrange = six.moves.xrange
+
 
 log = logging.getLogger(__name__)
-from dragonpy.utils.bits import invert_byte, is_bit_set, clear_bit
 
 
 DRAGON_KEYMAP = {
     # TODO: Use PyGame event.scancode / Tkinter event.keycode constants
 
     # Key: ((column, row),(column2, row2))
-    "0": ((0, 0),), # 0
-    "1": ((1, 0),), # 1
-    "2": ((2, 0),), # 2
-    "3": ((3, 0),), # 3
-    "4": ((4, 0),), # 4
-    "5": ((5, 0),), # 5
-    "6": ((6, 0),), # 6
-    "7": ((7, 0),), # 7
+    "0": ((0, 0),),  # 0
+    "1": ((1, 0),),  # 1
+    "2": ((2, 0),),  # 2
+    "3": ((3, 0),),  # 3
+    "4": ((4, 0),),  # 4
+    "5": ((5, 0),),  # 5
+    "6": ((6, 0),),  # 6
+    "7": ((7, 0),),  # 7
 
-    "8": ((0, 1),), # 8
-    "9": ((1, 1),), # 9
-    ":": ((2, 1),), # :
-    ";": ((3, 1),), # ;
-    ",": ((4, 1),), # ,
-    "-": ((5, 1),), # -
-    ".": ((6, 1),), # .
-    "/": ((7, 1),), # /
+    "8": ((0, 1),),  # 8
+    "9": ((1, 1),),  # 9
+    ":": ((2, 1),),  # :
+    ";": ((3, 1),),  # ;
+    ",": ((4, 1),),  # ,
+    "-": ((5, 1),),  # -
+    ".": ((6, 1),),  # .
+    "/": ((7, 1),),  # /
 
-    "@": ((0, 2),), # @
-    "A": ((1, 2),), # A
-    "B": ((2, 2),), # B
-    "C": ((3, 2),), # C
-    "D": ((4, 2),), # D
-    "E": ((5, 2),), # E
-    "F": ((6, 2),), # F
-    "G": ((7, 2),), # G
+    "@": ((0, 2),),  # @
+    "A": ((1, 2),),  # A
+    "B": ((2, 2),),  # B
+    "C": ((3, 2),),  # C
+    "D": ((4, 2),),  # D
+    "E": ((5, 2),),  # E
+    "F": ((6, 2),),  # F
+    "G": ((7, 2),),  # G
 
-    "H": ((0, 3),), # H
-    "I": ((1, 3),), # I
-    "J": ((2, 3),), # J
-    "K": ((3, 3),), # K
-    "L": ((4, 3),), # L
-    "M": ((5, 3),), # M
-    "N": ((6, 3),), # N
-    "O": ((7, 3),), # O
+    "H": ((0, 3),),  # H
+    "I": ((1, 3),),  # I
+    "J": ((2, 3),),  # J
+    "K": ((3, 3),),  # K
+    "L": ((4, 3),),  # L
+    "M": ((5, 3),),  # M
+    "N": ((6, 3),),  # N
+    "O": ((7, 3),),  # O
 
-    "P": ((0, 4),), # P
-    "Q": ((1, 4),), # Q
-    "R": ((2, 4),), # R
-    "S": ((3, 4),), # S
-    "T": ((4, 4),), # T
-    "U": ((5, 4),), # U
-    "V": ((6, 4),), # V
-    "W": ((7, 4),), # W
+    "P": ((0, 4),),  # P
+    "Q": ((1, 4),),  # Q
+    "R": ((2, 4),),  # R
+    "S": ((3, 4),),  # S
+    "T": ((4, 4),),  # T
+    "U": ((5, 4),),  # U
+    "V": ((6, 4),),  # V
+    "W": ((7, 4),),  # W
 
-    "X": ((0, 5),), # X
-    "Y": ((1, 5),), # Y
-    "Z": ((2, 5),), # Z
-    'Up': ((3, 5),), # UP
-    'Down': ((4, 5),), # DOWN
-    'Left': ((5, 5),), # LEFT
-    'Right': ((6, 5),), # RIGHT
-    " ": ((7, 5),), # " " (Space)
+    "X": ((0, 5),),  # X
+    "Y": ((1, 5),),  # Y
+    "Z": ((2, 5),),  # Z
+    'Up': ((3, 5),),  # UP
+    'Down': ((4, 5),),  # DOWN
+    'Left': ((5, 5),),  # LEFT
+    'Right': ((6, 5),),  # RIGHT
+    " ": ((7, 5),),  # " " (Space)
 
-    'Return': ((0, 6),), # ENTER - Char: '\r'   - keycode: dez.: 36,  hex: $24
-    'Home': ((1, 6),), # CLEAR - $6e is "Home" / "Pos 1" button
-    'Escape': ((2, 6),), # BREAK - $09 is "Escape" button
+    'Return': ((0, 6),),  # ENTER - Char: '\r'   - keycode: dez.: 36,  hex: $24
+    'Home': ((1, 6),),  # CLEAR - $6e is "Home" / "Pos 1" button
+    'Escape': ((2, 6),),  # BREAK - $09 is "Escape" button
 
-    'Shift_L': ((7, 6),), # SHIFT (shift left)
-    'Shift_R': ((7, 6),), # SHIFT (shift right)
+    'Shift_L': ((7, 6),),  # SHIFT (shift left)
+    'Shift_R': ((7, 6),),  # SHIFT (shift right)
 
     # Additional:
 
-    'BackSpace': ((5, 5),), # $08 is Backspace mapped to "LEFT"
+    'BackSpace': ((5, 5),),  # $08 is Backspace mapped to "LEFT"
 
     # Shifted keys:
 
-    "!": ((7, 6), (1, 0)), # Shift + "1"
-    '"': ((7, 6), (2, 0)), # Shift + "2"
-    "#": ((7, 6), (3, 0)), # Shift + "3"
-    "$": ((7, 6), (4, 0)), # Shift + "4"
-    "%": ((7, 6), (5, 0)), # Shift + "5"
-    "&": ((7, 6), (6, 0)), # Shift + "6"
-    "'": ((7, 6), (7, 0)), # Shift + "7"
+    "!": ((7, 6), (1, 0)),  # Shift + "1"
+    '"': ((7, 6), (2, 0)),  # Shift + "2"
+    "#": ((7, 6), (3, 0)),  # Shift + "3"
+    "$": ((7, 6), (4, 0)),  # Shift + "4"
+    "%": ((7, 6), (5, 0)),  # Shift + "5"
+    "&": ((7, 6), (6, 0)),  # Shift + "6"
+    "'": ((7, 6), (7, 0)),  # Shift + "7"
 
-    "(": ((7, 6), (0, 1)), # Shift + "8"
-    ")": ((7, 6), (1, 1)), # Shift + "9"
-    "*": ((7, 6), (2, 1)), # Shift + ":"
-    "+": ((7, 6), (3, 1)), # Shift + ";"
-    "<": ((7, 6), (4, 1)), # Shift + ","
-    "=": ((7, 6), (5, 1)), # Shift + "-"
-    ">": ((7, 6), (6, 1)), # Shift + "."
-    "?": ((7, 6), (7, 1)), # Shift + "/"
+    "(": ((7, 6), (0, 1)),  # Shift + "8"
+    ")": ((7, 6), (1, 1)),  # Shift + "9"
+    "*": ((7, 6), (2, 1)),  # Shift + ":"
+    "+": ((7, 6), (3, 1)),  # Shift + ";"
+    "<": ((7, 6), (4, 1)),  # Shift + ","
+    "=": ((7, 6), (5, 1)),  # Shift + "-"
+    ">": ((7, 6), (6, 1)),  # Shift + "."
+    "?": ((7, 6), (7, 1)),  # Shift + "/"
 
-    "a":  ((7, 6), (1, 2)), # Shift + "A"
-    "b":  ((7, 6), (2, 2)), # Shift + "B"
-    "c":  ((7, 6), (3, 2)), # Shift + "C"
-    "d":  ((7, 6), (4, 2)), # Shift + "D"
-    "e":  ((7, 6), (5, 2)), # Shift + "E"
-    "f":  ((7, 6), (6, 2)), # Shift + "F"
-    "g":  ((7, 6), (7, 2)), # Shift + "G"
+    "a": ((7, 6), (1, 2)),  # Shift + "A"
+    "b": ((7, 6), (2, 2)),  # Shift + "B"
+    "c": ((7, 6), (3, 2)),  # Shift + "C"
+    "d": ((7, 6), (4, 2)),  # Shift + "D"
+    "e": ((7, 6), (5, 2)),  # Shift + "E"
+    "f": ((7, 6), (6, 2)),  # Shift + "F"
+    "g": ((7, 6), (7, 2)),  # Shift + "G"
 
-    "h":  ((7, 6), (0, 3)), # Shift + "H"
-    "i":  ((7, 6), (1, 3)), # Shift + "I"
-    "j":  ((7, 6), (2, 3)), # Shift + "J"
-    "k":  ((7, 6), (3, 3)), # Shift + "K"
-    "l":  ((7, 6), (4, 3)), # Shift + "L"
-    "m":  ((7, 6), (5, 3)), # Shift + "M"
-    "n":  ((7, 6), (6, 3)), # Shift + "N"
-    "o":  ((7, 6), (7, 3)), # Shift + "O"
+    "h": ((7, 6), (0, 3)),  # Shift + "H"
+    "i": ((7, 6), (1, 3)),  # Shift + "I"
+    "j": ((7, 6), (2, 3)),  # Shift + "J"
+    "k": ((7, 6), (3, 3)),  # Shift + "K"
+    "l": ((7, 6), (4, 3)),  # Shift + "L"
+    "m": ((7, 6), (5, 3)),  # Shift + "M"
+    "n": ((7, 6), (6, 3)),  # Shift + "N"
+    "o": ((7, 6), (7, 3)),  # Shift + "O"
 
-    "p":  ((7, 6), (0, 4)), # Shift + "P"
-    "q":  ((7, 6), (1, 4)), # Shift + "Q"
-    "r":  ((7, 6), (2, 4)), # Shift + "R"
-    "s":  ((7, 6), (3, 4)), # Shift + "S"
-    "t":  ((7, 6), (4, 4)), # Shift + "T"
-    "u":  ((7, 6), (5, 4)), # Shift + "U"
-    "v":  ((7, 6), (6, 4)), # Shift + "V"
-    "w":  ((7, 6), (7, 4)), # Shift + "W"
+    "p": ((7, 6), (0, 4)),  # Shift + "P"
+    "q": ((7, 6), (1, 4)),  # Shift + "Q"
+    "r": ((7, 6), (2, 4)),  # Shift + "R"
+    "s": ((7, 6), (3, 4)),  # Shift + "S"
+    "t": ((7, 6), (4, 4)),  # Shift + "T"
+    "u": ((7, 6), (5, 4)),  # Shift + "U"
+    "v": ((7, 6), (6, 4)),  # Shift + "V"
+    "w": ((7, 6), (7, 4)),  # Shift + "W"
 
-    "x":  ((7, 6), (0, 5)), # Shift + "X"
-    "y":  ((7, 6), (1, 5)), # Shift + "Y"
-    "z":  ((7, 6), (2, 5)), # Shift + "Z"
+    "x": ((7, 6), (0, 5)),  # Shift + "X"
+    "y": ((7, 6), (1, 5)),  # Shift + "Y"
+    "z": ((7, 6), (2, 5)),  # Shift + "Z"
 }
 
 COCO_ROW_MAP = {
-    0:4,
-    1:5,
-    2:0,
-    3:1,
-    4:2,
-    5:3,
-    6:6,
+    0: 4,
+    1: 5,
+    2: 0,
+    3: 1,
+    4: 2,
+    5: 3,
+    6: 6,
 }
 
 # Use the Dragon map and just swap the rows
@@ -189,7 +192,6 @@ for key, coordinates in list(DRAGON_KEYMAP.items()):
         new_row = COCO_ROW_MAP[row]
         coco_coordinates.append((column, new_row))
     COCO_KEYMAP[key] = tuple(coco_coordinates)
-
 
 
 def _get_col_row_values(inkey, keymap):
@@ -220,23 +222,26 @@ def get_coco_keymatrix_pia_result(inkey, pia0b):
     result = _set_bits(pia0b, col_row_values)
     return result
 
+
 def inkey_from_tk_event(event, auto_shift=True):
-    if event.keysym_num>64000: # FIXME: Found a boundary number
-        inkey=event.keysym
+    if event.keysym_num > 64000:  # FIXME: Found a boundary number
+        inkey = event.keysym
     else:
-        inkey=event.char
+        inkey = event.char
         if auto_shift:
             inkey = invert_shift(inkey)
     return inkey
 
+
 def add_to_input_queue(user_input_queue, txt):
     log.debug("Add %s to input queue.", repr(txt))
-    txt=txt.replace("\r\n", "\r").replace("\n","\r")
+    txt = txt.replace("\r\n", "\r").replace("\n", "\r")
     for char in txt:
         if char == "\r":
-            char="Return" # tkinter event.keysym string
+            char = "Return"  # tkinter event.keysym string
         log.debug("Add: %r", char)
         user_input_queue.put(char)
+
 
 def test(inkey, matrix_name, auto_shift=False):
     """
@@ -278,11 +283,11 @@ def test(inkey, matrix_name, auto_shift=False):
     print(f"char/keycode: {inkey!r} -> cols/rows: {col_row_values!r}")
 
     for i in range(8):
-        pia0b = invert_byte(2 ** i) # written into $ff02
+        pia0b = invert_byte(2 ** i)  # written into $ff02
         if matrix_name == "dragon":
-            result = get_dragon_keymatrix_pia_result(inkey, pia0b) # read from $ff00
+            result = get_dragon_keymatrix_pia_result(inkey, pia0b)  # read from $ff00
         else:
-            result = get_coco_keymatrix_pia_result(inkey, pia0b) # read from $ff00
+            result = get_coco_keymatrix_pia_result(inkey, pia0b)  # read from $ff00
         addr = 0x152 + i
         print("PB%i - $ff02 in $%02x (%s) -> $ff00 out $%02x (%s) stored in $%04x" % (
             i, pia0b, '{0:08b}'.format(pia0b),
@@ -308,10 +313,8 @@ if __name__ == '__main__':
     import pprint
     pprint.pprint(COCO_KEYMAP)
 
-
     def verbose_value(value):
-        return "dez.: %i, hex: $%02x" % (value, value)
-
+        return f"dez.: {value:d}, hex: ${value:02x}"
 
     class TkKeycodes(object):
         def __init__(self):
@@ -326,13 +329,13 @@ if __name__ == '__main__':
                 event.char, event.keycode, event.keysym, event.keysym_num
             ))
             inkey = inkey_from_tk_event(event, auto_shift=True)
-            print("inkey from event: %r" % inkey)
+            print(f"inkey from event: {inkey!r}")
             try:
                 test(inkey,
-                    matrix_name="dragon",
-                    # matrix_name="coco",
-                )
-            except:
+                     matrix_name="dragon",
+                     # matrix_name="coco",
+                     )
+            except BaseException:
                 self.root.destroy()
                 raise
             print()
@@ -342,4 +345,3 @@ if __name__ == '__main__':
 
     tk_keys = TkKeycodes()
     tk_keys.mainloop()
-

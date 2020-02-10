@@ -49,7 +49,8 @@
 
 import logging
 
-log=logging.getLogger(__name__)
+
+log = logging.getLogger(__name__)
 
 
 class SAM(object):
@@ -64,7 +65,6 @@ class SAM(object):
         self.cfg = cfg
         self.cpu = cpu
         self.memory = memory
-
 
         self.cpu.add_sync_callback(callback_cycles=self.IRQ_CYCLES, callback=self.irq_trigger)
 
@@ -100,9 +100,9 @@ class SAM(object):
         log.critical("TODO: VDG reset")
 
     def irq_trigger(self, call_cycles):
-#        log.critical("%04x| SAM irq trigger called %i cycles to late",
-#            self.cpu.last_op_address, call_cycles - self.IRQ_CYCLES
-#        )
+        #        log.critical("%04x| SAM irq trigger called %i cycles to late",
+        #            self.cpu.last_op_address, call_cycles - self.IRQ_CYCLES
+        #        )
         self.cpu.irq()
 
     def interrupt_vectors(self, cpu_cycles, op_address, address):
@@ -121,7 +121,7 @@ class SAM(object):
         log.debug("TODO: read VDG mode register V1 $%04x", address)
         return 0x00
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def write_VDG_mode_register_v0(self, cpu_cycles, op_address, address, value):
         log.debug("TODO: write VDG mode register V0 $%02x to $%04x", value, address)
@@ -178,6 +178,4 @@ class SAM(object):
         log.debug("TODO: write D64_dynamic_memory $%02x to $%04x", value, address)
 
 
-#------------------------------------------------------------------------------
-
-
+# ------------------------------------------------------------------------------

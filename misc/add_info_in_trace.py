@@ -10,7 +10,6 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import os
 import time
 import sys
 import argparse
@@ -152,6 +151,7 @@ class XroarTraceInfo(object):
                 "%s | %s\n" % (line, addr_info)
             )
 
+
 def main(args):
     xt = XroarTraceInfo(args.infile, args.outfile, args.add_cc)
     rom_info = MemoryInfo(args.infofile)
@@ -161,22 +161,22 @@ def main(args):
 def get_cli_args():
     parser = argparse.ArgumentParser(description="Add info to Xroar traces")
     parser.add_argument("infile", nargs="?",
-        type=argparse.FileType("r"),
-        default=sys.stdin,
-        help="Xroar trace file or stdin"
-    )
+                        type=argparse.FileType("r"),
+                        default=sys.stdin,
+                        help="Xroar trace file or stdin"
+                        )
     parser.add_argument("outfile", nargs="?",
-        type=argparse.FileType("w"),
-        default=sys.stdout,
-        help="If given: write output in a new file else: Display it."
-    )
+                        type=argparse.FileType("w"),
+                        default=sys.stdout,
+                        help="If given: write output in a new file else: Display it."
+                        )
     parser.add_argument("--infofile", metavar="FILENAME",
-        type=argparse.FileType("r"),
-        help="ROM Info file from: https://github.com/6809/rom-info ;)",
-    )
+                        type=argparse.FileType("r"),
+                        help="ROM Info file from: https://github.com/6809/rom-info ;)",
+                        )
     parser.add_argument("--add_cc", action="store_true",
-        help="Add CC info like '.F.IN..C' on every line.",
-    )
+                        help="Add CC info like '.F.IN..C' on every line.",
+                        )
     args = parser.parse_args()
     return args
 
@@ -184,5 +184,3 @@ def get_cli_args():
 if __name__ == '__main__':
     args = get_cli_args()
     main(args)
-
-

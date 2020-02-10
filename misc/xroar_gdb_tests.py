@@ -13,7 +13,7 @@ import time
 import socket
 import threading
 
-GDB_IP="127.0.0.1"
+GDB_IP = "127.0.0.1"
 GDB_PORT = 65520
 
 
@@ -22,9 +22,9 @@ def start_xroar(xroar_args, cwd):
     http://www.6809.org.uk/xroar/doc/xroar.shtml#Debugging
     """
     args = ["xroar", "-gdb",
-         "-gdb-ip", GDB_IP,
-         "-gdb-port", str(GDB_PORT),
-    ]
+            "-gdb-ip", GDB_IP,
+            "-gdb-port", str(GDB_PORT),
+            ]
     args += xroar_args
 
     sys.stderr.write(
@@ -41,11 +41,12 @@ class XroarGDB(object):
     """
     https://github.com/jedie/XRoar/blob/master/src/gdb.c
     """
+
     def __init__(self):
         sys.stderr.write("Connect to %s:%s ..." % (GDB_IP, GDB_PORT))
         self.s = socket.socket(
             family=socket.AF_INET,
-#             family=socket.AF_UNSPEC,
+            #             family=socket.AF_UNSPEC,
             type=socket.SOCK_STREAM,
             proto=0
         )
@@ -91,7 +92,7 @@ if __name__ == '__main__':
         try:
             xroar_gdb.running = False
             xroar_gdb.s.close()
-        except:
+        except BaseException:
             pass
 
     time.sleep(1)

@@ -10,9 +10,9 @@
 """
 
 
-
-
 import logging
+
+from dragonpy.core.gui import ScrolledTextGUI
 
 
 log = logging.getLogger(__name__)
@@ -34,12 +34,6 @@ except ImportError:
     import tkinter.scrolledtext as scrolledtext
     import tkinter.font as TkFont
 
-from dragonpy.core.gui import ScrolledTextGUI
-
-
 
 class MulticompTkinterGUI(ScrolledTextGUI):
     pass
-
-
-

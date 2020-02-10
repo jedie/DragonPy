@@ -19,20 +19,21 @@
 """
 
 
-
+import logging
 import os
 
-try:
-    import queue # Python 3
-except ImportError:
-    import queue as queue # Python 2
-
-import logging
-
-log=logging.getLogger(__name__)
 from dragonpy.core.configs import COCO2B
-from dragonpy.utils.bits import is_bit_set, invert_byte, clear_bit, set_bit
+from dragonpy.utils.bits import clear_bit, invert_byte, is_bit_set, set_bit
 from dragonpy.utils.humanize import byte2bit_string
+
+
+try:
+    import queue  # Python 3
+except ImportError:
+    import queue as queue  # Python 2
+
+
+log = logging.getLogger(__name__)
 
 
 class PIA_register(object):
@@ -51,7 +52,7 @@ class PIA_register(object):
         self.irq = 0x00
 
     def set(self, value):
-        log.debug("\t set %s to $%02x %s", self.name, value, '{0:08b}'.format(value))
+        log.debug("\t set %s to $%02x %s", self.name, value, f'{value:08b}')
         self.value = value
 
     def get(self):
@@ -91,6 +92,7 @@ class PIA(object):
     $ff22 PIA 1 B side Data register         PB7
     $ff23 PIA 1 B side Control register      CB1
     """
+
     def __init__(self, cfg, cpu, memory, user_input_queue):
         self.cfg = cfg
         self.cpu = cpu
@@ -179,7 +181,7 @@ class PIA(object):
         log.error("TODO: read from 0xff23 -> PIA 1 B side Control reg.")
         return 0x37
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def write_PIA1_A_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff20 -> PIA 1 A side Data reg. """
@@ -202,7 +204,7 @@ class PIA(object):
         log.error(
             "TODO: write $%02x to 0xff23 -> PIA 1 B side Control reg.", value)
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
 
     def read_serial_interface(self, cpu_cycles, op_address, address):
         log.error("TODO: read from $%04x (D64 serial interface", address)
@@ -212,7 +214,7 @@ class PIA(object):
         log.error(
             "TODO: write $%02x to $%04x (D64 serial interface", value, address)
 
-    #--------------------------------------------------------------------------
+    # --------------------------------------------------------------------------
     # Keyboard matrix on PIA0
 
     def read_PIA0_A_data(self, cpu_cycles, op_address, address):
@@ -232,7 +234,7 @@ class PIA(object):
 
         # FIXME: Find a way to handle CoCo and Dragon in the same way!
         if self.cfg.CONFIG_NAME == COCO2B:
-#            log.critical("\t count: %i", self.input_repead)
+            #            log.critical("\t count: %i", self.input_repead)
             if self.input_repead == 7:
                 try:
                     self.current_input_char = self.user_input_queue.get_nowait()
@@ -242,7 +244,7 @@ class PIA(object):
                     log.critical(
                         "\tget new key from queue: %s", repr(self.current_input_char))
             elif self.input_repead == 18:
-#                log.critical("\tForce send 'no key pressed'")
+                #                log.critical("\tForce send 'no key pressed'")
                 self.current_input_char = None
             elif self.input_repead > 20:
                 self.input_repead = 0
@@ -269,18 +271,18 @@ class PIA(object):
                     try:
                         self.current_input_char = self.user_input_queue.get_nowait()
                     except queue.Empty:
-#                        log.critical("\tinput_queue is empty"))
+                        #                        log.critical("\tinput_queue is empty"))
                         self.current_input_char = None
                     else:
-#                        log.critical("\tget new key from queue: %s", repr(self.current_input_char))
+                        #                        log.critical("\tget new key from queue: %s", repr(self.current_input_char))
                         self.empty_key_toggle = True
 
         if self.current_input_char is None:
-#            log.critical("\tno key pressed")
+            #            log.critical("\tno key pressed")
             result = 0xff
             self.empty_key_toggle = False
         else:
-#            log.critical("\tsend %s", repr(self.current_input_char))
+            #            log.critical("\tsend %s", repr(self.current_input_char))
             result = self.cfg.pia_keymatrix_result(
                 self.current_input_char, pia0b)
 
@@ -301,9 +303,9 @@ class PIA(object):
     def write_PIA0_A_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff00 -> PIA 0 A side Data reg. """
         log.error("%04x| write $%02x (%s) to $%04x -> PIA 0 A side Data reg.\t|%s",
-            op_address, value, byte2bit_string(value), address,
-            self.cfg.mem_info.get_shortest(op_address)
-        )
+                  op_address, value, byte2bit_string(value), address,
+                  self.cfg.mem_info.get_shortest(op_address)
+                  )
         self.pia_0_A_register.set(value)
 
     def read_PIA0_A_control(self, cpu_cycles, op_address, address):
@@ -369,7 +371,7 @@ class PIA(object):
     def write_PIA0_B_data(self, cpu_cycles, op_address, address, value):
         """ write to 0xff02 -> PIA 0 B side Data reg. """
         log.debug(
-#        log.info(
+            #        log.info(
             "%04x| write $%02x (%s) to $%04x -> PIA 0 B side Data reg.\t|%s",
             op_address, value, byte2bit_string(value),
             address, self.cfg.mem_info.get_shortest(op_address)
@@ -432,6 +434,4 @@ class PIA(object):
 
         self.pia_0_B_control.set(value)
 
-#------------------------------------------------------------------------------
-
-
+# ------------------------------------------------------------------------------

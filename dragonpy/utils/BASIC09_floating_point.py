@@ -9,13 +9,14 @@
 """
 
 
-import six
-xrange = six.moves.xrange
-
-import math
 import decimal
+import math
 
-from dragonlib.utils.byte_word_values import unsigned8, signed16
+import six
+from dragonlib.utils.byte_word_values import signed16, unsigned8
+
+
+xrange = six.moves.xrange
 
 
 class BASIC09FloatingPoint(object):
@@ -29,6 +30,7 @@ class BASIC09FloatingPoint(object):
 
     exponent most significant bit is the sign: 1=positive 0=negative
     """
+
     def __init__(self, value):
         value = signed16(value)
         self.value = decimal.Decimal(value)
@@ -65,17 +67,15 @@ class BASIC09FloatingPoint(object):
         return [self.exponent_byte] + self.mantissa_bytes + [self.mantissa_sign]
 
     def print_values(self):
-        print("Float value was: %s" % self.value)
-        print("\texponent......: dez.: %s hex: $%02x" % (self.exponent, self.exponent))
-        print("\texponent byte.: dez.: %s hex: $%02x" % (
-            self.exponent_byte, self.exponent_byte
-        ))
-        print("\tmantissa value: dez.: %s" % (self.mantissa))
+        print(f"Float value was: {self.value}")
+        print(f"\texponent......: dez.: {self.exponent} hex: ${self.exponent:02x}")
+        print(f"\texponent byte.: dez.: {self.exponent_byte} hex: ${self.exponent_byte:02x}")
+        print(f"\tmantissa value: dez.: {self.mantissa}")
         print("\tmantissa bytes: dez.: %s hex: %s" % (
             repr(self.mantissa_bytes),
             ", ".join(["$%02x" % i for i in self.mantissa_bytes])
         ))
-        print("\tmatissa-sign..: hex: $%02x" % self.mantissa_sign)
+        print(f"\tmatissa-sign..: hex: ${self.mantissa_sign:02x}")
         byte_list = self.get_bytes()
         print("\tbinary........: hex: %s" % (
             ", ".join(["$%02x" % i for i in byte_list])
@@ -94,24 +94,24 @@ class BASIC09FloatingPoint(object):
 
 if __name__ == "__main__":
     # Examples:
-#    BASIC09FloatingPoint(54).print_values()
-#    BASIC09FloatingPoint(-54).print_values()
-#    BASIC09FloatingPoint(5.5).print_values()
-#    BASIC09FloatingPoint(-5.5).print_values()
-#    BASIC09FloatingPoint(0).print_values()
-#    BASIC09FloatingPoint(10.14 ** 38).print_values()
-#    BASIC09FloatingPoint(10.14 ** -38).print_values()
+    #    BASIC09FloatingPoint(54).print_values()
+    #    BASIC09FloatingPoint(-54).print_values()
+    #    BASIC09FloatingPoint(5.5).print_values()
+    #    BASIC09FloatingPoint(-5.5).print_values()
+    #    BASIC09FloatingPoint(0).print_values()
+    #    BASIC09FloatingPoint(10.14 ** 38).print_values()
+    #    BASIC09FloatingPoint(10.14 ** -38).print_values()
 
-#    areas = xrange(0x100)
+    #    areas = xrange(0x100)
 
-#    areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
+    #    areas = range(0, 3) + ["..."] + range(0x7e, 0x83) + ["..."] + range(0xfd, 0x100)
 
     # 16 Bit test values
     areas = list(range(0, 3))
-    areas += ["..."] + list(range(0x7f, 0x82)) # sign change in 8 Bit range
-    areas += ["..."] + list(range(0xfe, 0x101)) # end of 8 Bit range
-    areas += ["..."] + list(range(0x7ffe, 0x8003)) # sign change in 16 Bit range
-    areas += ["..."] + list(range(0xfffd, 0x10000)) # end of 16 Bit range
+    areas += ["..."] + list(range(0x7f, 0x82))  # sign change in 8 Bit range
+    areas += ["..."] + list(range(0xfe, 0x101))  # end of 8 Bit range
+    areas += ["..."] + list(range(0x7ffe, 0x8003))  # sign change in 16 Bit range
+    areas += ["..."] + list(range(0xfffd, 0x10000))  # end of 16 Bit range
 
     for test_value in areas:
         if test_value == "...":

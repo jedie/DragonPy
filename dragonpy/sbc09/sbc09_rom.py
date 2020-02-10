@@ -8,14 +8,13 @@
 """
 
 
-
 import os
 
 from dragonpy.components.rom import ROMFile
 
 
 class SBC09Rom(ROMFile):
-    ROM_PATH=os.path.normpath(
+    ROM_PATH = os.path.normpath(
         os.path.abspath(os.path.dirname(__file__))
     )
     SHA1 = "a912796982d10cca049abb16ba4be0f3cc580e6d"
@@ -23,8 +22,6 @@ class SBC09Rom(ROMFile):
 
     def get_data(self):
         if not os.path.isfile(self.rom_path):
-            raise RuntimeError("Rom file %r not there?!?" % self.rom_path)
-        
+            raise RuntimeError(f"Rom file {self.rom_path!r} not there?!?")
+
         return super(SBC09Rom, self).get_data()
-
-

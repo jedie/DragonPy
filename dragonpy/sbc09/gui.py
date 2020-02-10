@@ -10,11 +10,13 @@
 """
 
 
-
-
 import logging
 import string
+
 from dragonlib.utils.auto_shift import invert_shift
+
+from dragonpy.core.gui import ScrolledTextGUI
+
 
 log = logging.getLogger(__name__)
 
@@ -35,12 +37,6 @@ except ImportError:
     import tkinter.scrolledtext as scrolledtext
     import tkinter.font as TkFont
 
-from dragonpy.core.gui import ScrolledTextGUI
-
-
 
 class SBC09TkinterGUI(ScrolledTextGUI):
     pass
-
-
-

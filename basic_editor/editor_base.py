@@ -13,7 +13,7 @@
 """
 
 
-
+from basic_editor.tkinter_utils import TkTextTag
 import logging
 
 log = logging.getLogger(__name__)
@@ -25,14 +25,11 @@ except ImportError:
     # Python 2
     import tkinter as tkinter
 
-from basic_editor.tkinter_utils import TkTextTag
-
 
 class BaseExtension(object):
     def __init__(self, editor):
         self.editor = editor
-        
-        self.cfg=editor.cfg
-        self.root = editor.root
-        self.text = editor.text # ScrolledText() instance
 
+        self.cfg = editor.cfg
+        self.root = editor.root
+        self.text = editor.text  # ScrolledText() instance

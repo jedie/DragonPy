@@ -8,8 +8,8 @@
 """
 
 
-
 import os
+
 
 if __name__ == "__main__":
     # sourcefile = r"../cpu6809.py"
@@ -21,31 +21,26 @@ if __name__ == "__main__":
     sourcefile_bak = sourcefile + ".bak"
     temp_file = sourcefile + ".new"
 
-
     in_log = 0
 
     with open(sourcefile, "r") as infile:
         with open(temp_file, "w") as outfile:
             for line in infile:
-    #             print line
+                #             print line
                 if not line.strip().startswith("#"):
                     if in_log or "log." in line:
-                        line = "#%s" % line
+                        line = f"#{line}"
                         in_log += line.count("(")
                         in_log -= line.count(")")
 
                 outfile.write(line)
 
-    print("%r written." % temp_file)
+    print(f"{temp_file!r} written.")
 
-
-    print("rename %r to %r" % (sourcefile, sourcefile_bak))
+    print(f"rename {sourcefile!r} to {sourcefile_bak!r}")
     os.rename(sourcefile, sourcefile_bak)
 
-    print("rename %r to %r" % (temp_file, sourcefile))
+    print(f"rename {temp_file!r} to {sourcefile!r}")
     os.rename(temp_file, sourcefile)
 
-
     print("\n --- END --- ")
-
-

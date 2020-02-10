@@ -10,13 +10,13 @@
 """
 
 
-
 import os
 
+from dragonlib.api import CoCoAPI
+
+from dragonpy.core.configs import SIMPLE6809, BaseConfig
 from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
 from dragonpy.Simple6809.Simple6809_rom import Simple6809Rom
-from dragonpy.core.configs import BaseConfig, SIMPLE6809
-from dragonlib.api import CoCoAPI
 
 
 class Simple6809Cfg(BaseConfig):
@@ -28,7 +28,7 @@ class Simple6809Cfg(BaseConfig):
     MACHINE_NAME = "Simple6809"
 
     RAM_START = 0x0000
-    RAM_END = 0x03FF # 1KB
+    RAM_END = 0x03FF  # 1KB
     # RAM_END = 0x07FF # 2KB
     # RAM_END = 0x0FFF # 4KB
 #     RAM_END = 0x1FFF # 8KB
@@ -40,7 +40,7 @@ class Simple6809Cfg(BaseConfig):
     # ROM size is: 0x4000 == 16384 Bytes
 
     RESET_VECTOR = 0xBFFE
-    RESET_VECTOR_VALUE = 0xdb46 # ROM_START + 0x1b46
+    RESET_VECTOR_VALUE = 0xdb46  # ROM_START + 0x1b46
 
     BUS_ADDR_AREAS = (
         (0xa000, 0xbfef, "RS232 interface"),
@@ -51,12 +51,12 @@ class Simple6809Cfg(BaseConfig):
         Simple6809Rom(address=0xC000, max_size=None),
     )
     # Used in unittest for init the BASIC Interpreter:
-    STARTUP_END_ADDR = 0xdf2b # == JSR  LA390          GO GET AN INPUT LINE
+    STARTUP_END_ADDR = 0xdf2b  # == JSR  LA390          GO GET AN INPUT LINE
 
     def __init__(self, cfg_dict):
         super(Simple6809Cfg, self).__init__(cfg_dict)
 
-        self.machine_api = CoCoAPI() # FIXME!
+        self.machine_api = CoCoAPI()  # FIXME!
 
 #         if self.verbosity <= logging.INFO:
         self.mem_info = get_simple6809_meminfo()
@@ -64,8 +64,8 @@ class Simple6809Cfg(BaseConfig):
 #         self.periphery_class = Simple6809Periphery
 
         self.memory_byte_middlewares = {
-#            (0x004f, 0x0054): (None, self.float_accu_write0),
-#            (0x005c, 0x0061): (None, self.float_accu_write1),
+            #            (0x004f, 0x0054): (None, self.float_accu_write0),
+            #            (0x005c, 0x0061): (None, self.float_accu_write1),
         }
 
     def float_accu_write0(self, cpu, addr, value):
@@ -86,5 +86,3 @@ class Simple6809Cfg(BaseConfig):
 
 
 config = Simple6809Cfg
-
-

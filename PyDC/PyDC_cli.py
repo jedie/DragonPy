@@ -25,7 +25,7 @@ class PyDC_CLI(Base_CLI):
     DESCRIPTION = "Python dragon 32 converter"
     EPOLOG = TITLE_LINE
     VERSION = VERSION_STRING
-    LOG_FORMATTER = logging.Formatter("%(message)s") # %(asctime)s %(message)s")
+    LOG_FORMATTER = logging.Formatter("%(message)s")  # %(asctime)s %(message)s")
 
     def __init__(self):
         super(PyDC_CLI, self).__init__()
@@ -33,8 +33,8 @@ class PyDC_CLI(Base_CLI):
 
         self.parser.add_argument("src", help="Source filename (.wav/.cas/.bas)")
         self.parser.add_argument("--dst",
-            help="Destination filename (.wav/.cas/.bas)"
-        )
+                                 help="Destination filename (.wav/.cas/.bas)"
+                                 )
 
         self.parser.add_argument(
             "--analyze", action="store_true",
@@ -124,16 +124,16 @@ class PyDC_CLI(Base_CLI):
             self.logfilename = source_filename + ".log"
         log.info("Logfile: %s" % self.logfilename)
 
-        self.setup_logging(self.args) # XXX: setup logging after the logfilename is set!
+        self.setup_logging(self.args)  # XXX: setup logging after the logfilename is set!
 
-        self.cfg.BIT_ONE_HZ = self.args.bit_one_hz # Frequency of bit '1' in Hz
-        self.cfg.BIT_NUL_HZ = self.args.bit_nul_hz # Frequency of bit '0' in Hz
-        self.cfg.HZ_VARIATION = self.args.hz_variation # How much Hz can signal scatter to match 1 or 0 bit ?
+        self.cfg.BIT_ONE_HZ = self.args.bit_one_hz  # Frequency of bit '1' in Hz
+        self.cfg.BIT_NUL_HZ = self.args.bit_nul_hz  # Frequency of bit '0' in Hz
+        self.cfg.HZ_VARIATION = self.args.hz_variation  # How much Hz can signal scatter to match 1 or 0 bit ?
 
-        self.cfg.MIN_VOLUME_RATIO = self.args.min_volume_ratio # percent volume to ignore sample
-        self.cfg.AVG_COUNT = self.args.avg_count # How many samples should be merged into a average value?
-        self.cfg.END_COUNT = self.args.end_count # Sample count that must be pos/neg at once
-        self.cfg.MID_COUNT = self.args.mid_count # Sample count that can be around null
+        self.cfg.MIN_VOLUME_RATIO = self.args.min_volume_ratio  # percent volume to ignore sample
+        self.cfg.AVG_COUNT = self.args.avg_count  # How many samples should be merged into a average value?
+        self.cfg.END_COUNT = self.args.end_count  # Sample count that must be pos/neg at once
+        self.cfg.MID_COUNT = self.args.mid_count  # Sample count that can be around null
 
         self.cfg.case_convert = self.args.case_convert
 

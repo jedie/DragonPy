@@ -10,10 +10,9 @@
 """
 
 
-
 import locale
-import sys
 import platform
+import sys
 
 
 def locale_format_number(val):
@@ -27,8 +26,8 @@ def locale_format_number(val):
         return locale.format('%d', val, 1)
     except UnicodeDecodeError:
         # For PyPy3, see: https://bitbucket.org/pypy/pypy/issue/1858/pypy3-localeformat-d-val-1
-#        return '{:n}'.format(val) # makes 1234567890.1234 to 1,23457e+09 :(
-        return '{:,}'.format(int(val))
+        #        return '{:n}'.format(val) # makes 1234567890.1234 to 1,23457e+09 :(
+        return f'{int(val):,}'
 
 
 def byte2bit_string(data):
@@ -36,7 +35,7 @@ def byte2bit_string(data):
     >>> byte2bit_string(0x1b)
     '00011011'
     """
-    return '{0:08b}'.format(data)
+    return f'{data:08b}'
 
 
 def nice_hex(v):
@@ -47,10 +46,10 @@ def nice_hex(v):
     '$0123'
     """
     if v < 0x100:
-        return "$%02x" % v
+        return f"${v:02x}"
     if v < 0x10000:
-        return "$%04x" % v
-    return "$%x" % v
+        return f"${v:04x}"
+    return f"${v:x}"
 
 
 def hex_repr(d):
@@ -61,9 +60,9 @@ def hex_repr(d):
     txt = []
     for k, v in sorted(d.items()):
         if isinstance(v, int):
-            txt.append("%s=%s" % (k, nice_hex(v)))
+            txt.append(f"{k}={nice_hex(v)}")
         else:
-            txt.append("%s=%s" % (k, v))
+            txt.append(f"{k}={v}")
     return " ".join(txt)
 
 
@@ -85,16 +84,12 @@ def cc_value2txt(status):
 def get_python_info():
     implementation = platform.python_implementation()
     if implementation == "CPython":
-        return "%s v%s [%s]" % (
-            implementation,
-            platform.python_version(),
-            platform.python_compiler(),
-        )
+        return f"{implementation} v{platform.python_version()} [{platform.python_compiler()}]"
         # e.g.: CPython v2.7.6 [GCC 4.8.2]
     elif implementation == "PyPy":
         ver_info = sys.version.split("(", 1)[0]
         ver_info += sys.version.split("\n")[-1]
-        return "Python %s" % ver_info
+        return f"Python {ver_info}"
         # e.g.: Python 2.7.6 [PyPy 2.3.1 with GCC 4.8.2]
     else:
         return "%s %s" % (

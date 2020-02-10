@@ -11,14 +11,12 @@
 """
 
 
-
-
 import logging
 
-from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
-from dragonpy.Dragon64.config import Dragon64Cfg
 from dragonpy.core.gui import DragonTkinterGUI
 from dragonpy.core.machine import MachineGUI
+from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
+from dragonpy.Dragon64.config import Dragon64Cfg
 
 
 log = logging.getLogger(__name__)
@@ -32,4 +30,3 @@ def run_Dragon64(cfg_dict):
         PeripheryClass=Dragon32Periphery,
         GUI_Class=DragonTkinterGUI
     )
-

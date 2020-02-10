@@ -13,7 +13,6 @@
 """
 
 
-
 import logging
 import sys
 
@@ -40,7 +39,7 @@ class TokenWindow(object):
         self.root = tkinter.Toplevel(master)
         self.root.geometry("+%d+%d" % (
             master.winfo_rootx() + master.winfo_width(),
-            master.winfo_y() # FIXME: Different on linux.
+            master.winfo_y()  # FIXME: Different on linux.
         ))
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
@@ -57,7 +56,7 @@ class TokenWindow(object):
         )
         self.text.grid(row=0, column=0, sticky=tkinter.NSEW)
 
-        self.set_status_bar() # Create widget, add bindings and after_idle() update
+        self.set_status_bar()  # Create widget, add bindings and after_idle() update
 
         self.text.after_idle(self.set_token_info)
 
@@ -119,7 +118,7 @@ class TokenWindow(object):
 
         self.text.bind("<<set-line-and-column>>", self.set_line_and_column)
         self.text.event_add("<<set-line-and-column>>",
-            "<KeyRelease>", "<ButtonRelease>")
+                            "<KeyRelease>", "<ButtonRelease>")
         self.text.after_idle(self.set_line_and_column)
 
     def set_line_and_column(self, event=None):
@@ -131,4 +130,3 @@ class TokenWindow(object):
 
     def set_token_info(self, event=None):
         line, column = self.text.index(tkinter.INSERT).split('.')
-

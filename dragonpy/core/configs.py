@@ -10,11 +10,14 @@
 """
 
 
-import six
-xrange = six.moves.xrange
-
 import inspect
 import logging
+
+import six
+
+
+xrange = six.moves.xrange
+
 
 log = logging.getLogger(__name__)
 
@@ -30,11 +33,13 @@ VECTREX = "Vectrex"
 
 class MachineDict(dict):
     DEFAULT = None
+
     def register(self, name, cls, default=False):
         dict.__setitem__(self, name, cls)
         if default:
             assert self.DEFAULT is None
             self.DEFAULT = name
+
 
 machine_dict = MachineDict()
 
@@ -42,6 +47,7 @@ machine_dict = MachineDict()
 class DummyMemInfo(object):
     def get_shortest(self, *args):
         return ">>mem info not active<<"
+
     def __call__(self, *args):
         return ">>mem info not active<<"
 
@@ -54,6 +60,7 @@ class AddressAreas(dict):
         Text screen
         Serial/parallel devices
     """
+
     def __init__(self, areas):
         super(AddressAreas, self).__init__()
         for start_addr, end_addr, txt in areas:
@@ -65,9 +72,9 @@ class AddressAreas(dict):
 
 
 class BaseConfig(object):
-#     # http address/port number for the CPU control server
-#     CPU_CONTROL_ADDR = "127.0.0.1"
-#     CPU_CONTROL_PORT = 6809
+    #     # http address/port number for the CPU control server
+    #     CPU_CONTROL_ADDR = "127.0.0.1"
+    #     CPU_CONTROL_PORT = 6809
 
     # How many ops should be execute before make a control server update cycle?
     BURST_COUNT = 10000
@@ -76,7 +83,7 @@ class BaseConfig(object):
 
     def __init__(self, cfg_dict):
         self.cfg_dict = cfg_dict
-        self.cfg_dict["cfg_module"] = self.__module__ # FIXME: !
+        self.cfg_dict["cfg_module"] = self.__module__  # FIXME: !
 
         log.debug("cfg_dict: %s", repr(cfg_dict))
 
@@ -88,7 +95,8 @@ class BaseConfig(object):
 #         else:
 #             self.bus = None # Will be set in cpu6809.start_CPU()
 
-        assert not hasattr(cfg_dict, "ram"), "cfg_dict.ram is deprecated! Remove it from: %s" % self.cfg_dict.__class__.__name__
+        assert not hasattr(
+            cfg_dict, "ram"), f"cfg_dict.ram is deprecated! Remove it from: {self.cfg_dict.__class__.__name__}"
 
 #         if cfg_dict["rom"]:
 #             raw_rom_cfg = cfg_dict["rom"]
@@ -123,9 +131,9 @@ class BaseConfig(object):
 #         self._mem = [0x00] * size
 
     def print_debug_info(self):
-        print("Config: '%s'" % self.__class__.__name__)
+        print(f"Config: '{self.__class__.__name__}'")
 
-        for name, value in inspect.getmembers(self): # , inspect.isdatadescriptor):
+        for name, value in inspect.getmembers(self):  # , inspect.isdatadescriptor):
             if name.startswith("_"):
                 continue
 #             print name, type(value)
@@ -137,5 +145,3 @@ class BaseConfig(object):
                 ))
             else:
                 print("%20s = %s" % (name, value))
-
-

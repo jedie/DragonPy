@@ -10,11 +10,9 @@
 """
 
 
-
+from dragonpy.core.configs import MULTICOMP6809, BaseConfig
 from dragonpy.Multicomp6809.Multicomp6809_rom import Multicomp6809Rom
-from dragonpy.core.configs import BaseConfig, MULTICOMP6809
 from dragonpy.Multicomp6809.periphery_Multicomp6809 import Multicomp6809Periphery
-
 
 
 class Multicomp6809Cfg(BaseConfig):
@@ -26,7 +24,7 @@ class Multicomp6809Cfg(BaseConfig):
     MACHINE_NAME = "Multicomp 6809"
 
     RAM_START = 0x0000
-    RAM_END = 0x03FF # 1KB
+    RAM_END = 0x03FF  # 1KB
     # RAM_END = 0x07FF # 2KB
     # RAM_END = 0x0FFF # 4KB
     # RAM_END = 0x1FFF # 8KB
@@ -73,4 +71,4 @@ if __name__ == "__main__":
     cmd_args = UnittestCmdArgs
     cfg = Multicomp6809Cfg(cmd_args)
     print("RAM Size:", cfg.RAM_SIZE, cfg.RAM_SIZE / 1024)
-    print("RAM End: $%04x" % cfg.RAM_END)
+    print(f"RAM End: ${cfg.RAM_END:04x}")

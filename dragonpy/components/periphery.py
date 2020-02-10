@@ -11,12 +11,18 @@
 """
 
 
-import six
-xrange = six.moves.xrange
-
+import logging
 import sys
 import threading
 import time
+
+import six
+
+from dragonpy.utils import pager
+
+
+xrange = six.moves.xrange
+
 
 try:
     # Python 3
@@ -29,33 +35,29 @@ except ImportError:
     import _thread as _thread
 #    import httplib
 
-import logging
 
 log = logging.getLogger(__name__)
-from dragonpy.utils import pager
-
 
 
 try:
-    import tkinter # Python 3
+    import tkinter  # Python 3
 except ImportError:
     try:
-        import tkinter as tkinter # Python 2
+        import tkinter as tkinter  # Python 2
     except ImportError:
         log.critical("Error importing Tkinter!")
         tkinter = None
 
 
-
 class PeripheryBase(object):
-    INITAL_INPUT = None # For quick test
+    INITAL_INPUT = None  # For quick test
 
     def __init__(self, cfg, cpu, memory, display_queue=None, user_input_queue=None):
         self.cfg = cfg
         self.cpu = cpu
         self.memory = memory
         self.user_input_queue = user_input_queue
-        self.display_queue = display_queue # Buffer for output from CPU
+        self.display_queue = display_queue  # Buffer for output from CPU
 
         self.running = True
         self.update_time = 0.1
@@ -95,11 +97,13 @@ class PeripheryBase(object):
 
     def write_acia_status(self, cpu_cycles, op_address, address, value):
         raise NotImplementedError
+
     def read_acia_status(self, cpu_cycles, op_address, address):
         raise NotImplementedError
 
     def read_acia_data(self, cpu_cycles, op_address, address):
         raise NotImplementedError
+
     def write_acia_data(self, cpu_cycles, op_address, address, value):
         raise NotImplementedError
 
@@ -113,7 +117,7 @@ class TkPeripheryBase(PeripheryBase):
     TITLE = "DragonPy - Base Tkinter Periphery"
     GEOMETRY = "+500+300"
     KEYCODE_MAP = {}
-    ESC_KEYCODE = "\x03" # What keycode to send, if escape Key pressed?
+    ESC_KEYCODE = "\x03"  # What keycode to send, if escape Key pressed?
 
     def __init__(self, cfg):
         super(TkPeripheryBase, self).__init__(cfg)
@@ -122,22 +126,22 @@ class TkPeripheryBase(PeripheryBase):
 
         self.root.title(self.TITLE)
 #         self.root.geometry() # '640x480+500+300') # X*Y + x/y-offset
-        self.root.geometry(self.GEOMETRY) # Change initial position
+        self.root.geometry(self.GEOMETRY)  # Change initial position
 
         # http://www.tutorialspoint.com/python/tk_text.htm
         self.text = tkinter.Text(
             self.root,
             height=20, width=80,
-            state=tkinter.DISABLED # FIXME: make textbox "read-only"
+            state=tkinter.DISABLED  # FIXME: make textbox "read-only"
         )
         scollbar = tkinter.Scrollbar(self.root)
         scollbar.config(command=self.text.yview)
 
         self.text.config(
-            background="#08ff08", # nearly green
-            foreground="#004100", # nearly black
+            background="#08ff08",  # nearly green
+            foreground="#004100",  # nearly black
             font=('courier', 11, 'bold'),
-#            yscrollcommand=scollbar.set, # FIXME
+            #            yscrollcommand=scollbar.set, # FIXME
         )
 
         scollbar.pack(side=tkinter.RIGHT, fill=tkinter.Y)
@@ -153,7 +157,7 @@ class TkPeripheryBase(PeripheryBase):
         self.update_thread = None
 
     def event_return(self, event):
-#        log.critical("ENTER: add \\n")
+        #        log.critical("ENTER: add \\n")
         self.user_input_queue.put("\n")
 
     def from_console_break(self, event):
@@ -193,15 +197,16 @@ class TkPeripheryBase(PeripheryBase):
 
     STATE = 0
     LAST_INPUT = ""
+
     def write_acia_data(self, cpu_cycles, op_address, address, value):
         log.debug("%04x| (%i) write to ACIA-data value: $%x (dez.: %i) ASCII: %r" % (
             op_address, cpu_cycles, value, value, chr(value)
         ))
-        if value == 0x8: # Backspace
+        if value == 0x8:  # Backspace
             self.text.config(state=tkinter.NORMAL)
             # delete last character
-            self.text.delete("%s - 1 chars" % tkinter.INSERT, tkinter.INSERT)
-            self.text.config(state=tkinter.DISABLED) # FIXME: make textbox "read-only"
+            self.text.delete(f"{tkinter.INSERT} - 1 chars", tkinter.INSERT)
+            self.text.config(state=tkinter.DISABLED)  # FIXME: make textbox "read-only"
             return
 
         super(TkPeripheryBase, self).write_acia_data(cpu_cycles, op_address, address, value)
@@ -240,7 +245,7 @@ class TkPeripheryBase(PeripheryBase):
 
 
 class InputPollThread(threading.Thread):
-    def __init__ (self, cpu_process, user_input_queue):
+    def __init__(self, cpu_process, user_input_queue):
         super(InputPollThread, self).__init__(name="InputThread")
         self.cpu_process = cpu_process
         self.user_input_queue = user_input_queue
@@ -251,7 +256,7 @@ class InputPollThread(threading.Thread):
         work-a-round for blocking input
         """
         try:
-#            log.critical("check_cpu_interval()")
+            #            log.critical("check_cpu_interval()")
             if not cpu_process.is_alive():
                 log.critical("raise SystemExit, because CPU is not alive.")
                 _thread.interrupt_main()
@@ -264,7 +269,7 @@ class InputPollThread(threading.Thread):
 
     def _run(self):
         while self.cpu_process.is_alive():
-            char = pager.getch() # Important: It blocks while waiting for a input
+            char = pager.getch()  # Important: It blocks while waiting for a input
             if char == "\n":
                 self.user_input_queue.put("\r")
 
@@ -308,12 +313,12 @@ class PeripheryUnittestBase(object):
         self.user_input_queue.queue.clear()
         self.display_queue.queue.clear()
         self.old_columns = None
-        self.output_lines = [""] # for unittest run_until_OK()
-        self.display_buffer = {} # for striped_output()
+        self.output_lines = [""]  # for unittest run_until_OK()
+        self.display_buffer = {}  # for striped_output()
 
     def _new_output_char(self, char):
-#        sys.stdout.write(char)
-#        sys.stdout.flush()
+        #        sys.stdout.write(char)
+        #        sys.stdout.flush()
         self._out_buffer += char
         if char == "\n":
             self.output_lines.append(self._out_buffer)

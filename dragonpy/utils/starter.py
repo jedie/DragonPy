@@ -12,15 +12,14 @@
 
 
 import os
-
-import sys
 import subprocess
+import sys
 
-import MC6809
 import click
-import dragonpy
-
+import MC6809
 from pkg_resources import get_distribution
+
+import dragonpy
 
 
 def get_module_name(package):
@@ -60,9 +59,9 @@ def _run(*args, **kwargs):
 
     executable = args[0]
     if not os.path.isfile(executable):
-        raise RuntimeError("First argument %r is not a existing file!" % executable)
+        raise RuntimeError(f"First argument {executable!r} is not a existing file!")
     if not os.access(executable, os.X_OK):
-        raise RuntimeError("First argument %r exist, but is not executeable!" % executable)
+        raise RuntimeError(f"First argument {executable!r} exist, but is not executeable!")
 
     return subprocess.Popen(args, **kwargs)
 

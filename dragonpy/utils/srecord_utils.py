@@ -23,14 +23,14 @@
 
 # Address len in bytes for S* types
 # http://www.amelek.gda.pl/avr/uisp/srecord.htm
-__ADDR_LEN = {'S0' : 2,
-              'S1' : 2,
-              'S2' : 3,
-              'S3' : 4,
-              'S5' : 2,
-              'S7' : 4,
-              'S8' : 3,
-              'S9' : 2}
+__ADDR_LEN = {'S0': 2,
+              'S1': 2,
+              'S2': 3,
+              'S3': 4,
+              'S5': 2,
+              'S7': 4,
+              'S8': 3,
+              'S9': 2}
 
 
 def int_to_padded_hex_byte(integer):
@@ -41,7 +41,7 @@ def int_to_padded_hex_byte(integer):
     """
     to_hex = hex(integer)
     xpos = to_hex.find('x')
-    hex_byte = to_hex[xpos+1 : len(to_hex)].upper()
+    hex_byte = to_hex[xpos + 1: len(to_hex)].upper()
 
     if len(hex_byte) == 1:
         hex_byte = ''.join(['0', hex_byte])
@@ -62,13 +62,13 @@ def compute_srec_checksum(srec):
     # For each byte, convert to int and add.
     # (step each two character to form a byte)
     for position in range(0, len(data), 2):
-        current_byte = data[position : position+2]
+        current_byte = data[position: position + 2]
         int_value = int(current_byte, 16)
         sum += int_value
 
     # Extract the Least significant byte from the hex form
     hex_sum = hex(sum)
-    least_significant_byte = hex_sum[len(hex_sum)-2:]
+    least_significant_byte = hex_sum[len(hex_sum) - 2:]
     least_significant_byte = least_significant_byte.replace('x', '0')
 
     # turn back to int and find the 8-bit one's complement
@@ -83,7 +83,7 @@ def validate_srec_checksum(srec):
         Validate if the checksum of the supplied s-record is valid
         Returns: True if valid, False if not
     """
-    checksum = srec[len(srec)-2:]
+    checksum = srec[len(srec) - 2:]
 
     # Strip the original checksum and compare with the computed one
     if compute_srec_checksum(srec[:len(srec) - 2]) == int(checksum, 16):
@@ -98,11 +98,11 @@ def get_readable_string(integer):
         examples: 41 == ".A", 13 == "\n", 20 (space) == "__"
         Returns a readable 2-char representation of an int.
     """
-    if integer == 9:    #\t
+    if integer == 9:  # \t
         readable_string = "\\t"
-    elif integer == 10: #\r
+    elif integer == 10:  # \r
         readable_string = "\\r"
-    elif integer == 13:  #\n
+    elif integer == 13:  # \n
         readable_string = "\\n"
     elif integer == 32:  # space
         readable_string = '__'
@@ -114,7 +114,7 @@ def get_readable_string(integer):
     return readable_string
 
 
-def offset_byte_in_data(target_data, offset, target_byte_pos, readable = False, wraparound = False):
+def offset_byte_in_data(target_data, offset, target_byte_pos, readable=False, wraparound=False):
     """
         Offset a given byte in the provided data payload (kind of rot(x))
         readable will return a human-readable representation of the byte+offset
@@ -123,8 +123,8 @@ def offset_byte_in_data(target_data, offset, target_byte_pos, readable = False, 
     """
     byte_pos = target_byte_pos * 2
     prefix = target_data[:byte_pos]
-    suffix = target_data[byte_pos+2:]
-    target_byte = target_data[byte_pos:byte_pos+2]
+    suffix = target_data[byte_pos + 2:]
+    target_byte = target_data[byte_pos:byte_pos + 2]
     int_value = int(target_byte, 16)
     int_value += offset
 
@@ -144,15 +144,14 @@ def offset_byte_in_data(target_data, offset, target_byte_pos, readable = False, 
     return ''.join([prefix, offset_byte, suffix])
 
 
-
 # offset can be from -255 to 255
-def offset_data(data_section, offset, readable = False, wraparound = False):
+def offset_data(data_section, offset, readable=False, wraparound=False):
     """
         Offset the whole data section.
         see offset_byte_in_data for more information
         Returns: the entire data section + offset on each byte
     """
-    for pos in range(0, len(data_section)/2):
+    for pos in range(0, len(data_section) / 2):
         data_section = offset_byte_in_data(data_section, offset, pos, readable, wraparound)
 
     return data_section
@@ -167,8 +166,6 @@ def parse_srec(srec):
     data_len = srec[2:4]
     addr_len = __ADDR_LEN.get(record_type) * 2
     addr = srec[4:4 + addr_len]
-    data = srec[4 + addr_len:len(srec)-2]
+    data = srec[4 + addr_len:len(srec) - 2]
     checksum = srec[len(srec) - 2:]
     return record_type, data_len, addr, data, checksum
-
-

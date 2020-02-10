@@ -17,12 +17,15 @@
 """
 
 
-import six
-xrange = six.moves.xrange
-
 import logging
 
-log=logging.getLogger(__name__)
+import six
+
+
+xrange = six.moves.xrange
+
+
+log = logging.getLogger(__name__)
 
 
 VECTREX_MHZ = 1500000
@@ -32,8 +35,8 @@ VECTOR_HASH = 65521
 
 ALG_MAX_X = 33000
 ALG_MAX_Y = 41000
-SCREEN_X_DEFAULT = 330 # in pixel
-SCREEN_Y_DEFAULT = 410 # in pixel
+SCREEN_X_DEFAULT = 330  # in pixel
+SCREEN_Y_DEFAULT = 410  # in pixel
 
 FCYCLES_INIT = VECTREX_MHZ // VECTREX_PDECAY >> 0
 VECTOR_CNT = VECTREX_MHZ // VECTREX_PDECAY >> 0
@@ -48,6 +51,7 @@ class MOS6522VIA(object):
     $D000 - $D7FF 6522 interface adapter
     $D800 - $DFFF 6522 / RAM ?!?
     """
+
     def __init__(self, cfg, memory):
         self.cfg = cfg
         self.memory = memory
@@ -132,7 +136,7 @@ class MOS6522VIA(object):
         self.write8(address, value)
         log.error("%04x| TODO: 6522 write $%02x to $%04x", op_address, value, address)
 
-    def snd_update (self):
+    def snd_update(self):
         switch_orb = self.via_orb & 0x18
         if switch_orb == 0x10:
             if(self.snd_select != 14):
@@ -240,7 +244,7 @@ class MOS6522VIA(object):
 
         return 0xff
 
-    def write8 (self, address, data):
+    def write8(self, address, data):
         switch_addr = address & 0xf
         if switch_addr == 0x0:
             self.via_orb = data
@@ -326,6 +330,4 @@ class MOS6522VIA(object):
                 self.via_ifr &= 0x7f
 
 
-#------------------------------------------------------------------------------
-
-
+# ------------------------------------------------------------------------------

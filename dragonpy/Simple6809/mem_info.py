@@ -10,11 +10,10 @@
 """
 
 
-
-
-
 import logging
+
 from MC6809.core.memory_info import BaseMemoryInfo
+
 
 log = logging.getLogger("DragonPy.Simple6809.mem_info")
 
@@ -4252,4 +4251,4 @@ def get_simple6809_meminfo():
 if __name__ == "__main__":
     mem_info = Simple6809MemInfo(print_out)
 
-    mem_info(0xa500) # SERIAL INTERFACE
+    mem_info(0xa500)  # SERIAL INTERFACE

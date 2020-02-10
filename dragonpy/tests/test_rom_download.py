@@ -11,14 +11,12 @@
 
 
 import os
-
-import unittest
 import sys
+import unittest
 
 from dragonlib.utils.logging_utils import setup_logging
 
-from dragonpy.CoCo.CoCo2b_rom import CoCo2b_Basic13_ROM, \
-    CoCo2b_ExtendedBasic11_ROM
+from dragonpy.CoCo.CoCo2b_rom import CoCo2b_Basic13_ROM, CoCo2b_ExtendedBasic11_ROM
 from dragonpy.Dragon32.Dragon32_rom import Dragon32Rom
 from dragonpy.Dragon64.Dragon64_rom import Dragon64RomIC17, Dragon64RomIC18
 from dragonpy.Multicomp6809.Multicomp6809_rom import Multicomp6809Rom
@@ -27,12 +25,12 @@ from dragonpy.Simple6809.Simple6809_rom import Simple6809Rom
 
 class ROMTest(unittest.TestCase):
     def _test_rom(self, rom):
-        print(" * test %r" % rom.FILENAME)
+        print(f" * test {rom.FILENAME!r}")
         if os.path.isfile(rom.rom_path):
-            print(" * Remove %r for test" % rom.rom_path)
+            print(f" * Remove {rom.rom_path!r} for test")
             os.remove(rom.rom_path)
         rom.get_data()
-        print(" -"*30)
+        print(" -" * 30)
         print(" * test again (from cache):")
         rom.get_data()
 
@@ -58,5 +56,3 @@ class ROMTest(unittest.TestCase):
 
     def test_Simple6809Rom(self):
         self._test_rom(Simple6809Rom(address=None))
-
-

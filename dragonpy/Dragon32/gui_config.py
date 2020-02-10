@@ -16,8 +16,10 @@
 
 import logging
 import sys
+
 from MC6809.components.cpu6809 import CPU
 from MC6809.components.mc6809_speedlimited import CPUSpeedLimitMixin
+
 
 log = logging.getLogger(__name__)
 
@@ -41,18 +43,18 @@ class RuntimeCfg(object):
 
     TODO: refactor: move code to CPU!
     """
-    speedlimit = False # run emulation in realtime or as fast as it can be?
+    speedlimit = False  # run emulation in realtime or as fast as it can be?
 
-    cycles_per_sec = 888625 # target cycles/sec if speed-limit is activated
+    cycles_per_sec = 888625  # target cycles/sec if speed-limit is activated
 
-    max_run_time = 0.01 # target duration of one CPU Op burst run
-                        # important for CPU vs. GUI updates
+    max_run_time = 0.01  # target duration of one CPU Op burst run
+    # important for CPU vs. GUI updates
 
     # Use the default value from MC6809 class:
-    min_burst_count = CPU.min_burst_count # minimum outer op count per burst
-    max_burst_count = CPU.max_burst_count # maximum outer op count per burst
-    max_delay = CPUSpeedLimitMixin.max_delay # maximum time.sleep() value per burst run
-    inner_burst_op_count = CPU.inner_burst_op_count # How many ops calls, before next sync call
+    min_burst_count = CPU.min_burst_count  # minimum outer op count per burst
+    max_burst_count = CPU.max_burst_count  # maximum outer op count per burst
+    max_delay = CPUSpeedLimitMixin.max_delay  # maximum time.sleep() value per burst run
+    inner_burst_op_count = CPU.inner_burst_op_count  # How many ops calls, before next sync call
 
     def __init(self):
         is_pypy = hasattr(sys, 'pypy_version_info')
@@ -63,8 +65,8 @@ class RuntimeCfg(object):
             self.speedlimit = True
 
     def __setattr__(self, attr, value):
-        log.critical("Set RuntimeCfg %r to: %r" % (attr, value))
-        setattr(CPU, attr, value) # TODO: refactor!
+        log.critical(f"Set RuntimeCfg {attr!r} to: {value!r}")
+        setattr(CPU, attr, value)  # TODO: refactor!
         return object.__setattr__(self, attr, value)
 
     def load(self):
@@ -72,7 +74,6 @@ class RuntimeCfg(object):
 
     def save(self):
         raise NotImplementedError("TODO!")
-
 
 
 class BaseTkinterGUIConfig(object):
@@ -91,7 +92,7 @@ class BaseTkinterGUIConfig(object):
         self.root = tkinter.Toplevel(self.gui.root)
         self.root.geometry("+%d+%d" % (
             self.gui.root.winfo_rootx() + self.gui.root.winfo_width(),
-            self.gui.root.winfo_y() # FIXME: Different on linux.
+            self.gui.root.winfo_y()  # FIXME: Different on linux.
         ))
 
         row = 0
@@ -104,9 +105,9 @@ class BaseTkinterGUIConfig(object):
             value=self.runtime_cfg.speedlimit
         )
         self.checkbutton_speedlimit = tkinter.Checkbutton(self.root,
-            text="speedlimit", variable=self.check_value_speedlimit,
-            command=self.command_checkbutton_speedlimit
-        )
+                                                          text="speedlimit", variable=self.check_value_speedlimit,
+                                                          command=self.command_checkbutton_speedlimit
+                                                          )
         self.checkbutton_speedlimit.grid(row=row, column=0)
 
         #
@@ -116,9 +117,9 @@ class BaseTkinterGUIConfig(object):
             value=self.runtime_cfg.cycles_per_sec
         )
         self.cycles_per_sec_entry = tkinter.Entry(self.root,
-            textvariable=self.cycles_per_sec_var,
-            width=8, # validate = 'key', validatecommand = vcmd
-        )
+                                                  textvariable=self.cycles_per_sec_var,
+                                                  width=8,  # validate = 'key', validatecommand = vcmd
+                                                  )
         self.cycles_per_sec_entry.bind('<KeyRelease>', self.command_cycles_per_sec)
         self.cycles_per_sec_entry.grid(row=row, column=1)
 
@@ -126,7 +127,7 @@ class BaseTkinterGUIConfig(object):
         self.cycles_per_sec_label = tkinter.Label(
             self.root, textvariable=self.cycles_per_sec_label_var
         )
-        self.root.after_idle(self.command_cycles_per_sec) # Add Text
+        self.root.after_idle(self.command_cycles_per_sec)  # Add Text
         self.cycles_per_sec_label.grid(row=row, column=2)
 
         row += 1
@@ -138,13 +139,13 @@ class BaseTkinterGUIConfig(object):
             value=self.runtime_cfg.max_run_time
         )
         self.max_run_time_entry = tkinter.Entry(self.root,
-            textvariable=self.max_run_time_var, width=8,
-        )
+                                                textvariable=self.max_run_time_var, width=8,
+                                                )
         self.max_run_time_entry.bind('<KeyRelease>', self.command_max_run_time)
         self.max_run_time_entry.grid(row=row, column=1)
         self.max_run_time_label = tkinter.Label(self.root,
-            text="How long should a CPU Op burst loop take (max_run_time)"
-        )
+                                                text="How long should a CPU Op burst loop take (max_run_time)"
+                                                )
         self.max_run_time_label.grid(row=row, column=2, sticky=tkinter.W)
 
         row += 1
@@ -156,13 +157,12 @@ class BaseTkinterGUIConfig(object):
             value=self.runtime_cfg.inner_burst_op_count
         )
         self.inner_burst_op_count_entry = tkinter.Entry(self.root,
-            textvariable=self.inner_burst_op_count_var, width=8,
-        )
+                                                        textvariable=self.inner_burst_op_count_var, width=8,
+                                                        )
         self.inner_burst_op_count_entry.bind('<KeyRelease>', self.command_inner_burst_op_count)
         self.inner_burst_op_count_entry.grid(row=row, column=1)
-        self.inner_burst_op_count_label = tkinter.Label(self.root,
-            text="How many Ops should the CPU process before check sync calls e.g. IRQ (inner_burst_op_count)"
-        )
+        self.inner_burst_op_count_label = tkinter.Label(
+            self.root, text="How many Ops should the CPU process before check sync calls e.g. IRQ (inner_burst_op_count)")
         self.inner_burst_op_count_label.grid(row=row, column=2, sticky=tkinter.W)
 
         row += 1
@@ -174,15 +174,15 @@ class BaseTkinterGUIConfig(object):
             value=self.runtime_cfg.max_burst_count
         )
         self.max_burst_count_entry = tkinter.Entry(self.root,
-            textvariable=self.max_burst_count_var, width=8,
-        )
+                                                   textvariable=self.max_burst_count_var, width=8,
+                                                   )
         self.max_burst_count_entry.bind('<KeyRelease>', self.command_max_burst_count)
         self.max_burst_count_entry.grid(row=row, column=1)
         self.max_burst_count_label = tkinter.Label(self.root,
-            text="Max CPU op burst count (max_burst_count)"
-        )
+                                                   text="Max CPU op burst count (max_burst_count)"
+                                                   )
         self.max_burst_count_label.grid(row=row, column=2, sticky=tkinter.W)
-        
+
         row += 1
 
         #
@@ -192,13 +192,13 @@ class BaseTkinterGUIConfig(object):
             value=self.runtime_cfg.max_delay
         )
         self.max_delay_entry = tkinter.Entry(self.root,
-            textvariable=self.max_delay_var, width=8,
-        )
+                                             textvariable=self.max_delay_var, width=8,
+                                             )
         self.max_delay_entry.bind('<KeyRelease>', self.command_max_delay)
         self.max_delay_entry.grid(row=row, column=1)
         self.max_delay_label = tkinter.Label(self.root,
-            text="Max CPU op burst delay (max_delay)"
-        )
+                                             text="Max CPU op burst delay (max_delay)"
+                                             )
         self.max_delay_label.grid(row=row, column=2, sticky=tkinter.W)
 
         self.root.update()
@@ -240,7 +240,7 @@ class BaseTkinterGUIConfig(object):
 
         self.runtime_cfg.max_delay = max_delay
         self.max_delay_var.set(self.runtime_cfg.max_delay)
-        
+
     def command_inner_burst_op_count(self, event=None):
         """ CPU burst max running time - self.runtime_cfg.inner_burst_op_count """
         try:

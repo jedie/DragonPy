@@ -10,15 +10,17 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import six
-
-xrange = six.moves.xrange
-
 import logging
+
+import six
 
 from dragonpy.Dragon32 import dragon_charmap
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkImageFont
+
+
+xrange = six.moves.xrange
+
 
 log = logging.getLogger(__name__)
 
@@ -56,13 +58,13 @@ class MC6847_TextModeCanvas(object):
 
         foreground, background = dragon_charmap.get_hex_color(dragon_charmap.NORMAL)
         self.canvas = tkinter.Canvas(root,
-            width=self.total_width,
-            height=self.total_height,
-            bd=0, # no border
-            highlightthickness=0, # no highlight border
-            # bg="#ff0000",
-            bg="#%s" % background,
-        )
+                                     width=self.total_width,
+                                     height=self.total_height,
+                                     bd=0,  # no border
+                                     highlightthickness=0,  # no highlight border
+                                     # bg="#ff0000",
+                                     bg=f"#{background}",
+                                     )
 
         # Contains the map from Display RAM value to char/color:
         self.charmap = get_charmap_dict()
@@ -80,10 +82,10 @@ class MC6847_TextModeCanvas(object):
                 x = self.tk_font.width_scaled * row
                 y = self.tk_font.height_scaled * column
                 image_id = self.canvas.create_image(x, y,
-                    image=self.init_img,
-                    state="normal",
-                    anchor=tkinter.NW  # NW == NorthWest
-                )
+                                                    image=self.init_img,
+                                                    state="normal",
+                                                    anchor=tkinter.NW  # NW == NorthWest
+                                                    )
                 # log.critical("Image ID: %s at %i x %i", image_id, x, y)
                 self.images_map[(x, y)] = image_id
 

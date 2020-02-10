@@ -19,7 +19,9 @@ License: Public Domain (use MIT if the former doesn't work for you)
 
 __version__ = '3.3'
 
-import os,sys
+import os
+import sys
+
 
 WINDOWS = os.name == 'nt'
 PY3K = sys.version_info >= (3,)
@@ -27,9 +29,9 @@ PY3K = sys.version_info >= (3,)
 # Windows constants
 # http://msdn.microsoft.com/en-us/library/ms683231%28v=VS.85%29.aspx
 
-STD_INPUT_HANDLE  = -10
+STD_INPUT_HANDLE = -10
 STD_OUTPUT_HANDLE = -11
-STD_ERROR_HANDLE  = -12
+STD_ERROR_HANDLE = -12
 
 
 # --- console/window operations ---
@@ -72,6 +74,7 @@ def _windows_get_window_size():
     return (sbi.srWindow.Right - sbi.srWindow.Left + 1,
             sbi.srWindow.Bottom - sbi.srWindow.Top + 1)
 
+
 def _posix_get_window_size():
     """Return (width, height) of console terminal on POSIX system.
        (0, 0) on IOError, i.e. when no console is allocated.
@@ -101,11 +104,12 @@ def _posix_get_window_size():
         pass
     return (winsize[1], winsize[0])
 
+
 def getwidth():
     """
     Return width of available window in characters.  If detection fails,
     return value of standard width 80.  Coordinate of the last character
-    on a line is -1 from returned value. 
+    on a line is -1 from returned value.
 
     Windows part uses console API through ctypes module.
     *nix part uses termios ioctl TIOCGWINSZ call.
@@ -121,10 +125,11 @@ def getwidth():
 
     return width or 80
 
+
 def getheight():
     """
     Return available window height in characters or 25 if detection fails.
-    Coordinate of the last line is -1 from returned value. 
+    Coordinate of the last line is -1 from returned value.
 
     Windows part uses console API through ctypes module.
     *nix part uses termios ioctl TIOCGWINSZ call.
@@ -155,17 +160,18 @@ ESC_ = '\x1b'
 
 # other constants with getchars()
 if WINDOWS:
-    LEFT =  ['\xe0', 'K']
-    UP =    ['\xe0', 'H']
+    LEFT = ['\xe0', 'K']
+    UP = ['\xe0', 'H']
     RIGHT = ['\xe0', 'M']
-    DOWN =  ['\xe0', 'P']
+    DOWN = ['\xe0', 'P']
 else:
-    LEFT =  ['\x1b', '[', 'D']
-    UP =    ['\x1b', '[', 'A']
+    LEFT = ['\x1b', '[', 'D']
+    UP = ['\x1b', '[', 'A']
     RIGHT = ['\x1b', '[', 'C']
-    DOWN =  ['\x1b', '[', 'B']
+    DOWN = ['\x1b', '[', 'B']
 ENTER = [ENTER_]
-ESC  = [ESC_]
+ESC = [ESC_]
+
 
 def dumpkey(key):
     """
@@ -177,15 +183,15 @@ def dumpkey(key):
         from binascii import hexlify
         # Python 3 strings are no longer binary, encode them for hexlify()
         if PY3K:
-           key = key.encode('utf-8')
+            key = key.encode('utf-8')
         keyhex = hexlify(key).upper()
         if PY3K:
-           keyhex = keyhex.decode('utf-8')
+            keyhex = keyhex.decode('utf-8')
         return keyhex
-    if type(key) == str:
+    if isinstance(key, str):
         return hex3fy(key)
     else:
-        return ' '.join( [hex3fy(s) for s in key] )
+        return ' '.join([hex3fy(s) for s in key])
 
 
 if WINDOWS:
@@ -193,6 +199,7 @@ if WINDOWS:
         from msvcrt import kbhit, getwch as __getchw
     else:
         from msvcrt import kbhit, getch as __getchw
+
 
 def _getch_windows(_getall=False):
     chars = [__getchw()]  # wait for the keypress
@@ -215,7 +222,8 @@ def _getch_unix(_getall=False):
     # 5. return list of characters (_getall on)
     #        or a single char (_getall off)
     """
-    import sys, termios
+    import sys
+    import termios
 
     fd = sys.stdin.fileno()
     # save old terminal settings
@@ -279,10 +287,10 @@ getch.__doc__ = \
     function to receive all chars generated or present in buffer.
     """
 
-    # check that Ctrl-C and Ctrl-Break break this function
-    #
-    # Ctrl-C       [n] Windows  [y] Linux  [ ] OSX
-    # Ctrl-Break   [y] Windows  [n] Linux  [ ] OSX
+# check that Ctrl-C and Ctrl-Break break this function
+#
+# Ctrl-C       [n] Windows  [y] Linux  [ ] OSX
+# Ctrl-Break   [y] Windows  [n] Linux  [ ] OSX
 
 
 # [ ] check if getchars returns chars already present in buffer
@@ -296,17 +304,18 @@ def getchars():
     correct keys.
     """
     return getch(_getall=True)
-    
+
 
 def echo(msg):
     """
     Print msg to the screen without linefeed and flush the output.
-    
+
     Standard print() function doesn't flush, see:
     https://groups.google.com/forum/#!topic/python-ideas/8vLtBO4rzBU
     """
     sys.stdout.write(msg)
     sys.stdout.flush()
+
 
 def prompt(pagenum):
     """
@@ -314,11 +323,12 @@ def prompt(pagenum):
 
     It assumes terminal/console understands carriage return \r character.
     """
-    prompt = "Page -%s-. Press any key to continue . . . " % pagenum
+    prompt = f"Page -{pagenum}-. Press any key to continue . . . "
     echo(prompt)
     if getch() in [ESC_, CTRL_C_, 'q', 'Q']:
         return False
-    echo('\r' + ' '*(len(prompt)-1) + '\r')
+    echo('\r' + ' ' * (len(prompt) - 1) + '\r')
+
 
 def page(content, pagecallback=prompt):
     """
@@ -344,9 +354,9 @@ def page(content, pagecallback=prompt):
         return
 
     while True:     # page cycle
-        linesleft = height-1 # leave the last line for the prompt callback
+        linesleft = height - 1  # leave the last line for the prompt callback
         while linesleft:
-            linelist = [line[i:i+width] for i in range(0, len(line), width)]
+            linelist = [line[i:i + width] for i in range(0, len(line), width)]
             if not linelist:
                 linelist = ['']
             lines2print = min(len(linelist), linesleft)
@@ -359,7 +369,7 @@ def page(content, pagecallback=prompt):
             linesleft -= lines2print
             linelist = linelist[lines2print:]
 
-            if linelist: # prepare symbols left on the line for the next iteration
+            if linelist:  # prepare symbols left on the line for the next iteration
                 line = ''.join(linelist)
                 continue
             else:
@@ -377,11 +387,10 @@ def page(content, pagecallback=prompt):
         pagenum += 1
 
 
-
 # --- Manual tests when pager executed as a module ---
 
 def _manual_test_console():
-    print(("\nconsole size: width %s, height %s" % (getwidth(), getheight())))
+    print((f"\nconsole size: width {getwidth()}, height {getheight()}"))
     echo("--<enter>--")
     getch()
     echo("\n")
@@ -403,7 +412,7 @@ def _manual_test_console():
           "differently on Linux and Windows - W. scrolls the window and\n"
           "places cursor on the next line immediately, while L. window\n"
           "doesn't scroll until the next character is output.\n"
-         )
+          )
     print("Tested on:")
     print("  Windows Vista - cmd.exe console")
     print("  Debian Lenny - native terminal")
@@ -412,7 +421,7 @@ def _manual_test_console():
     getch()
     echo("\n")
 
-    echo("<" + "-"*(getwidth()-2) + ">")
+    echo("<" + "-" * (getwidth() - 2) + ">")
     getch()
     print("^ note there is no newline when the next character is printed")
     print("")
@@ -436,7 +445,7 @@ def _manual_test_console():
     getch()
     print("")
 
-    echo("<" + "-"*(getwidth()-2) + ">")
+    echo("<" + "-" * (getwidth() - 2) + ">")
     getch()
     echo("\n")
     getch()
@@ -467,10 +476,10 @@ def _manual_test_console():
     getch()
     print("")
     numwidth = len(str(getwidth()))
-    strlen = getwidth() - numwidth - 2 # 2 = '. ' after the line number
+    strlen = getwidth() - numwidth - 2  # 2 = '. ' after the line number
     filler = '1' * strlen
-    for i in range(getheight()-1):     # -1 to leave last line for --<enter>--
-        lineno = ("%" + str(numwidth) + "s. ") % (i+1)
+    for i in range(getheight() - 1):     # -1 to leave last line for --<enter>--
+        lineno = ("%" + str(numwidth) + "s. ") % (i + 1)
         sys.stdout.write(lineno + filler)
     echo("--<enter>--")
     getch()
@@ -493,16 +502,16 @@ def _manual_test_getch():
     # special keys that return single byte as a result of keypress
     keys = 'a b c ENTER ESC'.split()
     for key in keys:
-      if key in globals():
-        value = globals()[key][0]
-      else:
-        value = key
-      echo("Press key '%s': " % key)
-      key = getch()
-      if key == value:
-        echo("OK\n")
-      else:
-        echo("FAILED: getch() returned %s (hex %s)\n" % (key, dumpkey(key)))
+        if key in globals():
+            value = globals()[key][0]
+        else:
+            value = key
+        echo(f"Press key '{key}': ")
+        key = getch()
+        if key == value:
+            echo("OK\n")
+        else:
+            echo(f"FAILED: getch() returned {key} (hex {dumpkey(key)})\n")
 
 
 def _manual_test_getchars():
@@ -510,25 +519,23 @@ def _manual_test_getchars():
     # special keys
     keys = 'ENTER LEFT UP RIGHT DOWN ESC'.split()
     for key in keys:
-      value = globals()[key]
-      echo("Press %s key: " % key)
-      key = getchars()
-      if key == value:
-        echo("OK\n")
-      else:
-        echo("FAILED: getch() returned %s (hex %s)\n" % (key, dumpkey(key)))
-
+        value = globals()[key]
+        echo(f"Press {key} key: ")
+        key = getchars()
+        if key == value:
+            echo("OK\n")
+        else:
+            echo(f"FAILED: getch() returned {key} (hex {dumpkey(key)})\n")
 
 
 # [ ] recognize multiple-character sequences such as arrow keys
-
 if __name__ == '__main__':
     # check if pager.py is running in interactive mode
     # (without stdin redirection)
     stdin_fd = sys.stdin.fileno()
     if os.isatty(stdin_fd):
         if not sys.argv[1:]:
-            print(("pager v%s" % __version__))
+            print((f"pager v{__version__}"))
             print("usage: pager.py <file>")
             print("       pager.py --test")
             print("       pager.py < <file>         (Windows)")
@@ -567,4 +574,3 @@ if __name__ == '__main__':
 
 # [ ] add 'q', Ctrl-C and ESC handling to default pager prompt
 #     (as of 3.1 Windows aborts only on Ctrl-Break)
-

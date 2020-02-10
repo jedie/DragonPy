@@ -126,7 +126,6 @@ FUNCTION_TOKEN = {
 }
 
 
-
 def bytes2codeline(raw_bytes):
     """
     >>> data = (0x87,0x20,0x22,0x48,0x45,0x4c,0x4c,0x4f,0x20,0x57,0x4f,0x52,0x4c,0x44,0x21,0x22)
@@ -136,10 +135,10 @@ def bytes2codeline(raw_bytes):
     code_line = ""
     func_token = False
     for byte_no in raw_bytes:
-        if byte_no == 0xff: # Next byte is a function token
+        if byte_no == 0xff:  # Next byte is a function token
             func_token = True
             continue
-        elif func_token == True:
+        elif func_token:
             func_token = False
             try:
                 character = FUNCTION_TOKEN[byte_no]

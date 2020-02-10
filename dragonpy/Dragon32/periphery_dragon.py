@@ -16,20 +16,22 @@
 """
 
 
-
 import logging
-from dragonpy.Dragon32.keyboard_map import add_to_input_queue
 
-log=logging.getLogger(__name__)
+from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
+from dragonpy.Dragon32.keyboard_map import add_to_input_queue
 from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.Dragon32.MC6883_SAM import SAM
-from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
+
+
+log = logging.getLogger(__name__)
 
 
 class Dragon32PeripheryBase(object):
     """
     GUI independent stuff
     """
+
     def __init__(self, cfg, cpu, memory, user_input_queue):
         self.cfg = cfg
         self.cpu = cpu
@@ -97,8 +99,8 @@ class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
         self.pia.internal_reset()
         self.user_input_queue.queue.clear()
         self.old_columns = None
-        self.output_lines = [""] # for unittest run_until_OK()
-        self.display_buffer = {} # for striped_output()
+        self.output_lines = [""]  # for unittest run_until_OK()
+        self.display_buffer = {}  # for striped_output()
 
     def add_to_input_queue(self, txt):
         assert "\n" not in txt, "remove all \\n in unittests! Use only \\r as Enter!"
@@ -159,7 +161,4 @@ class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
         ]
 
 
-
-#------------------------------------------------------------------------------
-
-
+# ------------------------------------------------------------------------------

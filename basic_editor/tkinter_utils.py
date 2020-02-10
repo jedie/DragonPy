@@ -13,7 +13,6 @@
 """
 
 
-
 import logging
 
 
@@ -28,8 +27,9 @@ except ImportError:
 
 
 class TkTextTag(object):
-    _id=0
+    _id = 0
+
     def __init__(self, text_widget, **config):
         self.id = self._id
-        self._id+=1
+        self._id += 1
         text_widget.tag_configure(self.id, config)

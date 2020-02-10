@@ -15,8 +15,6 @@
 """
 
 
-
-
 def is_bit_set(value, bit):
     """
     Return True/False if the bit at offset >bit< is 1 or 0 in given value.
@@ -132,7 +130,6 @@ def invert_byte(value):
     '11001100'
     """
     return 2 ** 8 + ~value
-
 
 
 if __name__ == "__main__":

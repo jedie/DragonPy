@@ -10,17 +10,17 @@
 """
 
 
-
 import logging
 
 import six
 
-xrange = six.moves.xrange
-
-from dragonpy.Dragon32.config import Dragon32Cfg
-from dragonpy.Dragon64.mem_info import get_dragon_meminfo
-from dragonpy.Dragon64.Dragon64_rom import Dragon64RomIC17, Dragon64RomIC18
 from dragonpy.core.configs import DRAGON64
+from dragonpy.Dragon32.config import Dragon32Cfg
+from dragonpy.Dragon64.Dragon64_rom import Dragon64RomIC17, Dragon64RomIC18
+from dragonpy.Dragon64.mem_info import get_dragon_meminfo
+
+
+xrange = six.moves.xrange
 
 
 class Dragon64Cfg(Dragon32Cfg):
@@ -39,7 +39,7 @@ class Dragon64Cfg(Dragon32Cfg):
 #     RAM_END = 0x0FFF # 4KB # BASIC will always raise a OM ERROR!
 #     RAM_END = 0x1FFF # 8KB # BASIC will always raise a OM ERROR!
 #     RAM_END = 0x3FFF # 16KB # usable
-    RAM_END = 0x7FFF # 32KB
+    RAM_END = 0x7FFF  # 32KB
 
     ROM_START = 0x8000
     ROM_END = 0xFFFF
@@ -60,7 +60,7 @@ class Dragon64Cfg(Dragon32Cfg):
         if self.verbosity <= logging.ERROR:
             self.mem_info = get_dragon_meminfo()
 
-        self.periphery_class = None# Dragon32Periphery
+        self.periphery_class = None  # Dragon32Periphery
 
     def get_initial_RAM(self):
         """
@@ -79,5 +79,3 @@ class Dragon64Cfg(Dragon32Cfg):
 
 
 config = Dragon64Cfg
-
-

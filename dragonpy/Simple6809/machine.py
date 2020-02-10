@@ -12,12 +12,13 @@
 
 import logging
 
-log = logging.getLogger(__name__)
-
-from dragonpy.Simple6809.periphery_simple6809 import Simple6809Periphery
-from dragonpy.Simple6809.config import Simple6809Cfg
-from dragonpy.Multicomp6809.gui import MulticompTkinterGUI
 from dragonpy.core.machine import MachineGUI
+from dragonpy.Multicomp6809.gui import MulticompTkinterGUI
+from dragonpy.Simple6809.config import Simple6809Cfg
+from dragonpy.Simple6809.periphery_simple6809 import Simple6809Periphery
+
+
+log = logging.getLogger(__name__)
 
 
 def run_Simple6809(cfg_dict):
@@ -28,5 +29,3 @@ def run_Simple6809(cfg_dict):
         PeripheryClass=Simple6809Periphery,
         GUI_Class=MulticompTkinterGUI
     )
-
-

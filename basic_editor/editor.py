@@ -13,7 +13,6 @@
 """
 
 
-
 import logging
 import os
 import string
@@ -41,9 +40,8 @@ except ImportError:
     import tkinter.messagebox as messagebox
 
 
-
 class EditorWindow(object):
-    FILETYPES = [# For filedialog
+    FILETYPES = [  # For filedialog
         ("BASIC Listings", "*.bas", "TEXT"),
         ("Text files", "*.txt", "TEXT"),
         ("All files", "*"),
@@ -70,7 +68,7 @@ class EditorWindow(object):
             self.root = tkinter.Toplevel(self.gui.root)
             self.root.geometry("+%d+%d" % (
                 self.gui.root.winfo_rootx() + self.gui.root.winfo_width(),
-                self.gui.root.winfo_y() # FIXME: Different on linux.
+                self.gui.root.winfo_y()  # FIXME: Different on linux.
             ))
 
         self.root.columnconfigure(0, weight=1)
@@ -91,7 +89,7 @@ class EditorWindow(object):
         self.highlighting = TkTextHighlighting(self)
         self.highlight_currentline = TkTextHighlightCurrentLine(self)
 
-        #self.auto_shift = True # use invert shift for letters?
+        # self.auto_shift = True # use invert shift for letters?
 
         self.menubar = tkinter.Menu(self.root)
 
@@ -121,7 +119,7 @@ class EditorWindow(object):
             )
         )
 
-        self.set_status_bar() # Create widget, add bindings and after_idle() update
+        self.set_status_bar()  # Create widget, add bindings and after_idle() update
 
         self.text.bind("<Key>", self.event_text_key)
 #         self.text.bind("<space>", self.event_syntax_check)
@@ -166,7 +164,7 @@ class EditorWindow(object):
         converted_char = invert_shift(char)
         log.debug("convert keycode %s - char %s to %s", event.keycode, repr(char), converted_char)
 #         self.text.delete(Tkinter.INSERT + "-1c") # Delete last input char
-        self.text.insert(tkinter.INSERT, converted_char) # Insert converted char
+        self.text.insert(tkinter.INSERT, converted_char)  # Insert converted char
         return "break"
 
     #     def event_syntax_check(self, event):
@@ -202,7 +200,6 @@ class EditorWindow(object):
             self.set_content(listing_ascii)
 
             self.setup_filepath(infile.name)
-
 
     def command_save_file(self):
         outfile = filedialog.asksaveasfile(
@@ -253,18 +250,18 @@ class EditorWindow(object):
         return content
 
     def set_content(self, listing_ascii):
-#        self.text.config(state=Tkinter.NORMAL)
+        #        self.text.config(state=Tkinter.NORMAL)
         self.text.delete("1.0", tkinter.END)
         log.critical("insert listing:")
         if not isinstance(listing_ascii, (list, tuple)):
             listing_ascii = listing_ascii.splitlines()
 
         for line in listing_ascii:
-            line = "%s\n" % line # use os.sep ?!?
+            line = "%s\n" % line  # use os.sep ?!?
             log.debug("\t%s", repr(line))
             self.text.insert(tkinter.END, line)
 #        self.text.config(state=Tkinter.DISABLED)
-        self.text.mark_set(tkinter.INSERT, '1.0') # Set cursor at start
+        self.text.mark_set(tkinter.INSERT, '1.0')  # Set cursor at start
         self.focus_text()
         self.highlight_currentline.update(force=True)
         self.highlighting.update(force=True)
@@ -301,12 +298,12 @@ def test():
     from dragonlib.utils.logging_utils import setup_logging
 
     setup_logging(
-#        level=1 # hardcore debug ;)
-#         level=10  # DEBUG
-#         level=20  # INFO
-#         level=30  # WARNING
-#         level=40 # ERROR
-        level=50 # CRITICAL/FATAL
+        #        level=1 # hardcore debug ;)
+        #         level=10  # DEBUG
+        #         level=20  # INFO
+        #         level=30  # WARNING
+        #         level=40 # ERROR
+        level=50  # CRITICAL/FATAL
     )
 
     CFG_DICT = {
@@ -325,9 +322,9 @@ def test():
     cfg = Dragon32Cfg(CFG_DICT)
 
     filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-        # "..", "BASIC examples", "hex_view01.bas"
-        "..", "BASIC games", "INVADER.bas"
-    )
+                            # "..", "BASIC examples", "hex_view01.bas"
+                            "..", "BASIC games", "INVADER.bas"
+                            )
 
     with open(filepath, "r") as f:
         listing_ascii = f.read()

@@ -1,6 +1,6 @@
+import imp
 import os
 import sys
-import imp
 
 
 __version__ = "0.7.0.dev0"

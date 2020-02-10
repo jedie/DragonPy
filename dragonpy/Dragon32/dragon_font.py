@@ -23,24 +23,25 @@
 """
 
 
-
-import math
-try:
-    import tkinter # python 3
-except ImportError:
-    import tkinter as tkinter # Python 2
-
 import logging
+import math
 
-log=logging.getLogger(__name__)
+from dragonpy.Dragon32.dragon_charmap import COLORS, INVERTED, NORMAL, get_hex_color
 
-from dragonpy.Dragon32.dragon_charmap import NORMAL, get_hex_color, COLORS, INVERTED
+
+try:
+    import tkinter  # python 3
+except ImportError:
+    import tkinter as tkinter  # Python 2
+
+
+log = logging.getLogger(__name__)
 
 
 BACKGROUND_CHAR = "."
 FOREGROUND_CHAR = "X"
 CHARS_DICT = {
-    '@': (# COMMERCIAL AT
+    '@': (  # COMMERCIAL AT
         "........",
         "........",
         "........",
@@ -55,7 +56,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'A': (# LATIN CAPITAL LETTER A
+    'A': (  # LATIN CAPITAL LETTER A
         "........",
         "........",
         "........",
@@ -70,7 +71,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'B': (# LATIN CAPITAL LETTER B
+    'B': (  # LATIN CAPITAL LETTER B
         "........",
         "........",
         "........",
@@ -85,7 +86,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'C': (# LATIN CAPITAL LETTER C
+    'C': (  # LATIN CAPITAL LETTER C
         "........",
         "........",
         "........",
@@ -100,7 +101,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'D': (# LATIN CAPITAL LETTER D
+    'D': (  # LATIN CAPITAL LETTER D
         "........",
         "........",
         "........",
@@ -115,7 +116,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'E': (# LATIN CAPITAL LETTER E
+    'E': (  # LATIN CAPITAL LETTER E
         "........",
         "........",
         "........",
@@ -130,7 +131,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'F': (# LATIN CAPITAL LETTER F
+    'F': (  # LATIN CAPITAL LETTER F
         "........",
         "........",
         "........",
@@ -145,7 +146,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'G': (# LATIN CAPITAL LETTER G
+    'G': (  # LATIN CAPITAL LETTER G
         "........",
         "........",
         "........",
@@ -160,7 +161,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'H': (# LATIN CAPITAL LETTER H
+    'H': (  # LATIN CAPITAL LETTER H
         "........",
         "........",
         "........",
@@ -175,7 +176,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'I': (# LATIN CAPITAL LETTER I
+    'I': (  # LATIN CAPITAL LETTER I
         "........",
         "........",
         "........",
@@ -190,7 +191,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'J': (# LATIN CAPITAL LETTER J
+    'J': (  # LATIN CAPITAL LETTER J
         "........",
         "........",
         "........",
@@ -205,7 +206,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'K': (# LATIN CAPITAL LETTER K
+    'K': (  # LATIN CAPITAL LETTER K
         "........",
         "........",
         "........",
@@ -220,7 +221,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'L': (# LATIN CAPITAL LETTER L
+    'L': (  # LATIN CAPITAL LETTER L
         "........",
         "........",
         "........",
@@ -235,7 +236,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'M': (# LATIN CAPITAL LETTER M
+    'M': (  # LATIN CAPITAL LETTER M
         "........",
         "........",
         "........",
@@ -250,7 +251,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'N': (# LATIN CAPITAL LETTER N
+    'N': (  # LATIN CAPITAL LETTER N
         "........",
         "........",
         "........",
@@ -265,7 +266,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'O': (# LATIN CAPITAL LETTER O
+    'O': (  # LATIN CAPITAL LETTER O
         "........",
         "........",
         "........",
@@ -280,7 +281,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'P': (# LATIN CAPITAL LETTER P
+    'P': (  # LATIN CAPITAL LETTER P
         "........",
         "........",
         "........",
@@ -295,7 +296,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'Q': (# LATIN CAPITAL LETTER Q
+    'Q': (  # LATIN CAPITAL LETTER Q
         "........",
         "........",
         "........",
@@ -310,7 +311,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'R': (# LATIN CAPITAL LETTER R
+    'R': (  # LATIN CAPITAL LETTER R
         "........",
         "........",
         "........",
@@ -325,7 +326,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'S': (# LATIN CAPITAL LETTER S
+    'S': (  # LATIN CAPITAL LETTER S
         "........",
         "........",
         "........",
@@ -340,7 +341,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'T': (# LATIN CAPITAL LETTER T
+    'T': (  # LATIN CAPITAL LETTER T
         "........",
         "........",
         "........",
@@ -355,7 +356,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'U': (# LATIN CAPITAL LETTER U
+    'U': (  # LATIN CAPITAL LETTER U
         "........",
         "........",
         "........",
@@ -370,7 +371,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'V': (# LATIN CAPITAL LETTER V
+    'V': (  # LATIN CAPITAL LETTER V
         "........",
         "........",
         "........",
@@ -385,7 +386,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'W': (# LATIN CAPITAL LETTER W
+    'W': (  # LATIN CAPITAL LETTER W
         "........",
         "........",
         "........",
@@ -400,7 +401,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'X': (# LATIN CAPITAL LETTER X
+    'X': (  # LATIN CAPITAL LETTER X
         "........",
         "........",
         "........",
@@ -415,7 +416,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'Y': (# LATIN CAPITAL LETTER Y
+    'Y': (  # LATIN CAPITAL LETTER Y
         "........",
         "........",
         "........",
@@ -430,7 +431,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    'Z': (# LATIN CAPITAL LETTER Z
+    'Z': (  # LATIN CAPITAL LETTER Z
         "........",
         "........",
         "........",
@@ -445,7 +446,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '[': (# LEFT SQUARE BRACKET
+    '[': (  # LEFT SQUARE BRACKET
         "........",
         "........",
         "........",
@@ -460,7 +461,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '\\': (# REVERSE SOLIDUS
+    '\\': (  # REVERSE SOLIDUS
         "........",
         "........",
         "........",
@@ -475,7 +476,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    ']': (# RIGHT SQUARE BRACKET
+    ']': (  # RIGHT SQUARE BRACKET
         "........",
         "........",
         "........",
@@ -490,7 +491,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '\u2191': (# UPWARDS ARROW
+    '\u2191': (  # UPWARDS ARROW
         "........",
         "........",
         "........",
@@ -505,7 +506,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '\u2190': (# LEFTWARDS ARROW
+    '\u2190': (  # LEFTWARDS ARROW
         "........",
         "........",
         "........",
@@ -520,7 +521,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    ' ': (# SPACE
+    ' ': (  # SPACE
         "........",
         "........",
         "........",
@@ -535,7 +536,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '!': (# EXCLAMATION MARK
+    '!': (  # EXCLAMATION MARK
         "........",
         "........",
         "........",
@@ -550,7 +551,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '"': (# QUOTATION MARK
+    '"': (  # QUOTATION MARK
         "........",
         "........",
         "........",
@@ -565,7 +566,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '#': (# NUMBER SIGN
+    '#': (  # NUMBER SIGN
         "........",
         "........",
         "........",
@@ -580,7 +581,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '$': (# DOLLAR SIGN
+    '$': (  # DOLLAR SIGN
         "........",
         "........",
         "........",
@@ -595,7 +596,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '%': (# PERCENT SIGN
+    '%': (  # PERCENT SIGN
         "........",
         "........",
         "........",
@@ -610,7 +611,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '&': (# AMPERSAND
+    '&': (  # AMPERSAND
         "........",
         "........",
         "........",
@@ -625,7 +626,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    "'": (# APOSTROPHE
+    "'": (  # APOSTROPHE
         "........",
         "........",
         "........",
@@ -640,7 +641,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '(': (# LEFT PARENTHESIS
+    '(': (  # LEFT PARENTHESIS
         "........",
         "........",
         "........",
@@ -655,7 +656,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    ')': (# RIGHT PARENTHESIS
+    ')': (  # RIGHT PARENTHESIS
         "........",
         "........",
         "........",
@@ -670,7 +671,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '*': (# ASTERISK
+    '*': (  # ASTERISK
         "........",
         "........",
         "........",
@@ -685,7 +686,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '+': (# PLUS SIGN
+    '+': (  # PLUS SIGN
         "........",
         "........",
         "........",
@@ -700,7 +701,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    ',': (# COMMA
+    ',': (  # COMMA
         "........",
         "........",
         "........",
@@ -715,7 +716,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '-': (# HYPHEN-MINUS
+    '-': (  # HYPHEN-MINUS
         "........",
         "........",
         "........",
@@ -730,7 +731,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '.': (# FULL STOP
+    '.': (  # FULL STOP
         "........",
         "........",
         "........",
@@ -745,7 +746,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '/': (# SOLIDUS
+    '/': (  # SOLIDUS
         "........",
         "........",
         "........",
@@ -760,7 +761,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '0': (# DIGIT ZERO
+    '0': (  # DIGIT ZERO
         "........",
         "........",
         "........",
@@ -775,7 +776,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '1': (# DIGIT ONE
+    '1': (  # DIGIT ONE
         "........",
         "........",
         "........",
@@ -790,7 +791,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '2': (# DIGIT TWO
+    '2': (  # DIGIT TWO
         "........",
         "........",
         "........",
@@ -805,7 +806,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '3': (# DIGIT THREE
+    '3': (  # DIGIT THREE
         "........",
         "........",
         "........",
@@ -820,7 +821,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '4': (# DIGIT FOUR
+    '4': (  # DIGIT FOUR
         "........",
         "........",
         "........",
@@ -835,7 +836,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '5': (# DIGIT FIVE
+    '5': (  # DIGIT FIVE
         "........",
         "........",
         "........",
@@ -850,7 +851,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '6': (# DIGIT SIX
+    '6': (  # DIGIT SIX
         "........",
         "........",
         "........",
@@ -865,7 +866,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '7': (# DIGIT SEVEN
+    '7': (  # DIGIT SEVEN
         "........",
         "........",
         "........",
@@ -880,7 +881,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '8': (# DIGIT EIGHT
+    '8': (  # DIGIT EIGHT
         "........",
         "........",
         "........",
@@ -895,7 +896,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '9': (# DIGIT NINE
+    '9': (  # DIGIT NINE
         "........",
         "........",
         "........",
@@ -910,7 +911,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    ':': (# COLON
+    ':': (  # COLON
         "........",
         "........",
         "........",
@@ -925,7 +926,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    ';': (# SEMICOLON
+    ';': (  # SEMICOLON
         "........",
         "........",
         "........",
@@ -940,7 +941,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '<': (# LESS-THAN SIGN
+    '<': (  # LESS-THAN SIGN
         "........",
         "........",
         "........",
@@ -955,7 +956,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '=': (# EQUALS SIGN
+    '=': (  # EQUALS SIGN
         "........",
         "........",
         "........",
@@ -970,7 +971,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '>': (# GREATER-THAN SIGN
+    '>': (  # GREATER-THAN SIGN
         "........",
         "........",
         "........",
@@ -985,7 +986,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '?': (# QUESTION MARK
+    '?': (  # QUESTION MARK
         "........",
         "........",
         "........",
@@ -1000,7 +1001,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '\u2588':(#   FULL BLOCK
+    '\u2588': (  # FULL BLOCK
         "XXXXXXXX",
         "XXXXXXXX",
         "XXXXXXXX",
@@ -1015,7 +1016,7 @@ CHARS_DICT = {
         "XXXXXXXX",
         "XXXXXXXX",
     ),
-    '\u259b':(#   QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER LEFT
+    '\u259b': (  # QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER LEFT
         "XXXXXXXX",
         "XXXXXXXX",
         "XXXXXXXX",
@@ -1030,7 +1031,7 @@ CHARS_DICT = {
         "XXXX....",
         "XXXX....",
     ),
-    '\u259c':(#   QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER RIGHT
+    '\u259c': (  # QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER RIGHT
         "XXXXXXXX",
         "XXXXXXXX",
         "XXXXXXXX",
@@ -1045,7 +1046,7 @@ CHARS_DICT = {
         "....XXXX",
         "....XXXX",
     ),
-    '\u2580':(#   UPPER HALF BLOCK
+    '\u2580': (  # UPPER HALF BLOCK
         "XXXXXXXX",
         "XXXXXXXX",
         "XXXXXXXX",
@@ -1060,7 +1061,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '\u2599':(#   QUADRANT UPPER LEFT AND LOWER LEFT AND LOWER RIGHT
+    '\u2599': (  # QUADRANT UPPER LEFT AND LOWER LEFT AND LOWER RIGHT
         "XXXX....",
         "XXXX....",
         "XXXX....",
@@ -1075,7 +1076,7 @@ CHARS_DICT = {
         "XXXXXXXX",
         "XXXXXXXX",
     ),
-    '\u258c':(#   LEFT HALF BLOCK
+    '\u258c': (  # LEFT HALF BLOCK
         "XXXX....",
         "XXXX....",
         "XXXX....",
@@ -1090,7 +1091,7 @@ CHARS_DICT = {
         "XXXX....",
         "XXXX....",
     ),
-    '\u259a':(#   QUADRANT UPPER LEFT AND LOWER RIGHT
+    '\u259a': (  # QUADRANT UPPER LEFT AND LOWER RIGHT
         "XXXX....",
         "XXXX....",
         "XXXX....",
@@ -1105,7 +1106,7 @@ CHARS_DICT = {
         "....XXXX",
         "....XXXX",
     ),
-    '\u2598':(#   QUADRANT UPPER LEFT
+    '\u2598': (  # QUADRANT UPPER LEFT
         "XXXX....",
         "XXXX....",
         "XXXX....",
@@ -1120,7 +1121,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '\u259f':(#   QUADRANT UPPER RIGHT AND LOWER LEFT AND LOWER RIGHT
+    '\u259f': (  # QUADRANT UPPER RIGHT AND LOWER LEFT AND LOWER RIGHT
         "....XXXX",
         "....XXXX",
         "....XXXX",
@@ -1135,7 +1136,7 @@ CHARS_DICT = {
         "XXXXXXXX",
         "XXXXXXXX",
     ),
-    '\u259e':(#   QUADRANT UPPER RIGHT AND LOWER LEFT
+    '\u259e': (  # QUADRANT UPPER RIGHT AND LOWER LEFT
         "....XXXX",
         "....XXXX",
         "....XXXX",
@@ -1150,7 +1151,7 @@ CHARS_DICT = {
         "XXXX....",
         "XXXX....",
     ),
-    '\u2590':(#   RIGHT HALF BLOCK
+    '\u2590': (  # RIGHT HALF BLOCK
         "....XXXX",
         "....XXXX",
         "....XXXX",
@@ -1165,7 +1166,7 @@ CHARS_DICT = {
         "....XXXX",
         "....XXXX",
     ),
-    '\u259d':(#   QUADRANT UPPER RIGHT
+    '\u259d': (  # QUADRANT UPPER RIGHT
         "....XXXX",
         "....XXXX",
         "....XXXX",
@@ -1180,7 +1181,7 @@ CHARS_DICT = {
         "........",
         "........",
     ),
-    '\u2584':(#   LOWER HALF BLOCK
+    '\u2584': (  # LOWER HALF BLOCK
         "........",
         "........",
         "........",
@@ -1195,7 +1196,7 @@ CHARS_DICT = {
         "XXXXXXXX",
         "XXXXXXXX",
     ),
-    '\u2596':(#   QUADRANT LOWER LEFT
+    '\u2596': (  # QUADRANT LOWER LEFT
         "........",
         "........",
         "........",
@@ -1210,7 +1211,7 @@ CHARS_DICT = {
         "XXXX....",
         "XXXX....",
     ),
-    '\u2597':(#   QUADRANT LOWER RIGHT
+    '\u2597': (  # QUADRANT LOWER RIGHT
         "........",
         "........",
         "........",
@@ -1228,13 +1229,12 @@ CHARS_DICT = {
 }
 
 
-
-
 class TkImageFont(object):
     """
     Important is that image must be bind to a object, without:
     the garbage-collection by Python will "remove" the created images in Tkinter.Canvas!
     """
+
     def __init__(self, chars_dict, scale_factor):
         assert isinstance(scale_factor, int)
         assert scale_factor > 0
@@ -1250,9 +1250,9 @@ class TkImageFont(object):
         self.height_scaled = self.height_real * self.scale_factor
 
         log.critical("Every character is %ipx x %ipx (incl. scale factor: %i)",
-            self.width_scaled, self.height_scaled,
-            self.scale_factor
-        )
+                     self.width_scaled, self.height_scaled,
+                     self.scale_factor
+                     )
 
     def get_char(self, char, color):
         log.critical("Generate char %s %s", repr(char), color)
@@ -1264,8 +1264,8 @@ class TkImageFont(object):
             return self.get_char(char="?", color=color)
 
         foreground, background = get_hex_color(color)
-        foreground = "#%s" % foreground
-        background = "#%s" % background
+        foreground = f"#{foreground}"
+        background = f"#{background}"
 
         img = tkinter.PhotoImage(
             width=self.width_scaled,
@@ -1292,6 +1292,7 @@ class TkImageFont(object):
 
 class TestTkImageFont(object):
     CACHE = {}
+
     def __init__(self, row_count, tk_font, colors):
         self.row_count = row_count
         self.tk_font = tk_font
@@ -1312,15 +1313,15 @@ class TestTkImageFont(object):
             )
         )
 
-        print("Window/Canvas geometry: %spx x %spx" % (self.total_width, self.total_height))
-        self.root.geometry("+%i+%i" % (self.total_width, self.total_height))
+        print(f"Window/Canvas geometry: {self.total_width}px x {self.total_height}px")
+        self.root.geometry(f"+{self.total_width:d}+{self.total_height:d}")
 
         self.canvas = tkinter.Canvas(self.root,
-            width=self.total_width,
-            height=self.total_height,
-            bd=0,  # Border
-            bg="#000000",
-        )
+                                     width=self.total_width,
+                                     height=self.total_height,
+                                     bd=0,  # Border
+                                     bg="#000000",
+                                     )
         self.canvas.pack()
         self.add_chars()
         self.root.update()
@@ -1335,13 +1336,13 @@ class TestTkImageFont(object):
 #                 repr(char), self.current_color, x, y
 #             )
             img = self.tk_font.get_char(char, self.current_color)
-            self.CACHE[(char, self.current_color)] = img # avoid garbage collection
+            self.CACHE[(char, self.current_color)] = img  # avoid garbage collection
 
             self.canvas.create_image(x, y,
-                image=img,
-                state="normal",
-                anchor=tkinter.NW  # NW == NorthWest
-            )
+                                     image=img,
+                                     state="normal",
+                                     anchor=tkinter.NW  # NW == NorthWest
+                                     )
 
     def event_arrow_up(self, event):
         self.color_index += 1
@@ -1365,11 +1366,11 @@ def test_dict(chars_dict, width, height):
     for char, data in sorted(chars_dict.items()):
         if len(data) != height:
             print("Char %s has wrong height / row count !" % repr(char))
-            print("Should have %i rows, but has: %i rows" % (height, len(data)))
+            print(f"Should have {height:d} rows, but has: {len(data):d} rows")
         for line in data:
             if len(line) != width:
                 print("Char %s has wrong width / column count !" % repr(char))
-                print("Should have %i columns, but has: %i columns" % (width, len(line)))
+                print(f"Should have {width:d} columns, but has: {len(line):d} columns")
 
 
 if __name__ == "__main__":

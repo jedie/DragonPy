@@ -8,14 +8,13 @@
 """
 
 
-
 import os
 
 from dragonpy.components.rom import ROMFile
 
 
 class VectrexRom(ROMFile):
-    ROM_PATH=os.path.normpath(
+    ROM_PATH = os.path.normpath(
         os.path.abspath(os.path.dirname(__file__))
     )
     SHA1 = "65d07426b520ddd3115d40f255511e0fd2e20ae7"
@@ -23,8 +22,6 @@ class VectrexRom(ROMFile):
 
     def get_data(self):
         if not os.path.isfile(self.rom_path):
-            raise RuntimeError("Rom file %r not there?!?" % self.rom_path)
-        
+            raise RuntimeError(f"Rom file {self.rom_path!r} not there?!?")
+
         return super(VectrexRom, self).get_data()
-
-

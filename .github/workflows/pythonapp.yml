@@ -40,11 +40,11 @@ jobs:
         source $HOME/.poetry/env
         make pytest
 
-    - name: 'Run linters'
-      if: matrix.python-version == '3.8'
-      run: |
-        source $HOME/.poetry/env
-        make lint
+#    - name: 'Run linters'
+#      if: matrix.python-version == '3.8'
+#      run: |
+#        source $HOME/.poetry/env
+#        make lint
 
     - name: 'Upload coverage report'
       run: bash <(curl -s https://codecov.io/bash)
