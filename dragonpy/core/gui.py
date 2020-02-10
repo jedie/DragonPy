@@ -10,7 +10,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 
 import sys
 import time
@@ -30,12 +30,12 @@ try:
     from tkinter import font as TkFont
 except ImportError:
     # Python 2
-    import Queue as queue
-    import Tkinter as tk
-    import tkFileDialog as filedialog
-    import tkMessageBox as messagebox
-    import ScrolledText as scrolledtext
-    import tkFont as TkFont
+    import queue as queue
+    import tkinter as tk
+    import tkinter.filedialog as filedialog
+    import tkinter.messagebox as messagebox
+    import tkinter.scrolledtext as scrolledtext
+    import tkinter.font as TkFont
 
 from basic_editor.editor import EditorWindow
 
@@ -201,7 +201,7 @@ class BaseTkinterGUI(object):
         add_to_input_queue(self.user_input_queue, txt)
 
     def wait_until_input_queue_empty(self):
-        for count in xrange(1, 10):
+        for count in range(1, 10):
             self.cpu_interval()
             if self.user_input_queue.empty():
                 log.critical("user_input_queue is empty, after %i burst runs, ok.", count)
@@ -399,7 +399,7 @@ class DragonTkinterGUI(BaseTkinterGUI):
 
         def format_dump(dump, start_addr, end_addr):
             lines = []
-            for addr, value in zip(range(start_addr, end_addr + 1), dump):
+            for addr, value in zip(list(range(start_addr, end_addr + 1)), dump):
                 log.critical("$%04x: $%02x (dez.: %i)", addr, value, value)
                 lines.append("$%04x: $%02x (dez.: %i)" % (addr, value, value))
             return lines

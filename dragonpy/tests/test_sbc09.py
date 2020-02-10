@@ -17,7 +17,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 
 import six
 xrange = six.moves.xrange
@@ -35,7 +35,7 @@ log = logging.getLogger("DragonPy")
 PY2 = sys.version_info[0] == 2
 
 if PY2:
-    string_type = basestring
+    string_type = str
 else:
     string_type = str
 
@@ -69,7 +69,7 @@ def split2chunks(seq, size):
     >>> split2chunks("ABCEDFGH", 3)
     ['ABC', 'EDF', 'GH']
     """
-    return [seq[pos:pos + size] for pos in xrange(0, len(seq), size)]
+    return [seq[pos:pos + size] for pos in range(0, len(seq), size)]
 
 
 class Test_sbc09(Test6809_sbc09_Base):
@@ -84,7 +84,7 @@ class Test_sbc09(Test6809_sbc09_Base):
         """
         Calculate simple expression in hex with + and -
         """
-        for i in xrange(20):
+        for i in range(20):
             self.setUp() # Reset CPU
             self.periphery.add_to_input_queue(
                  'H100+%X\r\n' % i
@@ -101,7 +101,7 @@ class Test_sbc09(Test6809_sbc09_Base):
         """
         Calculate simple expression in hex with + and -
         """
-        for i in xrange(20):
+        for i in range(20):
             self.setUp() # Reset CPU
             self.periphery.add_to_input_queue(
                  'H100-%X\r\n' % i

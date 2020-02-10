@@ -10,7 +10,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 import six
 xrange = six.moves.xrange
 
@@ -25,8 +25,8 @@ try:
 #    import http.client
 except ImportError:
     # Python 2
-    import Queue as queue
-    import thread as _thread
+    import queue as queue
+    import _thread as _thread
 #    import httplib
 
 import logging
@@ -40,7 +40,7 @@ try:
     import tkinter # Python 3
 except ImportError:
     try:
-        import Tkinter as tkinter # Python 2
+        import tkinter as tkinter # Python 2
     except ImportError:
         log.critical("Error importing Tkinter!")
         tkinter = None
@@ -78,7 +78,7 @@ class PeripheryBase(object):
         max_ops = self.cfg.cfg_dict["max_ops"]
         if max_ops:
             log.critical("Running only %i ops!", max_ops)
-            for __ in xrange(max_ops):
+            for __ in range(max_ops):
                 cpu.get_and_call_next_op()
                 if not (self.periphery.running and self.cpu.running):
                     break

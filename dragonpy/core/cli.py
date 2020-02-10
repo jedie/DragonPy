@@ -10,7 +10,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 
 
 import atexit
@@ -189,7 +189,7 @@ def log_list():
 
 @cli.command(help="Download/Test only ROM files")
 def download_roms():
-    for machine_name, data in machine_dict.items():
+    for machine_name, data in list(machine_dict.items()):
         machine_config = data[1]
         click.secho("Download / test ROM for %s:" % click.style(machine_name, bold=True), bg='blue', fg='white')
 

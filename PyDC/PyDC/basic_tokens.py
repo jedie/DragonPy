@@ -143,14 +143,14 @@ def bytes2codeline(raw_bytes):
             func_token = False
             try:
                 character = FUNCTION_TOKEN[byte_no]
-            except KeyError, err:
-                print "Error: BASIC function torken for '%s' not found!" % hex(byte_no)
+            except KeyError as err:
+                print("Error: BASIC function torken for '%s' not found!" % hex(byte_no))
                 character = chr(byte_no)
         elif byte_no in BASIC_TOKENS:
             try:
                 character = BASIC_TOKENS[byte_no]
-            except KeyError, err:
-                print "Error: BASIC torken for '%s' not found!" % hex(byte_no)
+            except KeyError as err:
+                print("Error: BASIC torken for '%s' not found!" % hex(byte_no))
                 character = chr(byte_no)
         else:
             character = chr(byte_no)
@@ -161,16 +161,16 @@ def bytes2codeline(raw_bytes):
 
 if __name__ == "__main__":
     import doctest
-    print doctest.testmod()
+    print(doctest.testmod())
 
     def pprint_formated(d):
         for k, v in sorted(d.items()):
-            print '    %s: "%s",' % (hex(k), v.strip())
+            print('    %s: "%s",' % (hex(k), v.strip()))
 
-    print "BASIC_TOKENS = {"
+    print("BASIC_TOKENS = {")
     pprint_formated(BASIC_TOKENS)
-    print "}"
+    print("}")
 
-    print "FUNCTION_TOKEN = {"
+    print("FUNCTION_TOKEN = {")
     pprint_formated(FUNCTION_TOKEN)
-    print "}"
+    print("}")

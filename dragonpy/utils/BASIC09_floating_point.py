@@ -8,7 +8,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 import six
 xrange = six.moves.xrange
 
@@ -50,9 +50,9 @@ class BASIC09FloatingPoint(object):
         value = decimal.Decimal(abs(value))
         result = []
         pos = 0
-        for __ in xrange(byte_count):
+        for __ in range(byte_count):
             current_byte = 0
-            for bit_no in reversed(range(8)):
+            for bit_no in reversed(list(range(8))):
                 pos += 1
                 bit_value = decimal.Decimal(1.0) / decimal.Decimal(2) ** decimal.Decimal(pos)
                 if value >= bit_value:

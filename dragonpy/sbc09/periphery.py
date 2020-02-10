@@ -11,7 +11,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 
 import os
 import sys
@@ -26,13 +26,13 @@ from dragonpy.components.periphery import PeripheryBase, TkPeripheryBase, \
 try:
     import queue # Python 3
 except ImportError:
-    import Queue as queue # Python 2
+    import queue as queue # Python 2
 
 try:
     import tkinter # Python 3
 except ImportError:
     try:
-        import Tkinter as tkinter # Python 2
+        import tkinter as tkinter # Python 2
     except ImportError:
         log.critical("Error importing Tkinter!")
         tkinter = None

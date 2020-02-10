@@ -7,7 +7,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import print_function, absolute_import
+
 
 import sys
 import array

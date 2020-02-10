@@ -18,14 +18,14 @@
     Based on: XRoar emulator by Ciaran Anscomb (GPL license) more info, see README
 """
 
-from __future__ import absolute_import, division, print_function
+
 
 import os
 
 try:
     import queue # Python 3
 except ImportError:
-    import Queue as queue # Python 2
+    import queue as queue # Python 2
 
 import logging
 

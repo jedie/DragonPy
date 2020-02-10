@@ -9,7 +9,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 
 import zipfile
 import logging
@@ -22,7 +22,7 @@ if PY3:
     from urllib.request import urlopen
     from zipfile import BadZipFile
 else:
-    from urllib2 import urlopen
+    from urllib.request import urlopen
     from zipfile import BadZipfile as BadZipFile
 
 import dragonpy
@@ -96,7 +96,7 @@ class ROMFile(object):
         try:
             return self.RENAME_DATA[filename]
         except KeyError:
-            raise RuntimeError("Filename %r in archive is unknown! Known names are: %s" % self.RENAME_DATA.keys())
+            raise RuntimeError("Filename %r in archive is unknown! Known names are: %s" % list(self.RENAME_DATA.keys()))
 
     def extract_zip(self):
         assert self.FILE_COUNT>0

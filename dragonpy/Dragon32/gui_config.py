@@ -12,7 +12,7 @@
     :copyleft: 2014-2015 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
-from __future__ import absolute_import, division, print_function
+
 
 import logging
 import sys
@@ -29,10 +29,10 @@ try:
     from tkinter import scrolledtext
 except ImportError:
     # Python 2
-    import Tkinter as tkinter
-    import tkFileDialog as filedialog
-    import tkMessageBox as messagebox
-    import ScrolledText as scrolledtext
+    import tkinter as tkinter
+    import tkinter.filedialog as filedialog
+    import tkinter.messagebox as messagebox
+    import tkinter.scrolledtext as scrolledtext
 
 
 class RuntimeCfg(object):

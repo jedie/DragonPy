@@ -22,13 +22,13 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 
 import math
 try:
     import tkinter # python 3
 except ImportError:
-    import Tkinter as tkinter # Python 2
+    import tkinter as tkinter # Python 2
 
 import logging
 

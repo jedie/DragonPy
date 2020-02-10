@@ -9,7 +9,7 @@
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
-from __future__ import absolute_import, division, print_function
+
 import six
 
 xrange = six.moves.xrange
@@ -28,8 +28,8 @@ try:
     from tkinter import font as TkFont
 except ImportError:
     # Python 2
-    import Tkinter as tkinter
-    import tkFont as TkFont
+    import tkinter as tkinter
+    import tkinter.font as TkFont
 
 
 class MC6847_TextModeCanvas(object):
@@ -75,8 +75,8 @@ class MC6847_TextModeCanvas(object):
 
         # Create all charachter images on the display and fill self.images_map:
         self.init_img = self.tk_font.get_char(char="?", color=dragon_charmap.INVERTED)
-        for row in xrange(self.rows + 1):
-            for column in xrange(self.columns + 1):
+        for row in range(self.rows + 1):
+            for column in range(self.columns + 1):
                 x = self.tk_font.width_scaled * row
                 y = self.tk_font.height_scaled * column
                 image_id = self.canvas.create_image(x, y,

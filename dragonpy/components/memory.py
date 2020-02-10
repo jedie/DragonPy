@@ -19,7 +19,7 @@
     more info, see README
 """
 
-from __future__ import absolute_import, division, print_function
+
 import six
 xrange = six.moves.xrange
 
@@ -131,7 +131,7 @@ class Memory(object):
         if end_addr is None:
             callbacks_dict[start_addr] = callback_func
         else:
-            for addr in xrange(start_addr, end_addr + 1):
+            for addr in range(start_addr, end_addr + 1):
                 callbacks_dict[addr] = callback_func
 
     #---------------------------------------------------------------------------
@@ -309,10 +309,10 @@ class Memory(object):
         """
         used in unittests
         """
-        return [self.read_byte(addr) for addr in xrange(start, end)]
+        return [self.read_byte(addr) for addr in range(start, end)]
 
     def iter_bytes(self, start, end):
-        for addr in xrange(start, end):
+        for addr in range(start, end):
             yield addr, self.read_byte(addr)
 
     def get_dump(self, start, end):

@@ -12,7 +12,7 @@
     blocks: http://www.pylucid.org/de/contribute/developer-documentation/unicode-test/decode_unicode/block-elements/#9600
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
+
 import six
 xrange = six.moves.xrange
 
@@ -204,9 +204,9 @@ for item_type in COLORS:
 
 def list_chars():
     index = 0
-    for x in xrange(8):
+    for x in range(8):
         line = ""
-        for y in xrange(32):
+        for y in range(32):
             try:
                 line += DRAGON_CHARS_MAP[index][0]
             except KeyError:

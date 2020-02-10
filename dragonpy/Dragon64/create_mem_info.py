@@ -24,4 +24,4 @@ if __name__ == "__main__":
                 end_addr = addr
 
             comment = comment.replace('"','\"')
-            print('        (%s, %s, "%s"),' % (start_addr, end_addr, comment))
+            print(('        (%s, %s, "%s"),' % (start_addr, end_addr, comment)))

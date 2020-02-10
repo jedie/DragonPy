@@ -9,7 +9,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 
 
 import logging
@@ -28,12 +28,12 @@ try:
     from tkinter import font as TkFont
 except ImportError:
     # Python 2
-    import Queue as queue
-    import Tkinter as tkinter
-    import tkFileDialog as filedialog
-    import tkMessageBox as messagebox
-    import ScrolledText as scrolledtext
-    import tkFont as TkFont
+    import queue as queue
+    import tkinter as tkinter
+    import tkinter.filedialog as filedialog
+    import tkinter.messagebox as messagebox
+    import tkinter.scrolledtext as scrolledtext
+    import tkinter.font as TkFont
 
 from dragonpy.core.gui import ScrolledTextGUI
 

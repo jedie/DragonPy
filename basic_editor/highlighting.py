@@ -11,7 +11,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 
 import pygments
 from pygments.styles import get_style_by_name
@@ -26,8 +26,8 @@ try:
     from tkinter import font
 except ImportError:
     # Python 2
-    import Tkinter as tkinter
-    import tkFont as font
+    import tkinter as tkinter
+    import tkinter.font as font
 
 
 from basic_editor.editor_base import BaseExtension

@@ -85,7 +85,7 @@ class MemoryInfo(object):
             pass
 
         shortest = None
-        size = sys.maxint
+        size = sys.maxsize
         for start, end, txt in self.mem_info:
             if not start <= addr <= end:
                 continue

@@ -9,7 +9,7 @@
 """
 
 
-from __future__ import absolute_import, division, print_function
+
 import six
 
 xrange = six.moves.xrange
@@ -26,7 +26,7 @@ import unittest
 try:
     import queue # Python 3
 except ImportError:
-    import Queue as queue # Python 2
+    import queue as queue # Python 2
 
 from dragonlib.tests.test_base import BaseTestCase
 
@@ -206,7 +206,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
         old_cycles = self.cpu.cycles
         last_output_len = 0
         existing_OK_count = 0
-        for op_call_count in xrange(max_ops):
+        for op_call_count in range(max_ops):
             self.cpu.get_and_call_next_op()
 
             if self.periphery.output_len > last_output_len:
@@ -308,7 +308,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
         old_cycles = self.cpu.cycles
         last_output_len = 0
         is_count = 0
-        for op_call_count in xrange(max_ops):
+        for op_call_count in range(max_ops):
             self.cpu.get_and_call_next_op()
 
             if self.periphery.output_len > last_output_len:
@@ -421,7 +421,7 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
         old_cycles = self.cpu.cycles
         output = []
         existing_OK_count = 0
-        for op_call_count in xrange(max_ops):
+        for op_call_count in range(max_ops):
             try:
                 self.cpu.get_and_call_next_op()
             except Exception as err:
@@ -443,7 +443,7 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
 
     def _run_until_response(self, max_ops=10000):
         old_cycles = self.cpu.cycles
-        for op_call_count in xrange(max_ops):
+        for op_call_count in range(max_ops):
             self.cpu.get_and_call_next_op()
             try:
                 result = self.response_queue.get(block=False)

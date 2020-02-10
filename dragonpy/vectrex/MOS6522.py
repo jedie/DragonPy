@@ -16,7 +16,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 import six
 xrange = six.moves.xrange
 
@@ -68,7 +68,7 @@ class MOS6522VIA(object):
 
     def reset(self):
         self.snd_regs = {}
-        for i in xrange(16):
+        for i in range(16):
             self.snd_regs[i] = 0
         self.snd_regs[14] = 0xff
 

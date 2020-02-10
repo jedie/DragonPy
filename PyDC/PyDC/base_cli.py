@@ -17,7 +17,7 @@ import sys
 
 def get_log_levels():
     levels = [5, 7] # FIXME
-    levels += [level for level in logging._levelNames if isinstance(level, int)]
+    levels += [level for level in logging._nameToLevel if isinstance(level, int)]
     return levels
 
 LOG_LEVELS = get_log_levels()
@@ -32,7 +32,7 @@ class Base_CLI(object):
 
     def __init__(self):
         self.logfilename = None
-        print "logger name:", self.LOG_NAME
+        print("logger name:", self.LOG_NAME)
         self.log = logging.getLogger(self.LOG_NAME)
 
         arg_kwargs = {}
@@ -68,10 +68,10 @@ class Base_CLI(object):
 
     def parse_args(self):
         if self.DESCRIPTION is not None:
-            print
-            print self.DESCRIPTION, self.VERSION
-            print "-"*79
-            print
+            print()
+            print(self.DESCRIPTION, self.VERSION)
+            print("-"*79)
+            print()
 
         args = self.parser.parse_args()
 
@@ -89,7 +89,7 @@ class Base_CLI(object):
         logfile_level_name = logging.getLevelName(self.logfile)
 
         highest_level = min([self.logfile, self.verbosity])
-        print "set log level to:", highest_level
+        print("set log level to:", highest_level)
         self.log.setLevel(highest_level)
 
         if self.logfile > 0 and self.logfilename:
@@ -117,7 +117,7 @@ class Base_CLI(object):
 
 if __name__ == "__main__":
     import doctest
-    print doctest.testmod(
+    print(doctest.testmod(
         verbose=False
         # verbose=True
-    )
+    ))

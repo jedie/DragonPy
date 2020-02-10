@@ -1,49 +1,59 @@
 #!/usr/bin/env python2
-# coding: utf-8
 
 """
     :copyleft: 2013 by Jens Diemer
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import wave
-import functools
 import array
+import functools
 import itertools
 import logging
+import math
 import struct
 import time
-import math
+import wave
+
+from PyDC.utils import (
+    ProcessInfo,
+    TextLevelMeter,
+    average,
+    bits2codepoint,
+    codepoints2bitstream,
+    count_sign,
+    diff_info,
+    duration2hz,
+    human_duration,
+    hz2duration,
+    iter_steps,
+    iter_window,
+    sinus_values_by_hz,
+)
+
 
 try:
     import audioop
-except ImportError, err:
+except ImportError as err:
     # e.g. PyPy, see: http://bugs.pypy.org/msg4430
-    print "Can't use audioop:", err
+    print("Can't use audioop:", err)
     audioop = None
-
-
-# own modules
-from dragonlib.utils import average, diff_info, TextLevelMeter, iter_window, \
-    human_duration, ProcessInfo, count_sign, iter_steps, sinus_values_by_hz, \
-    hz2duration, duration2hz, codepoints2bitstream, bits2codepoint
 
 
 log = logging.getLogger("PyDC")
 
 
-WAVE_READ_SIZE = 16 * 1024 # How many frames should be read from WAVE file at once?
+WAVE_READ_SIZE = 16 * 1024  # How many frames should be read from WAVE file at once?
 WAV_ARRAY_TYPECODE = {
-    1: "b", #  8-bit wave file
-    2: "h", # 16-bit wave file
-    4: "l", # 32-bit wave file TODO: Test it
+    1: "b",  # 8-bit wave file
+    2: "h",  # 16-bit wave file
+    4: "l",  # 32-bit wave file TODO: Test it
 }
 
 # Maximum volume value in wave files:
 MAX_VALUES = {
-    1: 255, # 8-bit wave file
-    2: 32768, # 16-bit wave file
-    4: 2147483647, # 32-bit wave file
+    1: 255,  # 8-bit wave file
+    2: 32768,  # 16-bit wave file
+    4: 2147483647,  # 32-bit wave file
 }
 HUMAN_SAMPLEWIDTH = {
     1: "8-bit",
@@ -52,21 +62,21 @@ HUMAN_SAMPLEWIDTH = {
 }
 
 
-class WaveBase(object):
+class WaveBase:
     def get_typecode(self, samplewidth):
         try:
             typecode = WAV_ARRAY_TYPECODE[samplewidth]
         except KeyError:
             raise NotImplementedError(
                 "Only %s wave files are supported, yet!" % (
-                    ", ".join(["%sBit" % (i * 8) for i in WAV_ARRAY_TYPECODE.keys()])
+                    ", ".join(["%sBit" % (i * 8) for i in list(WAV_ARRAY_TYPECODE.keys())])
                 )
             )
         return typecode
 
     def pformat_pos(self):
         sec = float(self.wave_pos) / self.framerate / self.samplewidth
-        return "%s (frame no.: %s)" % (human_duration(sec), self.wave_pos)
+        return f"{human_duration(sec)} (frame no.: {self.wave_pos})"
 
     def _hz2duration(self, hz):
         return hz2duration(hz, framerate=self.framerate)
@@ -75,10 +85,10 @@ class WaveBase(object):
         return duration2hz(duration, framerate=self.framerate)
 
     def set_wave_properties(self):
-        self.framerate = self.wavefile.getframerate() # frames / second
-        self.samplewidth = self.wavefile.getsampwidth() # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
+        self.framerate = self.wavefile.getframerate()  # frames / second
+        self.samplewidth = self.wavefile.getsampwidth()  # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
         self.max_value = MAX_VALUES[self.samplewidth]
-        self.nchannels = self.wavefile.getnchannels() # typically 1 for mono, 2 for stereo
+        self.nchannels = self.wavefile.getnchannels()  # typically 1 for mono, 2 for stereo
 
         log.info("Framerate: %sHz samplewidth: %i (%sBit, max volume value: %s) channels: %s" % (
             self.framerate,
@@ -95,17 +105,17 @@ class Wave2Bitstream(WaveBase):
         self.wave_filename = wave_filename
         self.cfg = cfg
 
-        self.half_sinus = False # in trigger yield the full cycle
-        self.wave_pos = 0 # Absolute position in the frame stream
+        self.half_sinus = False  # in trigger yield the full cycle
+        self.wave_pos = 0  # Absolute position in the frame stream
 
-        assert cfg.END_COUNT > 0 # Sample count that must be pos/neg at once
-        assert cfg.MID_COUNT > 0 # Sample count that can be around null
+        assert cfg.END_COUNT > 0  # Sample count that must be pos/neg at once
+        assert cfg.MID_COUNT > 0  # Sample count that can be around null
 
-        print "open wave file '%s'..." % wave_filename
+        print(f"open wave file '{wave_filename}'...")
         try:
             self.wavefile = wave.open(wave_filename, "rb")
-        except IOError, err:
-            msg = "Error opening %s: %s" % (repr(wave_filename), err)
+        except OSError as err:
+            msg = f"Error opening {repr(wave_filename)}: {err}"
             log.error(msg)
             sys.stderr.write(msg)
             sys.exit(-1)
@@ -113,12 +123,12 @@ class Wave2Bitstream(WaveBase):
         self.set_wave_properties()
 
         self.frame_count = self.wavefile.getnframes()
-        print "Number of audio frames:", self.frame_count
+        print("Number of audio frames:", self.frame_count)
 
         self.min_volume = int(round(self.max_value * cfg.MIN_VOLUME_RATIO / 100))
-        print "Ignore sample lower than %.1f%% = %i" % (cfg.MIN_VOLUME_RATIO, self.min_volume)
+        print(f"Ignore sample lower than {cfg.MIN_VOLUME_RATIO:.1f}% = {self.min_volume:d}")
 
-        self.half_sinus = False # in trigger yield the full cycle
+        self.half_sinus = False  # in trigger yield the full cycle
         self.frame_no = None
 
         # create the generator chain:
@@ -128,7 +138,7 @@ class Wave2Bitstream(WaveBase):
 
         if cfg.AVG_COUNT > 1:
             # merge samples to a average sample
-            log.debug("Merge %s audio sample to one average sample" % cfg.AVG_COUNT)
+            log.debug(f"Merge {cfg.AVG_COUNT} audio sample to one average sample")
             self.avg_wave_values_generator = self.iter_avg_wave_values(
                 self.wave_values_generator, cfg.AVG_COUNT
             )
@@ -147,9 +157,8 @@ class Wave2Bitstream(WaveBase):
     def _print_status(self, process_info):
         percent = float(self.wave_pos) / self.frame_count * 100
         rest, eta, rate = process_info.update(self.wave_pos)
-        sys.stdout.write("\r%.1f%% wav pos:%s - eta: %s (rate: %iFrames/sec)       " % (
-            percent, self.pformat_pos(), eta, rate
-        ))
+        sys.stdout.write(
+            f"\r{percent:.1f}% wav pos:{self.pformat_pos()} - eta: {eta} (rate: {rate:d}Frames/sec)       ")
         sys.stdout.flush()
 
     def _get_statistics(self, max=None):
@@ -188,20 +197,20 @@ class Wave2Bitstream(WaveBase):
         width = 50
         max_count = max(statistics.values())
 
-        print
-        print "Found this zeror crossing timings in the wave file:"
-        print
+        print()
+        print("Found this zeror crossing timings in the wave file:")
+        print()
 
-        for duration, count in sorted(statistics.items(), reverse=True):
+        for duration, count in sorted(list(statistics.items()), reverse=True):
             hz = duration2hz(duration, self.framerate / 2)
             w = int(round(float(width) / max_count * count))
-            stars = "*"*w
-            print "%5sHz (%5s Samples) exist: %4s %s" % (hz, duration, count, stars)
+            stars = "*" * w
+            print(f"{hz:>5}Hz ({duration:>5} Samples) exist: {count:>4} {stars}")
 
-        print
-        print "Notes:"
-        print " - Hz values are converted to full sinus cycle duration."
-        print " - Sample cound is from half sinus cycle."
+        print()
+        print("Notes:")
+        print(" - Hz values are converted to full sinus cycle duration.")
+        print(" - Sample cound is from half sinus cycle.")
 
     def sync(self, length):
         """
@@ -210,9 +219,9 @@ class Wave2Bitstream(WaveBase):
 
         # go in wave stream to the first bit
         try:
-            self.next()
+            next(self)
         except StopIteration:
-            print "Error: no bits identified!"
+            print("Error: no bits identified!")
             sys.exit(-1)
 
         log.info("First bit is at: %s" % self.pformat_pos())
@@ -229,11 +238,11 @@ class Wave2Bitstream(WaveBase):
         test_durations = list(test_durations)
 
         diff1, diff2 = diff_info(test_durations)
-        log.debug("sync diff info: %i vs. %i" % (diff1, diff2))
+        log.debug(f"sync diff info: {diff1:d} vs. {diff2:d}")
 
         if diff1 > diff2:
             log.info("\nbit-sync one step.")
-            self.iter_trigger_generator.next()
+            next(self.iter_trigger_generator)
             log.debug("Synced.")
         else:
             log.info("\nNo bit-sync needed.")
@@ -244,15 +253,15 @@ class Wave2Bitstream(WaveBase):
     def __iter__(self):
         return self
 
-    def next(self):
-        return self.iter_bitstream_generator.next()
+    def __next__(self):
+        return next(self.iter_bitstream_generator)
 
     def iter_bitstream(self, iter_duration_generator):
         """
         iterate over self.iter_trigger() and
         yield the bits
         """
-        assert self.half_sinus == False # Allways trigger full sinus cycle
+        assert self.half_sinus == False  # Allways trigger full sinus cycle
 
         # build min/max Hz values
         bit_nul_min_hz = self.cfg.BIT_NUL_HZ - self.cfg.HZ_VARIATION
@@ -267,10 +276,7 @@ class Wave2Bitstream(WaveBase):
         bit_one_max_duration = self._hz2duration(bit_one_min_hz)
         bit_one_min_duration = self._hz2duration(bit_one_max_hz)
 
-        log.info("bit-0 in %sHz - %sHz (duration: %s-%s)  |  bit-1 in %sHz - %sHz (duration: %s-%s)" % (
-            bit_nul_min_hz, bit_nul_max_hz, bit_nul_min_duration, bit_nul_max_duration,
-            bit_one_min_hz, bit_one_max_hz, bit_one_min_duration, bit_one_max_duration,
-        ))
+        log.info(f"bit-0 in {bit_nul_min_hz}Hz - {bit_nul_max_hz}Hz (duration: {bit_nul_min_duration}-{bit_nul_max_duration})  |  bit-1 in {bit_one_min_hz}Hz - {bit_one_max_hz}Hz (duration: {bit_one_min_duration}-{bit_one_max_duration})")
         assert bit_nul_max_hz < bit_one_min_hz, "HZ_VARIATION value is %sHz too high!" % (
             ((bit_nul_max_hz - bit_one_min_hz) / 2) + 1
         )
@@ -278,11 +284,11 @@ class Wave2Bitstream(WaveBase):
 
         # for end statistics
         bit_one_count = 0
-        one_hz_min = sys.maxint
+        one_hz_min = sys.maxsize
         one_hz_avg = None
         one_hz_max = 0
         bit_nul_count = 0
-        nul_hz_min = sys.maxint
+        nul_hz_min = sys.maxsize
         nul_hz_avg = None
         nul_hz_max = 0
 
@@ -291,10 +297,8 @@ class Wave2Bitstream(WaveBase):
             if bit_one_min_duration < duration < bit_one_max_duration:
                 hz = self._duration2hz(duration)
                 log.log(5,
-                    "bit 1 at %s in %sSamples = %sHz" % (
-                        self.pformat_pos(), duration, hz
-                    )
-                )
+                        f"bit 1 at {self.pformat_pos()} in {duration}Samples = {hz}Hz"
+                        )
                 yield 1
                 bit_one_count += 1
                 if hz < one_hz_min:
@@ -305,10 +309,8 @@ class Wave2Bitstream(WaveBase):
             elif bit_nul_min_duration < duration < bit_nul_max_duration:
                 hz = self._duration2hz(duration)
                 log.log(5,
-                    "bit 0 at %s in %sSamples = %sHz" % (
-                        self.pformat_pos(), duration, hz
-                    )
-                )
+                        f"bit 0 at {self.pformat_pos()} in {duration}Samples = {hz}Hz"
+                        )
                 yield 0
                 bit_nul_count += 1
                 if hz < nul_hz_min:
@@ -319,28 +321,24 @@ class Wave2Bitstream(WaveBase):
             else:
                 hz = self._duration2hz(duration)
                 log.log(7,
-                    "Skip signal at %s with %sHz (%sSamples) out of frequency range." % (
-                        self.pformat_pos(), hz, duration
-                    )
-                )
+                        f"Skip signal at {self.pformat_pos()} with {hz}Hz ({duration}Samples) out of frequency range."
+                        )
                 continue
 
         bit_count = bit_one_count + bit_nul_count
 
         if bit_count == 0:
-            print "ERROR: No information from wave to generate the bits"
-            print "trigger volume to high?"
+            print("ERROR: No information from wave to generate the bits")
+            print("trigger volume to high?")
             sys.exit(-1)
 
-        log.info("\n%i Bits: %i positive bits and %i negative bits" % (
-            bit_count, bit_one_count, bit_nul_count
-        ))
+        log.info(f"\n{bit_count:d} Bits: {bit_one_count:d} positive bits and {bit_nul_count:d} negative bits")
         if bit_one_count > 0:
-            log.info("Bit 1: %sHz - %sHz avg: %.1fHz variation: %sHz" % (
+            log.info("Bit 1: {}Hz - {}Hz avg: {:.1f}Hz variation: {}Hz".format(
                 one_hz_min, one_hz_max, one_hz_avg, one_hz_max - one_hz_min
             ))
         if bit_nul_count > 0:
-            log.info("Bit 0: %sHz - %sHz avg: %.1fHz variation: %sHz" % (
+            log.info("Bit 0: {}Hz - {}Hz avg: {:.1f}Hz variation: {}Hz".format(
                 nul_hz_min, nul_hz_max, nul_hz_avg, nul_hz_max - nul_hz_min
             ))
 
@@ -348,7 +346,7 @@ class Wave2Bitstream(WaveBase):
         """
         yield the duration of two frames in a row.
         """
-        print
+        print()
         process_info = ProcessInfo(self.frame_count, use_last_rates=4)
         start_time = time.time()
         next_status = start_time + 0.25
@@ -365,7 +363,7 @@ class Wave2Bitstream(WaveBase):
                 self._print_status(process_info)
 
         self._print_status(process_info)
-        print
+        print()
 
     def iter_trigger(self, iter_wave_values):
         """
@@ -388,9 +386,9 @@ class Wave2Bitstream(WaveBase):
         for values in iter_window(iter_wave_values, window_size):
 
             # Split the window
-            previous_values = values[:self.cfg.END_COUNT] # e.g.: 123-----
-            mid_values = values[self.cfg.END_COUNT:self.cfg.END_COUNT + self.cfg.MID_COUNT] # e.g.: ---45---
-            next_values = values[-self.cfg.END_COUNT:] # e.g.: -----678
+            previous_values = values[:self.cfg.END_COUNT]  # e.g.: 123-----
+            mid_values = values[self.cfg.END_COUNT:self.cfg.END_COUNT + self.cfg.MID_COUNT]  # e.g.: ---45---
+            next_values = values[-self.cfg.END_COUNT:]  # e.g.: -----678
 
             # get only the value and strip the frame_no
             # e.g.: (frame_no, value) tuple -> value list
@@ -409,13 +407,12 @@ class Wave2Bitstream(WaveBase):
 #                 log.debug(" %s | %s | %s" % (previous_values, mid_values, next_values))
                 yield mid_values[mid_index][0]
                 in_pos = True
-            elif  in_pos == True and sign_info == neg_null_transit:
+            elif in_pos and sign_info == neg_null_transit:
                 if self.half_sinus:
                     log.log(5, "sinus curve goes from positive into negative")
 #                     log.debug(" %s | %s | %s" % (previous_values, mid_values, next_values))
                     yield mid_values[mid_index][0]
                 in_pos = False
-
 
     def iter_avg_wave_values(self, wave_values_generator, avg_count):
         if log.level >= 5:
@@ -430,12 +427,8 @@ class Wave2Bitstream(WaveBase):
                 msg = tlm.feed(avg_value)
                 percent = 100.0 / self.max_value * abs(avg_value)
                 log.log(5,
-                    "%s average %s samples to: %s (%.1f%%)" % (
-                        msg,
-                        ",".join([str(v) for v in values]),
-                        avg_value, percent
-                    )
-                )
+                        f"{msg} average {','.join([str(v) for v in values])} samples to: {avg_value} ({percent:.1f}%)"
+                        )
             yield (self.wave_pos, avg_value)
 
     def iter_wave_values(self):
@@ -456,7 +449,7 @@ class Wave2Bitstream(WaveBase):
         divider = int(round(float(WAVE_READ_SIZE) / self.samplewidth))
         read_size = self.samplewidth * divider
         if read_size != WAVE_READ_SIZE:
-            log.info("Real use wave read size: %i Bytes" % read_size)
+            log.info(f"Real use wave read size: {read_size:d} Bytes")
 
         get_wave_block_func = functools.partial(self.wavefile.readframes, read_size)
         skip_count = 0
@@ -475,22 +468,22 @@ class Wave2Bitstream(WaveBase):
 
             try:
                 values = array.array(typecode, frames)
-            except ValueError, err:
+            except ValueError as err:
                 # e.g.:
                 #     ValueError: string length not a multiple of item size
                 # Work-a-round: Skip the last frames of this block
                 frame_count = len(frames)
                 divider = int(math.floor(float(frame_count) / self.samplewidth))
                 new_count = self.samplewidth * divider
-                frames = frames[:new_count] # skip frames
+                frames = frames[:new_count]  # skip frames
                 log.error(
                     "Can't make array from %s frames: Value error: %s (Skip %i and use %i frames)" % (
                         frame_count, err, frame_count - new_count, len(frames)
-                ))
+                    ))
                 values = array.array(typecode, frames)
 
             for value in values:
-                self.wave_pos += 1 # Absolute position in the frame stream
+                self.wave_pos += 1  # Absolute position in the frame stream
 
                 if manually_audioop_bias:
                     # audioop.bias can't be used.
@@ -504,9 +497,7 @@ class Wave2Bitstream(WaveBase):
 
                 yield (self.wave_pos, value)
 
-        log.info("Skip %i samples that are lower than %i" % (
-            skip_count, self.min_volume
-        ))
+        log.info(f"Skip {skip_count:d} samples that are lower than {self.min_volume:d}")
         log.info("Last readed Frame is: %s" % self.pformat_pos())
 
 
@@ -519,25 +510,22 @@ class Bitstream2Wave(WaveBase):
         self.used_max_values = int(round(
             float(wave_max_value) / 100 * self.cfg.VOLUME_RATIO
         ))
-        log.info("Create %s wave file with %sHz and %s max volumen (%s%%)" % (
-            HUMAN_SAMPLEWIDTH[self.cfg.SAMPLEWIDTH],
-            self.cfg.FRAMERATE,
-            self.used_max_values, self.cfg.VOLUME_RATIO
-        ))
+        log.info(
+            f"Create {HUMAN_SAMPLEWIDTH[self.cfg.SAMPLEWIDTH]} wave file with {self.cfg.FRAMERATE}Hz and {self.used_max_values} max volumen ({self.cfg.VOLUME_RATIO}%)")
 
         self.typecode = self.get_typecode(self.cfg.SAMPLEWIDTH)
 
         self.bit_nul_samples = self.get_samples(self.cfg.BIT_NUL_HZ)
         self.bit_one_samples = self.get_samples(self.cfg.BIT_ONE_HZ)
 
-        log.info("create wave file '%s'..." % destination_filepath)
+        log.info(f"create wave file '{destination_filepath}'...")
         try:
             self.wavefile = wave.open(destination_filepath, "wb")
-        except IOError, err:
-            log.error("Error opening %s: %s" % (repr(destination_filepath), err))
+        except OSError as err:
+            log.error(f"Error opening {repr(destination_filepath)}: {err}")
             sys.exit(-1)
 
-        self.wavefile.setnchannels(1) # Mono
+        self.wavefile.setnchannels(1)  # Mono
         self.wavefile.setsampwidth(self.cfg.SAMPLEWIDTH)
         self.wavefile.setframerate(self.cfg.FRAMERATE)
 
@@ -550,7 +538,7 @@ class Bitstream2Wave(WaveBase):
 
     def pack_values(self, values):
         value_length = len(values)
-        pack_format = "%i%s" % (value_length, self.typecode)
+        pack_format = f"{value_length:d}{self.typecode}"
         packed_samples = struct.pack(pack_format, *values)
 
         return packed_samples
@@ -560,9 +548,8 @@ class Bitstream2Wave(WaveBase):
             sinus_values_by_hz(self.cfg.FRAMERATE, hz, self.used_max_values)
         )
         real_hz = float(self.cfg.FRAMERATE) / len(values)
-        log.debug("Real frequency: %.2f" % real_hz)
+        log.debug(f"Real frequency: {real_hz:.2f}")
         return self.pack_values(values)
-
 
     def write_codepoint(self, codepoints):
         written_codepoints = []
@@ -572,48 +559,43 @@ class Bitstream2Wave(WaveBase):
             if len(bits) == 8:
                 written_codepoints.append(bits2codepoint(bits))
                 bits = []
-                
+
             if bit == 0:
-#                 wavefile.writeframes(self.bit_nul_samples)
+                #                 wavefile.writeframes(self.bit_nul_samples)
                 self.wavefile.writeframes(self.bit_nul_samples)
             elif bit == 1:
-#                 wavefile.writeframes(self.bit_one_samples)
+                #                 wavefile.writeframes(self.bit_one_samples)
                 self.wavefile.writeframes(self.bit_one_samples)
             else:
                 raise TypeError
-        log.debug("Written at %s: %s" % (
-            self.pformat_pos(), ",".join([hex(x) for x in written_codepoints])
-        ))
+        log.debug(f"Written at {self.pformat_pos()}: {','.join([hex(x) for x in written_codepoints])}")
 
     def write_silence(self, sec):
         start_pos = self.pformat_pos()
-        silence = [0x00] * int(round((sec * self.framerate)))
+        silence = [0x00] * int(round(sec * self.framerate))
 
         packed_samples = self.pack_values(silence)
 
         self.wavefile.writeframes(packed_samples)
-        log.debug("Write %ssec. silence %s - %s" % (
-            sec, start_pos, self.pformat_pos()
-        ))
+        log.debug(f"Write {sec}sec. silence {start_pos} - {self.pformat_pos()}")
 
     def close(self):
         self.wavefile.close()
-        log.info("Wave file %s written (%s)" % (
-            self.destination_filepath, self.pformat_pos()
-        ))
+        log.info(f"Wave file {self.destination_filepath} written ({self.pformat_pos()})")
 
 
 if __name__ == "__main__":
     import doctest
-    print doctest.testmod(
+    print(doctest.testmod(
         verbose=False
         # verbose=True
-    )
+    ))
     # sys.exit()
 
     # test via CLI:
 
-    import sys, subprocess
+    import sys
+    import subprocess
 
 #     subprocess.Popen([sys.executable, "../PyDC_cli.py", "--help"])
 #     sys.exit()
@@ -631,12 +613,12 @@ if __name__ == "__main__":
 
     # bas -> wav
     subprocess.Popen([sys.executable, "../PyDC_cli.py",
-        "--verbosity=10",
-#         "--verbosity=5",
-#         "--logfile=5",
-#         "--log_format=%(module)s %(lineno)d: %(message)s",
-        "../test_files/HelloWorld1.bas", "--dst=../test.wav"
-    ]).wait()
+                      "--verbosity=10",
+                      #         "--verbosity=5",
+                      #         "--logfile=5",
+                      #         "--log_format=%(module)s %(lineno)d: %(message)s",
+                      "../test_files/HelloWorld1.bas", "--dst=../test.wav"
+                      ]).wait()
 
 #     print "\n"*3
 #     print "="*79

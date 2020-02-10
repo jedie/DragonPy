@@ -12,7 +12,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 
 import logging
 import os
@@ -36,9 +36,9 @@ try:
     from tkinter import messagebox
 except ImportError:
     # Python 2
-    import Tkinter as tkinter
-    import tkFileDialog as filedialog
-    import tkMessageBox as messagebox
+    import tkinter as tkinter
+    import tkinter.filedialog as filedialog
+    import tkinter.messagebox as messagebox
 
 
 

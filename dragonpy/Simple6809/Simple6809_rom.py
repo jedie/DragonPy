@@ -7,7 +7,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import print_function, absolute_import
+
 
 import logging
 import os
@@ -28,8 +28,14 @@ log = logging.getLogger(__name__)
 
 
 class Simple6809Rom(ROMFile):
+    """
+    Grant Searle's Simple 6809 ROM
+    http://searle.x10host.com/
+    https://twitter.com/zx80nut
+    http://searle.x10host.com/6809/Simple6809.html
+    """
     ARCHIVE_EXT = ARCHIVE_EXT_ZIP
-    URL = "http://searle.hostei.com/grant/6809/ExBasRom.zip"
+    URL = "http://searle.x10host.com/6809/ExBasRom.zip"
     DOWNLOAD_SHA1 = "435484899156bc93876c9c805d54b4c12dc900c4" # downloaded .zip archive
     FILE_COUNT = 3 # How many files are in the archive?
     SHA1 = "1e0d5997b1b286aa328bdbff776bcddbb68d1c34" # extracted ROM

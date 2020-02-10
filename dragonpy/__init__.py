@@ -1,12 +1,13 @@
 import os
 import sys
+import imp
 
 
 __version__ = "0.7.0.dev0"
 
 
 # Used in setup.py and starter GUI to find the cli-executeable:
-DISTRIBUTION_NAME="DragonPyEmulator"
+DISTRIBUTION_NAME = "DragonPyEmulator"
 DIST_GROUP = "console_scripts"
 ENTRY_POINT = "DragonPy"
 
@@ -59,7 +60,7 @@ def fix_virtualenv_tkinter():
         import FixTk
 
         if "TCL_LIBRARY" not in os.environ:
-            reload(FixTk)
+            imp.reload(FixTk)
 
         sys.prefix = virtualprefix
     else:
@@ -71,7 +72,7 @@ def fix_virtualenv_tkinter():
 
         if "TCL_LIBRARY" not in os.environ:
             from imp import reload
-            reload(_fix)
+            imp.reload(_fix)
 
         sys.base_prefix = virtualprefix
 

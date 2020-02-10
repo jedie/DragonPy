@@ -10,7 +10,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 
 import subprocess
 import sys
@@ -21,7 +21,7 @@ from dragonpy.utils.starter import run_dragonpy, run_mc6809
 
 if sys.version_info[0] == 2:
     # Python 2
-    import Tkinter as tk
+    import tkinter as tk
     # import tkFileDialog as filedialog
     # import tkMessageBox as messagebox
     # import ScrolledText as scrolledtext

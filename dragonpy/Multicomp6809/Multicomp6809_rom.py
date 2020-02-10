@@ -7,7 +7,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import print_function, absolute_import
+
 
 import logging
 import os
@@ -29,8 +29,13 @@ log = logging.getLogger(__name__)
 
 
 class Multicomp6809Rom(ROMFile):
+    """
+    Grant Searle's Multicomp 6809 ROM
+    http://searle.x10host.com/
+    https://twitter.com/zx80nut
+    """
     ARCHIVE_EXT = ARCHIVE_EXT_ZIP
-    URL = "http://searle.hostei.com/grant/Multicomp/Multicomp.zip"
+    URL = "http://searle.x10host.com/6809/Multicomp.zip"
     DOWNLOAD_SHA1 = "b44c46cf35775b404d9c12b76517817221536f52" # downloaded .zip archive
     FILE_COUNT = 1 # How many files are in the archive?
     SHA1 = "c49a741b6982cb3d27ccceca74eeaf121a3391ec" # extracted ROM

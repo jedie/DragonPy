@@ -34,26 +34,26 @@ for line in ASM_CODE.splitlines():
         continue
     if start_addr is None:
         start_addr = addr
-        print("start addr: %r" % addr)
+        print(("start addr: %r" % addr))
 
     code = line[5:34]
     code_values = [int(i,16) for i in code.split(" ") if i.strip()]
-    print(" ".join(["%02x" % i for i in code_values]))
+    print((" ".join(["%02x" % i for i in code_values])))
 
     statement = line[34:66].strip()
-    print("%r" % statement)
+    print(("%r" % statement))
 
     comment = line[66:].strip()
-    print("%r" % comment)
+    print(("%r" % comment))
 
     code_lines.append(
         CodeLine(code_values, statement, comment)
     )
     print()
 
-print("-"*79)
+print(("-"*79))
 print("        self.cpu_test_run(start=0x4000, end=None, mem=[")
-print("            # origin start address in ROM: $%s" % start_addr)
+print(("            # origin start address in ROM: $%s" % start_addr))
 for code_line in code_lines:
-    print("            %s" % code_line)
+    print(("            %s" % code_line))
 print("        ])")

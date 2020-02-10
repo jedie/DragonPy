@@ -61,7 +61,7 @@ class XroarGDB(object):
         sys.stderr.write("done.\n")
 
     def print_recv_interval(self):
-        print "recv: %s" % repr(self.s.recv(1024))
+        print("recv: %s" % repr(self.s.recv(1024)))
         if self.running:
             t = threading.Timer(0.5, self.print_recv_interval)
             t.deamon = True
@@ -87,7 +87,7 @@ if __name__ == '__main__':
         xroar_gdb.send("g")
         time.sleep(1)
     finally:
-        print "tear down"
+        print("tear down")
         try:
             xroar_gdb.running = False
             xroar_gdb.s.close()
@@ -95,4 +95,4 @@ if __name__ == '__main__':
             pass
 
     time.sleep(1)
-    print " --- END --- "
+    print(" --- END --- ")

@@ -14,7 +14,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 
 
 import sys
@@ -29,8 +29,8 @@ try:
     import tkinter
 except ImportError:
     # Python 2
-    import Queue as queue
-    import Tkinter as tkinter
+    import queue as queue
+    import tkinter as tkinter
 
 
 class Simple6809Periphery(object):

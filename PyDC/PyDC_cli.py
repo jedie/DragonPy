@@ -105,11 +105,11 @@ class PyDC_CLI(Base_CLI):
         args = super(PyDC_CLI, self).parse_args()
 
         self.source_file = args.src
-        print "source file.......: %s" % self.source_file
+        print("source file.......: %s" % self.source_file)
 
         if args.dst:
             self.destination_file = args.dst
-            print "destination file..: %s" % self.destination_file
+            print("destination file..: %s" % self.destination_file)
 
         return args
 
@@ -147,4 +147,4 @@ if __name__ == "__main__":
     cli = PyDC_CLI()
     cli.run()
 
-    print "\n --- END --- \n"
+    print("\n --- END --- \n")

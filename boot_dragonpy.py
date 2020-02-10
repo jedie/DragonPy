@@ -39,7 +39,7 @@ from distutils.util import strtobool
 from os.path import join
 
 try:
-    import ConfigParser
+    import configparser
 except ImportError:
     import configparser as ConfigParser
 
@@ -47,14 +47,14 @@ __version__ = "15.0.2"
 virtualenv_version = __version__  # legacy
 
 if sys.version_info < (2, 6):
-    print('ERROR: %s' % sys.exc_info()[1])
+    print(('ERROR: %s' % sys.exc_info()[1]))
     print('ERROR: this script requires Python 2.6 or greater.')
     sys.exit(101)
 
 try:
-    basestring
+    str
 except NameError:
-    basestring = str
+    str = str
 
 py_version = 'python%s.%s' % (sys.version_info[0], sys.version_info[1])
 
@@ -88,7 +88,7 @@ else:
     try:
         import winreg
     except ImportError:
-        import _winreg as winreg
+        import winreg as winreg
 
     def get_installed_pythons():
         try:
@@ -434,7 +434,7 @@ class ConfigOptionParser(optparse.OptionParser):
     configuration files and environmental variables
     """
     def __init__(self, *args, **kwargs):
-        self.config = ConfigParser.RawConfigParser()
+        self.config = configparser.RawConfigParser()
         self.files = self.get_config_files()
         self.config.read(self.files)
         optparse.OptionParser.__init__(self, *args, **kwargs)
@@ -458,7 +458,7 @@ class ConfigOptionParser(optparse.OptionParser):
         # 2. environmental variables
         config.update(dict(self.get_environ_vars()))
         # Then set the options with those values
-        for key, val in config.items():
+        for key, val in list(config.items()):
             key = key.replace('_', '-')
             if not key.startswith('--'):
                 key = '--%s' % key  # only prefer long opts
@@ -480,7 +480,7 @@ class ConfigOptionParser(optparse.OptionParser):
                     val = option.convert_value(key, val)
                 except optparse.OptionValueError:
                     e = sys.exc_info()[1]
-                    print("An error occurred during configuration: %s" % e)
+                    print(("An error occurred during configuration: %s" % e))
                     sys.exit(3)
                 defaults[option.dest] = val
         return defaults
@@ -497,7 +497,7 @@ class ConfigOptionParser(optparse.OptionParser):
         """
         Returns a generator with all environmental vars with prefix VIRTUALENV
         """
-        for key, val in os.environ.items():
+        for key, val in list(os.environ.items()):
             if key.startswith(prefix):
                 yield (key.replace(prefix, '').lower(), val)
 
@@ -513,7 +513,7 @@ class ConfigOptionParser(optparse.OptionParser):
         defaults = self.update_defaults(self.defaults.copy())  # ours
         for option in self._get_all_options():
             default = defaults.get(option.dest)
-            if isinstance(default, basestring):
+            if isinstance(default, str):
                 opt_str = option.get_opt_string()
                 defaults[option.dest] = option.check_value(opt_str, default)
         return optparse.Values(defaults)
@@ -680,8 +680,8 @@ def main():
         parser.print_help()
         sys.exit(2)
     if len(args) > 1:
-        print('There must be only one argument: DEST_DIR (you gave %s)' % (
-            ' '.join(args)))
+        print(('There must be only one argument: DEST_DIR (you gave %s)' % (
+            ' '.join(args))))
         parser.print_help()
         sys.exit(2)
 
@@ -847,8 +847,8 @@ def install_wheel(project_names, py_executable, search_dirs=None,
     # PIP_FIND_LINKS uses space as the path separator and thus cannot have paths
     # with spaces in them. Convert any of those to local file:// URL form.
     try:
-        from urlparse import urljoin
-        from urllib import pathname2url
+        from urllib.parse import urljoin
+        from urllib.request import pathname2url
     except ImportError:
         from urllib.parse import urljoin
         from urllib.request import pathname2url
@@ -975,12 +975,12 @@ def path_locations(home_dir):
             size = max(len(home_dir)+1, 256)
             buf = ctypes.create_unicode_buffer(size)
             try:
-                u = unicode
+                u = str
             except NameError:
                 u = str
             ret = GetShortPathName(u(home_dir), buf, size)
             if not ret:
-                print('Error: the path "%s" has a space in it' % home_dir)
+                print(('Error: the path "%s" has a space in it' % home_dir))
                 print('We could not determine the short pathname for it.')
                 print('Exiting.')
                 sys.exit(3)
@@ -1473,7 +1473,7 @@ def install_files(home_dir, bin_dir, prompt, files):
     if hasattr(home_dir, 'decode'):
         home_dir = home_dir.decode(sys.getfilesystemencoding())
     vname = os.path.basename(home_dir)
-    for name, content in files.items():
+    for name, content in list(files.items()):
         content = content.replace('__VIRTUAL_PROMPT__', prompt or '')
         content = content.replace('__VIRTUAL_WINPROMPT__', prompt or '(%s)' % vname)
         content = content.replace('__VIRTUAL_ENV__', home_dir)
@@ -1487,7 +1487,7 @@ def install_python_config(home_dir, bin_dir, prompt=None):
     else:
         files = {'python-config': PYTHON_CONFIG}
     install_files(home_dir, bin_dir, prompt, files)
-    for name, content in files.items():
+    for name, content in list(files.items()):
         make_exe(os.path.join(bin_dir, name))
 
 def install_distutils(home_dir):
@@ -1533,8 +1533,8 @@ def fix_lib64(lib_dir, symlink=True):
         logger.debug('PyPy detected, skipping lib64 symlinking')
         return
     # Check we have a lib64 library path
-    if not [p for p in distutils.sysconfig.get_config_vars().values()
-            if isinstance(p, basestring) and 'lib64' in p]:
+    if not [p for p in list(distutils.sysconfig.get_config_vars().values())
+            if isinstance(p, str) and 'lib64' in p]:
         return
 
     logger.debug('This system uses lib64; symlinking lib64 to lib')
@@ -1894,7 +1894,7 @@ class EnvSubprocess(object):
         for subdir in ("bin", "Scripts"):
             bin_dir = os.path.join(self.abs_home_dir, subdir)
             if os.path.isdir(bin_dir):
-                print("bin dir: %r" % bin_dir)
+                print(("bin dir: %r" % bin_dir))
                 return bin_dir
         raise RuntimeError("Can't find 'bin/Scripts' dir in: %r" % self.abs_home_dir)
 
@@ -1915,14 +1915,14 @@ class EnvSubprocess(object):
         for file_name in file_names:
             file_path = os.path.join(self.bin_dir, file_name)
             if os.path.isfile(file_path):
-                print("Use: %r" % file_path)
+                print(("Use: %r" % file_path))
                 return file_path
         raise RuntimeError(
             "Can't find file in %r. Tested file names are: %r" % (self.bin_dir, file_names)
         )
 
     def _subprocess(self, cmd):
-        print("\ncall %r" % " ".join(cmd))
+        print(("\ncall %r" % " ".join(cmd)))
         subprocess.call(cmd, **self.subprocess_defaults)
 
     def call_env_python(self, cmd):

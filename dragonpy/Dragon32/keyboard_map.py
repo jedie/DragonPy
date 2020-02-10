@@ -39,7 +39,7 @@
     PA6 | ENT   CLR   BRK   N/C   N/C   N/C   N/C  SHFT
 """
 
-from __future__ import absolute_import, division, print_function
+
 import six
 xrange = six.moves.xrange
 
@@ -241,7 +241,7 @@ def add_to_input_queue(user_input_queue, txt):
 def test(inkey, matrix_name, auto_shift=False):
     """
     >>> test("P", "dragon")
-    char/keycode: 'P' -> cols/rows: ((0, 2),)
+    char/keycode: 'P' -> cols/rows: ((0, 4),)
     PB0 - $ff02 in $fe (11111110) -> $ff00 out $ef (11101111) stored in $0152
     PB1 - $ff02 in $fd (11111101) -> $ff00 out $ff (11111111) stored in $0153
     PB2 - $ff02 in $fb (11111011) -> $ff00 out $ff (11111111) stored in $0154
@@ -249,7 +249,7 @@ def test(inkey, matrix_name, auto_shift=False):
     PB4 - $ff02 in $ef (11101111) -> $ff00 out $ff (11111111) stored in $0156
     PB5 - $ff02 in $df (11011111) -> $ff00 out $ff (11111111) stored in $0157
     PB6 - $ff02 in $bf (10111111) -> $ff00 out $ff (11111111) stored in $0158
-    PB7 - $ff02 in $7f (01111111) -> $ff00 out $bf (11111111) stored in $0159
+    PB7 - $ff02 in $7f (01111111) -> $ff00 out $ff (11111111) stored in $0159
       ^                 ^^^^^^^^                     ^^^^^^^
       |                 ||||||||                     |||||||
     col            col: 76543210              row -> 6543210
@@ -263,7 +263,7 @@ def test(inkey, matrix_name, auto_shift=False):
     PB4 - $ff02 in $ef (11101111) -> $ff00 out $ff (11111111) stored in $0156
     PB5 - $ff02 in $df (11011111) -> $ff00 out $ff (11111111) stored in $0157
     PB6 - $ff02 in $bf (10111111) -> $ff00 out $ff (11111111) stored in $0158
-    PB7 - $ff02 in $7f (01111111) -> $ff00 out $bf (10111111) stored in $0159
+    PB7 - $ff02 in $7f (01111111) -> $ff00 out $ff (11111111) stored in $0159
       ^                 ^^^^^^^^                     ^^^^^^^
       |                 ||||||||                     |||||||
     col            col: 76543210              row -> 6543210
@@ -275,9 +275,9 @@ def test(inkey, matrix_name, auto_shift=False):
     else:
         raise RuntimeError
 
-    print("char/keycode: %s -> cols/rows: %s" % (repr(inkey), repr(col_row_values)))
+    print(f"char/keycode: {inkey!r} -> cols/rows: {col_row_values!r}")
 
-    for i in xrange(8):
+    for i in range(8):
         pia0b = invert_byte(2 ** i) # written into $ff02
         if matrix_name == "dragon":
             result = get_dragon_keymatrix_pia_result(inkey, pia0b) # read from $ff00

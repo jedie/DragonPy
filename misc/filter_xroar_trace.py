@@ -111,7 +111,7 @@ class XroarTraceFilter(object):
                 "List of the %i most called addresses:\n" % display_max
             )
 
-        for no, data in enumerate(sorted(self.addr_stat.items(), key=lambda x: x[1], reverse=True)):
+        for no, data in enumerate(sorted(list(self.addr_stat.items()), key=lambda x: x[1], reverse=True)):
             if display_max is not None and no >= display_max:
                 break
             sys.stdout.write(
@@ -123,7 +123,7 @@ class XroarTraceFilter(object):
             "Filter addresses with more than %i calls:\n" % max_count
         )
         addr_filter = {}
-        for addr, count in self.addr_stat.items():
+        for addr, count in list(self.addr_stat.items()):
             if count >= max_count:
                 addr_filter[addr] = count
         return addr_filter

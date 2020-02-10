@@ -12,7 +12,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 
 import logging
 
@@ -23,7 +23,7 @@ try:
     import tkinter
 except ImportError:
     # Python 2
-    import Tkinter as tkinter
+    import tkinter as tkinter
 
 from basic_editor.tkinter_utils import TkTextTag
 

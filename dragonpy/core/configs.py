@@ -9,7 +9,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 import six
 xrange = six.moves.xrange
 
@@ -60,7 +60,7 @@ class AddressAreas(dict):
             self.add_area(start_addr, end_addr, txt)
 
     def add_area(self, start_addr, end_addr, txt):
-        for addr in xrange(start_addr, end_addr + 1):
+        for addr in range(start_addr, end_addr + 1):
             dict.__setitem__(self, addr, txt)
 
 

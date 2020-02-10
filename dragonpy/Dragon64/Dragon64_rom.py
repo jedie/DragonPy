@@ -7,7 +7,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import print_function, absolute_import
+
 
 from dragonpy.components.rom import ROMFile, ARCHIVE_EXT_ZIP
 

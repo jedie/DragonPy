@@ -17,16 +17,16 @@ import tempfile
 import unittest
 
 # own modules
-from __init__ import convert
-from wave2bitstream import Wave2Bitstream
-import configs
+from .__init__ import convert
+from .wave2bitstream import Wave2Bitstream
+from . import configs
 
 
 class TestDragon32Conversion(unittest.TestCase):
 
     def setUp(self):
-        print
-        print " <<<<<< unittest setUp() <<<<<< "
+        print()
+        print(" <<<<<< unittest setUp() <<<<<< ")
         self.base_path = os.path.normpath(
             os.path.join(os.path.split(configs.__file__)[0], "..")
         )
@@ -35,14 +35,14 @@ class TestDragon32Conversion(unittest.TestCase):
         self.temp_files = []
 
     def tearDown(self):
-        print "\n"*2
-        print " >>>unittest tearDown() >>>",
+        print("\n"*2)
+        print(" >>>unittest tearDown() >>>", end=' ')
         for filename in self.temp_files:
             if os.path.exists(filename):
                 try:
                     os.remove(filename)
-                except Exception, err:
-                    print "Error remove temp file: %s" % err
+                except Exception as err:
+                    print("Error remove temp file: %s" % err)
 
         self.temp_files = []
 

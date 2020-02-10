@@ -9,7 +9,7 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
+
 import os
 
 import unittest
@@ -51,6 +51,8 @@ class ROMTest(unittest.TestCase):
     def test_CoCo2b_ExtendedBasic11_ROM(self):
         self._test_rom(CoCo2b_ExtendedBasic11_ROM(address=None))
 
+    @unittest.skip('Download currently not available :(')
+    # https://twitter.com/PyLucid/status/1226982322031013889
     def test_Multicomp6809Rom(self):
         self._test_rom(Multicomp6809Rom(address=None))
 
