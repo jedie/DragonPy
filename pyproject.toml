@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "DragonPyEmulator"
-version = "0.7.0.dev0"
+version = "0.7.0"
 description = "Emulator for 6809 CPU based system like Dragon 32 / CoCo written in Python..."
 authors = ["JensDiemer <git@jensdiemer.de>"]
 packages = [{ include = "dragonpy" }]
