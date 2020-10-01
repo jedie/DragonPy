@@ -33,9 +33,11 @@ Tandy TRS-80 Color Computer 2b with CPython 2 under Windows:
 
 .. |screenshot CoCo under Windows| image:: https://raw.githubusercontent.com/jedie/jedie.github.io/master/screenshots/DragonPy/20150820_DragonPy_CoCo2b_CPython2_Win_01.png
 
+(Note: Python 2 support was removed)
+
 DragonPy is written in Python.
 It's platform independent and runs with Python and PyPy under Linux/Windows/OSX/...
-It's tested with Python 2.7.x and 3.4, PyPy2 and PyPy3.
+It's tested with Python 3.x, PyPy
 
 DragonPy will not be a second XRoar written in Python.
 This project is primarily to lean and understand.
@@ -72,7 +74,7 @@ It makes only sense to display some trace lines, e.g.:
 
 ::
 
-    (DragonPy_env)~/DragonPy_env$ bin/python src/dragonpy/DragonPy_CLI.py --verbosity 5 --machine=Vectrex run --trace --max_ops 1
+    .../DragonPy$ poetry run DragonPy --verbosity 0 --machine=Vectrex run --trace --max_ops=1
 
 BASIC Editor
 ============
@@ -89,7 +91,9 @@ You can also run the BASIC Editor without the Emulator:
 
 ::
 
-    (DragonPy_env)~/DragonPy_env$ bin/python src/dragonpy/DragonPy_CLI.py editor
+    .../DragonPy$ make editor
+    # or:
+    .../DragonPy$ poetry run DragonPy editor
 
 A rudimentary BASIC source code highlighting is available and looks like this:
 
@@ -105,8 +109,55 @@ installation
 
 IMPORTANT: The **PyPi package** name is **DragonPyEmulator** and `not only "DragonPy" <https://github.com/jpanganiban/dragonpy/issues/3>`_!!!
 
-by foot
-=======
+::
+
+    pip install DragonPyEmulator
+
+from source
+===========
+
+::
+
+    ~$ git clone https://github.com/jedie/DragonPy.git
+    ~$ cd DragonPy/
+    ~/DragonPy$ make
+    help                 List all commands
+    install-poetry       install or update poetry
+    install              install DragonPy via poetry
+    update               Update the dependencies as according to the pyproject.toml file
+    lint                 Run code formatters and linter
+    fix-code-style       Fix code formatting
+    tox-listenvs         List all tox test environments
+    tox                  Run pytest via tox with all environments
+    tox-py36             Run pytest via tox with *python v3.6*
+    tox-py37             Run pytest via tox with *python v3.7*
+    tox-py38             Run pytest via tox with *python v3.8*
+    pytest               Run pytest
+    update-rst-readme    update README.rst from README.creole
+    publish              Release new version to PyPi
+    download-roms        Download/Test only ROM files
+    profile              Profile the MC6809 emulation benchmark
+    benchmark            Run MC6809 emulation benchmark
+    editor               Run only the BASIC editor
+    Vectrex              Run GUI with Vectrex emulation (not working, yet!)
+    sbc09                Run GUI with sbc09 ROM emulation
+    Multicomp6809        Run GUI with Multicomp6809 ROM emulation
+    Simple6809           Run GUI with Simple6809 ROM emulation
+    CoCo2b               Run GUI with CoCo 2b emulation
+    Dragon32             Run GUI with Dragon 32 emulation
+    Dragon64             Run GUI with Dragon 64 emulation
+    run                  *Run the DragonPy Emulator GUI*
+    
+    ~/DragonPy$ make install-poetry
+    ~/DragonPy$ make install
+    ~/DragonPy$ make run
+    
+    # use the CLI:
+    ~/DragonPy$ poetry run DragonPy --help
+    ~/DragonPy$ poetry run DragonPy
+
+install in virtualenv by foot:
+==============================
 
 e.g.:
 
@@ -132,74 +183,6 @@ e.g.:
     
     # start Emulator
     (DragonPy) .../DragonPy$ DragonPy
-
-Linux
-=====
-
-The is a virtualenv bootstrap file, created with `bootstrap_env <https://github.com/jedie/bootstrap_env>`_, for easy installation.
-
-Get the bootstrap file:
-
-::
-
-    /home/FooBar$ wget https://raw.githubusercontent.com/jedie/DragonPy/master/boot_dragonpy.py
-
-There are tree types of installation:
-
-+------------------+------------------------------------------------------------------------+
-| option           | desciption                                                             |
-+==================+========================================================================+
-| **pypi**         | use `Python Package Index`_ (for all normal user!)                     |
-+------------------+------------------------------------------------------------------------+
-| **git_readonly** | use ``git`` to get the sourcecode (for developer without write access) |
-+------------------+------------------------------------------------------------------------+
-| **dev**          | use ``git`` with write access                                          |
-+------------------+------------------------------------------------------------------------+
-
-.. _Python Package Index: http://www.python.org/pypi/
-
-e.g.:
-
-::
-
-    /home/FooBar$ python3 boot_dragonpy.py ~/DragonPy_env --install_type git_readonly
-
-This creates a virtualenv in **``~/DragonPy_env``** and used ``git`` to checkout the needed repositories.
-
-In this case (using --install_type=**git_readonly**) the git repository are in: **.../DragonPy_env/src/**
-So you can easy update them e.g.:
-
-::
-
-    /home/FooBar$ cd ~/DragonPy_env/src/dragonpy
-    /home/FooBar/DragonPy_env/src/dragonpy$ git pull
-
-start DragonPy
---------------
-
-The is a simple "starter GUI", just call the cli without arguments:
-
-``~/DragonPy_env/bin/DragonPy``
-
-Or call it in a activated environment, e.g.:
-
-::
-
-    /home/FooBar$ cd DragonPy_env
-    /home/FooBar/DragonPy_env$ source bin/activate
-    (DragonPy_env)~/DragonPy_env$ DragonPy
-
-It is possible to start machines directly:
-
-::
-
-    (DragonPy_env)~/DragonPy_env$ DragonPy --machine=Dragon32 run
-
-more info:
-
-::
-
-    (DragonPy_env)~/DragonPy_env$ DragonPy --help
 
 Windows
 =======
@@ -241,59 +224,38 @@ All needed ROM files, will be downloaded automatically.
 
 The files will be downloaded from:
 
-+----------------+------------------------------------------------------------------------+
-| Dragon 32 + 64 | `http://archive.worldofdragon.org/archive/index.php?dir=Roms/Dragon/`_ |
-+----------------+------------------------------------------------------------------------+
-| CoCo 2b        | `http://mess.oldos.net/`_                                              |
-+----------------+------------------------------------------------------------------------+
-| Multicomp      | `http://searle.hostei.com/grant/Multicomp/`_                           |
-+----------------+------------------------------------------------------------------------+
-| Simple6809     | `http://searle.hostei.com/grant/6809/Simple6809.html`_                 |
-+----------------+------------------------------------------------------------------------+
++----------------+------------------------------------------------------------------------------------------------------------------+
+| Dragon 32 + 64 | `http://archive.worldofdragon.org/archive/index.php?dir=Software/Dragon/Dragon%20Data%20Ltd/Dragon%20Firmware/`_ |
++----------------+------------------------------------------------------------------------------------------------------------------+
+| CoCo 2b        | `http://www.roust-it.dk/coco/roms/`_                                                                             |
++----------------+------------------------------------------------------------------------------------------------------------------+
+| Multicomp      | `http://searle.x10host.com/Multicomp/index.html`_                                                                |
++----------------+------------------------------------------------------------------------------------------------------------------+
+| Simple6809     | `http://searle.x10host.com/6809/Simple6809.html`_                                                                |
++----------------+------------------------------------------------------------------------------------------------------------------+
 
-.. _http://archive.worldofdragon.org/archive/index.php?dir=Roms/Dragon/: http://archive.worldofdragon.org/archive/index.php?dir=Roms/Dragon/
-.. _http://mess.oldos.net/: http://mess.oldos.net/
-.. _http://searle.hostei.com/grant/Multicomp/: http://searle.hostei.com/grant/Multicomp/
-.. _http://searle.hostei.com/grant/6809/Simple6809.html: http://searle.hostei.com/grant/6809/Simple6809.html
+.. _http://archive.worldofdragon.org/archive/index.php?dir=Software/Dragon/Dragon%20Data%20Ltd/Dragon%20Firmware/: http://archive.worldofdragon.org/archive/index.php?dir=Software/Dragon/Dragon%20Data%20Ltd/Dragon%20Firmware/
+.. _http://www.roust-it.dk/coco/roms/: http://www.roust-it.dk/coco/roms/
+.. _http://searle.x10host.com/Multicomp/index.html: http://searle.x10host.com/Multicomp/index.html
+.. _http://searle.x10host.com/6809/Simple6809.html: http://searle.x10host.com/6809/Simple6809.html
 
 sbc09 and vectrex ROMs are included.
 
 All ROM files and download will be checked by SHA1 value, before use.
 
 ---------
-unittests
+run tests
 ---------
-
-run unittests
-=============
 
 You can run tests with PyPy, Python 2 and Python 3:
 
 ::
 
-    (DragonPy_env)~/DragonPy_env/src/dragonpy$ python -m unittest discover
-
-or:
-
-::
-
-    (DragonPy_env)~/DragonPy_env/src/dragonpy$ ./setup.py test
-
-create coverage report
-======================
-
-install `coverage <https://pypi.org/project/coverage>`_ for python 2:
-
-::
-
-    ~$ sudo pip2 install coverage
-
-::
-
-    ...path/to/env/src/dragonpy$ coverage2 run --source=dragonpy setup.py test
-    ...path/to/env/src/dragonpy$ coverage2 coverage2 html
-    # e.g.:
-    ...path/to/env/src/dragonpy$ firefox htmlcov/index.html
+    ~/DragonPy$ make pytest
+    # or:
+    ~/DragonPy$ make tox
+    # or:
+    ~/DragonPy$ poetry run pytest
 
 ----------------
 more screenshots
@@ -415,7 +377,7 @@ PyDragon32
 
 Some Python/BASIC tools/scripts around Dragon32/64 / CoCo homecomputer.
 
-All script are copyleft 2013-2014 by Jens Diemer and license unter GNU GPL v3 or above, see LICENSE for more details.
+All script are copyleft 2013-2020 by Jens Diemer and license unter GNU GPL v3 or above, see LICENSE for more details.
 
 Python scripts:
 ===============
@@ -463,7 +425,7 @@ Links
 
 * Grant Searle's Multicomp FPGA project:
 
-    * Homepage: `http://searle.hostei.com/grant/Multicomp/`_
+    * Homepage: `http://searle.x10host.com/Multicomp/ <http://searle.x10host.com/Multicomp/>`_
 
     * own `dragonpy/Multicomp6809/README <https://github.com/jedie/DragonPy/tree/master/dragonpy/Multicomp6809#readme>`_
 
@@ -475,7 +437,7 @@ Links
 
 * Grant Searle's Simple 6809 design:
 
-    * Homepage: `http://searle.hostei.com/grant/6809/Simple6809.html`_
+    * Homepage: `http://searle.x10host.com/6809/Simple6809.html`_
 
     * own `dragonpy/Simple6809/README <https://github.com/jedie/DragonPy/tree/master/dragonpy/Simple6809#readme>`_
 
@@ -601,7 +563,21 @@ generic syntax highlighter
 History
 -------
 
-* `*dev* <https://github.com/jedie/DragonPy/compare/v0.6.0...master>`_:
+* `*dev* <https://github.com/jedie/DragonPy/compare/v0.7.0...master>`_:
+
+    * tbc
+
+* `01.10.2020 - v0.7.0 <https://github.com/jedie/DragonPy/compare/v0.6.0...v0.7.0>`_:
+
+    * Modernize project testing, CI pipeline, usw poetry etc.
+
+    * Many Code updates
+
+    * Remove Python v2 fallback code parts
+
+    * Update ROM Download Links
+
+    * Bugfix "--max_ops" cli options
 
 * `19.06.2018 - v0.6.0 <https://github.com/jedie/DragonPy/compare/v0.5.3...v0.6.0>`_:
 
@@ -721,4 +697,4 @@ donation
 
 ------------
 
-``Note: this file is generated from README.creole 2020-02-10 21:45:03 with "python-creole"``
+``Note: this file is generated from README.creole 2020-10-01 13:19:41 with "python-creole"``

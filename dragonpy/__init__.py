@@ -1,9 +1,8 @@
-import imp
 import os
 import sys
 
 
-__version__ = "0.7.0.dev0"
+__version__ = "0.7.0"
 
 
 # Used in setup.py and starter GUI to find the cli-executeable:
@@ -55,11 +54,14 @@ def fix_virtualenv_tkinter():
     virtualprefix = sys.base_prefix
     sys.base_prefix = sys.real_prefix
 
-    from tkinter import _fix
-
-    if "TCL_LIBRARY" not in os.environ:
-        from imp import reload
-        imp.reload(_fix)
+    try:
+        from tkinter import _fix
+    except ImportError as err:
+        print(f'Can not apply windows tkinter fix: {err}')
+    else:
+        if "TCL_LIBRARY" not in os.environ:
+            from importlib import reload
+            reload(_fix)
 
     sys.base_prefix = virtualprefix
 
