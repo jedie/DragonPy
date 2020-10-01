@@ -22,6 +22,7 @@ import dragonpy
 from basic_editor.editor import run_basic_editor
 from dragonpy.CoCo.config import CoCo2bCfg
 from dragonpy.CoCo.machine import run_CoCo2b
+from dragonpy.components.rom import ROMDownloadError
 from dragonpy.core import configs
 from dragonpy.core.configs import machine_dict
 from dragonpy.core.gui_starter import StarterGUI
@@ -185,15 +186,32 @@ def log_list():
 
 @cli.command(help="Download/Test only ROM files")
 def download_roms():
+    download_error = False
     for machine_name, data in list(machine_dict.items()):
         machine_config = data[1]
-        click.secho(f"Download / test ROM for {click.style(machine_name, bold=True)}:", bg='blue', fg='white')
+        click.secho(
+            f"Download / test ROM for {click.style(machine_name, bold=True)}:",
+            bg='blue', fg='white'
+        )
 
         for rom in machine_config.DEFAULT_ROMS:
             click.echo(f"\tROM file: {click.style(rom.FILENAME, bold=True)}")
-            content = rom.get_data()
+            try:
+                content = rom.get_data()
+            except ROMDownloadError as err:
+                download_error = True
+                click.secho(
+                    f'Download {err.url!r} -> {err.origin_err}',
+                    bg='red', fg='white'
+                )
+                click.echo('')
+                continue
+
             size = len(content)
             click.echo(f"\tfile size is ${size:04x} (dez.: {size:d}) Bytes\n")
+
+    if download_error:
+        sys.exit(1)
 
 
 @cli.command(help="Run all tests via nose")

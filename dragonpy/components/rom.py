@@ -12,6 +12,7 @@ import hashlib
 import logging
 import os
 import zipfile
+from urllib.error import HTTPError
 from urllib.request import urlopen
 from zipfile import BadZipFile
 
@@ -25,6 +26,12 @@ log = logging.getLogger(__name__)
 
 class ROMFileNotFound(Exception):
     pass
+
+
+class ROMDownloadError(Exception):
+    def __init__(self, url, origin_err):
+        self.url = url
+        self.origin_err=origin_err
 
 
 class ROMFile:
@@ -141,7 +148,12 @@ class ROMFile:
         else:
             print(f"Request: {self.URL!r}...")
             # Warning: HTTPS requests do not do any verification of the server's certificate.
-            f = urlopen(self.URL)
+            try:
+                f = urlopen(self.URL)
+            except HTTPError as err:
+                log.error(f'Download error: {err}')
+                raise ROMDownloadError(url=self.URL, origin_err=err)
+
             content = f.read()
             with open(self.archive_path, "wb") as out_file:
                 out_file.write(content)
