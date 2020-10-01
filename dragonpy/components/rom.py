@@ -31,7 +31,7 @@ class ROMFileNotFound(Exception):
 class ROMDownloadError(Exception):
     def __init__(self, url, origin_err):
         self.url = url
-        self.origin_err=origin_err
+        self.origin_err = origin_err
 
 
 class ROMFile:
@@ -94,9 +94,9 @@ class ROMFile:
             return self.RENAME_DATA[filename]
         except KeyError:
             raise RuntimeError(
-                "Filename %r in archive is unknown! Known names are: %s" %
-                list(
-                    self.RENAME_DATA.keys()))
+                f"Filename {filename!r} in archive is unknown! Known names are:"
+                f" {', '.join(repr(f) for f in self.RENAME_DATA)}"
+            )
 
     def extract_zip(self):
         assert self.FILE_COUNT > 0
@@ -160,5 +160,8 @@ class ROMFile:
 
         # Check SHA hash:
         current_sha1 = hashlib.sha1(content).hexdigest()
-        assert current_sha1 == self.DOWNLOAD_SHA1, f"Download sha1 value is wrong! SHA1 is: {current_sha1!r}"
+        assert current_sha1 == self.DOWNLOAD_SHA1, (
+            f"Download sha1 value is wrong! SHA1 is:"
+            f" {current_sha1!r} and not {self.DOWNLOAD_SHA1!r}"
+        )
         print(f"Download SHA1: {current_sha1!r}, ok.")
