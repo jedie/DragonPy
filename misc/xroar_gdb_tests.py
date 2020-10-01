@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf-8
 
 """
     :created: 2014 by Jens Diemer - www.jensdiemer.de
@@ -13,7 +12,7 @@ import time
 import socket
 import threading
 
-GDB_IP="127.0.0.1"
+GDB_IP = "127.0.0.1"
 GDB_PORT = 65520
 
 
@@ -22,13 +21,13 @@ def start_xroar(xroar_args, cwd):
     http://www.6809.org.uk/xroar/doc/xroar.shtml#Debugging
     """
     args = ["xroar", "-gdb",
-         "-gdb-ip", GDB_IP,
-         "-gdb-port", str(GDB_PORT),
-    ]
+            "-gdb-ip", GDB_IP,
+            "-gdb-port", str(GDB_PORT),
+            ]
     args += xroar_args
 
     sys.stderr.write(
-        "Start Xroar in %r with: '%s'\n" % (
+        "Start Xroar in {!r} with: '{}'\n".format(
             cwd,
             " ".join([str(i) for i in args])
         )
@@ -37,15 +36,16 @@ def start_xroar(xroar_args, cwd):
     return xroar_process
 
 
-class XroarGDB(object):
+class XroarGDB:
     """
     https://github.com/jedie/XRoar/blob/master/src/gdb.c
     """
+
     def __init__(self):
-        sys.stderr.write("Connect to %s:%s ..." % (GDB_IP, GDB_PORT))
+        sys.stderr.write(f"Connect to {GDB_IP}:{GDB_PORT} ...")
         self.s = socket.socket(
             family=socket.AF_INET,
-#             family=socket.AF_UNSPEC,
+            #             family=socket.AF_UNSPEC,
             type=socket.SOCK_STREAM,
             proto=0
         )
@@ -61,7 +61,7 @@ class XroarGDB(object):
         sys.stderr.write("done.\n")
 
     def print_recv_interval(self):
-        print "recv: %s" % repr(self.s.recv(1024))
+        print("recv: %s" % repr(self.s.recv(1024)))
         if self.running:
             t = threading.Timer(0.5, self.print_recv_interval)
             t.deamon = True
@@ -87,12 +87,12 @@ if __name__ == '__main__':
         xroar_gdb.send("g")
         time.sleep(1)
     finally:
-        print "tear down"
+        print("tear down")
         try:
             xroar_gdb.running = False
             xroar_gdb.s.close()
-        except:
+        except BaseException:
             pass
 
     time.sleep(1)
-    print " --- END --- "
+    print(" --- END --- ")

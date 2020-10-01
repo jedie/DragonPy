@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-# coding: utf-8
 
 """
     PyDC - configs
@@ -11,41 +10,43 @@
 
 import inspect
 
+from MC6809.utils.humanize import byte2bit_string
 
-class BaseConfig(object):
+
+class BaseConfig:
     """ shared config values """
 
     # For writing WAVE files:
     FRAMERATE = 22050
-    SAMPLEWIDTH = 2 # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
-    VOLUME_RATIO = 90 # "Loundness" in percent of the created wave file
+    SAMPLEWIDTH = 2  # 1 for 8-bit, 2 for 16-bit, 4 for 32-bit samples
+    VOLUME_RATIO = 90  # "Loundness" in percent of the created wave file
 
     def print_debug_info(self):
-        from dragonlib.utils import byte2bit_string
 
-        print "Config: '%s'" % self.__class__.__name__
+        print(f"Config: '{self.__class__.__name__}'")
 
-        for name, value in inspect.getmembers(self): # , inspect.isdatadescriptor):
+        for name, value in inspect.getmembers(self):  # , inspect.isdatadescriptor):
             if name.startswith("_"):
                 continue
 #             print name, type(value)
-            if not isinstance(value, (int, basestring, list, tuple, dict)):
+            if not isinstance(value, (int, str, list, tuple, dict)):
                 continue
-            if isinstance(value, (int,)):
+            if isinstance(value, int):
+
                 bit_string = byte2bit_string(value)
-                print "%20s = %-4s (in hex: %7s - binary: %s)" % (
+                print("{:>20} = {:<4} (in hex: {:>7} - binary: {})".format(
                     name, value, repr(hex(value)), bit_string
-                )
+                ))
             else:
-                print "%20s = %s" % (name, value)
+                print(f"{name:>20} = {value}")
 
 
 class Dragon32Config(BaseConfig):
     """
     Dragon 32 specific config values
 
-    >>> d32cfg = Dragon32Config()
-    >>> d32cfg.print_debug_info() # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
+    >> d32cfg = Dragon32Config()
+    >> d32cfg.print_debug_info() # doctest: +NORMALIZE_WHITESPACE +ELLIPSIS
     Config: 'Dragon32Config'
                AVG_COUNT = 0    (in hex:   '0x0' - binary: 00000000)
              BASIC_ASCII = 255  (in hex:  '0xff' - binary: 11111111)
@@ -73,21 +74,21 @@ class Dragon32Config(BaseConfig):
     """
 
     # For reading WAVE files:
-    BIT_NUL_HZ = 1100 # Spec says: 1200Hz - Bit "0" is a single cycle at 1200 Hz
-    BIT_ONE_HZ = 2100 # Spec says: 2400Hz - Bit "1" is a single cycle at 2400 Hz
+    BIT_NUL_HZ = 1100  # Spec says: 1200Hz - Bit "0" is a single cycle at 1200 Hz
+    BIT_ONE_HZ = 2100  # Spec says: 2400Hz - Bit "1" is a single cycle at 2400 Hz
     # see: http://five.pairlist.net/pipermail/coco/2013-August/070879.html
-    HZ_VARIATION = 450 # How much Hz can signal scatter to match 1 or 0 bit ?
+    HZ_VARIATION = 450  # How much Hz can signal scatter to match 1 or 0 bit ?
 
-    MIN_VOLUME_RATIO = 5 # percent volume to ignore sample
-    AVG_COUNT = 0 # How many samples should be merged into a average value?
-    END_COUNT = 2 # Sample count that must be pos/neg at once
-    MID_COUNT = 1 # Sample count that can be around null
+    MIN_VOLUME_RATIO = 5  # percent volume to ignore sample
+    AVG_COUNT = 0  # How many samples should be merged into a average value?
+    END_COUNT = 2  # Sample count that must be pos/neg at once
+    MID_COUNT = 1  # Sample count that can be around null
 
     # Format values:
-    LEAD_BYTE_CODEPOINT = 0x55 # 10101010
+    LEAD_BYTE_CODEPOINT = 0x55  # 10101010
     LEAD_BYTE_LEN = 255
-    SYNC_BYTE_CODEPOINT = 0x3C # 00111100
-    MAX_SYNC_BYTE_SEARCH = 600 # search size in **Bytes**
+    SYNC_BYTE_CODEPOINT = 0x3C  # 00111100
+    MAX_SYNC_BYTE_SEARCH = 600  # search size in **Bytes**
 
     # Block types:
     FILENAME_BLOCK = 0x00
@@ -104,17 +105,17 @@ class Dragon32Config(BaseConfig):
     FTYPE_DATA = 0x01
     FTYPE_BIN = 0x02
     FILETYPE_DICT = {
-        FTYPE_BASIC:"BASIC programm (0x00)",
-        FTYPE_DATA:"Data file (0x01)",
-        FTYPE_BIN:"Binary machine code file (0x02)",
+        FTYPE_BASIC: "BASIC programm (0x00)",
+        FTYPE_DATA: "Data file (0x01)",
+        FTYPE_BIN: "Binary machine code file (0x02)",
     }
 
     # Basic format types:
     BASIC_TOKENIZED = 0x00
     BASIC_ASCII = 0xff
     BASIC_TYPE_DICT = {
-        BASIC_TOKENIZED:"tokenized BASIC (0x00)",
-        BASIC_ASCII:"ASCII BASIC (0xff)",
+        BASIC_TOKENIZED: "tokenized BASIC (0x00)",
+        BASIC_ASCII: "ASCII BASIC (0xff)",
     }
 
     # The gap flag
@@ -127,7 +128,7 @@ class Dragon32Config(BaseConfig):
 
 if __name__ == "__main__":
     import doctest
-    print doctest.testmod(
+    print(doctest.testmod(
         verbose=False
         # verbose=True
-    )
+    ))

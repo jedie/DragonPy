@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf-8
 
 """
     Multicomp 6809
@@ -12,12 +11,13 @@
 
 import logging
 
-log = logging.getLogger(__name__)
-
-from dragonpy.Multicomp6809.periphery_Multicomp6809 import Multicomp6809Periphery
+from dragonpy.core.machine import MachineGUI
 from dragonpy.Multicomp6809.config import Multicomp6809Cfg
 from dragonpy.Multicomp6809.gui import MulticompTkinterGUI
-from dragonpy.core.machine import MachineGUI
+from dragonpy.Multicomp6809.periphery_Multicomp6809 import Multicomp6809Periphery
+
+
+log = logging.getLogger(__name__)
 
 
 def run_Multicomp6809(cfg_dict):
@@ -28,5 +28,3 @@ def run_Multicomp6809(cfg_dict):
         PeripheryClass=Multicomp6809Periphery,
         GUI_Class=MulticompTkinterGUI
     )
-
-

@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-# coding: utf-8
 
 """
     Python dragon 32 converter
@@ -12,13 +11,15 @@
 import os
 import sys
 
-from CassetteObjects import Cassette
+from PyDC.wave2bitstream import Wave2Bitstream
+
+from .CassetteObjects import Cassette
 
 
 __version__ = (0, 1, 0, 'dev')
 VERSION_STRING = '.'.join(str(part) for part in __version__)
 
-TITLE_LINE = "PyDC v%s copyleft 2013 by htfx.de - Jens Diemer, GNU GPL v3 or above" % VERSION_STRING
+TITLE_LINE = f"PyDC v{VERSION_STRING} copyleft 2013 by htfx.de - Jens Diemer, GNU GPL v3 or above"
 
 
 def analyze(wave_file, cfg):
@@ -45,7 +46,7 @@ def convert(source_file, destination_file, cfg):
             "Destination file type %r not supported." % repr(dest_ext)
         )
 
-    print "Convert %s -> %s" % (source_ext, dest_ext)
+    print(f"Convert {source_ext} -> {dest_ext}")
 
     c = Cassette(cfg)
 
@@ -56,7 +57,7 @@ def convert(source_file, destination_file, cfg):
     elif source_ext == ".bas":
         c.add_from_bas(source_file)
     else:
-        raise RuntimeError # Should never happen
+        raise RuntimeError  # Should never happen
 
     c.print_debug_info()
 
@@ -67,41 +68,40 @@ def convert(source_file, destination_file, cfg):
     elif dest_ext == ".bas":
         c.write_bas(destination_file)
     else:
-        raise RuntimeError # Should never happen
-
+        raise RuntimeError  # Should never happen
 
 
 if __name__ == "__main__":
-#     import doctest
-#     print doctest.testmod(
-#         verbose=False
-#         # verbose=True
-#     )
-#     sys.exit()
+    #     import doctest
+    #     print doctest.testmod(
+    #         verbose=False
+    #         # verbose=True
+    #     )
+    #     sys.exit()
 
     import subprocess
 
     # bas -> wav
     subprocess.Popen([sys.executable, "../PyDC_cli.py",
-        "--verbosity=10",
-#         "--verbosity=5",
-#         "--logfile=5",
-#         "--log_format=%(module)s %(lineno)d: %(message)s",
-#         "../test_files/HelloWorld1.bas", "--dst=../test.wav"
-        "../test_files/HelloWorld1.bas", "--dst=../test.cas"
-    ]).wait()
+                      "--verbosity=10",
+                      #         "--verbosity=5",
+                      #         "--logfile=5",
+                      #         "--log_format=%(module)s %(lineno)d: %(message)s",
+                      #         "../test_files/HelloWorld1.bas", "--dst=../test.wav"
+                      "../test_files/HelloWorld1.bas", "--dst=../test.cas"
+                      ]).wait()
 
-    print "\n"*3
-    print "="*79
-    print "\n"*3
+    print("\n" * 3)
+    print("=" * 79)
+    print("\n" * 3)
 
 #     # wav -> bas
     subprocess.Popen([sys.executable, "../PyDC_cli.py",
-#         "--verbosity=10",
-        "--verbosity=7",
-#         "../test.wav", "--dst=../test.bas",
-        "../test.cas", "--dst=../test.bas",
-#         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
-    ]).wait()
+                      #         "--verbosity=10",
+                      "--verbosity=7",
+                      #         "../test.wav", "--dst=../test.bas",
+                      "../test.cas", "--dst=../test.bas",
+                      #         "../test_files/HelloWorld1 origin.wav", "--dst=../test_files/HelloWorld1.bas",
+                      ]).wait()
 
-    print "-- END --"
+    print("-- END --")

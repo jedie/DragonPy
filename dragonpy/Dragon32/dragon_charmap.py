@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 """
     Dragon 32 Character Map Information
@@ -12,9 +11,6 @@
     blocks: http://www.pylucid.org/de/contribute/developer-documentation/unicode-test/decode_unicode/block-elements/#9600
 """
 
-from __future__ import absolute_import, division, print_function, unicode_literals
-import six
-xrange = six.moves.xrange
 
 import unicodedata
 
@@ -34,14 +30,14 @@ COLORS = (GREEN, YELLOW, BLUE, RED, WHITE, CYAN, MAGENTA, ORANGE)
 
 COLOR_INFO = {
     # Ideal colors:
-#     GREEN: (0, 255, 0), # XRoar: 08ff08
-#     YELLOW: (255, 255, 0), # XRoar: ffff42
-#     BLUE: (0, 0, 180), # XRoar: 2110b5
-#     RED: (180, 0, 0), # XRoar: b50421
-#     WHITE: (255, 255, 255), # XRoar: ffffff
-#     CYAN: (0, 255, 255), # XRoar: 08d773
-#     MAGENTA: (255, 0, 255), # XRoar: ff1cff
-#     ORANGE: (255, 128, 0), # XRoar: ff4108
+    #     GREEN: (0, 255, 0), # XRoar: 08ff08
+    #     YELLOW: (255, 255, 0), # XRoar: ffff42
+    #     BLUE: (0, 0, 180), # XRoar: 2110b5
+    #     RED: (180, 0, 0), # XRoar: b50421
+    #     WHITE: (255, 255, 255), # XRoar: ffffff
+    #     CYAN: (0, 255, 255), # XRoar: 08d773
+    #     MAGENTA: (255, 0, 255), # XRoar: ff1cff
+    #     ORANGE: (255, 128, 0), # XRoar: ff4108
 
     # XRoar colors:
     GREEN: (0x08, 0xff, 0x08),
@@ -53,6 +49,7 @@ COLOR_INFO = {
     MAGENTA: (0xff, 0x1c, 0xff),
     ORANGE: (0xff, 0x41, 0x08),
 }
+
 
 def get_rgb_color(color):
     """
@@ -72,6 +69,7 @@ def get_rgb_color(color):
         foreground = (0, 0, 0)
         background = COLOR_INFO[color]
     return (foreground, background)
+
 
 def get_hex_color(color):
     """
@@ -160,7 +158,7 @@ chars_map = [
 ]
 
 CHARS = (
-    "@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]"
+    r"@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\]"
     "\N{UPWARDS ARROW}"
     "\N{LEFTWARDS ARROW}"
     " !\"#$%&'()*+,-./0123456789:;<=>?"
@@ -176,7 +174,7 @@ for item_type in (INVERTED, NORMAL):
 
 
 BLOCKS = (
-    '\N{FULL BLOCK}' # XXX: complete black
+    '\N{FULL BLOCK}'  # XXX: complete black
     '\N{QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER LEFT}'
     '\N{QUADRANT UPPER LEFT AND UPPER RIGHT AND LOWER RIGHT}'
     '\N{UPPER HALF BLOCK}'
@@ -191,7 +189,7 @@ BLOCKS = (
     '\N{LOWER HALF BLOCK}'
     '\N{QUADRANT LOWER LEFT}'
     '\N{QUADRANT LOWER RIGHT}'
-    ' ' # XXX: complete filled with color
+    ' '  # XXX: complete filled with color
 )
 
 # Add BLOCKS in every color to chars_map
@@ -204,9 +202,9 @@ for item_type in COLORS:
 
 def list_chars():
     index = 0
-    for x in xrange(8):
+    for x in range(8):
         line = ""
-        for y in xrange(32):
+        for y in range(32):
             try:
                 line += DRAGON_CHARS_MAP[index][0]
             except KeyError:
@@ -219,7 +217,7 @@ def create_wiki_page():
     """
     for http://archive.worldofdragon.org/index.php?title=CharMap
     """
-    print (
+    print(
         '{| class="wikitable"'
         ' style="font-family: monospace;'
         ' background-color:#ffffcc;"'
@@ -237,18 +235,15 @@ def create_wiki_page():
         item, item_type = data
 
         codepoint = ord(item)
-        print("|%i" % no)
+        print(f"|{no:d}")
 
         foreground, background = get_rgb_color(item_type)
         foreground = "#%02x%02x%02x" % foreground
         background = "#%02x%02x%02x" % background
 
-        style = "color: #%s;"
-        print('| style="color:%s; background-color:%s;" | &#x%x;' % (
-            foreground, background, codepoint
-        ))
-        print("|%i" % codepoint)
-        print("|%s" % item_type)
+        print(f'| style="color:{foreground}; background-color:{background};" | &#x{codepoint:x};')
+        print(f"|{codepoint:d}")
+        print(f"|{item_type}")
         print("|-")
     print("|}")
 
@@ -264,10 +259,8 @@ def create_dict():
         if len(repr(item)) == 4 and item != " ":
             name = item
 
-        txt = '0x%02x: ("\\x%02x", %s), #' % (
-            no, codepoint, item_type
-        )
-        txt = "    %-29s %s" % (txt, name)
+        txt = f'0x{no:02x}: ("\\x{codepoint:02x}", {item_type}), #'
+        txt = f"    {txt:<29} {name}"
 
         print(txt)
     print("}")
@@ -285,18 +278,16 @@ if __name__ == "__main__":
     create_wiki_page()
 
     print()
-    print("="*79)
+    print("=" * 79)
     print()
 
     create_dict()
 
     print()
-    print("="*79)
+    print("=" * 79)
     print()
 
     import doctest
     print(doctest.testmod(
         verbose=1
     ))
-
-

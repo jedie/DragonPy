@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python

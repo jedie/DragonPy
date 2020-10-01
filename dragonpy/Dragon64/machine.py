@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-# encoding:utf-8
 
 """
     Dragon 32
@@ -10,15 +9,13 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
-
 
 import logging
 
-from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
-from dragonpy.Dragon64.config import Dragon64Cfg
 from dragonpy.core.gui import DragonTkinterGUI
 from dragonpy.core.machine import MachineGUI
+from dragonpy.Dragon32.periphery_dragon import Dragon32Periphery
+from dragonpy.Dragon64.config import Dragon64Cfg
 
 
 log = logging.getLogger(__name__)
@@ -32,4 +29,3 @@ def run_Dragon64(cfg_dict):
         PeripheryClass=Dragon32Periphery,
         GUI_Class=DragonTkinterGUI
     )
-

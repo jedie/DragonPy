@@ -1,5 +1,3 @@
-# encoding:utf8
-
 """
     DragonPy
     ========
@@ -9,8 +7,6 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
-
 
 import logging
 
@@ -18,6 +14,7 @@ from dragonpy.core.machine import MachineGUI
 from dragonpy.vectrex.config import VectrexCfg
 from dragonpy.vectrex.periphery import VectrexPeriphery
 from dragonpy.vectrex.vectrex_gui import VectrexGUI
+
 
 log = logging.getLogger(__name__)
 
@@ -32,6 +29,4 @@ def run_Vectrex(cfg_dict):
     )
 
 
-#------------------------------------------------------------------------------
-
-
+# ------------------------------------------------------------------------------

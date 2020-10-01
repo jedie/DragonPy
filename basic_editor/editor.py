@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -12,38 +11,28 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import logging
 import os
 import string
 import sys
+import tkinter
+from tkinter import filedialog
 
 import dragonlib
+from dragonlib.utils.auto_shift import invert_shift
+
+from basic_editor.highlighting import TkTextHighlightCurrentLine, TkTextHighlighting
 from basic_editor.scrolled_text import ScrolledText
 from basic_editor.status_bar import MultiStatusBar
 from basic_editor.token_window import TokenWindow
-from basic_editor.highlighting import TkTextHighlighting, TkTextHighlightCurrentLine
-from dragonlib.utils.auto_shift import invert_shift
 
 
 log = logging.getLogger(__name__)
 
-try:
-    # Python 3
-    import tkinter
-    from tkinter import filedialog
-    from tkinter import messagebox
-except ImportError:
-    # Python 2
-    import Tkinter as tkinter
-    import tkFileDialog as filedialog
-    import tkMessageBox as messagebox
 
-
-
-class EditorWindow(object):
-    FILETYPES = [# For filedialog
+class EditorWindow:
+    FILETYPES = [  # For filedialog
         ("BASIC Listings", "*.bas", "TEXT"),
         ("Text files", "*.txt", "TEXT"),
         ("All files", "*"),
@@ -70,12 +59,12 @@ class EditorWindow(object):
             self.root = tkinter.Toplevel(self.gui.root)
             self.root.geometry("+%d+%d" % (
                 self.gui.root.winfo_rootx() + self.gui.root.winfo_width(),
-                self.gui.root.winfo_y() # FIXME: Different on linux.
+                self.gui.root.winfo_y()  # FIXME: Different on linux.
             ))
 
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
-        self.base_title = "%s - BASIC Editor" % self.cfg.MACHINE_NAME
+        self.base_title = f"{self.cfg.MACHINE_NAME} - BASIC Editor"
         self.root.title(self.base_title)
 
         self.text = ScrolledText(
@@ -91,7 +80,7 @@ class EditorWindow(object):
         self.highlighting = TkTextHighlighting(self)
         self.highlight_currentline = TkTextHighlightCurrentLine(self)
 
-        #self.auto_shift = True # use invert shift for letters?
+        # self.auto_shift = True # use invert shift for letters?
 
         self.menubar = tkinter.Menu(self.root)
 
@@ -121,7 +110,7 @@ class EditorWindow(object):
             )
         )
 
-        self.set_status_bar() # Create widget, add bindings and after_idle() update
+        self.set_status_bar()  # Create widget, add bindings and after_idle() update
 
         self.text.bind("<Key>", self.event_text_key)
 #         self.text.bind("<space>", self.event_syntax_check)
@@ -148,8 +137,8 @@ class EditorWindow(object):
 
     def set_line_and_column(self, event=None):
         line, column = self.text.index(tkinter.INSERT).split('.')
-        self.status_bar.set_label('column', 'Column: %s' % column)
-        self.status_bar.set_label('line', 'Line: %s' % line)
+        self.status_bar.set_label('column', f'Column: {column}')
+        self.status_bar.set_label('line', f'Line: {line}')
 
     ###########################################################################
 
@@ -166,7 +155,7 @@ class EditorWindow(object):
         converted_char = invert_shift(char)
         log.debug("convert keycode %s - char %s to %s", event.keycode, repr(char), converted_char)
 #         self.text.delete(Tkinter.INSERT + "-1c") # Delete last input char
-        self.text.insert(tkinter.INSERT, converted_char) # Insert converted char
+        self.text.insert(tkinter.INSERT, converted_char)  # Insert converted char
         return "break"
 
     #     def event_syntax_check(self, event):
@@ -184,7 +173,7 @@ class EditorWindow(object):
         self.filepath = os.path.normpath(os.path.abspath(filepath))
         self.current_dir, self.filename = os.path.split(self.filepath)
 
-        self.root.title("%s - %s" % (self.base_title, repr(self.filename)))
+        self.root.title(f"{self.base_title} - {repr(self.filename)}")
 
     def command_load_file(self):
         infile = filedialog.askopenfile(
@@ -202,7 +191,6 @@ class EditorWindow(object):
             self.set_content(listing_ascii)
 
             self.setup_filepath(infile.name)
-
 
     def command_save_file(self):
         outfile = filedialog.asksaveasfile(
@@ -253,18 +241,18 @@ class EditorWindow(object):
         return content
 
     def set_content(self, listing_ascii):
-#        self.text.config(state=Tkinter.NORMAL)
+        #        self.text.config(state=Tkinter.NORMAL)
         self.text.delete("1.0", tkinter.END)
         log.critical("insert listing:")
         if not isinstance(listing_ascii, (list, tuple)):
             listing_ascii = listing_ascii.splitlines()
 
         for line in listing_ascii:
-            line = "%s\n" % line # use os.sep ?!?
+            line = f"{line}\n"  # use os.sep ?!?
             log.debug("\t%s", repr(line))
             self.text.insert(tkinter.END, line)
 #        self.text.config(state=Tkinter.DISABLED)
-        self.text.mark_set(tkinter.INSERT, '1.0') # Set cursor at start
+        self.text.mark_set(tkinter.INSERT, '1.0')  # Set cursor at start
         self.focus_text()
         self.highlight_currentline.update(force=True)
         self.highlighting.update(force=True)
@@ -301,12 +289,12 @@ def test():
     from dragonlib.utils.logging_utils import setup_logging
 
     setup_logging(
-#        level=1 # hardcore debug ;)
-#         level=10  # DEBUG
-#         level=20  # INFO
-#         level=30  # WARNING
-#         level=40 # ERROR
-        level=50 # CRITICAL/FATAL
+        #        level=1 # hardcore debug ;)
+        #         level=10  # DEBUG
+        #         level=20  # INFO
+        #         level=30  # WARNING
+        #         level=40 # ERROR
+        level=50  # CRITICAL/FATAL
     )
 
     CFG_DICT = {
@@ -325,11 +313,11 @@ def test():
     cfg = Dragon32Cfg(CFG_DICT)
 
     filepath = os.path.join(os.path.abspath(os.path.dirname(__file__)),
-        # "..", "BASIC examples", "hex_view01.bas"
-        "..", "BASIC games", "INVADER.bas"
-    )
+                            # "..", "BASIC examples", "hex_view01.bas"
+                            "..", "BASIC games", "INVADER.bas"
+                            )
 
-    with open(filepath, "r") as f:
+    with open(filepath) as f:
         listing_ascii = f.read()
 
     run_basic_editor(cfg, default_content=listing_ascii)

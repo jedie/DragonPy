@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf-8
 
 """
     Filter Xroar trace files.
@@ -10,28 +9,27 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import os
-import time
-import sys
 import argparse
+import sys
+import time
 
 
-class XroarTraceFilter(object):
+class XroarTraceFilter:
     def __init__(self, infile, outfile):
         self.infile = infile
         self.outfile = outfile
 
     def load_tracefile(self, f):
         sys.stderr.write(
-            "\nRead %s...\n\n" % f.name
+            f"\nRead {f.name}...\n\n"
         )
-        addr_stat = {} # TODO: Use collections.Counter
+        addr_stat = {}  # TODO: Use collections.Counter
         next_update = time.time() + 0.5
-        line_no = 0 # e.g. empty file
+        line_no = 0  # e.g. empty file
         for line_no, line in enumerate(f):
             if time.time() > next_update:
                 sys.stderr.write(
-                    "\rAnalyzed %i op calls..." % line_no
+                    f"\rAnalyzed {line_no:d} op calls..."
                 )
                 sys.stderr.flush()
                 next_update = time.time() + 0.5
@@ -40,10 +38,10 @@ class XroarTraceFilter(object):
             addr_stat.setdefault(addr, 0)
             addr_stat[addr] += 1
 
-        f.seek(0) # if also used in self.filter()
+        f.seek(0)  # if also used in self.filter()
 
         sys.stderr.write(
-            "\rAnalyzed %i op calls, complete.\n" % line_no
+            f"\rAnalyzed {line_no:d} op calls, complete.\n"
         )
         sys.stderr.write(
             "\nThe tracefile contains %i unique addresses.\n" % len(addr_stat)
@@ -52,7 +50,7 @@ class XroarTraceFilter(object):
 
     def unique(self):
         sys.stderr.write(
-            "\nunique %s in %s...\n\n" % (self.infile.name, self.outfile.name)
+            f"\nunique {self.infile.name} in {self.outfile.name}...\n\n"
         )
         unique_addr = set()
         total_skiped_lines = 0
@@ -90,7 +88,7 @@ class XroarTraceFilter(object):
                     # Skip info should not in the same line after stat info
                     sys.stderr.write("\n")
                 self.outfile.write(
-                    "... [Skip %i lines] ...\n" % skip_count
+                    f"... [Skip {skip_count:d} lines] ...\n"
                 )
                 skip_count = 0
             self.outfile.write(line)
@@ -98,7 +96,7 @@ class XroarTraceFilter(object):
 
         self.outfile.close()
         sys.stderr.write(
-            "%i lines was filtered.\n" % total_skiped_lines
+            f"{total_skiped_lines:d} lines was filtered.\n"
         )
 
     def display_addr_stat(self, addr_stat, display_max=None):
@@ -108,10 +106,10 @@ class XroarTraceFilter(object):
             )
         else:
             sys.stdout.write(
-                "List of the %i most called addresses:\n" % display_max
+                f"List of the {display_max:d} most called addresses:\n"
             )
 
-        for no, data in enumerate(sorted(self.addr_stat.items(), key=lambda x: x[1], reverse=True)):
+        for no, data in enumerate(sorted(list(self.addr_stat.items()), key=lambda x: x[1], reverse=True)):
             if display_max is not None and no >= display_max:
                 break
             sys.stdout.write(
@@ -120,10 +118,10 @@ class XroarTraceFilter(object):
 
     def get_max_count_filter(self, addr_stat, max_count=10):
         sys.stderr.write(
-            "Filter addresses with more than %i calls:\n" % max_count
+            f"Filter addresses with more than {max_count:d} calls:\n"
         )
         addr_filter = {}
-        for addr, count in self.addr_stat.items():
+        for addr, count in list(self.addr_stat.items()):
             if count >= max_count:
                 addr_filter[addr] = count
         return addr_filter
@@ -155,29 +153,28 @@ class XroarTraceFilter(object):
 
             if skip_count != 0:
                 self.outfile.write(
-                    "... [Skip %i lines] ...\n" % skip_count
+                    f"... [Skip {skip_count:d} lines] ...\n"
                 )
                 skip_count = 0
             self.outfile.write(line)
 
         self.outfile.close()
         sys.stderr.write(
-            "%i lines was filtered.\n" % total_skiped_lines
+            f"{total_skiped_lines:d} lines was filtered.\n"
         )
 
     def start_stop(self, start_addr, stop_addr):
         sys.stderr.write(
-            "\nFilter starts with $%x and ends with $%x from %s in %s...\n\n" % (
-                start_addr, stop_addr,
-                self.infile.name, self.outfile.name
-            )
+            f"\nFilter starts with ${start_addr:x}"
+            f" and ends with ${stop_addr:x}"
+            f" from {self.infile.name} in {self.outfile.name}...\n\n"
         )
 
         all_addresses = set()
         passed_addresses = set()
 
-        start_seperator = "\n ---- [ START $%x ] ---- \n" % start_addr
-        end_seperator = "\n ---- [ END $%x ] ---- \n" % stop_addr
+        start_seperator = f"\n ---- [ START ${start_addr:x} ] ---- \n"
+        end_seperator = f"\n ---- [ END ${stop_addr:x} ] ---- \n"
 
         last_line_no = 0
         next_update = time.time() + 1
@@ -238,7 +235,7 @@ class XroarTraceFilter(object):
                         all_addresses.update(passed_addresses)
                         passed_addresses = ",".join(["$%x" % i for i in passed_addresses])
                         sys.stderr.write(
-                            "\nPassed unique addresses: %s\n" % passed_addresses
+                            f"\nPassed unique addresses: {passed_addresses}\n"
                         )
                         passed_addresses = set()
                     else:
@@ -269,14 +266,14 @@ def main(args):
     if "display" in args:
         addr_stat = xt.load_tracefile(args.infile)
         xt.display_addr_stat(addr_stat,
-            display_max=args.display
-        )
+                             display_max=args.display
+                             )
 
     if args.filter:
         addr_stat = xt.load_tracefile(args.infile)
         addr_filter = xt.get_max_count_filter(addr_stat,
-            max_count=args.filter
-        )
+                                              max_count=args.filter
+                                              )
         xt.filter(addr_filter)
 
 
@@ -284,43 +281,50 @@ def start_stop_value(arg):
     start_raw, stop_raw = arg.split("-")
     start = int(start_raw.strip("$ "), 16)
     stop = int(stop_raw.strip("$ "), 16)
-    sys.stderr.write("Use: $%x-$%x" % (start, stop))
+    sys.stderr.write(f"Use: ${start:x}-${stop:x}")
     return (start, stop)
 
 
 def get_cli_args():
     parser = argparse.ArgumentParser(description="Filter Xroar traces")
-    parser.add_argument("infile", nargs="?",
-        type=argparse.FileType("r"),
-        default=sys.stdin,
-        help="Xroar trace file or stdin"
+    parser.add_argument(
+        "infile", nargs="?",
+                        type=argparse.FileType("r"),
+                        default=sys.stdin,
+                        help="Xroar trace file or stdin"
     )
-    parser.add_argument("outfile", nargs="?",
+    parser.add_argument(
+        "outfile", nargs="?",
         type=argparse.FileType("w"),
         default=sys.stdout,
         help="If given: write output in a new file else: Display it."
     )
-    parser.add_argument("--display", metavar="MAX",
+    parser.add_argument(
+        "--display", metavar="MAX",
         type=int, default=argparse.SUPPRESS,
         nargs="?",
         help="Display statistics how often a address is called.",
     )
-    parser.add_argument("--filter", metavar="MAX",
+    parser.add_argument(
+        "--filter", metavar="MAX",
         type=int,
         nargs="?",
         help="Filter the trace: skip addresses that called more than given count.",
     )
-    parser.add_argument("--unique",
+    parser.add_argument(
+        "--unique",
         action="store_true",
         help="Read infile and store in outfile only unique addresses.",
     )
-    parser.add_argument("--loop-filter", metavar="FILENAME",
+    parser.add_argument(
+        "--loop-filter", metavar="FILENAME",
         type=argparse.FileType("r"),
         nargs="?",
         help="Live Filter with given address file.",
     )
 
-    parser.add_argument("--start-stop", metavar="START-STOP",
+    parser.add_argument(
+        "--start-stop", metavar="START-STOP",
         type=start_stop_value,
         nargs="?",
         help="Enable trace only from $START to $STOP e.g.: --area=$4000-$5000",
@@ -331,9 +335,7 @@ def get_cli_args():
 
 
 if __name__ == '__main__':
-#    sys.argv += ["--area=broken"]
-#    sys.argv += ["--area=1234-5678"]
+    #    sys.argv += ["--area=broken"]
+    #    sys.argv += ["--area=1234-5678"]
     args = get_cli_args()
     main(args)
-
-

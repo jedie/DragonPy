@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -10,32 +9,23 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
 
+import _thread
+import logging
+import queue
 import threading
 
 from dragonlib.core.basic import log_program_dump
-import logging
-
-log=logging.getLogger(__name__)
 from MC6809.components.cpu6809 import CPU
+
 from dragonpy.components.memory import Memory
 from dragonpy.utils.simple_debugger import print_exc_plus
 
 
-try:
-    # Python 3
-    import queue
-    import _thread
-except ImportError:
-    # Python 2
-    import Queue as queue
-    import thread as _thread
+log = logging.getLogger(__name__)
 
 
-
-
-class Machine(object):
+class Machine:
     def __init__(self, cfg, periphery_class, display_callback, user_input_queue):
         self.cfg = cfg
         self.machine_api = cfg.machine_api
@@ -56,15 +46,14 @@ class Machine(object):
                 self.cfg, self.cpu, memory, self.display_callback, self.user_input_queue
             )
         except TypeError as err:
-            raise TypeError("%s - class: %s" % (err, self.periphery_class.__name__))
+            raise TypeError(f"{err} - class: {self.periphery_class.__name__}")
 
-        self.cpu_init_state = self.cpu.get_state() # Used for hard reset
+        self.cpu_init_state = self.cpu.get_state()  # Used for hard reset
 #        from dragonpy.tests.test_base import print_cpu_state_data
 #        print_cpu_state_data(self.cpu_init_state)
 
         self.cpu.reset()
 
-        self.max_ops = self.cfg.cfg_dict["max_ops"]
         self.op_count = 0
 
     def get_basic_program(self):
@@ -126,11 +115,12 @@ class MachineThread(threading.Thread):
     """
     run machine in a seperated thread.
     """
-    def __init__(self, cfg, periphery_class,  user_input_queue):
-        super(MachineThread, self).__init__(name="CPU-Thread")
+
+    def __init__(self, cfg, periphery_class, user_input_queue):
+        super().__init__(name="CPU-Thread")
         log.critical(" *** MachineThread init *** ")
         self.machine = Machine(
-            cfg, periphery_class,  user_input_queue
+            cfg, periphery_class, user_input_queue
         )
 
     def run(self):
@@ -148,10 +138,10 @@ class MachineThread(threading.Thread):
         self.machine.quit()
 
 
-class ThreadedMachine(object):
-    def __init__(self, cfg, periphery_class,  user_input_queue):
+class ThreadedMachine:
+    def __init__(self, cfg, periphery_class, user_input_queue):
         self.cpu_thread = MachineThread(
-            cfg, periphery_class,  user_input_queue
+            cfg, periphery_class, user_input_queue
         )
         self.cpu_thread.deamon = True
         self.cpu_thread.start()
@@ -169,13 +159,12 @@ class ThreadedMachine(object):
         self.cpu_thread.quit()
 
 
-class MachineGUI(object):
+class MachineGUI:
     def __init__(self, cfg):
         self.cfg = cfg
 
         # Queue to send keyboard inputs from GUI to CPU Thread:
         self.user_input_queue = queue.Queue()
-
 
     def run(self, PeripheryClass, GUI_Class):
         log.log(99, "Startup '%s' machine...", self.cfg.MACHINE_NAME)
@@ -206,6 +195,4 @@ class MachineGUI(object):
         log.log(99, " --- END ---")
 
 
-#------------------------------------------------------------------------------
-
-
+# ------------------------------------------------------------------------------

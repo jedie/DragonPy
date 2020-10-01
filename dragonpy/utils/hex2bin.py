@@ -7,12 +7,8 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import print_function, absolute_import
 
-import sys
 import array
-
-PY2 = sys.version_info[0] == 2
 
 
 def iter_steps(g, steps):
@@ -47,26 +43,22 @@ def iter_steps(g, steps):
 
 
 def hex2bin(src, dst, org=0xc000, verbose=True):
-    print("Read %s" % src)
-    with open(src, "r") as hex_file:
+    print(f"Read {src}")
+    with open(src) as hex_file:
         data = array.array("B")
 
         for line in hex_file:
-            #~ print line
             line = line.strip()
             line_data = line[9:-2]
-            #~ print data
             for byte_hex in iter_steps(line_data, steps=2):
                 byte_hex = "".join(byte_hex)
-                #~ print byte_hex,
                 codepoint = int(byte_hex, 16)
                 data.append(codepoint)
-            #~ print
 
     length = len(data)
-    print("length: %i $%02x" % (length, length))
+    print(f"length: {length:d} ${length:02x}")
     pos = org
-    print("ORG: $%04x" % pos)
+    print(f"ORG: ${pos:04x}")
 
     if verbose:
         # Display only the dump:
@@ -74,13 +66,13 @@ def hex2bin(src, dst, org=0xc000, verbose=True):
         for line_data in iter_steps(data, steps=steps):
             line = " ".join("%02X" % codepoint for codepoint in line_data)
             if "10 CE  1 EE" in line or "X7E E5  0" in line:
-                print("*"*79)
-            print("$%4x %s" % (pos, line))
+                print("*" * 79)
+            print(f"${pos:4x} {line}")
             if "10 CE  1 EE" in line or "X7E E5  0" in line:
-                print("*"*79)
+                print("*" * 79)
             pos += steps
 
-    print("Write to %s..." % dst)
+    print(f"Write to {dst}...")
 
     with open(dst, "wb") as bin_file:
         bin_file.write(data)

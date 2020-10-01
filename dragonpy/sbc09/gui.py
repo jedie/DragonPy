@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
@@ -9,38 +7,14 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
-
 
 import logging
-import string
-from dragonlib.utils.auto_shift import invert_shift
-
-log = logging.getLogger(__name__)
-
-try:
-    # Python 3
-    import queue
-    import tkinter
-    from tkinter import filedialog
-    from tkinter import messagebox
-    from tkinter import scrolledtext
-    from tkinter import font as TkFont
-except ImportError:
-    # Python 2
-    import Queue as queue
-    import Tkinter as tkinter
-    import tkFileDialog as filedialog
-    import tkMessageBox as messagebox
-    import ScrolledText as scrolledtext
-    import tkFont as TkFont
 
 from dragonpy.core.gui import ScrolledTextGUI
 
 
+log = logging.getLogger(__name__)
+
 
 class SBC09TkinterGUI(ScrolledTextGUI):
     pass
-
-
-

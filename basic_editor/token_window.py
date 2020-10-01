@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -12,27 +11,21 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import logging
 import sys
+import tkinter
+
+from dragonlib.utils.logging_utils import pformat_program_dump
 
 from basic_editor.scrolled_text import ScrolledText
 from basic_editor.status_bar import MultiStatusBar
-from dragonlib.utils.logging_utils import pformat_program_dump
 
 
 log = logging.getLogger(__name__)
 
-try:
-    # Python 3
-    import tkinter
-except ImportError:
-    # Python 2
-    import Tkinter as tkinter
 
-
-class TokenWindow(object):
+class TokenWindow:
     def __init__(self, cfg, master):
         self.cfg = cfg
         self.machine_api = self.cfg.machine_api
@@ -40,11 +33,11 @@ class TokenWindow(object):
         self.root = tkinter.Toplevel(master)
         self.root.geometry("+%d+%d" % (
             master.winfo_rootx() + master.winfo_width(),
-            master.winfo_y() # FIXME: Different on linux.
+            master.winfo_y()  # FIXME: Different on linux.
         ))
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
-        self.base_title = "%s - Tokens" % self.cfg.MACHINE_NAME
+        self.base_title = f"{self.cfg.MACHINE_NAME} - Tokens"
         self.root.title(self.base_title)
 
         self.text = ScrolledText(
@@ -57,7 +50,7 @@ class TokenWindow(object):
         )
         self.text.grid(row=0, column=0, sticky=tkinter.NSEW)
 
-        self.set_status_bar() # Create widget, add bindings and after_idle() update
+        self.set_status_bar()  # Create widget, add bindings and after_idle() update
 
         self.text.after_idle(self.set_token_info)
 
@@ -70,10 +63,10 @@ class TokenWindow(object):
         self.text.bind("<Any-Motion>", self.on_mouse_move)
 
     def on_mouse_move(self, event):
-        index = self.text.index("@%s,%s" % (event.x, event.y))
+        index = self.text.index(f"@{event.x},{event.y}")
 
         try:
-            word = self.text.get("%s wordstart" % index, "%s wordend" % index)
+            word = self.text.get(f"{index} wordstart", f"{index} wordend")
         except tkinter.TclError as err:
             log.critical("TclError: %s", err)
             return
@@ -86,10 +79,10 @@ class TokenWindow(object):
         log.critical("$%x", token_value)
         basic_word = self.machine_api.token_util.token2ascii(token_value)
 
-        info = "%s $%02x == %r" % (index, token_value, basic_word)
+        info = f"{index} ${token_value:02x} == {basic_word!r}"
 
         try:
-            selection_index = "%s-%s" % (self.text.index("sel.first"), self.text.index("sel.last"))
+            selection_index = f"{self.text.index('sel.first')}-{self.text.index('sel.last')}"
             selection = self.text.selection_get()
         except tkinter.TclError:
             # no selection
@@ -102,7 +95,7 @@ class TokenWindow(object):
             log.critical("values: %r", token_values)
             basic_selection = self.machine_api.token_util.tokens2ascii(token_values)
 
-            info += " - selection: %r" % basic_selection
+            info += f" - selection: {basic_selection!r}"
 
         self.status_bar.set_label("cursor_info", info)
 
@@ -119,16 +112,15 @@ class TokenWindow(object):
 
         self.text.bind("<<set-line-and-column>>", self.set_line_and_column)
         self.text.event_add("<<set-line-and-column>>",
-            "<KeyRelease>", "<ButtonRelease>")
+                            "<KeyRelease>", "<ButtonRelease>")
         self.text.after_idle(self.set_line_and_column)
 
     def set_line_and_column(self, event=None):
         line, column = self.text.index(tkinter.INSERT).split('.')
-        self.status_bar.set_label('column', 'Column: %s' % column)
-        self.status_bar.set_label('line', 'Line: %s' % line)
+        self.status_bar.set_label('column', f'Column: {column}')
+        self.status_bar.set_label('line', f'Line: {line}')
 
     ###########################################################################
 
     def set_token_info(self, event=None):
         line, column = self.text.index(tkinter.INSERT).split('.')
-

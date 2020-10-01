@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
@@ -9,14 +7,12 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
 
-import os
+from dragonlib.api import CoCoAPI
 
-from dragonpy.core.configs import BaseConfig, SBC09
+from dragonpy.core.configs import SBC09, BaseConfig
 from dragonpy.sbc09.mem_info import get_sbc09_meminfo
 from dragonpy.sbc09.periphery import SBC09Periphery
-from dragonlib.api import CoCoAPI
 from dragonpy.sbc09.sbc09_rom import SBC09Rom
 
 
@@ -29,7 +25,7 @@ class SBC09Cfg(BaseConfig):
     More info read ./sbc09/README.creole
     """
     CONFIG_NAME = SBC09
-    MACHINE_NAME="Lennart's 6809 single board computer"
+    MACHINE_NAME = "Lennart's 6809 single board computer"
 
     RAM_START = 0x0000
     RAM_END = 0x7FFF
@@ -40,7 +36,7 @@ class SBC09Cfg(BaseConfig):
     # ROM size: 0x4000 == 16384 Bytes
 
     BUS_ADDR_AREAS = (
-        (0xe000, 0xe001, "RS232 interface"), # emulated serial port (ACIA)
+        (0xe000, 0xe001, "RS232 interface"),  # emulated serial port (ACIA)
         (0xFFF2, 0xFFFE, "Interrupt vectors"),
     )
 
@@ -49,12 +45,12 @@ class SBC09Cfg(BaseConfig):
     )
 
     # Used in unittest for init the machine:
-    STARTUP_END_ADDR = 0xe45a # == O.S. routine to read a character into B register.
+    STARTUP_END_ADDR = 0xe45a  # == O.S. routine to read a character into B register.
 
     def __init__(self, cmd_args):
-        super(SBC09Cfg, self).__init__(cmd_args)
+        super().__init__(cmd_args)
 
-        self.machine_api = CoCoAPI() # FIXME!
+        self.machine_api = CoCoAPI()  # FIXME!
 
 #         if self.verbosity <= logging.INFO:
         self.mem_info = get_sbc09_meminfo()
@@ -63,5 +59,3 @@ class SBC09Cfg(BaseConfig):
 
 
 config = SBC09Cfg
-
-

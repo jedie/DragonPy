@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -15,21 +14,23 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import logging
-from dragonpy.Dragon32.keyboard_map import add_to_input_queue
 
-log=logging.getLogger(__name__)
+from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
+from dragonpy.Dragon32.keyboard_map import add_to_input_queue
 from dragonpy.Dragon32.MC6821_PIA import PIA
 from dragonpy.Dragon32.MC6883_SAM import SAM
-from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 
 
-class Dragon32PeripheryBase(object):
+log = logging.getLogger(__name__)
+
+
+class Dragon32PeripheryBase:
     """
     GUI independent stuff
     """
+
     def __init__(self, cfg, cpu, memory, user_input_queue):
         self.cfg = cfg
         self.cpu = cpu
@@ -68,7 +69,7 @@ class Dragon32PeripheryBase(object):
 
 class Dragon32Periphery(Dragon32PeripheryBase):
     def __init__(self, cfg, cpu, memory, display_callback, user_input_queue):
-        super(Dragon32Periphery, self).__init__(cfg, cpu, memory, user_input_queue)
+        super().__init__(cfg, cpu, memory, user_input_queue)
 
         # redirect writes to display RAM area 0x0400-0x0600 into display_queue:
         self.memory.add_write_byte_middleware(
@@ -81,7 +82,7 @@ class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
         self.cfg = cfg
         self.cpu = cpu
         self.user_input_queue = user_input_queue
-        super(Dragon32PeripheryUnittest, self).__init__(cfg, cpu, memory, self.user_input_queue)
+        super().__init__(cfg, cpu, memory, self.user_input_queue)
 
         self.rows = 32
         self.columns = 16
@@ -97,8 +98,8 @@ class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
         self.pia.internal_reset()
         self.user_input_queue.queue.clear()
         self.old_columns = None
-        self.output_lines = [""] # for unittest run_until_OK()
-        self.display_buffer = {} # for striped_output()
+        self.output_lines = [""]  # for unittest run_until_OK()
+        self.display_buffer = {}  # for striped_output()
 
     def add_to_input_queue(self, txt):
         assert "\n" not in txt, "remove all \\n in unittests! Use only \\r as Enter!"
@@ -159,7 +160,4 @@ class Dragon32PeripheryUnittest(Dragon32PeripheryBase):
         ]
 
 
-
-#------------------------------------------------------------------------------
-
-
+# ------------------------------------------------------------------------------

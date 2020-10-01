@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-# encoding:utf-8
 
 """
     Dragon 32
@@ -10,12 +9,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
-
 
 import logging
 
-from dragonlib.utils.logging_utils import setup_logging
 from dragonpy.CoCo.config import CoCo2bCfg
 from dragonpy.CoCo.periphery_coco import CoCoPeriphery
 from dragonpy.core.gui import DragonTkinterGUI
@@ -33,6 +29,3 @@ def run_CoCo2b(cfg_dict):
         PeripheryClass=CoCoPeriphery,
         GUI_Class=DragonTkinterGUI
     )
-
-
-

@@ -9,11 +9,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
-
-
 
 import logging
+
 from MC6809.core.memory_info import BaseMemoryInfo
 
 
@@ -102,7 +100,8 @@ class SBC09MemInfo(BaseMemoryInfo):
         (0xe824, 0xe824, "This is the code for the I command, display the contents of an address Syntax: Iaddr"),
         (0xe82c, 0xe82c, "Read the byte from memory."),
         (0xe82e, 0xe82e, "Display itin hex."),
-        (0xe836, 0xe836, "This is the code for the H command, display result of simple hex expressionSyntax Hhexnum{+|-hexnum}"),
+        (0xe836, 0xe836,
+         "This is the code for the H command, display result of simple hex expressionSyntax Hhexnum{+|-hexnum}"),
         (0xe86a, 0xe86a, "This is the code for the G command, jump to the program Syntax G or G<addr>"),
         (0xe872, 0xe872, "Store parameter in pc location."),
         (0xe874, 0xe874, "Arm the breakpoints."),
@@ -437,22 +436,22 @@ class SBC09MemInfo(BaseMemoryInfo):
 
         # Memory map of SBC
         (0x0, 0x40, "Zero page variables reserved by monitor and O.S."),
-        (0x40, 0xFF , "Zero page portion for user programs."),
-        (0x100, 0x17F , "Xmodem buffer 0, terminal input buffer"),
-        (0x180, 0x1FF , "Xmodem buffer 1, terminal output buffer"),
-        (0x200, 0x27F , "Terminal input line"),
-        (0x280, 0x2FF , "Variables reserved by monitor and O.S."),
-        (0x300, 0x400 , "System stack"),
-        (0x400, 0x7FFF , "RAM for user programs and data"),
-        (0x8000, 0xDFFF , "PROM for user programs"),
-        (0xE000, 0xE1FF , "I/O addresses"),
-        (0xE200, 0xE3FF , "Reserved"),
-        (0xE400, 0xFFFF , "Monitor ROM"),
+        (0x40, 0xFF, "Zero page portion for user programs."),
+        (0x100, 0x17F, "Xmodem buffer 0, terminal input buffer"),
+        (0x180, 0x1FF, "Xmodem buffer 1, terminal output buffer"),
+        (0x200, 0x27F, "Terminal input line"),
+        (0x280, 0x2FF, "Variables reserved by monitor and O.S."),
+        (0x300, 0x400, "System stack"),
+        (0x400, 0x7FFF, "RAM for user programs and data"),
+        (0x8000, 0xDFFF, "PROM for user programs"),
+        (0xE000, 0xE1FF, "I/O addresses"),
+        (0xE200, 0xE3FF, "Reserved"),
+        (0xE400, 0xFFFF, "Monitor ROM"),
 
         (0xe000, 0xe000, "Control/status port of ACIA"),
         (0xe001, 0xe001, "Data port of ACIA"),
-        
-        
+
+
     )
 
 
@@ -464,8 +463,7 @@ def get_sbc09_meminfo():
     return SBC09MemInfo(log.debug)
 
 
-
 if __name__ == "__main__":
     mem_info = SBC09MemInfo(print_out)
 
-    mem_info(0xe000) # SERIAL INTERFACE
+    mem_info(0xe000)  # SERIAL INTERFACE

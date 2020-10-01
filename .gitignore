@@ -39,3 +39,5 @@ nosetests.xml
 .pydevproject
 .idea/*
 .settings/*
+/publish.log
+/coverage.xml

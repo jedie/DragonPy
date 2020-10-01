@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     DragonPy - Vectrex
     ==================
@@ -11,16 +9,15 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import logging
 
-from dragonpy.vectrex.vectrex_rom import VectrexRom
-from dragonpy.core.configs import BaseConfig, VECTREX
+from dragonpy.core.configs import VECTREX, BaseConfig
 from dragonpy.vectrex.mem_info import VectrexMemInfo
+from dragonpy.vectrex.vectrex_rom import VectrexRom
 
 
-log=logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 # from dragonlib.api import VectrexAPI
@@ -44,7 +41,6 @@ class VectrexCfg(BaseConfig):
 
     ROM_START = 0xE000
     ROM_END = 0xFFFF
-    ROM_SIZE = 0x2000
 
     DEFAULT_ROMS = (
         VectrexRom(
@@ -57,13 +53,11 @@ class VectrexCfg(BaseConfig):
     # STARTUP_END_ADDR = 0xbbe5 # scan keyboard
 
     def __init__(self, cmd_args):
-        self.ROM_SIZE = (self.ROM_END - self.ROM_START) + 1
-        self.RAM_SIZE = (self.RAM_END - self.RAM_START) + 1
-        super(VectrexCfg, self).__init__(cmd_args)
+        super().__init__(cmd_args)
 
-        self.machine_api = None# VectrexAPI()
+        self.machine_api = None  # VectrexAPI()
 
-        self.periphery_class = None# VectrexPeriphery
+        self.periphery_class = None  # VectrexPeriphery
 
         # TODO:
         # http://www.playvectrex.com/designit/chrissalo/appendixa.htm#Other
@@ -74,6 +68,4 @@ class VectrexCfg(BaseConfig):
 config = VectrexCfg
 
 
-#------------------------------------------------------------------------------
-
-
+# ------------------------------------------------------------------------------

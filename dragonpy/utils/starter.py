@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -10,17 +9,16 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, print_function
+
 import os
-
-import sys
 import subprocess
+import sys
 
-import MC6809
 import click
-import dragonpy
-
+import MC6809
 from pkg_resources import get_distribution
+
+import dragonpy
 
 
 def get_module_name(package):
@@ -37,7 +35,7 @@ def get_module_name(package):
     entry_info = distribution.get_entry_info(package.DIST_GROUP, package.ENTRY_POINT)
     if not entry_info:
         raise RuntimeError(
-            "Can't find entry info for distribution: %r (group: %r, entry point: %r)" % (
+            "Can't find entry info for distribution: {!r} (group: {!r}, entry point: {!r})".format(
                 package.DISTRIBUTION_NAME, package.DIST_GROUP, package.ENTRY_POINT
             )
         )
@@ -60,9 +58,9 @@ def _run(*args, **kwargs):
 
     executable = args[0]
     if not os.path.isfile(executable):
-        raise RuntimeError("First argument %r is not a existing file!" % executable)
+        raise RuntimeError(f"First argument {executable!r} is not a existing file!")
     if not os.access(executable, os.X_OK):
-        raise RuntimeError("First argument %r exist, but is not executeable!" % executable)
+        raise RuntimeError(f"First argument {executable!r} exist, but is not executeable!")
 
     return subprocess.Popen(args, **kwargs)
 

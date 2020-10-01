@@ -1,5 +1,4 @@
 #!/usr/bin/env python2
-# coding: utf-8
 
 """
     PyDC - unittests
@@ -10,23 +9,22 @@
 """
 
 import itertools
-import logging
 import os
 import sys
 import tempfile
 import unittest
 
 # own modules
-from __init__ import convert
-from wave2bitstream import Wave2Bitstream
-import configs
+from .__init__ import convert
+from .wave2bitstream import Wave2Bitstream
+from . import configs
 
 
 class TestDragon32Conversion(unittest.TestCase):
 
     def setUp(self):
-        print
-        print " <<<<<< unittest setUp() <<<<<< "
+        print()
+        print(" <<<<<< unittest setUp() <<<<<< ")
         self.base_path = os.path.normpath(
             os.path.join(os.path.split(configs.__file__)[0], "..")
         )
@@ -35,14 +33,14 @@ class TestDragon32Conversion(unittest.TestCase):
         self.temp_files = []
 
     def tearDown(self):
-        print "\n"*2
-        print " >>>unittest tearDown() >>>",
+        print("\n" * 2)
+        print(" >>>unittest tearDown() >>>", end=' ')
         for filename in self.temp_files:
             if os.path.exists(filename):
                 try:
                     os.remove(filename)
-                except Exception, err:
-                    print "Error remove temp file: %s" % err
+                except Exception as err:
+                    print("Error remove temp file: %s" % err)
 
         self.temp_files = []
 
@@ -200,8 +198,8 @@ class TestDragon32Conversion(unittest.TestCase):
             part_len = len(part)
             dest_part = "".join(tuple(itertools.islice(dest_content, part_len)))
             self.assertEqual(part, dest_part,
-                msg="Error in part %i '%s': %s != %s" % (no, desc, repr(part), repr(dest_part))
-            )
+                             msg="Error in part %i '%s': %s != %s" % (no, desc, repr(part), repr(dest_part))
+                             )
 
     def test_cas01(self):
         # create cas
@@ -294,10 +292,9 @@ class TestDragon32Conversion(unittest.TestCase):
 
         dest_content = self._get_and_delete_dst(dest.name)
 
-        dest_content = dest_content.replace("U", "") # "remove" LeadInByte
+        dest_content = dest_content.replace("U", "")  # "remove" LeadInByte
 
-        self.assertIn('\r10 PRINT "LOWERCASE?"\r' , dest_content)
-
+        self.assertIn('\r10 PRINT "LOWERCASE?"\r', dest_content)
 
     def test_more_than_one_code_block(self):
         """
@@ -307,29 +304,29 @@ class TestDragon32Conversion(unittest.TestCase):
 
 
 if __name__ == '__main__':
-#     log = logging.getLogger("PyDC")
-#     log.setLevel(
-# #         logging.ERROR
-# #         logging.INFO
-# #         logging.WARNING
-# #         logging.DEBUG
-#         7
-#     )
-#     log.addHandler(logging.StreamHandler())
+    #     log = logging.getLogger("PyDC")
+    #     log.setLevel(
+    # #         logging.ERROR
+    # #         logging.INFO
+    # #         logging.WARNING
+    # #         logging.DEBUG
+    #         7
+    #     )
+    #     log.addHandler(logging.StreamHandler())
 
     unittest.main(
         argv=(
             sys.argv[0],
-#             "TestDragon32Conversion.test_wav2bas01",
-#             "TestDragon32Conversion.test_wav2bas04",
-#             "TestDragon32Conversion.test_statistics",
-#             "TestDragon32Conversion.test_bas2cas01",
-#             "TestDragon32Conversion.test_cas01",
-#             "TestDragon32Conversion.test_bas2ascii_wav",
-#             "TestDragon32Conversion.test_case_convert01",
-#             "TestDragon32Conversion.test_case_convert02",
+            #             "TestDragon32Conversion.test_wav2bas01",
+            #             "TestDragon32Conversion.test_wav2bas04",
+            #             "TestDragon32Conversion.test_statistics",
+            #             "TestDragon32Conversion.test_bas2cas01",
+            #             "TestDragon32Conversion.test_cas01",
+            #             "TestDragon32Conversion.test_bas2ascii_wav",
+            #             "TestDragon32Conversion.test_case_convert01",
+            #             "TestDragon32Conversion.test_case_convert02",
         ),
-#         verbosity=1,
+        #         verbosity=1,
         verbosity=2,
         failfast=True,
     )

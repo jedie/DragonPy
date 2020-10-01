@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     Dragon 64 config
     ================
@@ -9,18 +7,13 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import logging
 
-import six
-
-xrange = six.moves.xrange
-
-from dragonpy.Dragon32.config import Dragon32Cfg
-from dragonpy.Dragon64.mem_info import get_dragon_meminfo
-from dragonpy.Dragon64.Dragon64_rom import Dragon64RomIC17, Dragon64RomIC18
 from dragonpy.core.configs import DRAGON64
+from dragonpy.Dragon32.config import Dragon32Cfg
+from dragonpy.Dragon64.Dragon64_rom import Dragon64RomIC17, Dragon64RomIC18
+from dragonpy.Dragon64.mem_info import get_dragon_meminfo
 
 
 class Dragon64Cfg(Dragon32Cfg):
@@ -39,7 +32,7 @@ class Dragon64Cfg(Dragon32Cfg):
 #     RAM_END = 0x0FFF # 4KB # BASIC will always raise a OM ERROR!
 #     RAM_END = 0x1FFF # 8KB # BASIC will always raise a OM ERROR!
 #     RAM_END = 0x3FFF # 16KB # usable
-    RAM_END = 0x7FFF # 32KB
+    RAM_END = 0x7FFF  # 32KB
 
     ROM_START = 0x8000
     ROM_END = 0xFFFF
@@ -55,23 +48,23 @@ class Dragon64Cfg(Dragon32Cfg):
     )
 
     def __init__(self, cmd_args):
-        super(Dragon64Cfg, self).__init__(cmd_args)
+        super().__init__(cmd_args)
 
         if self.verbosity <= logging.ERROR:
             self.mem_info = get_dragon_meminfo()
 
-        self.periphery_class = None# Dragon32Periphery
+        self.periphery_class = None  # Dragon32Periphery
 
     def get_initial_RAM(self):
         """
         init the Dragon RAM
         See: http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=5&t=4444
         """
-        mem_FF = [0xff for _ in xrange(4)]
-        mem_00 = [0x00 for _ in xrange(4)]
+        mem_FF = [0xff for _ in range(4)]
+        mem_00 = [0x00 for _ in range(4)]
 
         mem = []
-        for _ in xrange(self.RAM_SIZE // 8):
+        for _ in range(self.RAM_SIZE // 8):
             mem += mem_FF
             mem += mem_00
 
@@ -79,5 +72,3 @@ class Dragon64Cfg(Dragon32Cfg):
 
 
 config = Dragon64Cfg
-
-

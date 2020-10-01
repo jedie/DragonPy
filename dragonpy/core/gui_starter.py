@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -10,33 +9,17 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
 
-import subprocess
-import sys
 import logging
-import click
-import os
-from dragonpy.utils.starter import run_dragonpy, run_mc6809
+import sys
+import tkinter as tk
 
-if sys.version_info[0] == 2:
-    # Python 2
-    import Tkinter as tk
-    # import tkFileDialog as filedialog
-    # import tkMessageBox as messagebox
-    # import ScrolledText as scrolledtext
-    # import tkFont as TkFont
-else:
-    # Python 3
-    import tkinter as tk
-    # from tkinter import filedialog
-    # from tkinter import messagebox
-    # from tkinter import scrolledtext
-    # from tkinter import font as TkFont
+import click
 
 import dragonpy
-from dragonpy.utils.humanize import get_python_info
 from dragonpy.core import configs
+from dragonpy.utils.humanize import get_python_info
+from dragonpy.utils.starter import run_dragonpy, run_mc6809
 
 
 log = logging.getLogger(__name__)
@@ -59,7 +42,7 @@ VERBOSITY_STRINGS = []
 VERBOSITY_DEFAULT = None
 
 for no, text in sorted(VERBOSITY_DICT.items()):
-    text = "%3i: %s" % (no, text)
+    text = f"{no:3d}: {text}"
     if no == VERBOSITY_DEFAULT_VALUE:
         VERBOSITY_DEFAULT = text
     VERBOSITY_STRINGS.append(text)
@@ -102,16 +85,15 @@ class RunButtonsFrame(tk.LabelFrame):
         for row, machine_name in enumerate(sorted(self.machine_dict)):
             # print(row, machine_name)
             b = tk.Radiobutton(self, text=machine_name,
-                variable=self.var_machine, value=machine_name)
+                               variable=self.var_machine, value=machine_name)
             b.grid(row=row, column=1, sticky=tk.W)
 
         button_run = tk.Button(self,
-            width=25,
-            text="run machine",
-            command=master.run_machine
-        )
+                               width=25,
+                               text="run machine",
+                               command=master.run_machine
+                               )
         button_run.grid(row=len(self.machine_dict), column=1)
-
 
 
 class ActionButtonsFrame(tk.LabelFrame):
@@ -119,22 +101,22 @@ class ActionButtonsFrame(tk.LabelFrame):
         tk.LabelFrame.__init__(self, master, text="other actions")
         self.grid(**kwargs)
 
-        _column=0
+        _column = 0
 
         button_run = tk.Button(self,
-            width=25,
-            text="BASIC editor",
-            command=master.run_basic_editor
-        )
+                               width=25,
+                               text="BASIC editor",
+                               command=master.run_basic_editor
+                               )
         button_run.grid(row=0, column=_column)
 
-        _column+=1
+        _column += 1
 
         button_run = tk.Button(self,
-            width=25,
-            text="MC6809 benchmark",
-            command=master.run_6809_benchmark
-        )
+                               width=25,
+                               text="MC6809 benchmark",
+                               command=master.run_6809_benchmark
+                               )
         button_run.grid(row=0, column=1)
 
 
@@ -152,11 +134,11 @@ class MultiStatusBar(tk.Frame):
 
     def set_label(self, name, text='', **kwargs):
         defaults = {
-            "ipadx": 2, # add internal padding in x direction
-            "ipady": 2, # add internal padding in y direction
-            "padx": 1, # add padding in x direction
-            "pady": 0, # add padding in y direction
-            "sticky": tk.NSEW, # stick to the cell boundary
+            "ipadx": 2,  # add internal padding in x direction
+            "ipady": 2,  # add internal padding in y direction
+            "padx": 1,  # add padding in x direction
+            "pady": 0,  # add padding in y direction
+            "sticky": tk.NSEW,  # stick to the cell boundary
         }
         defaults.update(kwargs)
         if name not in self.labels:
@@ -192,27 +174,27 @@ class StarterGUI(tk.Tk):
     def add_widgets(self):
         padding = 5
         defaults = {
-            "ipadx": padding, # add internal padding in x direction
-            "ipady": padding, # add internal padding in y direction
-            "padx": padding, # add padding in x direction
-            "pady": padding, # add padding in y direction
-            "sticky": tk.NSEW, # stick to the cell boundary
+            "ipadx": padding,  # add internal padding in x direction
+            "ipady": padding,  # add internal padding in y direction
+            "padx": padding,  # add padding in x direction
+            "pady": padding,  # add padding in y direction
+            "sticky": tk.NSEW,  # stick to the cell boundary
         }
 
         self.frame_settings = SettingsFrame(self, column=0, row=0, **defaults)
         self.frame_run_buttons = RunButtonsFrame(self, column=1, row=0, **defaults)
         self.frame_action_buttons = ActionButtonsFrame(self, column=0, row=1, columnspan=2, **defaults)
         self.status_bar = MultiStatusBar(self, column=0, row=2, columnspan=2,
-            sticky=tk.NSEW,
-        )
+                                         sticky=tk.NSEW,
+                                         )
 
     def set_status_bar(self):
         defaults = {
-            "padx": 5, # add padding in x direction
-            "pady": 0, # add padding in y direction
+            "padx": 5,  # add padding in x direction
+            "pady": 0,  # add padding in y direction
         }
         self.status_bar.set_label("python_version", get_python_info(), **defaults)
-        self.status_bar.set_label("dragonpy_version", "DragonPy v%s" % dragonpy.__version__, **defaults)
+        self.status_bar.set_label("dragonpy_version", f"DragonPy v{dragonpy.__version__}", **defaults)
 
     def _print_run_info(self, txt):
         click.echo("\n")
@@ -225,10 +207,10 @@ class StarterGUI(tk.Tk):
         """
         verbosity = self.frame_settings.var_verbosity.get()
         verbosity_no = VERBOSITY_DICT2[verbosity]
-        log.debug("Verbosity: %i (%s)" % (verbosity_no, verbosity))
+        log.debug(f"Verbosity: {verbosity_no:d} ({verbosity})")
 
         args = (
-            "--verbosity", "%s" % verbosity_no
+            "--verbosity", f"{verbosity_no}"
             # "--log_list",
             # "--log",
             # "dragonpy.components.cpu6809,40",
@@ -258,7 +240,6 @@ class StarterGUI(tk.Tk):
         self._print_run_info("Run MC6809 benchmark")
         click.echo("\n")
         run_mc6809("benchmark", verbose=True)
-
 
 
 if __name__ == "__main__":

@@ -1,37 +1,38 @@
 # Config file for automatic testing at travis-ci.org
 
 language: python
-sudo: false
+cache: pip
 
-python:
-    - "2.7"
-    - "3.4"
-    - "pypy"
-    - "pypy3"
+matrix:
+  include:
+  - os: linux
+    python: 3.6
+    env: TOXENV=py36
+  - os: linux
+    python: 3.7
+    env: TOXENV=py37
+  - os: linux
+    python: 3.8
+    env: TOXENV=py38
+  - os: linux
+    python: pypy3
+  # TODO:
+  #- os: osx
+  #  language: generic
 
 install:
-    - pip install --upgrade pip
-    - pip install .
-    - pip install coveralls
+  - make install-poetry
+  - source $HOME/.poetry/env
+  - make install
+  - poetry run pip freeze
+  - make tox-listenvs
 
 script:
-    - coverage run --source=dragonpy ./setup.py nosetests
+  - if [ "$TOXENV" == "" ]; then make pytest; fi
+  - if [ "$TOXENV" != "" ]; then make tox; fi
+  - if [ "$TOXENV" != "" ]; then make lint; fi
 
 after_success:
-    - coveralls
-
-# blacklist
-branches:
-  except:
-    - wip
-    - WIP
-    - experimental
-
-# whitelist
-#branches:
-#  only:
-#    - master
-#    - stable
-
-notifications:
-    irc: "irc.freenode.org#pylucid"
+  - coveralls
+  # https://github.com/codecov/codecov-bash
+  - bash <(curl -s https://codecov.io/bash)

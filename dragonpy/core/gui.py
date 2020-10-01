@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -10,48 +9,30 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
 
-import sys
-import time
 import logging
 import string
-import six
+import sys
+import time
+import tkinter as tk
+from tkinter import font as TkFont
+from tkinter import messagebox, scrolledtext
 
-xrange = six.moves.xrange
-
-try:
-    # Python 3
-    import queue
-    import tkinter as tk
-    from tkinter import filedialog
-    from tkinter import messagebox
-    from tkinter import scrolledtext
-    from tkinter import font as TkFont
-except ImportError:
-    # Python 2
-    import Queue as queue
-    import Tkinter as tk
-    import tkFileDialog as filedialog
-    import tkMessageBox as messagebox
-    import ScrolledText as scrolledtext
-    import tkFont as TkFont
-
-from basic_editor.editor import EditorWindow
-
-from dragonpy.Dragon32.keyboard_map import inkey_from_tk_event, add_to_input_queue
 from dragonlib.utils.auto_shift import invert_shift
+
 import dragonpy
-from dragonpy.Dragon32.keyboard_map import inkey_from_tk_event, add_to_input_queue
+from basic_editor.editor import EditorWindow
 from dragonpy.core.gui_starter import MultiStatusBar
+from dragonpy.Dragon32.gui_config import BaseTkinterGUIConfig, RuntimeCfg
+from dragonpy.Dragon32.keyboard_map import add_to_input_queue, inkey_from_tk_event
 from dragonpy.Dragon32.MC6847 import MC6847_TextModeCanvas
-from dragonpy.Dragon32.gui_config import RuntimeCfg, BaseTkinterGUIConfig
-from dragonpy.utils.humanize import locale_format_number, get_python_info
+from dragonpy.utils.humanize import get_python_info, locale_format_number
+
 
 log = logging.getLogger(__name__)
 
 
-class BaseTkinterGUI(object):
+class BaseTkinterGUI:
     """
     The complete Tkinter GUI window
     """
@@ -63,12 +44,13 @@ class BaseTkinterGUI(object):
         # Queue to send keyboard inputs to CPU Thread:
         self.user_input_queue = user_input_queue
 
+        self.max_ops = self.cfg.cfg_dict["max_ops"]
         self.op_delay = 0
         self.burst_op_count = 100
-        self.cpu_after_id = None # Used to call CPU OP burst loop
-        self.target_burst_duration = 0.1 # Duration how long should a CPU Op burst loop take
+        self.cpu_after_id = None  # Used to call CPU OP burst loop
+        self.target_burst_duration = 0.1  # Duration how long should a CPU Op burst loop take
 
-        self.init_statistics() # Called also after reset
+        self.init_statistics()  # Called also after reset
 
         self.root = tk.Tk(className="DragonPy")
         # self.root.config(font="Helvetica 16 bold italic")
@@ -86,7 +68,7 @@ class BaseTkinterGUI(object):
             size=11, weight='normal'
         )
 
-        self.status = tk.StringVar(value="startup %s...\n" % self.cfg.MACHINE_NAME)
+        self.status = tk.StringVar(value=f"startup {self.cfg.MACHINE_NAME}...\n")
         self.status_widget = tk.Label(
             self.root, textvariable=self.status, text="Info:", borderwidth=1,
             font=menu_tk_font
@@ -94,10 +76,10 @@ class BaseTkinterGUI(object):
         self.status_widget.grid(row=1, column=0)
 
         self.status_bar = MultiStatusBar(self.root, row=2, column=0,
-            sticky=tk.NSEW,
-        )
+                                         sticky=tk.NSEW,
+                                         )
         self.status_bar.set_label("python_version", get_python_info())
-        self.status_bar.set_label("dragonpy_version", "DragonPy v%s" % dragonpy.__version__)
+        self.status_bar.set_label("dragonpy_version", f"DragonPy v{dragonpy.__version__}")
 
         self.menubar = tk.Menu(self.root)
 
@@ -125,33 +107,33 @@ class BaseTkinterGUI(object):
         helpmenu.add_command(label="about", command=self.menu_event_about)
         self.menubar.add_cascade(label="help", menu=helpmenu)
 
-        self.auto_shift=True # auto shift all input characters?
+        self.auto_shift = True  # auto shift all input characters?
 
     def init_statistics(self):
         self.op_count = 0
         self.last_op_count = 0
         self.last_cpu_cycles = 0
-        self.cpu_cycles_update_interval = 1 # Fequency for update GUI status information
+        self.cpu_cycles_update_interval = 1  # Fequency for update GUI status information
         self.next_cpu_cycle_update = time.time() + self.cpu_cycles_update_interval
         self.last_cycles_per_second = sys.maxsize
 
     def menu_event_about(self):
         messagebox.showinfo("DragonPy",
-            "DragonPy the OpenSource emulator written in python.\n"
-            "more info: https://github.com/jedie/DragonPy"
-        )
+                            "DragonPy the OpenSource emulator written in python.\n"
+                            "more info: https://github.com/jedie/DragonPy"
+                            )
 
     def menu_event_help(self):
         messagebox.showinfo("Help",
-            "Please read the README:"
-            "https://github.com/jedie/DragonPy#readme"
-        )
+                            "Please read the README:"
+                            "https://github.com/jedie/DragonPy#readme"
+                            )
 
     def exit(self):
         log.critical("DragonTkinterGUI.exit()")
         try:
             self.root.destroy()
-        except:
+        except BaseException:
             pass
 
     # -----------------------------------------------------------------------------------------
@@ -170,7 +152,7 @@ class BaseTkinterGUI(object):
     # -----------------------------------------------------------------------------------------
 
     def status_paused(self):
-        self.status.set("%s paused.\n" % self.cfg.MACHINE_NAME)
+        self.status.set(f"{self.cfg.MACHINE_NAME} paused.\n")
 
     def command_cpu_pause(self):
         if self.cpu_after_id is not None:
@@ -185,15 +167,15 @@ class BaseTkinterGUI(object):
             self.cpu_interval(interval=1)
             self.cpu_menu.entryconfig(index=0, state=tk.NORMAL)
             self.cpu_menu.entryconfig(index=1, state=tk.DISABLED)
-            self.init_statistics() # Reset statistics
+            self.init_statistics()  # Reset statistics
 
     def command_cpu_soft_reset(self):
         self.machine.cpu.reset()
-        self.init_statistics() # Reset statistics
+        self.init_statistics()  # Reset statistics
 
     def command_cpu_hard_reset(self):
         self.machine.hard_reset()
-        self.init_statistics() # Reset statistics
+        self.init_statistics()  # Reset statistics
 
     # -----------------------------------------------------------------------------------------
 
@@ -201,7 +183,7 @@ class BaseTkinterGUI(object):
         add_to_input_queue(self.user_input_queue, txt)
 
     def wait_until_input_queue_empty(self):
-        for count in xrange(1, 10):
+        for count in range(1, 10):
             self.cpu_interval()
             if self.user_input_queue.empty():
                 log.critical("user_input_queue is empty, after %i burst runs, ok.", count)
@@ -228,8 +210,8 @@ class BaseTkinterGUI(object):
 
     def event_key_pressed(self, event):
         log.critical("event.char: %-6r event.keycode: %-3r event.keysym: %-11r event.keysym_num: %5r",
-                event.char, event.keycode, event.keysym, event.keysym_num
-        )
+                     event.char, event.keycode, event.keysym, event.keysym_num
+                     )
         inkey = inkey_from_tk_event(event, auto_shift=self.auto_shift)
         log.critical("inkey: %r", inkey)
         self.user_input_queue.put(inkey)
@@ -274,16 +256,16 @@ class BaseTkinterGUI(object):
         cycles_per_sec = new_cycles / duration
 
         msg = (
-                  "%s cylces/sec (burst op count: outer: %s - inner: %s)\n"
-                  "%i CPU interval calls"
-              ) % (
-                  locale_format_number(cycles_per_sec),
+            "%s cylces/sec (burst op count: outer: %s - inner: %s)\n"
+            "%i CPU interval calls"
+        ) % (
+            locale_format_number(cycles_per_sec),
 
-                  locale_format_number(self.machine.cpu.outer_burst_op_count),
-                  locale_format_number(self.machine.cpu.inner_burst_op_count),
+            locale_format_number(self.machine.cpu.outer_burst_op_count),
+            locale_format_number(self.machine.cpu.inner_burst_op_count),
 
-                  self.cpu_interval_calls,
-              )
+            self.cpu_interval_calls,
+        )
 
         if self.runtime_cfg.speedlimit:
             msg += (
@@ -295,6 +277,9 @@ class BaseTkinterGUI(object):
                     cycles_per_sec - self.runtime_cfg.cycles_per_sec
                 ),
             )
+
+        if self.max_ops and self.machine.cpu.cycles >= self.max_ops:
+            self.exit()
 
         self.status.set(msg)
 
@@ -326,11 +311,11 @@ class DragonTkinterGUI(BaseTkinterGUI):
     """
 
     def __init__(self, *args, **kwargs):
-        super(DragonTkinterGUI, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
         machine_name = self.cfg.MACHINE_NAME
         self.root.title(
-            "%s - Text Display 32 columns x 16 rows" % machine_name)
+            f"{machine_name} - Text Display 32 columns x 16 rows")
 
         self.display = MC6847_TextModeCanvas(self.root)
         self.display.canvas.grid(row=0, column=0)
@@ -382,7 +367,7 @@ class DragonTkinterGUI(BaseTkinterGUI):
 
     def command_inject_and_run_into_DragonPy(self):
         self.command_inject_into_DragonPy()
-        self.add_user_input_and_wait("\n") # FIXME: Sometimes this input will be "ignored"
+        self.add_user_input_and_wait("\n")  # FIXME: Sometimes this input will be "ignored"
         self.add_user_input_and_wait("RUN\n")
 
     # ##########################################################################
@@ -399,9 +384,9 @@ class DragonTkinterGUI(BaseTkinterGUI):
 
         def format_dump(dump, start_addr, end_addr):
             lines = []
-            for addr, value in zip(range(start_addr, end_addr + 1), dump):
+            for addr, value in zip(list(range(start_addr, end_addr + 1)), dump):
                 log.critical("$%04x: $%02x (dez.: %i)", addr, value, value)
-                lines.append("$%04x: $%02x (dez.: %i)" % (addr, value, value))
+                lines.append(f"${addr:04x}: ${value:02x} (dez.: {value:d})")
             return lines
 
         lines = format_dump(dump, start_addr, end_addr)
@@ -410,9 +395,9 @@ class DragonTkinterGUI(BaseTkinterGUI):
 
 class ScrolledTextGUI(BaseTkinterGUI):
     def __init__(self, *args, **kwargs):
-        super(ScrolledTextGUI, self).__init__(*args, **kwargs)
+        super().__init__(*args, **kwargs)
 
-        self.root.title("DragonPy - %s" % self.cfg.MACHINE_NAME)
+        self.root.title(f"DragonPy - {self.cfg.MACHINE_NAME}")
 
         self.text = scrolledtext.ScrolledText(
             master=self.root, height=30, width=80
@@ -468,5 +453,3 @@ class ScrolledTextGUI(BaseTkinterGUI):
 
             # Set cursor to the END position:
             self.text.mark_set(tk.INSERT, tk.END)
-
-

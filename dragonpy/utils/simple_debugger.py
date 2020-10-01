@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 """
     borrowed from http://code.activestate.com/recipes/52215/
@@ -12,13 +11,11 @@
         print_exc_plus()
 """
 
-from __future__ import absolute_import, division, print_function
-import click
-import six
-xrange = six.moves.xrange
 
 import sys
 import traceback
+
+import click
 
 
 MAX_CHARS = 256
@@ -29,8 +26,8 @@ def print_exc_plus():
     Print the usual traceback information, followed by a listing of all the
     local variables in each frame.
     """
-    sys.stderr.flush() # for eclipse
-    sys.stdout.flush() # for eclipse
+    sys.stderr.flush()  # for eclipse
+    sys.stdout.flush()  # for eclipse
 
     tb = sys.exc_info()[2]
     while True:
@@ -61,13 +58,9 @@ def print_exc_plus():
         fg="blue", bold=True
     )
     for frame in stack:
-        msg = 'File "%s", line %i, in %s' % (
-            frame.f_code.co_filename,
-            frame.f_lineno,
-            frame.f_code.co_name,
-        )
+        msg = f'File "{frame.f_code.co_filename}", line {frame.f_lineno:d}, in {frame.f_code.co_name}'
         msg = click.style(msg, fg="white", bold=True, underline=True)
-        click.echo("\n *** %s" % msg)
+        click.echo(f"\n *** {msg}")
 
         for key, value in list(frame.f_locals.items()):
             click.echo("%30s = " % click.style(key, bold=True), nl=False)
@@ -75,14 +68,14 @@ def print_exc_plus():
             # printer! Calling str() on an unknown object could cause an
             # error we don't want.
             if isinstance(value, int):
-                value = "$%x (decimal: %i)" % (value, value)
+                value = f"${value:x} (decimal: {value:d})"
             else:
                 value = repr(value)
 
             if len(value) > MAX_CHARS:
-                value = "%s..." % value[:MAX_CHARS]
+                value = f"{value[:MAX_CHARS]}..."
 
             try:
                 click.echo(value)
-            except:
+            except BaseException:
                 click.echo("<ERROR WHILE PRINTING VALUE>")

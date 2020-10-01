@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     CoCo config
     ================
@@ -9,22 +7,19 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
-
 
 import logging
 
 from dragonlib.api import CoCoAPI
-from dragonpy.CoCo.CoCo2b_rom import CoCo2b_Basic13_ROM, \
-    CoCo2b_ExtendedBasic11_ROM
 
+from dragonpy.CoCo.CoCo2b_rom import CoCo2b_Basic13_ROM, CoCo2b_ExtendedBasic11_ROM
 from dragonpy.CoCo.mem_info import get_coco_meminfo
+from dragonpy.core.configs import COCO2B
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.keyboard_map import get_coco_keymatrix_pia_result
-from dragonpy.core.configs import COCO2B
 
 
-log=logging.getLogger(__name__)
+log = logging.getLogger(__name__)
 
 
 class CoCo2bCfg(Dragon32Cfg):
@@ -46,7 +41,7 @@ class CoCo2bCfg(Dragon32Cfg):
 #     RAM_END = 0x0FFF # 4KB # BASIC will always raise a OM ERROR!
 #     RAM_END = 0x1FFF # 8KB # BASIC will always raise a OM ERROR!
 #     RAM_END = 0x3FFF # 16KB # usable
-    RAM_END = 0x7FFF # 32KB
+    RAM_END = 0x7FFF  # 32KB
 
     ROM_START = 0x8000
     ROM_END = 0xFFFF
@@ -64,14 +59,14 @@ class CoCo2bCfg(Dragon32Cfg):
     )
 
     def __init__(self, cmd_args):
-        super(CoCo2bCfg, self).__init__(cmd_args)
+        super().__init__(cmd_args)
 
         self.machine_api = CoCoAPI()
 
         if self.verbosity <= logging.ERROR:
             self.mem_info = get_coco_meminfo()
 
-        self.periphery_class = None# Dragon32Periphery
+        self.periphery_class = None  # Dragon32Periphery
 
         self.memory_byte_middlewares = {
             # (start_addr, end_addr): (read_func, write_func)
@@ -113,6 +108,4 @@ class CoCo2bCfg(Dragon32Cfg):
 config = CoCo2bCfg
 
 
-#------------------------------------------------------------------------------
-
-
+# ------------------------------------------------------------------------------

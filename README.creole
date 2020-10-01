@@ -18,10 +18,11 @@ Tandy TRS-80 Color Computer 2b with CPython 2 under Windows:
 
 {{https://raw.githubusercontent.com/jedie/jedie.github.io/master/screenshots/DragonPy/20150820_DragonPy_CoCo2b_CPython2_Win_01.png|screenshot CoCo under Windows}}
 
+(Note: Python 2 support was removed)
 
 DragonPy is written in Python.
 It's platform independent and runs with Python and PyPy under Linux/Windows/OSX/...
-It's tested with Python 2.7.x and 3.4, PyPy2 and PyPy3.
+It's tested with Python 3.x, PyPy
 
 DragonPy will not be a second XRoar written in Python.
 This project is primarily to lean and understand.
@@ -50,7 +51,7 @@ The Hardware are //only// the 6809 CPU, a 6522 Versatile Interface Adapter and t
 Current state is completely not usable. The 6522 is only a dummy implementation.
 It makes only sense to display some trace lines, e.g.:
 {{{
-(DragonPy_env)~/DragonPy_env$ bin/python src/dragonpy/DragonPy_CLI.py --verbosity 5 --machine=Vectrex run --trace --max_ops 1
+DragonPy$ poetry run DragonPy --verbosity 0 --machine=Vectrex run --trace --max_ops=1
 }}}
 
 
@@ -191,10 +192,10 @@ All needed ROM files, will be downloaded automatically.
 
 The files will be downloaded from:
 
-| Dragon 32 + 64 | http://archive.worldofdragon.org/archive/index.php?dir=Roms/Dragon/
-| CoCo 2b        | http://mess.oldos.net/
-| Multicomp      | http://searle.hostei.com/grant/Multicomp/
-| Simple6809     | http://searle.hostei.com/grant/6809/Simple6809.html
+| Dragon 32 + 64 | http://archive.worldofdragon.org/archive/index.php?dir=Software/Dragon/Dragon%20Data%20Ltd/Dragon%20Firmware/
+| CoCo 2b        | http://www.roust-it.dk/coco/roms/
+| Multicomp      | http://searle.x10host.com/Multicomp/index.html
+| Simple6809     | http://searle.x10host.com/6809/Simple6809.html
 
 sbc09 and vectrex ROMs are included.
 
@@ -408,7 +409,7 @@ Some code based on:
 An Apple ][ emulator in Python
  * Author: James Tauber
  * https://github.com/jtauber/applepy
- * License: MIT 
+ * License: MIT
 
 
 **XRoar**
@@ -430,7 +431,7 @@ Page output and find dimensions of console.
 **srecutils.py**
 Motorola S-Record utilities
  * Author: Gabriel Tremblay
- * License: GNU GPL v2 
+ * License: GNU GPL v2
  * Homepage: https://github.com/gabtremblay/pysrec
  * Stored here: [[https://github.com/jedie/DragonPy/blob/master/dragonpy/utils/srecord_utils.py|/dragonpy/utils/srecord_utils.py]]
 

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# coding: utf-8
 
 """
     Utilities around bit manipulations
@@ -13,8 +12,6 @@
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
-
-from __future__ import absolute_import, division, print_function
 
 
 def is_bit_set(value, bit):
@@ -132,7 +129,6 @@ def invert_byte(value):
     '11001100'
     """
     return 2 ** 8 + ~value
-
 
 
 if __name__ == "__main__":

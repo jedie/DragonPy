@@ -1,4 +1,3 @@
-
 # HAck!
 
 
@@ -2736,6 +2735,7 @@ FFFE: E400                            fdb reset
 FFFF:
 """
 
+
 def nice_hex(v):
     """
     >>> nice_hex(0x1)
@@ -2744,46 +2744,47 @@ def nice_hex(v):
     '$0123'
     """
     if v < 0x100:
-        return "0x%02x" % v
+        return f"${v:02x}"
     if v < 0x10000:
-        return "0x%04x" % v
-    return "0x%x" % v
+        return f"${v:04x}"
+    return f"${v:x}"
 
-mem_info = []
-block_comment = ""
-for line in txt.splitlines():
-    line = line.strip()
-    #~ print len(line), line
-    if block_comment != "":
-        if len(line) == 5 or line[7]!=" ":
-            block_end = last_address
-            #~ print "***End block: %x-%x" % (block_start, block_end)
-            #~ print "+++", block_comment
+
+def main():
+    mem_info = []
+    block_comment = ""
+    block_start = 0
+    last_address = 0
+    for line in txt.splitlines():
+        line = line.strip()
+        # ~ print len(line), line
+        if block_comment != "":
+            if len(line) == 5 or line[7] != " ":
+                block_end = last_address
+                # ~ print "***End block: %x-%x" % (block_start, block_end)
+                # ~ print "+++", block_comment
+                mem_info.append(
+                    (block_start, block_end, block_comment.strip())
+                )
+                block_comment = ""
+        elif "*" in line:
+            block_start = int(line[:4], 16)
+            # ~ print "Block start!"
+
+        if "*" in line:
+            block_comment += line.rsplit("*", 1)[1]
+
+        last_address = int(line[:4], 16)
+
+        if ";" in line:
+            comment = line.rsplit(";", 1)[1].strip()
             mem_info.append(
-                (block_start, block_end, block_comment.strip())
+                (last_address, last_address, comment)
             )
-            block_comment = ""
-    elif "*" in line:
-        block_start = int(line[:4], 16)
-        #~ print "Block start!"
 
-    if "*" in line:
-        block_comment += line.rsplit("*", 1)[1]
+    for line in sorted(mem_info):
+        print(f'({nice_hex(line[0])}, {nice_hex(line[1])}, "{line[2]}"),')
 
-    last_address = int(line[:4], 16)
 
-    if ";" in line:
-        comment = line.rsplit(";", 1)[1].strip()
-        mem_info.append(
-            (last_address,last_address, comment)
-        )
-
-for line in sorted(mem_info):
-    print('(%s, %s, "%s"),' % (
-        nice_hex(line[0]),
-        nice_hex(line[1]),
-        line[2]
-    ))
-
-import sys
-sys.exit()
+if __name__ == "__main__":
+    main()

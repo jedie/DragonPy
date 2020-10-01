@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     DragonPy - Dragon 32 emulator in Python
@@ -12,19 +11,12 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
 
 import logging
+import tkinter
 
 
 log = logging.getLogger(__name__)
-
-try:
-    # Python 3
-    import tkinter
-except ImportError:
-    # Python 2
-    import Tkinter as tkinter
 
 
 class MultiStatusBar(tkinter.Frame):

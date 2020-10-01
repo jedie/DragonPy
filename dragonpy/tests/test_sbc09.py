@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf-8
 
 """
     6809 unittests
@@ -17,14 +16,8 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-from __future__ import absolute_import, division, print_function
-
-import six
-xrange = six.moves.xrange
 
 import logging
-import sys
-import unittest
 
 from dragonpy.tests.test_base import Test6809_sbc09_Base
 from dragonpy.utils import srecord_utils
@@ -32,26 +25,19 @@ from dragonpy.utils import srecord_utils
 
 log = logging.getLogger("DragonPy")
 
-PY2 = sys.version_info[0] == 2
-
-if PY2:
-    string_type = basestring
-else:
-    string_type = str
-
 
 def extract_s_record_data(srec):
     """
     Verify checksum and return the data from a srecord.
     If checksum failed, a Error will be raised.
     """
-    assert isinstance(srec, string_type)
-    blocks = ["S%s" % b for b in srec.split("S") if b]
+    assert isinstance(srec, str)
+    blocks = [f"S{b}" for b in srec.split("S") if b]
 
     result = []
     for block in blocks:
         record_type, data_len, addr, data, checksum = srecord_utils.parse_srec(block)
-        if record_type in ("S1", "S2", "S3"): # Data lines
+        if record_type in ("S1", "S2", "S3"):  # Data lines
             result.append(data)
 #        print record_type, data_len, addr, data, checksum
 
@@ -59,7 +45,7 @@ def extract_s_record_data(srec):
         int_checksum = srecord_utils.compute_srec_checksum(raw_offset_srec)
         checksum2 = srecord_utils.int_to_padded_hex_byte(int_checksum)
         if not checksum == checksum2:
-            raise ValueError("Wrong checksum %s in line: %s" % (checksum, block))
+            raise ValueError(f"Wrong checksum {checksum} in line: {block}")
 
     return result
 
@@ -69,49 +55,49 @@ def split2chunks(seq, size):
     >>> split2chunks("ABCEDFGH", 3)
     ['ABC', 'EDF', 'GH']
     """
-    return [seq[pos:pos + size] for pos in xrange(0, len(seq), size)]
+    return [seq[pos:pos + size] for pos in range(0, len(seq), size)]
 
 
 class Test_sbc09(Test6809_sbc09_Base):
 
-#    @classmethod
-#    def setUpClass(cls, cmd_args=None):
-#        cmd_args = UnittestCmdArgs
-#        cmd_args.trace = True # enable Trace output
-#        super(Test_sbc09, cls).setUpClass(cmd_args)
+    #    @classmethod
+    #    def setUpClass(cls, cmd_args=None):
+    #        cmd_args = UnittestCmdArgs
+    #        cmd_args.trace = True # enable Trace output
+    #        super(Test_sbc09, cls).setUpClass(cmd_args)
 
     def test_calculate_hex_positive(self):
         """
         Calculate simple expression in hex with + and -
         """
-        for i in xrange(20):
-            self.setUp() # Reset CPU
+        for i in range(20):
+            self.setUp()  # Reset CPU
             self.periphery.add_to_input_queue(
-                 'H100+%X\r\n' % i
+                f'H100+{i:X}\r\n'
             )
             op_call_count, cycles, output = self._run_until_newlines(
                 newline_count=2, max_ops=700
             )
 #            print op_call_count, cycles, output
             self.assertEqual(output[1:], [
-                '%04X\r\n' % (0x100 + i)
+                f'{256 + i:04X}\r\n'
             ])
 
     def test_calculate_hex_negative(self):
         """
         Calculate simple expression in hex with + and -
         """
-        for i in xrange(20):
-            self.setUp() # Reset CPU
+        for i in range(20):
+            self.setUp()  # Reset CPU
             self.periphery.add_to_input_queue(
-                 'H100-%X\r\n' % i
+                f'H100-{i:X}\r\n'
             )
             op_call_count, cycles, output = self._run_until_newlines(
                 newline_count=2, max_ops=700
             )
 #            print op_call_count, cycles, output
             self.assertEqual(output[1:], [
-                '%04X\r\n' % (0x100 - i)
+                f'{256 - i:04X}\r\n'
             ])
 
     def test_dump_registers(self):
@@ -129,10 +115,10 @@ class Test_sbc09(Test6809_sbc09_Base):
     def test_S_records(self):
         """ Dump memory region as Motorola S records """
 
-        start_addr = 0xE400 # start of ROM
+        start_addr = 0xE400  # start of ROM
         byte_count = 256
 
-        command = 'ss%04X,%X\r\n' % (start_addr, byte_count)
+        command = f'ss{start_addr:04X},{byte_count:X}\r\n'
 #        print command
 
         self.periphery.add_to_input_queue(command)
@@ -157,11 +143,8 @@ class Test_sbc09(Test6809_sbc09_Base):
             f.seek(start_addr - 0x8000)
             reference = f.read(byte_count)
 
-        #reference = [ord(char) for char in reference]
-        if PY2:
-            reference = "".join(["%02X" % ord(byte) for byte in reference])
-        else:
-            reference = "".join(["%02X" % byte for byte in reference])
+        # reference = [ord(char) for char in reference]
+        reference = "".join(["%02X" % byte for byte in reference])
 
         # split into chunks of 32 bytes (same a extraced S-Record)
         # for better error messages in assertEqual() ;)
@@ -212,4 +195,3 @@ class Test_sbc09(Test6809_sbc09_Base):
             'E413 8EE53B     LDX   #$E53B\r\n',
             'E416 CE0000     LDU   #$0000\r\n'
         ])
-

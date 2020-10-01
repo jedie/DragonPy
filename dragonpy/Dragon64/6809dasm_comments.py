@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 
+import argparse
 import sys
 import time
-import argparse
 
 
-class MemoryInfo2Comments(object):
+class MemoryInfo2Comments:
     def __init__(self, rom_info_file):
         self.mem_info = self._get_rom_info(rom_info_file)
 
@@ -15,14 +15,14 @@ class MemoryInfo2Comments(object):
 
     def _get_rom_info(self, rom_info_file):
         sys.stderr.write(
-            "Read ROM Info file: %r\n" % rom_info_file.name
+            f"Read ROM Info file: {rom_info_file.name!r}\n"
         )
         rom_info = []
         next_update = time.time() + 0.5
         for line_no, line in enumerate(rom_info_file):
             if time.time() > next_update:
                 sys.stderr.write(
-                    "\rRead %i lines..." % line_no
+                    f"\rRead {line_no:d} lines..."
                 )
                 sys.stderr.flush()
                 next_update = time.time() + 0.5
@@ -48,7 +48,7 @@ class MemoryInfo2Comments(object):
                 (start_addr, end_addr, comment.strip())
             )
         sys.stderr.write(
-            "ROM Info file: %r readed.\n" % rom_info_file.name
+            f"ROM Info file: {rom_info_file.name!r} readed.\n"
         )
         return rom_info
 
@@ -57,7 +57,7 @@ class MemoryInfo2Comments(object):
             comment = comment.replace('"', '\\"')
             comment = comment.replace('$', '\\$')
             outfile.write(
-                '\tcomment=0x%x,"%s" \\\n' % (start_addr, comment)
+                f'\tcomment=0x{start_addr:x},"{comment}" \\\n'
             )
 #            outfile.write(
 #                '\tlabel="%s",0x%x \\\n' % (comment, start_addr)
@@ -74,19 +74,19 @@ def get_cli_args():
         description="create comment statements from rom info for 6809dasm.pl"
     )
     parser.add_argument('infile', nargs='?',
-        type=argparse.FileType('r'), default=sys.stdin,
-        help="ROM Addresses info file or stdin"
-    )
+                        type=argparse.FileType('r'), default=sys.stdin,
+                        help="ROM Addresses info file or stdin"
+                        )
     parser.add_argument('outfile', nargs='?',
-        type=argparse.FileType('w'), default=sys.stdout,
-        help="output file or stdout"
-    )
+                        type=argparse.FileType('w'), default=sys.stdout,
+                        help="output file or stdout"
+                        )
     args = parser.parse_args()
     return args
 
 
 if __name__ == '__main__':
-#    sys.argv += ["../ROM Addresses/Dragon32.txt"]
+    #    sys.argv += ["../ROM Addresses/Dragon32.txt"]
 
     args = get_cli_args()
     main(args)

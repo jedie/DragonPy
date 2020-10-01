@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf-8
 
 """
     Filter Xroar trace files.
@@ -10,7 +9,6 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import os
 import time
 import sys
 import argparse
@@ -30,7 +28,7 @@ def cc_value2txt(status):
     )
 
 
-class MemoryInfo(object):
+class MemoryInfo:
     def __init__(self, rom_info_file):
         self.mem_info = self._get_rom_info(rom_info_file)
         self._cache = {}
@@ -85,7 +83,7 @@ class MemoryInfo(object):
             pass
 
         shortest = None
-        size = sys.maxint
+        size = sys.maxsize
         for start, end, txt in self.mem_info:
             if not start <= addr <= end:
                 continue
@@ -100,14 +98,14 @@ class MemoryInfo(object):
         else:
             start, end, txt = shortest
             if start == end:
-                info = "$%x: %s" % (addr, txt)
+                info = f"${addr:x}: {txt}"
             else:
-                info = "$%x: $%x-$%x - %s" % (addr, start, end, txt)
+                info = f"${addr:x}: ${start:x}-${end:x} - {txt}"
         self._cache[addr] = info
         return info
 
 
-class XroarTraceInfo(object):
+class XroarTraceInfo:
     def __init__(self, infile, outfile, add_cc):
         self.infile = infile
         self.outfile = outfile
@@ -141,7 +139,7 @@ class XroarTraceInfo(object):
                     try:
                         cc = int(cc, 16)
                     except ValueError as err:
-                        msg = "ValueError: %s in line: %s" % (err, line)
+                        msg = f"ValueError: {err} in line: {line}"
                         line += "| %s" % msg
                     else:
                         cc_info = cc_value2txt(cc)
@@ -149,8 +147,9 @@ class XroarTraceInfo(object):
 
             addr_info = rom_info.get_shortest(addr)
             self.outfile.write(
-                "%s | %s\n" % (line, addr_info)
+                f"{line} | {addr_info}\n"
             )
+
 
 def main(args):
     xt = XroarTraceInfo(args.infile, args.outfile, args.add_cc)
@@ -161,22 +160,22 @@ def main(args):
 def get_cli_args():
     parser = argparse.ArgumentParser(description="Add info to Xroar traces")
     parser.add_argument("infile", nargs="?",
-        type=argparse.FileType("r"),
-        default=sys.stdin,
-        help="Xroar trace file or stdin"
-    )
+                        type=argparse.FileType("r"),
+                        default=sys.stdin,
+                        help="Xroar trace file or stdin"
+                        )
     parser.add_argument("outfile", nargs="?",
-        type=argparse.FileType("w"),
-        default=sys.stdout,
-        help="If given: write output in a new file else: Display it."
-    )
+                        type=argparse.FileType("w"),
+                        default=sys.stdout,
+                        help="If given: write output in a new file else: Display it."
+                        )
     parser.add_argument("--infofile", metavar="FILENAME",
-        type=argparse.FileType("r"),
-        help="ROM Info file from: https://github.com/6809/rom-info ;)",
-    )
+                        type=argparse.FileType("r"),
+                        help="ROM Info file from: https://github.com/6809/rom-info ;)",
+                        )
     parser.add_argument("--add_cc", action="store_true",
-        help="Add CC info like '.F.IN..C' on every line.",
-    )
+                        help="Add CC info like '.F.IN..C' on every line.",
+                        )
     args = parser.parse_args()
     return args
 
@@ -184,5 +183,3 @@ def get_cli_args():
 if __name__ == '__main__':
     args = get_cli_args()
     main(args)
-
-

@@ -1,5 +1,4 @@
 #!/usr/bin/env python
-# encoding:utf8
 
 """
     Tkinter ScrolledText widget with horizontal and vertical scroll bars.
@@ -8,30 +7,20 @@
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
-from __future__ import absolute_import, division, print_function
+
 
 import logging
-log = logging.getLogger(__name__)
+import tkinter
 
-try:
-    # Python 3
-    import tkinter
-    from tkinter import filedialog
-    from tkinter import messagebox
-    from tkinter import scrolledtext
-except ImportError:
-    # Python 2
-    import Tkinter as tkinter
-    import tkFileDialog as filedialog
-    import tkMessageBox as messagebox
-    import ScrolledText as scrolledtext
+
+log = logging.getLogger(__name__)
 
 
 class ScrolledText(tkinter.Text):
     def __init__(self, master=None, **kw):
         frame = tkinter.Frame(master)
-        frame.rowconfigure(0, weight = 1)
-        frame.columnconfigure(0, weight = 1)
+        frame.rowconfigure(0, weight=1)
+        frame.columnconfigure(0, weight=1)
 
         xscrollbar = tkinter.Scrollbar(frame, orient=tkinter.HORIZONTAL)
         yscrollbar = tkinter.Scrollbar(frame, orient=tkinter.VERTICAL)
@@ -40,7 +29,7 @@ class ScrolledText(tkinter.Text):
         xscrollbar.grid(row=1, column=0, sticky=tkinter.EW)
         yscrollbar.grid(row=0, column=1, sticky=tkinter.NS)
 
-        _defaults_options={"wrap": tkinter.NONE, "undo": tkinter.YES}
+        _defaults_options = {"wrap": tkinter.NONE, "undo": tkinter.YES}
         options = _defaults_options.copy()
         options.update(kw)
         options.update({'yscrollcommand': yscrollbar.set})
@@ -72,9 +61,9 @@ class ScrolledText(tkinter.Text):
         return "break"
 
     def event_copy(self, event=None):
-        if self.tag_ranges(tkinter.SEL): 
-            text = self.get(tkinter.SEL_FIRST, tkinter.SEL_LAST)  
-            self.clipboard_clear()              
+        if self.tag_ranges(tkinter.SEL):
+            text = self.get(tkinter.SEL_FIRST, tkinter.SEL_LAST)
+            self.clipboard_clear()
             self.clipboard_append(text)
         return "break"
 
@@ -82,10 +71,10 @@ class ScrolledText(tkinter.Text):
         text = self.selection_get(selection='CLIPBOARD')
         if text:
             self.insert(tkinter.INSERT, text)
-            self.tag_remove(tkinter.SEL, '1.0', tkinter.END) 
+            self.tag_remove(tkinter.SEL, '1.0', tkinter.END)
             self.see(tkinter.INSERT)
         return "break"
-    
+
     def __str__(self):
         return str(self.frame)
 
@@ -114,15 +103,16 @@ def example():
     root = tkinter.Tk()
 
     text = ScrolledText(master=root, bg='white', height=20)
-    text.insert(tkinter.END, "X"*150)
+    text.insert(tkinter.END, "X" * 150)
     text.insert(tkinter.END, __main__.__doc__)
-    text.insert(tkinter.END, "X"*150)
+    text.insert(tkinter.END, "X" * 150)
     text.focus_set()
     text.grid(row=0, column=0, sticky=tkinter.NSEW)
 
     root.columnconfigure(0, weight=1)
     root.rowconfigure(0, weight=1)
     root.mainloop()
+
 
 if __name__ == "__main__":
     example()

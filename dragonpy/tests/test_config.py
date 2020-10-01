@@ -1,5 +1,3 @@
-# coding: utf-8
-
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
@@ -8,8 +6,6 @@
     :copyleft: 2014 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
-
-from __future__ import absolute_import, division, print_function
 
 
 from dragonpy.core.configs import BaseConfig
@@ -35,4 +31,4 @@ class TestCfg(BaseConfig):
 
     def __init__(self, cfg_dict):
 
-        super(TestCfg, self).__init__(cfg_dict)
+        super().__init__(cfg_dict)

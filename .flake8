@@ -1,0 +1,4 @@
+[flake8]
+exclude = .pytest_cache
+ignore = E501
+max-line-length = 119
