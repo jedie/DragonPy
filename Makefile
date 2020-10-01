@@ -65,11 +65,38 @@ update-rst-readme: ## update README.rst from README.creole
 publish: ## Release new version to PyPi
 	poetry run publish
 
+download-roms:  ## Download/Test only ROM files
+	poetry run DragonPy download-roms
+
 profile:  ## Profile the MC6809 emulation benchmark
 	poetry run MC6809 profile
 
 benchmark:  ## Run MC6809 emulation benchmark
 	poetry run MC6809 benchmark
+
+editor: check-poetry  ## Run only the BASIC editor
+	poetry run DragonPy editor
+
+Vectrex: check-poetry  ## Run GUI with Vectrex emulation (not working, yet!)
+	poetry run DragonPy --machine Vectrex run
+
+sbc09: check-poetry  ## Run GUI with sbc09 ROM emulation
+	poetry run DragonPy --machine sbc09 run
+
+Multicomp6809: check-poetry  ## Run GUI with Multicomp6809 ROM emulation
+	poetry run DragonPy --machine Multicomp6809 run
+
+Simple6809: check-poetry  ## Run GUI with Simple6809 ROM emulation
+	poetry run DragonPy --machine Simple6809 run
+
+CoCo2b: check-poetry  ## Run GUI with CoCo 2b emulation
+	poetry run DragonPy --machine CoCo2b run
+
+Dragon32: check-poetry  ## Run GUI with Dragon 32 emulation
+	poetry run DragonPy --machine Dragon32 run
+
+Dragon64: check-poetry  ## Run GUI with Dragon 64 emulation
+	poetry run DragonPy --machine Dragon64 run
 
 run: check-poetry ## *Run the DragonPy Emulator GUI*
 	poetry run DragonPy
