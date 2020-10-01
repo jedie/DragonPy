@@ -71,4 +71,7 @@ profile:  ## Profile the MC6809 emulation benchmark
 benchmark:  ## Run MC6809 emulation benchmark
 	poetry run MC6809 benchmark
 
+run: check-poetry ## *Run the DragonPy Emulator GUI*
+	poetry run DragonPy
+
 .PHONY: help install lint fix test publish
