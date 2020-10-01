@@ -31,21 +31,21 @@ readme="README.rst"
 
 [tool.poetry.dependencies]
 python = "^3.6"
+dragonlib = "*"
+MC6809 = "*"
 click = "^7.0"
-dragonlib = "^0.1.7"
-MC6809 = "^0.6.0"
 pygments = "^2.5.2"
 
 [tool.poetry.dev-dependencies]
-python-creole = "^1.4.4"
-poetry_publish = "^0.3.0"
-tox = "^3.14.3"
-pytest = "^4.6"
-pytest-cov = "^2.8.1"
-isort = "^4.3.21"
-flake8 = "^3.7.9"
-flynt = "^0.40.1"
-autopep8 = "^1.4.4"
+python-creole = "*"
+poetry_publish = "*"
+tox = "*"
+pytest = "*"
+pytest-cov = "*"
+isort = "*"
+flake8 = "*"
+flynt = "*"
+autopep8 = "*"
 
 [tool.poetry.scripts]
 DragonPy = "dragonpy.core.cli:main"
