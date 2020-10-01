@@ -38,8 +38,6 @@ jobs:
     - name: 'Run tests with Python v${{ matrix.python-version }}'
       run: |
         source $HOME/.poetry/env
-        # work-a-round for ModuleNotFoundError: No module named '_tkinter' on github
-        rm -Rf basic_editor
         make pytest
 
 #    - name: 'Run linters'
