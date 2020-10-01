@@ -261,7 +261,7 @@ class Wave2Bitstream(WaveBase):
         iterate over self.iter_trigger() and
         yield the bits
         """
-        assert self.half_sinus == False  # Allways trigger full sinus cycle
+        assert self.half_sinus is False  # Allways trigger full sinus cycle
 
         # build min/max Hz values
         bit_nul_min_hz = self.cfg.BIT_NUL_HZ - self.cfg.HZ_VARIATION
@@ -402,7 +402,7 @@ class Wave2Bitstream(WaveBase):
             ]
 #             log.log(5, "sign info: %s" % repr(sign_info))
             # yield the mid crossing
-            if in_pos == False and sign_info == pos_null_transit:
+            if in_pos is False and sign_info == pos_null_transit:
                 log.log(5, "sinus curve goes from negative into positive")
 #                 log.debug(" %s | %s | %s" % (previous_values, mid_values, next_values))
                 yield mid_values[mid_index][0]

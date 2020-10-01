@@ -16,10 +16,6 @@ import sys
 import traceback
 
 import click
-import six
-
-
-xrange = six.moves.xrange
 
 
 MAX_CHARS = 256

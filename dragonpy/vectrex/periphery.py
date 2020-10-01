@@ -11,8 +11,6 @@
 
 
 import logging
-import os
-import sys
 
 from dragonpy.components.periphery import PeripheryBase
 from dragonpy.vectrex.MOS6522 import MOS6522VIA
@@ -54,6 +52,6 @@ class VectrexPeriphery(VectrexPeripheryBase):
         super().__init__(cfg, memory, user_input_queue)
 
         # redirect writes to display RAM area 0x0400-0x0600 into display_queue:
-        #DragonDisplayOutputHandler(display_queue, memory)
+        # DragonDisplayOutputHandler(display_queue, memory)
 
 # ------------------------------------------------------------------------------

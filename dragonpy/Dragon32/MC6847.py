@@ -10,27 +10,14 @@
 """
 
 import logging
-
-import six
+import tkinter
 
 from dragonpy.Dragon32 import dragon_charmap
 from dragonpy.Dragon32.dragon_charmap import get_charmap_dict
 from dragonpy.Dragon32.dragon_font import CHARS_DICT, TkImageFont
 
 
-xrange = six.moves.xrange
-
-
 log = logging.getLogger(__name__)
-
-try:
-    # Python 3
-    import tkinter
-    from tkinter import font as TkFont
-except ImportError:
-    # Python 2
-    import tkinter as tkinter
-    import tkinter.font as TkFont
 
 
 class MC6847_TextModeCanvas:

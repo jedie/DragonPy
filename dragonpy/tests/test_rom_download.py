@@ -11,10 +11,7 @@
 
 
 import os
-import sys
 import unittest
-
-from dragonlib.utils.logging_utils import setup_logging
 
 from dragonpy.CoCo.CoCo2b_rom import CoCo2b_Basic13_ROM, CoCo2b_ExtendedBasic11_ROM
 from dragonpy.Dragon32.Dragon32_rom import Dragon32Rom

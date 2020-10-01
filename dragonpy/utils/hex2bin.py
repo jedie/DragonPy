@@ -9,10 +9,6 @@
 
 
 import array
-import sys
-
-
-PY2 = sys.version_info[0] == 2
 
 
 def iter_steps(g, steps):
@@ -48,20 +44,16 @@ def iter_steps(g, steps):
 
 def hex2bin(src, dst, org=0xc000, verbose=True):
     print(f"Read {src}")
-    with open(src, "r") as hex_file:
+    with open(src) as hex_file:
         data = array.array("B")
 
         for line in hex_file:
-            # ~ print line
             line = line.strip()
             line_data = line[9:-2]
-            # ~ print data
             for byte_hex in iter_steps(line_data, steps=2):
                 byte_hex = "".join(byte_hex)
-                # ~ print byte_hex,
                 codepoint = int(byte_hex, 16)
                 data.append(codepoint)
-            #~ print
 
     length = len(data)
     print(f"length: {length:d} ${length:02x}")

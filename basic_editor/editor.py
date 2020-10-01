@@ -16,27 +16,19 @@ import logging
 import os
 import string
 import sys
+import tkinter
+from tkinter import filedialog
 
 import dragonlib
+from dragonlib.utils.auto_shift import invert_shift
+
+from basic_editor.highlighting import TkTextHighlightCurrentLine, TkTextHighlighting
 from basic_editor.scrolled_text import ScrolledText
 from basic_editor.status_bar import MultiStatusBar
 from basic_editor.token_window import TokenWindow
-from basic_editor.highlighting import TkTextHighlighting, TkTextHighlightCurrentLine
-from dragonlib.utils.auto_shift import invert_shift
 
 
 log = logging.getLogger(__name__)
-
-try:
-    # Python 3
-    import tkinter
-    from tkinter import filedialog
-    from tkinter import messagebox
-except ImportError:
-    # Python 2
-    import tkinter as tkinter
-    import tkinter.filedialog as filedialog
-    import tkinter.messagebox as messagebox
 
 
 class EditorWindow:
@@ -72,7 +64,7 @@ class EditorWindow:
 
         self.root.columnconfigure(0, weight=1)
         self.root.rowconfigure(0, weight=1)
-        self.base_title = "%s - BASIC Editor" % self.cfg.MACHINE_NAME
+        self.base_title = f"{self.cfg.MACHINE_NAME} - BASIC Editor"
         self.root.title(self.base_title)
 
         self.text = ScrolledText(
@@ -145,8 +137,8 @@ class EditorWindow:
 
     def set_line_and_column(self, event=None):
         line, column = self.text.index(tkinter.INSERT).split('.')
-        self.status_bar.set_label('column', 'Column: %s' % column)
-        self.status_bar.set_label('line', 'Line: %s' % line)
+        self.status_bar.set_label('column', f'Column: {column}')
+        self.status_bar.set_label('line', f'Line: {line}')
 
     ###########################################################################
 
@@ -181,7 +173,7 @@ class EditorWindow:
         self.filepath = os.path.normpath(os.path.abspath(filepath))
         self.current_dir, self.filename = os.path.split(self.filepath)
 
-        self.root.title("{} - {}".format(self.base_title, repr(self.filename)))
+        self.root.title(f"{self.base_title} - {repr(self.filename)}")
 
     def command_load_file(self):
         infile = filedialog.askopenfile(
@@ -256,7 +248,7 @@ class EditorWindow:
             listing_ascii = listing_ascii.splitlines()
 
         for line in listing_ascii:
-            line = "%s\n" % line  # use os.sep ?!?
+            line = f"{line}\n"  # use os.sep ?!?
             log.debug("\t%s", repr(line))
             self.text.insert(tkinter.END, line)
 #        self.text.config(state=Tkinter.DISABLED)
@@ -325,7 +317,7 @@ def test():
                             "..", "BASIC games", "INVADER.bas"
                             )
 
-    with open(filepath, "r") as f:
+    with open(filepath) as f:
         listing_ascii = f.read()
 
     run_basic_editor(cfg, default_content=listing_ascii)

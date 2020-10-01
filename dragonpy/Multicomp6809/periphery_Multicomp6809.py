@@ -15,20 +15,10 @@
 
 
 import logging
-import os
-import sys
+import queue
 
 
 log = logging.getLogger(__name__)
-
-try:
-    # Python 3
-    import queue
-    import tkinter
-except ImportError:
-    # Python 2
-    import queue as queue
-    import tkinter as tkinter
 
 
 class Multicomp6809Periphery:

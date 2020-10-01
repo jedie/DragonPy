@@ -52,29 +52,16 @@ def fix_virtualenv_tkinter():
         # we are not in a activated virtualenv
         return
 
-    if sys.version_info[0] == 2:
-        # Python v2
-        virtualprefix = sys.prefix
-        sys.prefix = sys.real_prefix
+    virtualprefix = sys.base_prefix
+    sys.base_prefix = sys.real_prefix
 
-        import FixTk
+    from tkinter import _fix
 
-        if "TCL_LIBRARY" not in os.environ:
-            imp.reload(FixTk)
+    if "TCL_LIBRARY" not in os.environ:
+        from imp import reload
+        imp.reload(_fix)
 
-        sys.prefix = virtualprefix
-    else:
-        # Python v3
-        virtualprefix = sys.base_prefix
-        sys.base_prefix = sys.real_prefix
-
-        from tkinter import _fix
-
-        if "TCL_LIBRARY" not in os.environ:
-            from imp import reload
-            imp.reload(_fix)
-
-        sys.base_prefix = virtualprefix
+    sys.base_prefix = virtualprefix
 
 
 if sys.platform.startswith("win"):

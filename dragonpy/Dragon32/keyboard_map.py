@@ -40,15 +40,10 @@
 
 
 import logging
-import string
 
-import six
 from dragonlib.utils.auto_shift import invert_shift
 
 from dragonpy.utils.bits import clear_bit, invert_byte, is_bit_set
-
-
-xrange = six.moves.xrange
 
 
 log = logging.getLogger(__name__)
@@ -307,9 +302,8 @@ if __name__ == '__main__':
 #     import sys
 #     sys.exit()
 
-    import tkinter
-
     import pprint
+    import tkinter
     pprint.pprint(COCO_KEYMAP)
 
     def verbose_value(value):

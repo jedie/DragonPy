@@ -10,20 +10,10 @@
 
 
 import logging
-log = logging.getLogger(__name__)
+import tkinter
 
-try:
-    # Python 3
-    import tkinter
-    from tkinter import filedialog
-    from tkinter import messagebox
-    from tkinter import scrolledtext
-except ImportError:
-    # Python 2
-    import tkinter as tkinter
-    import tkinter.filedialog as filedialog
-    import tkinter.messagebox as messagebox
-    import tkinter.scrolledtext as scrolledtext
+
+log = logging.getLogger(__name__)
 
 
 class ScrolledText(tkinter.Text):

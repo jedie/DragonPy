@@ -16,10 +16,15 @@ import os
 import sys
 
 # own modules
-from PyDC.utils import string2codepoint, get_word, pformat_codepoints, codepoints2string, \
-    iter_steps, LOG_LEVEL_DICT, LOG_FORMATTER
-
-
+from PyDC.utils import (
+    LOG_FORMATTER,
+    LOG_LEVEL_DICT,
+    codepoints2string,
+    get_word,
+    iter_steps,
+    pformat_codepoints,
+    string2codepoint,
+)
 from .basic_tokens import bytes2codeline
 from .bitstream_handler import BitstreamHandler, BytestreamHandler, CasStream
 from .wave2bitstream import Bitstream2Wave, Wave2Bitstream
@@ -30,7 +35,7 @@ log = logging.getLogger("PyDC")
 
 class CodeLine:
     def __init__(self, line_pointer, line_no, code):
-        assert isinstance(line_no, int), "Line number not integer, it's: %s" % repr(line_no)
+        assert isinstance(line_no, int), f"Line number not integer, it's: {repr(line_no)}"
         self.line_pointer = line_pointer
         self.line_no = line_no
         self.code = code
@@ -253,7 +258,7 @@ class FileContent:
             try:
                 line_number = int(line_number)
             except ValueError as err:
-                print("\nERROR: Part '%s' is not a line number!" % repr(line_number))
+                print(f"\nERROR: Part {line_number!r} is not a line number! ({err})")
                 continue
 
             self.code_lines.append(
@@ -324,18 +329,18 @@ class CassetteFile:
 
     def create_from_wave(self, codepoints):
 
-        log.debug("filename data: %s" % pformat_codepoints(codepoints))
+        log.debug(f"filename data: {pformat_codepoints(codepoints)}")
 
         raw_filename = codepoints[:8]
 
         self.filename = codepoints2string(raw_filename).rstrip()
-        print("\nFilename: %s" % repr(self.filename))
+        print(f"\nFilename: {repr(self.filename)}")
 
         self.file_type = codepoints[8]
 
         if self.file_type not in self.cfg.FILETYPE_DICT:
             raise NotImplementedError(
-                "Unknown file type %s is not supported, yet." % hex(self.file_type)
+                f"Unknown file type {hex(self.file_type)} is not supported, yet."
             )
 
         log.info(f"file type: {self.cfg.FILETYPE_DICT[self.file_type]}")
@@ -346,28 +351,28 @@ class CassetteFile:
             raise NotImplementedError("Binary files are not supported, yet.")
 
         self.ascii_flag = codepoints[9]
-        log.info("Raw ASCII flag is: %s" % repr(self.ascii_flag))
+        log.info(f"Raw ASCII flag is: {repr(self.ascii_flag)}")
         if self.ascii_flag == self.cfg.BASIC_TOKENIZED:
             self.is_tokenized = True
         elif self.ascii_flag == self.cfg.BASIC_ASCII:
             self.is_tokenized = False
         else:
-            raise NotImplementedError("Unknown BASIC type: '%s'" % hex(self.ascii_flag))
+            raise NotImplementedError(f"Unknown BASIC type: '{hex(self.ascii_flag)}'")
 
         log.info(f"ASCII flag: {self.cfg.BASIC_TYPE_DICT[self.ascii_flag]}")
 
         self.gap_flag = codepoints[10]
-        log.info("gap flag is %s (0x00=no gaps, 0xff=gaps)" % hex(self.gap_flag))
+        log.info(f"gap flag is {hex(self.gap_flag)} (0x00=no gaps, 0xff=gaps)")
 
         # machine code starting/loading address
         if self.file_type != self.cfg.FTYPE_BASIC:  # BASIC programm (0x00)
             codepoints = iter(codepoints)
 
             self.start_address = get_word(codepoints)
-            log.info("machine code starting address: %s" % hex(self.start_address))
+            log.info(f"machine code starting address: {hex(self.start_address)}")
 
             self.load_address = get_word(codepoints)
-            log.info("machine code loading address: %s" % hex(self.load_address))
+            log.info(f"machine code loading address: {hex(self.load_address)}")
         else:
             # not needed in BASIC files
             # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4341&p=9109#p9109
@@ -403,16 +408,16 @@ class CassetteFile:
             codepoints = iter(codepoints)
 
             self.start_address = get_word(codepoints)
-            log.info("machine code starting address: %s" % hex(self.start_address))
+            log.info(f"machine code starting address: {hex(self.start_address)}")
 
             self.load_address = get_word(codepoints)
-            log.info("machine code loading address: %s" % hex(self.load_address))
+            log.info(f"machine code loading address: {hex(self.load_address)}")
         else:
             # not needed in BASIC files
             # http://archive.worldofdragon.org/phpBB3/viewtopic.php?f=8&t=4341&p=9109#p9109
             pass
 
-        log.debug("filename block: %s" % pformat_codepoints(codepoints))
+        log.debug(f"filename block: {pformat_codepoints(codepoints)}")
         return codepoints
 
     def get_code_block_as_codepoints(self):
@@ -501,7 +506,7 @@ class Cassette:
         bh.feed(cas_stream)
 
     def add_from_bas(self, filename):
-        with open(filename, "r") as f:
+        with open(filename) as f:
             file_content = f.read()
 
         self.current_file = CassetteFile(self.cfg)
@@ -520,7 +525,7 @@ class Cassette:
     def buffer_block(self, block_type, block_length, block_codepoints):
 
         block = tuple(itertools.islice(block_codepoints, block_length))
-        log.debug("pprint block: %s" % pformat_codepoints(block))
+        log.debug(f"pprint block: {pformat_codepoints(block)}")
 
         if block_type == self.cfg.EOF_BLOCK:
             self.buffer2file()
@@ -529,7 +534,7 @@ class Cassette:
             self.buffer2file()
             self.current_file = CassetteFile(self.cfg)
             self.current_file.create_from_wave(block)
-            log.info("Add file %s" % repr(self.current_file))
+            log.info(f"Add file {repr(self.current_file)}")
             self.files.append(self.current_file)
         elif block_type == self.cfg.DATA_BLOCK:
             # store code until end marker
@@ -539,7 +544,7 @@ class Cassette:
             raise TypeError("Block type %s unkown!" & hex(block_type))
 
     def print_debug_info(self):
-        print("There exists %s files:" % len(self.files))
+        print(f"There exists {len(self.files)} files:")
         for file_obj in self.files:
             file_obj.print_debug_info()
 
@@ -556,9 +561,9 @@ class Cassette:
         log.debug("yield 1x leader byte %s", hex(self.cfg.LEAD_BYTE_CODEPOINT))
         yield self.cfg.LEAD_BYTE_CODEPOINT
 
-        log.debug("yield sync byte %s" % hex(self.cfg.SYNC_BYTE_CODEPOINT))
+        log.debug(f"yield sync byte {hex(self.cfg.SYNC_BYTE_CODEPOINT)}")
         if self.wav:
-            log.debug("wave pos: %s" % self.wav.pformat_pos())
+            log.debug(f"wave pos: {self.wav.pformat_pos()}")
         yield self.cfg.SYNC_BYTE_CODEPOINT
 
         log.debug(f"yield block type '{self.cfg.BLOCK_TYPE_DICT[block_type]}'")
@@ -576,7 +581,7 @@ class Cassette:
             checksum = block_type
             checksum += block_length
             checksum = checksum & 0xFF
-            log.debug("yield calculated checksum %s" % hex(checksum))
+            log.debug(f"yield calculated checksum {hex(checksum)}")
             yield checksum
         else:
             log.debug(f"content of '{self.cfg.BLOCK_TYPE_DICT[block_type]}':")
@@ -590,7 +595,7 @@ class Cassette:
             checksum += block_type
             checksum += block_length
             checksum = checksum & 0xFF
-            log.debug("yield calculated checksum %s" % hex(checksum))
+            log.debug(f"yield calculated checksum {hex(checksum)}")
             yield checksum
 
         log.debug("yield 1x tailer byte %s", hex(self.cfg.LEAD_BYTE_CODEPOINT))
@@ -640,15 +645,15 @@ class Cassette:
         for codepoint in self.codepoint_stream():
             if isinstance(codepoint, (tuple, list)):
                 for item in codepoint:
-                    assert isinstance(item, int), "Codepoint %s is not int/hex" % repr(codepoint)
+                    assert isinstance(item, int), f"Codepoint {repr(codepoint)} is not int/hex"
             else:
-                assert isinstance(codepoint, int), "Codepoint %s is not int/hex" % repr(codepoint)
+                assert isinstance(codepoint, int), f"Codepoint {repr(codepoint)} is not int/hex"
             wav.write_codepoint(codepoint)
 
         wav.close()
 
     def write_cas(self, destination_file):
-        log.info("Create %s..." % repr(destination_file))
+        log.info(f"Create {repr(destination_file)}...")
 
         def _write(f, codepoint):
             try:
@@ -665,7 +670,7 @@ class Cassette:
                 else:
                     _write(f, codepoint)
 
-        print("\nFile %s saved." % repr(destination_file))
+        print(f"\nFile {repr(destination_file)} saved.")
 
     def write_bas(self, destination_file):
         dest_filename = os.path.splitext(destination_file)[0]
@@ -674,13 +679,13 @@ class Cassette:
             bas_filename = file_obj.filename  # Filename from CSAVE argument
 
             out_filename = f"{dest_filename}_{bas_filename}.bas"
-            log.info("Create %s..." % repr(out_filename))
+            log.info(f"Create {repr(out_filename)}...")
             with open(out_filename, "w") as f:
                 for line in file_obj.file_content.get_ascii_codeline():
                     if self.cfg.case_convert:
                         line = line.lower()
                     f.write(f"{line}\n")
-            print("\nFile %s saved." % repr(out_filename))
+            print(f"\nFile {repr(out_filename)} saved.")
 
     def pprint_codepoint_stream(self):
         log_level = LOG_LEVEL_DICT[3]

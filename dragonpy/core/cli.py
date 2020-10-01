@@ -16,10 +16,10 @@ import logging
 import os
 import sys
 
-from basic_editor.editor import run_basic_editor
 from dragonlib.utils.logging_utils import LOG_LEVELS, setup_logging
 
 import dragonpy
+from basic_editor.editor import run_basic_editor
 from dragonpy.CoCo.config import CoCo2bCfg
 from dragonpy.CoCo.machine import run_CoCo2b
 from dragonpy.core import configs
@@ -43,7 +43,7 @@ try:
     # https://pypi.python.org/pypi/click/
     import click
 except ImportError as err:
-    print("\nERROR: 'click' can't be imported!")
+    print(f"\nERROR: 'click' can't be imported: {err}")
     print("\tIs the virtual environment activated?!?")
     print("\tIs 'click' installed?!?")
     print("\nOrigin error is:\n")
@@ -187,10 +187,10 @@ def log_list():
 def download_roms():
     for machine_name, data in list(machine_dict.items()):
         machine_config = data[1]
-        click.secho("Download / test ROM for %s:" % click.style(machine_name, bold=True), bg='blue', fg='white')
+        click.secho(f"Download / test ROM for {click.style(machine_name, bold=True)}:", bg='blue', fg='white')
 
         for rom in machine_config.DEFAULT_ROMS:
-            click.echo("\tROM file: %s" % click.style(rom.FILENAME, bold=True))
+            click.echo(f"\tROM file: {click.style(rom.FILENAME, bold=True)}")
             content = rom.get_data()
             size = len(content)
             click.echo(f"\tfile size is ${size:04x} (dez.: {size:d}) Bytes\n")

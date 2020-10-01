@@ -12,28 +12,20 @@
 
 
 import logging
-import os
+import queue
 import sys
 
-from dragonpy.components.periphery import ConsolePeripheryBase, PeripheryBase, PeripheryUnittestBase, TkPeripheryBase
+from dragonpy.components.periphery import ConsolePeripheryBase
 
 
 log = logging.getLogger(__name__)
 
 
 try:
-    import queue  # Python 3
+    import tkinter
 except ImportError:
-    import queue as queue  # Python 2
-
-try:
-    import tkinter  # Python 3
-except ImportError:
-    try:
-        import tkinter as tkinter  # Python 2
-    except ImportError:
-        log.critical("Error importing Tkinter!")
-        tkinter = None
+    log.critical("Error importing Tkinter!")
+    tkinter = None
 
 
 class SBC09Periphery:
@@ -144,5 +136,5 @@ class SBC09PeripheryUnittest(SBC09Periphery):
 
 
 # SBC09Periphery = SBC09PeripherySerial
-#SBC09Periphery = SBC09PeripheryTk
+# SBC09Periphery = SBC09PeripheryTk
 SBC09Periphery = SBC09PeripheryConsole

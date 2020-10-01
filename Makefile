@@ -28,7 +28,7 @@ install-poetry: ## install or update poetry
 install: check-poetry ## install DragonPy via poetry
 	poetry install
 
-update: check-poetry ##  Update the dependencies as according to the pyproject.toml file
+update: check-poetry ## Update the dependencies as according to the pyproject.toml file
 	poetry update
 
 lint: ## Run code formatters and linter

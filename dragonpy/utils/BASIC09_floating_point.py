@@ -12,11 +12,7 @@
 import decimal
 import math
 
-import six
 from dragonlib.utils.byte_word_values import signed16, unsigned8
-
-
-xrange = six.moves.xrange
 
 
 class BASIC09FloatingPoint:
@@ -77,9 +73,7 @@ class BASIC09FloatingPoint:
         ))
         print(f"\tmatissa-sign..: hex: ${self.mantissa_sign:02x}")
         byte_list = self.get_bytes()
-        print("\tbinary........: hex: %s" % (
-            ", ".join(["$%02x" % i for i in byte_list])
-        ))
+        print(f"\tbinary........: hex: {', '.join([('$%02x' % i) for i in byte_list])}")
         print("\texponent |            mantissa             | mantissa-sign")
         print("\t" + " ".join(
             [f'{i:08b}' for i in byte_list]

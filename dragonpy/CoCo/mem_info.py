@@ -14,7 +14,7 @@ import logging
 
 from MC6809.core.memory_info import BaseMemoryInfo
 
-from dragonpy.utils.humanize import nice_hex
+from dragonpy.Dragon64.mem_info import Dragon64MemInfo
 
 
 log = logging.getLogger(__name__)

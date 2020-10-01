@@ -24,14 +24,9 @@
 
 import logging
 import math
+import tkinter
 
 from dragonpy.Dragon32.dragon_charmap import COLORS, INVERTED, NORMAL, get_hex_color
-
-
-try:
-    import tkinter  # python 3
-except ImportError:
-    import tkinter as tkinter  # Python 2
 
 
 log = logging.getLogger(__name__)
@@ -1364,11 +1359,11 @@ class TestTkImageFont:
 def test_dict(chars_dict, width, height):
     for char, data in sorted(chars_dict.items()):
         if len(data) != height:
-            print("Char %s has wrong height / row count !" % repr(char))
+            print(f"Char {char!r} has wrong height / row count !")
             print(f"Should have {height:d} rows, but has: {len(data):d} rows")
         for line in data:
             if len(line) != width:
-                print("Char %s has wrong width / column count !" % repr(char))
+                print(f"Char {char!r} has wrong width / column count !")
                 print(f"Should have {width:d} columns, but has: {len(line):d} columns")
 
 

@@ -38,13 +38,14 @@ STD_ERROR_HANDLE = -12
 
 if WINDOWS:
     # get console handle
-    from ctypes import windll, Structure, byref
+    from ctypes import Structure, byref, windll
     try:
-        from ctypes.wintypes import SHORT, WORD, DWORD
+        from ctypes.wintypes import DWORD, SHORT, WORD
     # workaround for missing types in Python 2.5
     except ImportError:
-        from ctypes import (
-            c_short as SHORT, c_ushort as WORD, c_ulong as DWORD)
+        from ctypes import c_short as SHORT
+        from ctypes import c_ulong as DWORD
+        from ctypes import c_ushort as WORD
     console_handle = windll.kernel32.GetStdHandle(STD_OUTPUT_HANDLE)
 
     # CONSOLE_SCREEN_BUFFER_INFO Structure
@@ -82,9 +83,9 @@ def _posix_get_window_size():
     # see README.txt for reference information
     # http://www.kernel.org/doc/man-pages/online/pages/man4/tty_ioctl.4.html
 
+    from array import array
     from fcntl import ioctl
     from termios import TIOCGWINSZ
-    from array import array
 
     """
     struct winsize {
@@ -181,6 +182,7 @@ def dumpkey(key):
     def hex3fy(key):
         """Helper to convert string into hex string (Python 3 compatible)"""
         from binascii import hexlify
+
         # Python 3 strings are no longer binary, encode them for hexlify()
         if PY3K:
             key = key.encode('utf-8')
@@ -196,9 +198,11 @@ def dumpkey(key):
 
 if WINDOWS:
     if PY3K:
-        from msvcrt import kbhit, getwch as __getchw
+        from msvcrt import getwch as __getchw
+        from msvcrt import kbhit
     else:
-        from msvcrt import kbhit, getch as __getchw
+        from msvcrt import getch as __getchw
+        from msvcrt import kbhit
 
 
 def _getch_windows(_getall=False):
@@ -382,7 +386,7 @@ def page(content, pagecallback=prompt):
                 except StopIteration:
                     pagecallback(pagenum)
                     return
-        if pagecallback(pagenum) == False:
+        if pagecallback(pagenum) is False:
             return
         pagenum += 1
 

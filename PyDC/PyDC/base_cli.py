@@ -10,14 +10,14 @@
 
 import argparse
 import logging
-import os
 import sys
 
 
 def get_log_levels():
-    levels = [5, 7] # FIXME
+    levels = [5, 7]  # FIXME
     levels += [level for level in logging._nameToLevel if isinstance(level, int)]
     return levels
+
 
 LOG_LEVELS = get_log_levels()
 
@@ -47,15 +47,13 @@ class Base_CLI:
         self.parser.add_argument(
             "--verbosity", type=int, choices=LOG_LEVELS, default=logging.WARNING,
             help=(
-                "verbosity level to stdout (lower == more output!)"
-                " (default: %s)" % logging.INFO
+                f"verbosity level to stdout (lower == more output!) (default: {logging.INFO})"
             )
         )
         self.parser.add_argument(
             "--logfile", type=int, choices=LOG_LEVELS, default=logging.INFO,
             help=(
-                "verbosity level to log file (lower == more output!)"
-                " (default: %s)" % logging.DEBUG
+                f"verbosity level to log file (lower == more output!) (default: {logging.DEBUG})"
             )
         )
         self.parser.add_argument(
@@ -69,7 +67,7 @@ class Base_CLI:
         if self.DESCRIPTION is not None:
             print()
             print(self.DESCRIPTION, self.VERSION)
-            print("-"*79)
+            print("-" * 79)
             print()
 
         args = self.parser.parse_args()
@@ -108,10 +106,10 @@ class Base_CLI:
         self.log.debug(" ".join(sys.argv))
 
         verbosity_level_name = logging.getLevelName(self.verbosity)
-        self.log.info("Verbosity log level: %s" % verbosity_level_name)
+        self.log.info(f"Verbosity log level: {verbosity_level_name}")
 
         logfile_level_name = logging.getLevelName(self.logfile)
-        self.log.info("logfile log level: %s" % logfile_level_name)
+        self.log.info(f"logfile log level: {logfile_level_name}")
 
 
 if __name__ == "__main__":

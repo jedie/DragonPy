@@ -15,25 +15,13 @@
 
 import logging
 import sys
+import tkinter
 
 from MC6809.components.cpu6809 import CPU
 from MC6809.components.mc6809_speedlimited import CPUSpeedLimitMixin
 
 
 log = logging.getLogger(__name__)
-
-try:
-    # Python 3
-    import tkinter
-    from tkinter import filedialog
-    from tkinter import messagebox
-    from tkinter import scrolledtext
-except ImportError:
-    # Python 2
-    import tkinter as tkinter
-    import tkinter.filedialog as filedialog
-    import tkinter.messagebox as messagebox
-    import tkinter.scrolledtext as scrolledtext
 
 
 class RuntimeCfg:
@@ -161,7 +149,12 @@ class BaseTkinterGUIConfig:
         self.inner_burst_op_count_entry.bind('<KeyRelease>', self.command_inner_burst_op_count)
         self.inner_burst_op_count_entry.grid(row=row, column=1)
         self.inner_burst_op_count_label = tkinter.Label(
-            self.root, text="How many Ops should the CPU process before check sync calls e.g. IRQ (inner_burst_op_count)")
+            self.root,
+            text=(
+                "How many Ops should the CPU process before check"
+                " sync calls e.g. IRQ (inner_burst_op_count)"
+            )
+        )
         self.inner_burst_op_count_label.grid(row=row, column=2, sticky=tkinter.W)
 
         row += 1
@@ -216,10 +209,7 @@ class BaseTkinterGUIConfig:
             return
 
         self.cycles_per_sec_label_var.set(
-            "cycles/sec / 1000000 = {:f} MHz CPU frequency * 16 = {:f} Mhz crystal".format(
-                cycles_per_sec / 1000000,
-                cycles_per_sec / 1000000 * 16,
-            )
+            f"cycles/sec / 1000000 = {cycles_per_sec / 1000000:f} MHz CPU frequency * 16 = {cycles_per_sec / 1000000 * 16:f} Mhz crystal"
         )
 
         self.runtime_cfg.cycles_per_sec = cycles_per_sec

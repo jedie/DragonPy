@@ -13,10 +13,7 @@
 
 
 import logging
-import sys
 import unittest
-
-from dragonlib.utils.logging_utils import setup_logging
 
 from dragonpy.tests.test_base import Test6809_Dragon32_Base
 

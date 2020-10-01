@@ -6,16 +6,16 @@
 """
 
 
-import time
 import collections
 import itertools
 import logging
-import types
-import string
 import math
+import string
+import time
+import types
 
 
-LOG_FORMATTER = logging.Formatter("") # %(asctime)s %(message)s")
+LOG_FORMATTER = logging.Formatter("")  # %(asctime)s %(message)s")
 LOG_LEVEL_DICT = {
     0: logging.ERROR,
     1: logging.WARNING,
@@ -53,19 +53,19 @@ def human_duration(t):
         raise TypeError("human_duration() argument must be integer or float")
 
     chunks = (
-      (60 * 60 * 24 * 365, 'years'),
-      (60 * 60 * 24 * 30, 'months'),
-      (60 * 60 * 24 * 7, 'weeks'),
-      (60 * 60 * 24, 'days'),
-      (60 * 60, 'hours'),
+        (60 * 60 * 24 * 365, 'years'),
+        (60 * 60 * 24 * 30, 'months'),
+        (60 * 60 * 24 * 7, 'weeks'),
+        (60 * 60 * 24, 'days'),
+        (60 * 60, 'hours'),
     )
 
     if t < 1:
-        return "%.1f ms" % round(t * 1000, 1)
+        return f"{round(t * 1000, 1):.1f} ms"
     if t < 60:
-        return "%.1f sec" % round(t, 1)
+        return f"{round(t, 1):.1f} sec"
     if t < 60 * 60:
-        return "%.1f min" % round(t / 60, 1)
+        return f"{round(t / 60, 1):.1f} min"
 
     for seconds, name in chunks:
         count = t / seconds
@@ -84,6 +84,7 @@ class ProcessInfo:
     >>> p.update(0)
     (100, '-', 0.0)
     """
+
     def __init__(self, total, use_last_rates=4):
         self.total = total
         self.use_last_rates = use_last_rates
@@ -199,7 +200,7 @@ def count_continuous_pattern(bitstream, pattern):
     window_size = len(pattern)
     count = -1
     for count, data in enumerate(iter_steps(bitstream, window_size), 1):
-#         print count, data, pattern
+        #         print count, data, pattern
         if data != pattern:
             count -= 1
             break
@@ -209,6 +210,8 @@ def count_continuous_pattern(bitstream, pattern):
 
 class MaxPosArraived(Exception):
     pass
+
+
 class PatternNotFound(Exception):
     pass
 
@@ -241,7 +244,7 @@ def find_iter_window(bitstream, pattern, max_pos=None):
     window_size = len(pattern)
     pos = -1
     for pos, data in enumerate(iter_window(bitstream, window_size)):
-#         print pos, data, pattern
+        #         print pos, data, pattern
         if data == pattern:
             return pos
         if max_pos is not None and pos > max_pos:
@@ -344,6 +347,7 @@ class TextLevelMeter:
     >> tl.feed(-255)
     '|*                                  |                                   |'
     """
+
     def __init__(self, max_value, width):
         self.max_value = max_value
 
@@ -379,8 +383,10 @@ def count_sign(values, min_value):
             negative_count += 1
     return positive_count, negative_count
 
+
 def list2str(l):
     return "".join([str(c) for c in l])
+
 
 def string2codepoint(s):
     """
@@ -394,6 +400,7 @@ def string2codepoint(s):
     """
     for char in s:
         yield ord(char)
+
 
 def bits2codepoint(bits):
     """
@@ -464,6 +471,7 @@ def byte2bit_string(data):
     bits = bits[::-1]
     return bits
 
+
 def codepoints2bitstream(codepoints):
     """
     >>> list(codepoints2bitstream([0x48,0x45]))
@@ -477,6 +485,7 @@ def codepoints2bitstream(codepoints):
         bit_string = byte2bit_string(codepoint)
         for bit in bit_string:
             yield int(bit)
+
 
 def byte_list2bit_list(data):
     """
@@ -534,20 +543,20 @@ def print_codepoint_stream(codepoint_stream, display_block_count=8, no_repr=Fals
     line = []
     for no, codepoint in enumerate(codepoint_stream, 1):
         r = repr(chr(codepoint))
-        if "\\x" in r: # FIXME
+        if "\\x" in r:  # FIXME
             txt = "%s %i" % (hex(codepoint), codepoint)
         else:
-            txt = "{} {}".format(hex(codepoint), r)
+            txt = f"{hex(codepoint)} {r}"
 
         line.append(txt.center(8))
 
         in_line_count += 1
         if in_line_count >= display_block_count:
             in_line_count = 0
-            print("{:>4} | {} |".format(no, " | ".join(line)))
+            print(f"{no:>4} | {' | '.join(line)} |")
             line = []
     if line:
-        print("{:>4} | {} |".format(no, " | ".join(line)))
+        print(f"{no:>4} | {' | '.join(line)} |")
 
     if in_line_count > 0:
         print()
@@ -559,6 +568,7 @@ def print_as_hex_list(codepoint_stream):
     0x46,0x6f,0x6f,0x20,0x42,0x61,0x72,0x20,0x21
     """
     print(",".join([hex(codepoint) for codepoint in codepoint_stream]))
+
 
 def pformat_codepoints(codepoints):
     """
@@ -580,6 +590,7 @@ def pformat_codepoints(codepoints):
             line.append(char)
     return line
 
+
 def print_block_bit_list(block_bit_list, display_block_count=8, no_repr=False):
     """
     >>> bit_list = (
@@ -599,22 +610,21 @@ def print_block_bit_list(block_bit_list, display_block_count=8, no_repr=False):
         line = []
         for codepoint in line_info:
             r = repr(chr(codepoint))
-            if "\\x" in r: # FIXME
-                txt = "%s" % hex(codepoint)
+            if "\\x" in r:  # FIXME
+                txt = f"{hex(codepoint)}"
             else:
-                txt = "{} {}".format(hex(codepoint), r)
+                txt = f"{hex(codepoint)} {r}"
             txt = txt.center(8)
             line.append(txt)
 
-        print("       %s" % " ".join(line))
-
+        print(f"       {' '.join(line)}")
 
     in_line_count = 0
 
     line = ""
     line_info = []
     for no, bits in enumerate(block_bit_list, 1):
-        line += "%s " % "".join([str(c) for c in bits])
+        line += f"{''.join([str(c) for c in bits])} "
 
         codepoint = bits2codepoint(bits)
         line_info.append(codepoint)
@@ -630,6 +640,7 @@ def print_block_bit_list(block_bit_list, display_block_count=8, no_repr=False):
 
     if in_line_count > 0:
         print()
+
 
 def print_bitlist(bitstream, no_repr=False):
     """
@@ -666,7 +677,7 @@ def get_word(byte_iterator):
     try:
         word = (byte_values[0] << 8) | byte_values[1]
     except TypeError as err:
-        raise TypeError("Can't build word from {}: {}".format(repr(byte_values), err))
+        raise TypeError(f"Can't build word from {repr(byte_values)}: {err}")
     return word
 
 
@@ -709,6 +720,7 @@ def sinus_values(count, max_value):
         y = math.sin(math.radians(angle)) * max_value
         y = int(round(y))
         yield y
+
 
 def sinus_values_by_hz(framerate, hz, max_value):
     """
@@ -778,4 +790,3 @@ def duration2hz(duration, framerate):
 if __name__ == "__main__":
     import doctest
     print(doctest.testmod())
-

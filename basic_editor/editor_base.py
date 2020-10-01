@@ -12,17 +12,10 @@
 """
 
 
-from basic_editor.tkinter_utils import TkTextTag
 import logging
 
-log = logging.getLogger(__name__)
 
-try:
-    # Python 3
-    import tkinter
-except ImportError:
-    # Python 2
-    import tkinter as tkinter
+log = logging.getLogger(__name__)
 
 
 class BaseExtension:

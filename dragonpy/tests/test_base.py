@@ -13,15 +13,13 @@ import hashlib
 import logging
 import os
 import pickle as pickle
+import queue
 import sys
 import tempfile
 import time
-import unittest
 
-import six
 from dragonlib.tests.test_base import BaseTestCase
 from MC6809.components.cpu6809 import CPU
-from MC6809.components.cpu_utils.MC6809_registers import ValueStorage8Bit
 
 from dragonpy.components.memory import Memory
 from dragonpy.core.machine import Machine
@@ -32,15 +30,6 @@ from dragonpy.sbc09.periphery import SBC09PeripheryUnittest
 from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809PeripheryUnittest
 from dragonpy.tests.test_config import TestCfg
-
-
-xrange = six.moves.xrange
-
-
-try:
-    import queue  # Python 3
-except ImportError:
-    import queue as queue  # Python 2
 
 
 log = logging.getLogger(__name__)
@@ -185,7 +174,7 @@ class Test6809_BASIC_simple6809_Base(BaseCPUTestCase):
                 '(C) 1982 BY MICROSOFT\r\n'
                 '\r\n'
                 'OK\r\n'
-            ), "Outlines are: %s" % repr(cls.periphery.output_lines)
+            ), f"Outlines are: {repr(cls.periphery.output_lines)}"
             # Save CPU state
             init_state = cls.cpu.get_state()
             with open(cls.TEMP_FILE, "wb") as f:
@@ -283,7 +272,7 @@ class Test6809_sbc09_Base(BaseCPUTestCase):
             # Check if machine is ready
             assert cls.periphery.output == (
                 'Welcome to BUGGY version 1.0\r\n'
-            ), "Outlines are: %s" % repr(cls.periphery.output)
+            ), f"Outlines are: {repr(cls.periphery.output)}"
             # Save CPU state
             init_state = cls.cpu.get_state()
             with open(cls.TEMP_FILE, "wb") as f:
@@ -418,7 +407,6 @@ class Test6809_Dragon32_Base(BaseCPUTestCase):
 
     def _run_until_OK(self, OK_count=1, max_ops=5000):
         old_cycles = self.cpu.cycles
-        output = []
         existing_OK_count = 0
         for op_call_count in range(max_ops):
             try:

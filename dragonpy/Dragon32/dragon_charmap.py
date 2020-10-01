@@ -14,11 +14,6 @@
 
 import unicodedata
 
-import six
-
-
-xrange = six.moves.xrange
-
 
 INVERTED = "INVERTED"
 NORMAL = "NORMAL"
@@ -246,7 +241,6 @@ def create_wiki_page():
         foreground = "#%02x%02x%02x" % foreground
         background = "#%02x%02x%02x" % background
 
-        style = "color: #%s;"
         print(f'| style="color:{foreground}; background-color:{background};" | &#x{codepoint:x};')
         print(f"|{codepoint:d}")
         print(f"|{item_type}")

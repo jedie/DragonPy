@@ -33,7 +33,7 @@ def proc_killer(proc, timeout):
 
 
 def subprocess2(timeout=3, **kwargs):
-    print("Start: %s" % " ".join(kwargs["args"]))
+    print(f"Start: {' '.join(kwargs['args'])}")
     proc = subprocess.Popen(**kwargs)
     threading.Thread(target=partial(proc_killer, proc, timeout)).start()
     return proc

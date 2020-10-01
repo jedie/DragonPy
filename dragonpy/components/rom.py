@@ -11,19 +11,11 @@
 import hashlib
 import logging
 import os
-import sys
 import zipfile
+from urllib.request import urlopen
+from zipfile import BadZipFile
 
 import dragonpy
-
-
-PY3 = sys.version_info[0] == 3
-if PY3:
-    from urllib.request import urlopen
-    from zipfile import BadZipFile
-else:
-    from urllib.request import urlopen
-    from zipfile import BadZipfile as BadZipFile
 
 
 ARCHIVE_EXT_ZIP = ".zip"

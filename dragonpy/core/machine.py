@@ -10,7 +10,9 @@
 """
 
 
+import _thread
 import logging
+import queue
 import threading
 
 from dragonlib.core.basic import log_program_dump
@@ -21,16 +23,6 @@ from dragonpy.utils.simple_debugger import print_exc_plus
 
 
 log = logging.getLogger(__name__)
-
-
-try:
-    # Python 3
-    import queue
-    import _thread
-except ImportError:
-    # Python 2
-    import queue as queue
-    import _thread as _thread
 
 
 class Machine:

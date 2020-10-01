@@ -14,37 +14,19 @@ import logging
 import string
 import sys
 import time
+import tkinter as tk
+from tkinter import font as TkFont
+from tkinter import messagebox, scrolledtext
 
-import six
-from basic_editor.editor import EditorWindow
 from dragonlib.utils.auto_shift import invert_shift
 
 import dragonpy
+from basic_editor.editor import EditorWindow
 from dragonpy.core.gui_starter import MultiStatusBar
 from dragonpy.Dragon32.gui_config import BaseTkinterGUIConfig, RuntimeCfg
 from dragonpy.Dragon32.keyboard_map import add_to_input_queue, inkey_from_tk_event
 from dragonpy.Dragon32.MC6847 import MC6847_TextModeCanvas
 from dragonpy.utils.humanize import get_python_info, locale_format_number
-
-
-xrange = six.moves.xrange
-
-try:
-    # Python 3
-    import queue
-    import tkinter as tk
-    from tkinter import filedialog
-    from tkinter import messagebox
-    from tkinter import scrolledtext
-    from tkinter import font as TkFont
-except ImportError:
-    # Python 2
-    import queue as queue
-    import tkinter as tk
-    import tkinter.filedialog as filedialog
-    import tkinter.messagebox as messagebox
-    import tkinter.scrolledtext as scrolledtext
-    import tkinter.font as TkFont
 
 
 log = logging.getLogger(__name__)

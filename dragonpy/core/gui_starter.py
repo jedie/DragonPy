@@ -11,9 +11,8 @@
 
 
 import logging
-import os
-import subprocess
 import sys
+import tkinter as tk
 
 import click
 
@@ -21,22 +20,6 @@ import dragonpy
 from dragonpy.core import configs
 from dragonpy.utils.humanize import get_python_info
 from dragonpy.utils.starter import run_dragonpy, run_mc6809
-
-
-if sys.version_info[0] == 2:
-    # Python 2
-    import tkinter as tk
-    # import tkFileDialog as filedialog
-    # import tkMessageBox as messagebox
-    # import ScrolledText as scrolledtext
-    # import tkFont as TkFont
-else:
-    # Python 3
-    import tkinter as tk
-    # from tkinter import filedialog
-    # from tkinter import messagebox
-    # from tkinter import scrolledtext
-    # from tkinter import font as TkFont
 
 
 log = logging.getLogger(__name__)

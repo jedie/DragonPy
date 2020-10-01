@@ -19,17 +19,11 @@
 
 
 import logging
-import os
+import queue
 
 from dragonpy.core.configs import COCO2B
-from dragonpy.utils.bits import clear_bit, invert_byte, is_bit_set, set_bit
+from dragonpy.utils.bits import is_bit_set, set_bit
 from dragonpy.utils.humanize import byte2bit_string
-
-
-try:
-    import queue  # Python 3
-except ImportError:
-    import queue as queue  # Python 2
 
 
 log = logging.getLogger(__name__)
@@ -270,10 +264,12 @@ class PIA:
                     try:
                         self.current_input_char = self.user_input_queue.get_nowait()
                     except queue.Empty:
-                        #                        log.critical("\tinput_queue is empty"))
+                        # log.critical("\tinput_queue is empty"))
                         self.current_input_char = None
                     else:
-                        #                        log.critical("\tget new key from queue: %s", repr(self.current_input_char))
+                        # log.critical(
+                        #     "\tget new key from queue: %s", repr(self.current_input_char)
+                        # )
                         self.empty_key_toggle = True
 
         if self.current_input_char is None:

@@ -10,27 +10,15 @@
 """
 
 
+import tkinter
+from tkinter import font
 
 import pygments
+from dragonlib.dragon32.pygments_lexer import BasicLexer
 from pygments.styles import get_style_by_name
 
-from basic_editor.tkinter_utils import TkTextTag
-from dragonlib.dragon32.pygments_lexer import BasicLexer
-
-
-try:
-    # python 3
-    import tkinter
-    from tkinter import font
-except ImportError:
-    # Python 2
-    import tkinter as tkinter
-    import tkinter.font as font
-
-
 from basic_editor.editor_base import BaseExtension
-from dragonlib.core import basic_parser
-
+from basic_editor.tkinter_utils import TkTextTag
 
 
 class TkTextHighlighting(BaseExtension):
@@ -40,6 +28,7 @@ class TkTextHighlighting(BaseExtension):
     after_id = None
     TAG_LINE_NUMBER = "lineno"
     TAG_JUMP_ADDESS = "jump"
+
     def __init__(self, editor):
         super().__init__(editor)
 
@@ -55,14 +44,13 @@ class TkTextHighlighting(BaseExtension):
         # self.editor.root.bind("<KeyRelease>", self.update)
         # self.editor.root.bind("<KeyRelease>", self.force_update)
 
-        self.old_pos=None
+        self.old_pos = None
         self.__update_interval()
 
     def __update_interval(self):
         """ highlight the current line """
         self.update()
         self.after_id = self.text.after(250, self.__update_interval)
-
 
     def force_update(self, event):
         print("force update")
@@ -81,7 +69,7 @@ class TkTextHighlighting(BaseExtension):
     # ---------------------------------------------------------------------------------------
 
     def create_tags(self):
-        tags={}
+        tags = {}
 
         bold_font = font.Font(self.text, self.text.cget("font"))
         bold_font.configure(weight=font.BOLD)
@@ -104,11 +92,11 @@ class TkTextHighlighting(BaseExtension):
                 tag_font = italic_font
 
             if ndef["color"]:
-                foreground = "#%s" % ndef["color"]
+                foreground = f"#{ndef['color']}"
             else:
                 foreground = None
 
-            tags[ttype]=str(ttype)
+            tags[ttype] = str(ttype)
             self.text.tag_configure(tags[ttype], foreground=foreground, font=tag_font)
             # self.text.tag_configure(str(ttype), foreground=foreground, font=tag_font)
 
@@ -122,14 +110,14 @@ class TkTextHighlighting(BaseExtension):
 
         tokensource = self.lexer.get_tokens(listing)
 
-        start_line=1
+        start_line = 1
         start_index = 0
-        end_line=1
+        end_line = 1
         end_index = 0
         for ttype, value in tokensource:
             if "\n" in value:
                 end_line += value.count("\n")
-                end_index = len(value.rsplit("\n",1)[1])
+                end_index = len(value.rsplit("\n", 1)[1])
             else:
                 end_index += len(value)
 
@@ -137,15 +125,15 @@ class TkTextHighlighting(BaseExtension):
                 index1 = f"{start_line}.{start_index}"
                 index2 = f"{end_line}.{end_index}"
 
-                for tagname in self.text.tag_names(index1): # FIXME
+                for tagname in self.text.tag_names(index1):  # FIXME
                     # print("remove %s" % tagname)
-                    if tagname not in self.existing_tags: # Don"t remove e.g.: "current line"-tag
+                    if tagname not in self.existing_tags:  # Don"t remove e.g.: "current line"-tag
                         # print("Skip...")
                         continue
                     self.text.tag_remove(tagname, index1, index2)
 
                 # Mark used line numbers extra:
-                if start_index==0 and ttype==pygments.token.Name.Label:
+                if start_index == 0 and ttype == pygments.token.Name.Label:
                     if int(value) in destinations:
                         ttype = pygments.token.Name.Tag
 
@@ -155,9 +143,6 @@ class TkTextHighlighting(BaseExtension):
             start_index = end_index
 
 
-
-
-
 class TkTextHighlightCurrentLine(BaseExtension):
     after_id = None
 
@@ -165,9 +150,9 @@ class TkTextHighlightCurrentLine(BaseExtension):
         super().__init__(editor)
 
         self.tag_current_line = TkTextTag(self.text,
-            background="#e8f2fe"
-            # relief="raised", borderwidth=1,
-        )
+                                          background="#e8f2fe"
+                                          # relief="raised", borderwidth=1,
+                                          )
 
         self.current_line = None
         self.__update_interval()
@@ -179,7 +164,7 @@ class TkTextHighlightCurrentLine(BaseExtension):
         line_no = self.text.index(tkinter.INSERT).split(".")[0]
 
         # if not force:
-            # if line_no == self.current_line:
+        # if line_no == self.current_line:
 #                 log.critical("no highlight line needed.")
 #                 return
 
@@ -187,11 +172,9 @@ class TkTextHighlightCurrentLine(BaseExtension):
 #         self.current_line = line_no
 
         self.text.tag_remove(self.tag_current_line.id, "1.0", "end")
-        self.text.tag_add(self.tag_current_line.id, "%s.0" % line_no, "%s.0+1lines" % line_no)
+        self.text.tag_add(self.tag_current_line.id, f"{line_no}.0", f"{line_no}.0+1lines")
 
     def __update_interval(self):
         """ highlight the current line """
         self.update()
         self.after_id = self.text.after(250, self.__update_interval)
-
-

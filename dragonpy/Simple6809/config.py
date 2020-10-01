@@ -8,8 +8,6 @@
 """
 
 
-import os
-
 from dragonlib.api import CoCoAPI
 
 from dragonpy.core.configs import SIMPLE6809, BaseConfig

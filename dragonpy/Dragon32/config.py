@@ -10,16 +10,12 @@
 
 import logging
 
-import six
 from dragonlib.api import Dragon32API
 
 from dragonpy.core.configs import DRAGON32, BaseConfig
 from dragonpy.Dragon32.Dragon32_rom import Dragon32Rom
 from dragonpy.Dragon32.keyboard_map import get_dragon_keymatrix_pia_result
 from dragonpy.Dragon32.mem_info import get_dragon_meminfo
-
-
-xrange = six.moves.xrange
 
 
 log = logging.getLogger(__name__)

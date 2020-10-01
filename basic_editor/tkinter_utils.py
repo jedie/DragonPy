@@ -17,13 +17,6 @@ import logging
 
 log = logging.getLogger(__name__)
 
-try:
-    # Python 3
-    import tkinter
-except ImportError:
-    # Python 2
-    import tkinter as tkinter
-
 
 class TkTextTag:
     _id = 0

@@ -18,26 +18,12 @@
 
 
 import logging
-import sys
-import unittest
-
-import six
 
 from dragonpy.tests.test_base import Test6809_sbc09_Base
 from dragonpy.utils import srecord_utils
 
 
-xrange = six.moves.xrange
-
-
 log = logging.getLogger("DragonPy")
-
-PY2 = sys.version_info[0] == 2
-
-if PY2:
-    string_type = str
-else:
-    string_type = str
 
 
 def extract_s_record_data(srec):
@@ -45,7 +31,7 @@ def extract_s_record_data(srec):
     Verify checksum and return the data from a srecord.
     If checksum failed, a Error will be raised.
     """
-    assert isinstance(srec, string_type)
+    assert isinstance(srec, str)
     blocks = [f"S{b}" for b in srec.split("S") if b]
 
     result = []
@@ -94,7 +80,7 @@ class Test_sbc09(Test6809_sbc09_Base):
             )
 #            print op_call_count, cycles, output
             self.assertEqual(output[1:], [
-                '%04X\r\n' % (0x100 + i)
+                f'{256 + i:04X}\r\n'
             ])
 
     def test_calculate_hex_negative(self):
@@ -111,7 +97,7 @@ class Test_sbc09(Test6809_sbc09_Base):
             )
 #            print op_call_count, cycles, output
             self.assertEqual(output[1:], [
-                '%04X\r\n' % (0x100 - i)
+                f'{256 - i:04X}\r\n'
             ])
 
     def test_dump_registers(self):
@@ -157,11 +143,8 @@ class Test_sbc09(Test6809_sbc09_Base):
             f.seek(start_addr - 0x8000)
             reference = f.read(byte_count)
 
-        #reference = [ord(char) for char in reference]
-        if PY2:
-            reference = "".join(["%02X" % ord(byte) for byte in reference])
-        else:
-            reference = "".join(["%02X" % byte for byte in reference])
+        # reference = [ord(char) for char in reference]
+        reference = "".join(["%02X" % byte for byte in reference])
 
         # split into chunks of 32 bytes (same a extraced S-Record)
         # for better error messages in assertEqual() ;)

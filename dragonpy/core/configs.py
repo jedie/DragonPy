@@ -11,11 +11,6 @@
 import inspect
 import logging
 
-import six
-
-
-xrange = six.moves.xrange
-
 
 log = logging.getLogger(__name__)
 

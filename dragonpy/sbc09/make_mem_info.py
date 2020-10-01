@@ -2753,6 +2753,8 @@ def nice_hex(v):
 def main():
     mem_info = []
     block_comment = ""
+    block_start = 0
+    last_address = 0
     for line in txt.splitlines():
         line = line.strip()
         # ~ print len(line), line

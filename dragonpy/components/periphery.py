@@ -9,42 +9,24 @@
 """
 
 
+import _thread
 import logging
+import queue
 import sys
 import threading
 import time
 
-import six
-
 from dragonpy.utils import pager
-
-
-xrange = six.moves.xrange
-
-
-try:
-    # Python 3
-    import queue
-    import _thread
-#    import http.client
-except ImportError:
-    # Python 2
-    import queue as queue
-    import _thread as _thread
-#    import httplib
 
 
 log = logging.getLogger(__name__)
 
 
 try:
-    import tkinter  # Python 3
+    import tkinter
 except ImportError:
-    try:
-        import tkinter as tkinter  # Python 2
-    except ImportError:
-        log.critical("Error importing Tkinter!")
-        tkinter = None
+    log.critical("Error importing Tkinter!")
+    tkinter = None
 
 
 class PeripheryBase:

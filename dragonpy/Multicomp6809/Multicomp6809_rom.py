@@ -10,18 +10,11 @@
 
 import logging
 import os
-import sys
 import zipfile
+from zipfile import BadZipFile
 
 from dragonpy.components.rom import ARCHIVE_EXT_ZIP, ROMFile
 from dragonpy.utils.hex2bin import hex2bin
-
-
-PY3 = sys.version_info[0] == 3
-if PY3:
-    from zipfile import BadZipFile
-else:
-    from zipfile import BadZipfile as BadZipFile
 
 
 log = logging.getLogger(__name__)

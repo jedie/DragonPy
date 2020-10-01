@@ -10,15 +10,10 @@
 
 import logging
 
-import six
-
 from dragonpy.core.configs import DRAGON64
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon64.Dragon64_rom import Dragon64RomIC17, Dragon64RomIC18
 from dragonpy.Dragon64.mem_info import get_dragon_meminfo
-
-
-xrange = six.moves.xrange
 
 
 class Dragon64Cfg(Dragon32Cfg):

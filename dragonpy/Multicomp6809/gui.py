@@ -15,23 +15,6 @@ from dragonpy.core.gui import ScrolledTextGUI
 
 log = logging.getLogger(__name__)
 
-try:
-    # Python 3
-    import queue
-    import tkinter
-    from tkinter import filedialog
-    from tkinter import messagebox
-    from tkinter import scrolledtext
-    from tkinter import font as TkFont
-except ImportError:
-    # Python 2
-    import queue as queue
-    import tkinter as tkinter
-    import tkinter.filedialog as filedialog
-    import tkinter.messagebox as messagebox
-    import tkinter.scrolledtext as scrolledtext
-    import tkinter.font as TkFont
-
 
 class MulticompTkinterGUI(ScrolledTextGUI):
     pass
