@@ -24,8 +24,8 @@ class VectrexPeripheryBase(PeripheryBase):
     GUI independent stuff
     """
 
-    def __init__(self, cfg, memory, user_input_queue):
-        super().__init__(cfg, memory, user_input_queue)
+    def __init__(self, cfg, cpu, memory, display_queue=None, user_input_queue=None):
+        super().__init__(cfg, cpu, memory, display_queue, user_input_queue)
 
         self.via = MOS6522VIA(cfg, memory)
 
@@ -48,8 +48,8 @@ class VectrexPeripheryBase(PeripheryBase):
 
 
 class VectrexPeriphery(VectrexPeripheryBase):
-    def __init__(self, cfg, memory, display_queue, user_input_queue):
-        super().__init__(cfg, memory, user_input_queue)
+    def __init__(self, cfg, cpu, memory, display_queue=None, user_input_queue=None):
+        super().__init__(cfg, cpu, memory, display_queue, user_input_queue)
 
         # redirect writes to display RAM area 0x0400-0x0600 into display_queue:
         # DragonDisplayOutputHandler(display_queue, memory)
