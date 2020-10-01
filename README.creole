@@ -191,10 +191,10 @@ All needed ROM files, will be downloaded automatically.
 
 The files will be downloaded from:
 
-| Dragon 32 + 64 | http://archive.worldofdragon.org/archive/index.php?dir=Roms/Dragon/
-| CoCo 2b        | http://mess.oldos.net/
-| Multicomp      | http://searle.hostei.com/grant/Multicomp/
-| Simple6809     | http://searle.hostei.com/grant/6809/Simple6809.html
+| Dragon 32 + 64 | http://archive.worldofdragon.org/archive/index.php?dir=Software/Dragon/Dragon%20Data%20Ltd/Dragon%20Firmware/
+| CoCo 2b        | http://www.roust-it.dk/coco/roms/
+| Multicomp      | http://searle.x10host.com/Multicomp/index.html
+| Simple6809     | http://searle.x10host.com/6809/Simple6809.html
 
 sbc09 and vectrex ROMs are included.
 
@@ -408,7 +408,7 @@ Some code based on:
 An Apple ][ emulator in Python
  * Author: James Tauber
  * https://github.com/jtauber/applepy
- * License: MIT 
+ * License: MIT
 
 
 **XRoar**
@@ -430,7 +430,7 @@ Page output and find dimensions of console.
 **srecutils.py**
 Motorola S-Record utilities
  * Author: Gabriel Tremblay
- * License: GNU GPL v2 
+ * License: GNU GPL v2
  * Homepage: https://github.com/gabtremblay/pysrec
  * Stored here: [[https://github.com/jedie/DragonPy/blob/master/dragonpy/utils/srecord_utils.py|/dragonpy/utils/srecord_utils.py]]
 

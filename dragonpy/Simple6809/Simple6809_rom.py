@@ -3,7 +3,7 @@
     ==================================
 
     :created: 2015 by Jens Diemer - www.jensdiemer.de
-    :copyleft: 2015 by the DragonPy team, see AUTHORS for more details.
+    :copyleft: 2015-2020 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
