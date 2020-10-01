@@ -44,6 +44,7 @@ class BaseTkinterGUI:
         # Queue to send keyboard inputs to CPU Thread:
         self.user_input_queue = user_input_queue
 
+        self.max_ops = self.cfg.cfg_dict["max_ops"]
         self.op_delay = 0
         self.burst_op_count = 100
         self.cpu_after_id = None  # Used to call CPU OP burst loop
@@ -276,6 +277,9 @@ class BaseTkinterGUI:
                     cycles_per_sec - self.runtime_cfg.cycles_per_sec
                 ),
             )
+
+        if self.max_ops and self.machine.cpu.cycles >= self.max_ops:
+            self.exit()
 
         self.status.set(msg)
 

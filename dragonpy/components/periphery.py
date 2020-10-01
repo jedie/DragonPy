@@ -55,23 +55,6 @@ class PeripheryBase:
         log.critical("Exit called in periphery.")
         self.running = False
 
-    def mainloop(self, cpu):
-        cpu.reset()
-        max_ops = self.cfg.cfg_dict["max_ops"]
-        if max_ops:
-            log.critical("Running only %i ops!", max_ops)
-            for __ in range(max_ops):
-                cpu.get_and_call_next_op()
-                if not (self.periphery.running and self.cpu.running):
-                    break
-            log.critical("Quit CPU after given 'max_ops' %i ops.", max_ops)
-        else:
-            while self.periphery.running and self.cpu.running:
-                cpu.get_and_call_next_op()
-
-        cpu.quit()
-        self.periphery.exit()
-
     def add_output(self, text):
         raise NotImplementedError
 

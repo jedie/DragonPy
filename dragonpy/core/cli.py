@@ -162,7 +162,7 @@ def editor(cli_config):
 
 
 @cli.command(help="Run a machine emulation")
-@click.option("--trace", default=False,
+@click.option("--trace/--no-trace", default=False,
               help="Create trace lines."
               )
 @click.option("--ram", default=None, help="RAM file to load (default none)")

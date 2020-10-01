@@ -54,7 +54,6 @@ class Machine:
 
         self.cpu.reset()
 
-        self.max_ops = self.cfg.cfg_dict["max_ops"]
         self.op_count = 0
 
     def get_basic_program(self):
