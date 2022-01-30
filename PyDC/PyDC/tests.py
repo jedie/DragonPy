@@ -14,10 +14,11 @@ import sys
 import tempfile
 import unittest
 
+from . import configs
+
 # own modules
 from .__init__ import convert
 from .wave2bitstream import Wave2Bitstream
-from . import configs
 
 
 class TestDragon32Conversion(unittest.TestCase):
@@ -40,7 +41,7 @@ class TestDragon32Conversion(unittest.TestCase):
                 try:
                     os.remove(filename)
                 except Exception as err:
-                    print("Error remove temp file: %s" % err)
+                    print(f"Error remove temp file: {err}")
 
         self.temp_files = []
 
@@ -60,7 +61,7 @@ class TestDragon32Conversion(unittest.TestCase):
         )
 
     def _get_and_delete_dst(self, destination_filepath, delete=True):
-        f = open(destination_filepath, "r")
+        f = open(destination_filepath)
         dest_content = f.read()
         f.close()
         if delete:

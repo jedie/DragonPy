@@ -1,5 +1,4 @@
-"""
-"""
+#!/usr/bin/env python3
 
 IN_FILENAME = "ExBasROM.LST"
 
@@ -7,12 +6,10 @@ IN_FILENAME = "ExBasROM.LST"
 def main():
     rom_list = open(IN_FILENAME, "rb")
 
-    out_bytes = []
-
     for line in rom_list:
         # ~ print line
         line = line.strip()
-        items = [x.strip() for x in line.split()]
+        # items = [x.strip() for x in line.split()]
         addr = line[5:9].strip()
         if not addr:
             continue
