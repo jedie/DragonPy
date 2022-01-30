@@ -212,26 +212,6 @@ def download_roms():
 
     if download_error:
         sys.exit(1)
-
-
-@cli.command(help="Run all tests via nose")
-@cli_config
-def nosetests(cli_config, **kwargs):
-    path = os.path.abspath(os.path.dirname(dragonpy.__file__))
-    click.secho(f"Run all tests in {path!r}", bold=True)
-    #
-    # import here, because normal PyPi installation has no nose installed ;)
-    try:
-        import nose
-    except ImportError as err:
-        print(f"Can't run test, requirements not installed: {err}")
-        sys.exit(-1)
-
-    from nose.config import Config
-    config = Config(workingDir=path)
-    nose.main(defaultTest=path, argv=[sys.argv[0]], config=config)
-
-
 def main(confirm_exit=True):
     if len(sys.argv) == 1:
         if confirm_exit:
