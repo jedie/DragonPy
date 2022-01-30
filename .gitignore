@@ -1,3 +1,8 @@
+.*
+
+!.github
+!.gitignore
+
 *.rom
 /roms/*
 
@@ -19,7 +24,6 @@ bin
 var
 sdist
 develop-eggs
-.installed.cfg
 lib
 lib64
 
@@ -27,17 +31,10 @@ lib64
 pip-log.txt
 
 # Unit test / coverage reports
-.coverage
 /htmlcov/*
-.tox
-nosetests.xml
 
 # Translations
 *.mo
 
-.project
-.pydevproject
-.idea/*
-.settings/*
 /publish.log
 /coverage.xml

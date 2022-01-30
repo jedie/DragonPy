@@ -12,11 +12,15 @@ on:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: 'Python ${{ matrix.python-version }} on ${{ matrix.os }}'
+    runs-on: ${{ matrix.os }}
+    env:
+      PYTHONUNBUFFERED: 1
     strategy:
-      max-parallel: 4
+      fail-fast: false
       matrix:
-        python-version: ["3.9", "3.8"]
+        python-version: ["3.10", "3.9", "3.8"]
+        os: [ubuntu-latest, macOS-latest, windows-latest]
     steps:
     - uses: actions/checkout@v2
       with:
@@ -47,32 +51,23 @@ jobs:
         path: roms
         key: cache-roms
 
-    - name: 'Install package'
+    - name: 'Bootstrap'
       run: |
-        make install-poetry
-        source $HOME/.poetry/env
-        make install
+        python3 devshell.py quit
 
     - name: 'List installed packages'
       run: |
-        source $HOME/.poetry/env
-        poetry run pip freeze
-
-    - name: 'List all tox test environments'
-      run: |
-        source $HOME/.poetry/env
-        make tox-listenvs
+        python3 devshell.py list_venv_packages
 
     - name: 'Run tests with Python v${{ matrix.python-version }}'
       run: |
-        source $HOME/.poetry/env
-        make pytest
-
-#    - name: 'Run linters'
-#      if: matrix.python-version == '3.8'
-#      run: |
-#        source $HOME/.poetry/env
-#        make lint
+        python3 devshell.py pytest -vv
 
     - name: 'Upload coverage report'
+      if: matrix.os == 'ubuntu-latest'
       run: bash <(curl -s https://codecov.io/bash)
+
+    - name: 'Run linters'
+      if: matrix.python-version == '3.8'
+      run: |
+        python3 devshell.py linting
