@@ -104,7 +104,6 @@ norecursedirs = ".* .venv .git __pycache__ coverage* dist htmlcov"
 #    --full-trace
 #    -p no:warnings
 addopts = """
-    --import-mode=importlib
     --cov=.
     --cov-report term-missing
     --cov-report html
@@ -134,5 +133,5 @@ skip_missing_interpreters = True
 passenv = *
 whitelist_externals = pytest
 commands =
-    pytest --workers auto --tests-per-worker 1
+    pytest
 """
