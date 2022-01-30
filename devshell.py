@@ -60,17 +60,17 @@ PROJECT_SHELL_SCRIPT = BIN_PATH / 'devshell'
 
 
 def get_dep_hash():
-    """ Get SHA512 hash from poetry.lock content. """
+    """Get SHA512 hash from poetry.lock content."""
     return hashlib.sha512(DEP_LOCK_PATH.read_bytes()).hexdigest()
 
 
 def store_dep_hash():
-    """ Generate /.venv/.dep_hash """
+    """Generate /.venv/.dep_hash"""
     DEP_HASH_PATH.write_text(get_dep_hash())
 
 
 def venv_up2date():
-    """ Is existing .venv is up-to-date? """
+    """Is existing .venv is up-to-date?"""
     if DEP_HASH_PATH.is_file():
         return DEP_HASH_PATH.read_text() == get_dep_hash()
     return False
@@ -92,13 +92,10 @@ def noop_signal_handler(signal_num, frame):
 def main(argv):
     if len(argv) == 2 and argv[1] in ('--update', '--help'):
         parser = argparse.ArgumentParser(
-            prog=Path(__file__).name,
-            description='Developer shell',
-            epilog='...live long and prosper...'
+            prog=Path(__file__).name, description='Developer shell', epilog='...live long and prosper...'
         )
         parser.add_argument(
-            '--update', default=False, action='store_true',
-            help='Force create/upgrade virtual environment'
+            '--update', default=False, action='store_true', help='Force create/upgrade virtual environment'
         )
         parser.add_argument(
             'command_args',
