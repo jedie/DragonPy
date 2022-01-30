@@ -7,7 +7,6 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-
 from dragonpy.core.configs import BaseConfig
 
 
@@ -15,6 +14,9 @@ class TestCfg(BaseConfig):
     """
     Default test config
     """
+
+    __test__ = False  # Exclude from PyTest collection
+
     RAM_START = 0x0000
     RAM_END = 0x7FFF
 
