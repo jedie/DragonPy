@@ -13,6 +13,7 @@ import math
 import string
 import time
 import types
+from collections.abc import Iterable
 
 
 LOG_FORMATTER = logging.Formatter("")  # %(asctime)s %(message)s")
@@ -194,7 +195,7 @@ def count_continuous_pattern(bitstream, pattern):
     >>> count_continuous_pattern(bitstream, pattern)
     0
     """
-    assert isinstance(bitstream, (collections.Iterable, types.GeneratorType))
+    assert isinstance(bitstream, (Iterable, types.GeneratorType))
     assert isinstance(pattern, (list, tuple))
 
     window_size = len(pattern)
@@ -238,7 +239,7 @@ def find_iter_window(bitstream, pattern, max_pos=None):
     ...
     PyDC.utils.PatternNotFound: 40
     """
-    assert isinstance(bitstream, (collections.Iterable, types.GeneratorType))
+    assert isinstance(bitstream, (Iterable, types.GeneratorType))
     assert isinstance(pattern, (list, tuple))
 
     window_size = len(pattern)
@@ -274,9 +275,10 @@ def diff_info(data):
     >>> diff_info([5,10,10,5,5,10,10,5])
     (15, 0)
     """
-    def get_diff(l):
+
+    def get_diff(data):
         diff = 0
-        for no1, no2 in iter_steps(l, steps=2):
+        for no1, no2 in iter_steps(data, steps=2):
             diff += abs(no1 - no2)
         return diff
 
@@ -384,8 +386,12 @@ def count_sign(values, min_value):
     return positive_count, negative_count
 
 
-def list2str(l):
-    return "".join([str(c) for c in l])
+def list2str(data):
+    """
+    >>> list2str(['a', 'b', 1, 2, 3])
+    'ab123'
+    """
+    return "".join([str(c) for c in data])
 
 
 def string2codepoint(s):
