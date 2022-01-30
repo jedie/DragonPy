@@ -10,7 +10,8 @@
 
 from dragonlib.api import CoCoAPI
 
-from dragonpy.core.configs import SIMPLE6809, BaseConfig
+from dragonpy import constants
+from dragonpy.core.configs import BaseConfig
 from dragonpy.Simple6809.mem_info import get_simple6809_meminfo
 from dragonpy.Simple6809.Simple6809_rom import Simple6809Rom
 
@@ -20,7 +21,8 @@ class Simple6809Cfg(BaseConfig):
     DragonPy config for Grant Searle's Simple 6809 design
     More info read ./Simple6809/README.creole
     """
-    CONFIG_NAME = SIMPLE6809
+
+    CONFIG_NAME = constants.SIMPLE6809
     MACHINE_NAME = "Simple6809"
 
     RAM_START = 0x0000
@@ -65,19 +67,17 @@ class Simple6809Cfg(BaseConfig):
         }
 
     def float_accu_write0(self, cpu, addr, value):
-        print("{:04x}| Write float accu 0 ${:x} to ${:x} {}".format(
-            cpu.last_op_address, value, addr,
-            self.mem_info.get_shortest(addr)
-        ))
-        cpu.memory.ram.print_dump(0x004f, 0x0054)
+        print(
+            f"{cpu.last_op_address:04x}| Write float accu 0 ${value:x} to ${addr:x} {self.mem_info.get_shortest(addr)}"
+        )
+        cpu.memory.ram.print_dump(0x004F, 0x0054)
         return value
 
     def float_accu_write1(self, cpu, addr, value):
-        print("{:04x}| Write float accu 1 ${:x} to ${:x} {}".format(
-            cpu.last_op_address, value, addr,
-            self.mem_info.get_shortest(addr)
-        ))
-        cpu.memory.ram.print_dump(0x005c, 0x0061)
+        print(
+            f"{cpu.last_op_address:04x}| Write float accu 1 ${value:x} to ${addr:x} {self.mem_info.get_shortest(addr)}"
+        )
+        cpu.memory.ram.print_dump(0x005C, 0x0061)
         return value
 
 

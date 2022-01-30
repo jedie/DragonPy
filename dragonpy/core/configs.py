@@ -7,21 +7,11 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-
 import inspect
 import logging
 
 
 log = logging.getLogger(__name__)
-
-
-DRAGON32 = "Dragon32"
-DRAGON64 = "Dragon64"
-COCO2B = "CoCo2b"
-SBC09 = "sbc09"
-SIMPLE6809 = "Simple6809"
-MULTICOMP6809 = "Multicomp6809"
-VECTREX = "Vectrex"
 
 
 class MachineDict(dict):

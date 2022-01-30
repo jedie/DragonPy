@@ -39,6 +39,7 @@ pygments = "^2.5.2"
 
 [tool.poetry.dev-dependencies]
 dev_shell = "*"  # https://github.com/jedie/dev-shell
+cmd2_ext_test = "*"
 python-creole = "*"
 poetry_publish = "*"
 tox = "*"

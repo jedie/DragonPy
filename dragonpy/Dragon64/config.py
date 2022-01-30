@@ -10,14 +10,14 @@
 
 import logging
 
-from dragonpy.core.configs import DRAGON64
+from dragonpy import constants
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon64.Dragon64_rom import Dragon64RomIC17, Dragon64RomIC18
 from dragonpy.Dragon64.mem_info import get_dragon_meminfo
 
 
 class Dragon64Cfg(Dragon32Cfg):
-    CONFIG_NAME = DRAGON64
+    CONFIG_NAME = constants.DRAGON64
     MACHINE_NAME = "Dragon 64"
 
     RAM_START = 0x0000

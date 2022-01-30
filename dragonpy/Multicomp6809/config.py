@@ -6,9 +6,8 @@
     :copyleft: 2014-2015 by the DragonPy team, see AUTHORS for more details.
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
-
-
-from dragonpy.core.configs import MULTICOMP6809, BaseConfig
+from dragonpy import constants
+from dragonpy.core.configs import BaseConfig
 from dragonpy.Multicomp6809.Multicomp6809_rom import Multicomp6809Rom
 from dragonpy.Multicomp6809.periphery_Multicomp6809 import Multicomp6809Periphery
 
@@ -18,7 +17,8 @@ class Multicomp6809Cfg(BaseConfig):
     DragonPy config for Grant Searle's Multicomp FPGA project
     http://searle.hostei.com/grant/Multicomp/
     """
-    CONFIG_NAME = MULTICOMP6809
+
+    CONFIG_NAME = constants.MULTICOMP6809
     MACHINE_NAME = "Multicomp 6809"
 
     RAM_START = 0x0000

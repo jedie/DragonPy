@@ -121,6 +121,21 @@ test = ["codecov", "coverage", "pytest (>=4.6)", "pytest-cov", "pytest-mock", "g
 validate = ["flake8", "mypy (==0.902)", "types-pkg-resources"]
 
 [[package]]
+name = "cmd2-ext-test"
+version = "2.0.0"
+description = "External test plugin for cmd2. Allows for external invocation of commands as if from a cmd2 pyscript"
+category = "dev"
+optional = false
+python-versions = ">=3.6"
+
+[package.dependencies]
+cmd2 = ">=2,<3"
+
+[package.extras]
+dev = ["setuptools-scm", "pytest", "codecov", "pytest-cov", "pylint", "invoke", "wheel", "twine"]
+test = ["codecov", "coverage", "pytest", "pytest-cov"]
+
+[[package]]
 name = "colorama"
 version = "0.4.4"
 description = "Cross-platform colored terminal text."
@@ -824,7 +839,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<4.0"
-content-hash = "8fcf58542331e0d96a81547bfe49fde9128fc77b680c73257abe43bda7446e22"
+content-hash = "da454ac2fc1a5c94a836a143b11f68deb02590b0dae192efb5893df557f4d877"
 
 [metadata.files]
 atomicwrites = [
@@ -910,6 +925,10 @@ click = [
 cmd2 = [
     {file = "cmd2-2.3.3-py3-none-any.whl", hash = "sha256:871713244c1f31defa3250149ba3ed071130be33bc755f39b84ae7ef6f721951"},
     {file = "cmd2-2.3.3.tar.gz", hash = "sha256:750d7eb04d55c3bc2a413e191bc177856f388102de47d11f2210a35266543640"},
+]
+cmd2-ext-test = [
+    {file = "cmd2-ext-test-2.0.0.tar.gz", hash = "sha256:b9373ea27bab2e297041ed2dac4491dc919ae56153d5f0addeb440eeb851a5a6"},
+    {file = "cmd2_ext_test-2.0.0-py3-none-any.whl", hash = "sha256:6e66a69ff65d44cf84e35c9ce8e1e3c56aa1ef1cea520a73cd53673b48d15796"},
 ]
 colorama = [
     {file = "colorama-0.4.4-py2.py3-none-any.whl", hash = "sha256:9f47eda37229f68eee03b24b9748937c7dc3868f906e8ba69fbcbdd3bc5dc3e2"},

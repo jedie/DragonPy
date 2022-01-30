@@ -12,7 +12,8 @@
 
 import logging
 
-from dragonpy.core.configs import VECTREX, BaseConfig
+from dragonpy import constants
+from dragonpy.core.configs import BaseConfig
 from dragonpy.vectrex.mem_info import VectrexMemInfo
 from dragonpy.vectrex.vectrex_rom import VectrexRom
 
@@ -33,7 +34,8 @@ class VectrexCfg(BaseConfig):
     $E000 - $EFFF ROM - builtin Mine storm game
     $F000 - $FFFF ROM - vectrex BIOS Executive
     """
-    CONFIG_NAME = VECTREX
+
+    CONFIG_NAME = constants.VECTREX
     MACHINE_NAME = "Vectrex"
 
     RAM_START = 0xC800

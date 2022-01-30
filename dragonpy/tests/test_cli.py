@@ -34,22 +34,21 @@ class CliTestCase(unittest.TestCase):
                 self.fail(f"{member!r} found in:\n{container}")
 
     def assert_is_help(self, output):
-        self.assert_contains_members([
-            "Usage: ", " [OPTIONS] COMMAND [ARGS]...",  # Don't check "filename": It's cli or cli.py in unittests!
-
-            "DragonPy is a Open source (GPL v3 or later) emulator for the 30 years old",
-            "homecomputer Dragon 32 and Tandy TRS-80 Color Computer (CoCo)...",
-
-            "Homepage: https://github.com/jedie/DragonPy",
-
-            "--machine [CoCo2b|Dragon32|Dragon64|Multicomp6809|Simple6809|Vectrex|sbc09]",
-            "Commands:",
-            "download-roms  Download/Test only ROM files",
-            "editor         Run only the BASIC editor",
-            "log-list       List all exiting loggers and exit.",
-            "nosetests      Run all tests via nose",
-            "run            Run a machine emulation",
-        ], output)
+        self.assert_contains_members(
+            [
+                "Usage: ",
+                " [OPTIONS] COMMAND [ARGS]...",  # Don't check "filename": It's cli or cli.py in unittests!
+                "DragonPy is a Open source (GPL v3 or later) emulator for the 30 years old",
+                "homecomputer Dragon 32 and Tandy TRS-80 Color Computer (CoCo)...",
+                "Homepage: https://github.com/jedie/DragonPy",
+                "--machine [CoCo2b|Dragon32|Dragon64|Multicomp6809|Simple6809|Vectrex|sbc09]",
+                "Commands:",
+                "editor    Run only the BASIC editor",
+                "log-list  List all exiting loggers and exit.",
+                "run       Run a machine emulation",
+            ],
+            output,
+        )
 
 
 class TestStarter(CliTestCase):
@@ -198,22 +197,3 @@ class CLITestCase(CliTestCase):
 
         errors = ["Error", "Traceback"]
         self.assert_not_contains_members(errors, result.output)
-
-    def test_download_roms(self):
-        result = self._invoke(
-            "download-roms",
-            exit_code=None  # TODO: Remove if 6809/Multicomp.zip is available
-        )
-        # print(result.output)
-        # print(cli_err)
-        self.assert_contains_members([
-            "ROM file: d64_ic17.rom",
-            "Read ROM file",
-            "ROM SHA1:",
-            "ok",
-            "file size is",
-        ], result.output)
-
-        # TODO: Activate if 6809/Multicomp.zip is available:
-        # errors = ["Error", "Traceback"]
-        # self.assert_not_contains_members(errors, result.output)

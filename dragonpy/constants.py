@@ -1,0 +1,7 @@
+DRAGON32 = "Dragon32"
+DRAGON64 = "Dragon64"
+COCO2B = "CoCo2b"
+SBC09 = "sbc09"
+SIMPLE6809 = "Simple6809"
+MULTICOMP6809 = "Multicomp6809"
+VECTREX = "Vectrex"

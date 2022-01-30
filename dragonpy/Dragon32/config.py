@@ -12,7 +12,8 @@ import logging
 
 from dragonlib.api import Dragon32API
 
-from dragonpy.core.configs import DRAGON32, BaseConfig
+from dragonpy import constants
+from dragonpy.core.configs import BaseConfig
 from dragonpy.Dragon32.Dragon32_rom import Dragon32Rom
 from dragonpy.Dragon32.keyboard_map import get_dragon_keymatrix_pia_result
 from dragonpy.Dragon32.mem_info import get_dragon_meminfo
@@ -27,7 +28,8 @@ class Dragon32Cfg(BaseConfig):
      * http://dragon32.info/info/memmap.html
      * http://dragon32.info/info/romref.html
     """
-    CONFIG_NAME = DRAGON32
+
+    CONFIG_NAME = constants.DRAGON32
     MACHINE_NAME = "Dragon 32"
 
     # How does the keyboard polling routine starts with?
