@@ -37,6 +37,8 @@ class DragonPyDevShellTestCase(DevShellAppBaseTestCase):
 
     def test_download_roms(self):
         stdout, stderr = self.execute('download_roms')
+        print(stdout)
+        print(stderr)
         assert stderr == ''
         assert 'Download 7 platform roms...\n' in stdout
         assert '\n9 ROMs succeed.\n' in stdout
