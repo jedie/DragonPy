@@ -53,6 +53,10 @@ jobs:
         path: roms
         key: cache-roms
 
+    - name: 'pip cache information'
+      run: |
+        pip3 cache info
+
     - name: 'Bootstrap'
       run: |
         python3 devshell.py quit
