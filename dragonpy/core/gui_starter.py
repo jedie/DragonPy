@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
@@ -10,16 +8,19 @@
 """
 
 
+import atexit
 import logging
-import sys
 import tkinter as tk
 
-import click
+from dev_shell.utils.colorful import bright_blue
+from dev_shell.utils.subprocess_utils import verbose_check_call
+from MC6809.cli import DEFAULT_LOOPS, DEFAULT_MULTIPLY
+from MC6809.core.bechmark import run_benchmark
 
 import dragonpy
-from dragonpy.core import configs
+from dragonpy import constants
+from dragonpy.core.configs import machine_dict
 from dragonpy.utils.humanize import get_python_info
-from dragonpy.utils.starter import run_dragonpy, run_mc6809
 
 
 log = logging.getLogger(__name__)
@@ -81,7 +82,7 @@ class RunButtonsFrame(tk.LabelFrame):
         self.machine_dict = master.machine_dict
 
         self.var_machine = tk.StringVar()
-        self.var_machine.set(configs.DRAGON64)
+        self.var_machine.set(constants.DRAGON64)
         for row, machine_name in enumerate(sorted(self.machine_dict)):
             # print(row, machine_name)
             b = tk.Radiobutton(self, text=machine_name,
@@ -154,8 +155,6 @@ class StarterGUI(tk.Tk):
     def __init__(self, machine_dict):
         tk.Tk.__init__(self)
 
-        print("\n".join(sys.path))
-
         self.machine_dict = machine_dict
 
         self.geometry("+%d+%d" % (
@@ -197,8 +196,8 @@ class StarterGUI(tk.Tk):
         self.status_bar.set_label("dragonpy_version", f"DragonPy v{dragonpy.__version__}", **defaults)
 
     def _print_run_info(self, txt):
-        click.echo("\n")
-        click.secho(txt, bg='blue', fg='white', bold=True, underline=True)
+        print("\n")
+        print(bright_blue(txt))
 
     def _run_dragonpy_cli(self, *args):
         """
@@ -210,14 +209,15 @@ class StarterGUI(tk.Tk):
         log.debug(f"Verbosity: {verbosity_no:d} ({verbosity})")
 
         args = (
+            'devshell',
+            *args,
             "--verbosity", f"{verbosity_no}"
             # "--log_list",
             # "--log",
             # "dragonpy.components.cpu6809,40",
             # "dragonpy.Dragon32.MC6821_PIA,50",
-        ) + args
-        click.echo("\n")
-        run_dragonpy(*args, verbose=True)
+        )
+        verbose_check_call(*args, verbose=True)
 
     def _run_command(self, command):
         """
@@ -226,7 +226,7 @@ class StarterGUI(tk.Tk):
         "--verbosity" will also be set, later.
         """
         machine_name = self.frame_run_buttons.var_machine.get()
-        self._run_dragonpy_cli("--machine", machine_name, command)
+        self._run_dragonpy_cli(command, "--machine", machine_name)
 
     def run_machine(self):
         self._print_run_info("Run machine emulation")
@@ -238,11 +238,25 @@ class StarterGUI(tk.Tk):
 
     def run_6809_benchmark(self):
         self._print_run_info("Run MC6809 benchmark")
-        click.echo("\n")
-        run_mc6809("benchmark", verbose=True)
+        print("\n")
+        run_benchmark(loops=DEFAULT_LOOPS, multiply=DEFAULT_MULTIPLY)
 
 
-if __name__ == "__main__":
-    from dragonpy.core.cli import main
+def gui_mainloop(confirm_exit=True):
+    """
+    Entrypoint to start the DragonPy "StarterGUI"
 
-    main(confirm_exit=False)
+    Executed by "DragonPy" command, defined via [tool.poetry.scripts] in pyproject.toml
+    """
+    if confirm_exit:
+
+        def confirm():
+            # don't close the terminal window directly
+            # important for windows users ;)
+            input("Please press [ENTER] to exit")
+
+        atexit.register(confirm)
+
+    print("\nrun DragonPy starter GUI...\n")
+    gui = StarterGUI(machine_dict)
+    gui.mainloop()

@@ -32,14 +32,10 @@ update: check-poetry ## Update the dependencies as according to the pyproject.to
 	poetry update
 
 lint: ## Run code formatters and linter
-	poetry run flynt --fail-on-change --line_length=${MAX_LINE_LENGTH} dragonpy
-	poetry run isort --check-only --recursive dragonpy
-	poetry run flake8 dragonpy
+	poetry run darker --check
 
 fix-code-style: ## Fix code formatting
-	poetry run flynt --line_length=${MAX_LINE_LENGTH} dragonpy
-	poetry run autopep8 --ignore-local-config --max-line-length=${MAX_LINE_LENGTH} --aggressive --aggressive --in-place --recursive dragonpy
-	poetry run isort --apply --recursive dragonpy
+	poetry run darker
 
 tox-listenvs: check-poetry ## List all tox test environments
 	poetry run tox --listenvs
@@ -72,30 +68,30 @@ benchmark:  ## Run MC6809 emulation benchmark
 	poetry run MC6809 benchmark
 
 editor: check-poetry  ## Run only the BASIC editor
-	poetry run DragonPy editor
+	poetry run devshell editor
 
 Vectrex: check-poetry  ## Run GUI with Vectrex emulation (not working, yet!)
-	poetry run DragonPy --machine Vectrex run
+	poetry run devshell run --machine Vectrex
 
 sbc09: check-poetry  ## Run GUI with sbc09 ROM emulation
-	poetry run DragonPy --machine sbc09 run
+	poetry run devshell run --machine sbc09
 
 Multicomp6809: check-poetry  ## Run GUI with Multicomp6809 ROM emulation
-	poetry run DragonPy --machine Multicomp6809 run
+	poetry run devshell run --machine Multicomp6809
 
 Simple6809: check-poetry  ## Run GUI with Simple6809 ROM emulation
-	poetry run DragonPy --machine Simple6809 run
+	poetry run devshell run --machine Simple6809
 
 CoCo2b: check-poetry  ## Run GUI with CoCo 2b emulation
-	poetry run DragonPy --machine CoCo2b run
+	poetry run devshell run --machine CoCo2b
 
 Dragon32: check-poetry  ## Run GUI with Dragon 32 emulation
-	poetry run DragonPy --machine Dragon32 run
+	poetry run devshell run --machine Dragon32
 
 Dragon64: check-poetry  ## Run GUI with Dragon 64 emulation
-	poetry run DragonPy --machine Dragon64 run
+	poetry run devshell run --machine Dragon64
 
 run: check-poetry ## *Run the DragonPy Emulator GUI*
-	poetry run DragonPy
+	poetry run devshell gui
 
 .PHONY: help install lint fix test publish
