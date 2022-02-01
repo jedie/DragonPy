@@ -19,13 +19,8 @@ from dragonpy.vectrex.config import VectrexCfg
 from dragonpy.vectrex.machine import run_Vectrex
 
 
-__version__ = "0.7.0"
+__version__ = "0.8.0.rc1"
 
-
-# Used in setup.py and starter GUI to find the cli-executeable:
-DISTRIBUTION_NAME = "DragonPyEmulator"
-DIST_GROUP = "console_scripts"
-ENTRY_POINT = "DragonPy"
 
 machine_dict.register(constants.DRAGON32, (run_Dragon32, Dragon32Cfg), default=True)
 machine_dict.register(constants.DRAGON64, (run_Dragon64, Dragon64Cfg))

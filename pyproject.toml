@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "DragonPyEmulator"
-version = "0.7.0"
+version = "0.8.0.rc1"
 description = "Emulator for 6809 CPU based system like Dragon 32 / CoCo written in Python..."
 authors = ["JensDiemer <git@jensdiemer.de>"]
 packages = [{ include = "dragonpy" }]
@@ -34,7 +34,6 @@ readme="README.rst"
 python = ">=3.7,<4.0"
 dragonlib = "*"
 MC6809 = "*"
-click = "^7.0"
 pygments = "^2.5.2"
 
 [tool.poetry.dev-dependencies]
@@ -53,7 +52,7 @@ black = "==21.12b0" # https://github.com/akaihola/darker/issues/264
 
 [tool.poetry.scripts]
 devshell = 'dragonpy.dev_shell:devshell_cmdloop'
-DragonPy = "dragonpy.core.cli:main"
+DragonPy = 'dragonpy.core.gui_starter:gui_mainloop'
 update_rst_readme = "dragonpy.publish:update_readme"
 publish = "dragonpy.publish:publish"
 

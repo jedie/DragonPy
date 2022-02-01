@@ -26,14 +26,31 @@ class DragonPyDevShellTestCase(DevShellAppBaseTestCase):
         out = self.app.app_cmd('help')
 
         assert isinstance(out, CommandResult)
-        assert 'Documented commands' in out.stdout
-
-        assert 'Documented commands' in out.stdout
+        stdout = out.stdout
+        assert 'Documented commands' in stdout
+        assert 'gui' in stdout
+        assert 'download_roms' in stdout
+        assert 'run' in stdout
+        assert 'editor' in stdout
+        assert 'log_list' in stdout
 
     def test_help_via_execute(self):
         stdout, stderr = self.execute('help')
         assert stderr == ''
         assert 'Documented commands' in stdout
+        assert 'gui' in stdout
+        assert 'download_roms' in stdout
+        assert 'run' in stdout
+        assert 'editor' in stdout
+        assert 'log_list' in stdout
+
+    def test_help_run(self):
+        stdout, stderr = self.execute('help run')
+        assert stderr == ''
+        assert 'Usage: run [-h]' in stdout
+        assert '--machine ' in stdout
+        assert ' --max-ops MAX_OPS ' in stdout
+        assert 'CoCo2b, Dragon32, Dragon64' in stdout
 
     def test_download_roms(self):
         stdout, stderr = self.execute('download_roms')
