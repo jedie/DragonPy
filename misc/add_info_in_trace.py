@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
     Filter Xroar trace files.
@@ -9,9 +9,9 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import time
-import sys
 import argparse
+import sys
+import time
 
 
 def cc_value2txt(status):
@@ -38,9 +38,7 @@ class MemoryInfo:
         return int(addr, 16)
 
     def _get_rom_info(self, rom_info_file):
-        sys.stderr.write(
-            "Read ROM Info file: %r\n" % rom_info_file.name
-        )
+        sys.stderr.write(f"Read ROM Info file: {rom_info_file.name!r}\n")
         rom_info = []
         next_update = time.time() + 0.5
         for line_no, line in enumerate(rom_info_file):
@@ -68,12 +66,8 @@ class MemoryInfo:
             else:
                 end_addr = start_addr
 
-            rom_info.append(
-                (start_addr, end_addr, comment.strip())
-            )
-        sys.stderr.write(
-            "ROM Info file: %r readed.\n" % rom_info_file.name
-        )
+            rom_info.append((start_addr, end_addr, comment.strip()))
+        sys.stderr.write(f"ROM Info file: {rom_info_file.name!r} readed.\n")
         return rom_info
 
     def get_shortest(self, addr):
@@ -94,7 +88,7 @@ class MemoryInfo:
                 shortest = start, end, txt
 
         if shortest is None:
-            info = "$%x: UNKNOWN" % addr
+            info = f"${addr:x}: UNKNOWN"
         else:
             start, end, txt = shortest
             if start == end:
@@ -140,7 +134,7 @@ class XroarTraceInfo:
                         cc = int(cc, 16)
                     except ValueError as err:
                         msg = f"ValueError: {err} in line: {line}"
-                        line += "| %s" % msg
+                        line += f"| {msg}"
                     else:
                         cc_info = cc_value2txt(cc)
                         line += "| " + cc_info

@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
     Filter Xroar trace files.
@@ -40,12 +40,8 @@ class XroarTraceFilter:
 
         f.seek(0)  # if also used in self.filter()
 
-        sys.stderr.write(
-            f"\rAnalyzed {line_no:d} op calls, complete.\n"
-        )
-        sys.stderr.write(
-            "\nThe tracefile contains %i unique addresses.\n" % len(addr_stat)
-        )
+        sys.stderr.write(f"\rAnalyzed {line_no:d} op calls, complete.\n")
+        sys.stderr.write(f"\nThe tracefile contains {len(addr_stat)} unique addresses.\n")
         return addr_stat
 
     def unique(self):
@@ -127,9 +123,7 @@ class XroarTraceFilter:
         return addr_filter
 
     def filter(self, addr_filter):
-        sys.stderr.write(
-            "Filter %i addresses.\n" % len(addr_filter)
-        )
+        sys.stderr.write(f"Filter {len(addr_filter)} addresses.\n")
         total_skiped_lines = 0
         skip_count = 0
         last_line_no = 0
@@ -233,7 +227,7 @@ class XroarTraceFilter:
                     passed_addresses -= all_addresses
                     if passed_addresses:
                         all_addresses.update(passed_addresses)
-                        passed_addresses = ",".join(["$%x" % i for i in passed_addresses])
+                        passed_addresses = ",".join([f"${i:x}" for i in passed_addresses])
                         sys.stderr.write(
                             f"\nPassed unique addresses: {passed_addresses}\n"
                         )

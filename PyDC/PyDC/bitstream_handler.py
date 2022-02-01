@@ -76,16 +76,14 @@ def print_block_table(block_codepoints):
     for block in block_codepoints:
         byte_no = bits2codepoint(block)
         character = chr(byte_no)
-        print("{} {:>4} {:>3} {}".format(
-            list2str(block), hex(byte_no), byte_no, repr(character)
-        ))
+        print(f"{list2str(block)} {hex(byte_no):>4} {byte_no:>3} {repr(character)}")
 
 
 def print_as_hex(block_codepoints):
     line = ""
     for block in block_codepoints:
         byte_no = bits2codepoint(block)
-        character = chr(byte_no)
+        # character = chr(byte_no)
         line += hex(byte_no)
     print(line)
 
@@ -106,7 +104,7 @@ class BitstreamHandlerBase:
                 self.sync_bitstream(bitstream)  # Sync bitstream with SYNC_BYTE
             except SyncByteNotFoundError as err:
                 log.error(err)
-                log.info("Last wave pos: %s" % bitstream.pformat_pos())
+                log.info(f"Last wave pos: {bitstream.pformat_pos()}")
                 break
 
             block_type, block_length, codepoints = self.get_block_info(bitstream)
@@ -114,7 +112,7 @@ class BitstreamHandlerBase:
             try:
                 block_type_name = self.cfg.BLOCK_TYPE_DICT[block_type]
             except KeyError:
-                print("ERROR: Block type %s unknown in BLOCK_TYPE_DICT!" % hex(block_type))
+                print(f"ERROR: Block type {hex(block_type)} unknown in BLOCK_TYPE_DICT!")
                 print("-" * 79)
                 print("Debug bitlist:")
                 print_bitlist(bitstream)
@@ -153,12 +151,12 @@ class BitstreamHandlerBase:
         codepoints = tuple(itertools.islice(codepoint_stream, block_length))
 
         try:
-            verbose_block_type = self.cfg.BLOCK_TYPE_DICT[block_type]
+            verbose_block_type = self.cfg.BLOCK_TYPE_DICT[block_type]  # noqa
         except KeyError:
             log.error("Blocktype unknown!")
             print(pformat_codepoints(codepoints))
             sys.exit()
-            verbose_block_type = hex(block_type)
+            # verbose_block_type = hex(block_type)
 
 #         log.debug("content of '%s':" % verbose_block_type)
 #         log.debug("-"*79)
@@ -175,13 +173,13 @@ class BitstreamHandlerBase:
 
         origin_checksum = next(codepoint_stream)
 
-        calc_checksum = sum([codepoint for codepoint in codepoints])
+        calc_checksum = sum(codepoint for codepoint in codepoints)
         calc_checksum += block_type
         calc_checksum += block_length
         calc_checksum = calc_checksum & 0xFF
 
         if calc_checksum == origin_checksum:
-            log.info("Block checksum %s is ok." % hex(origin_checksum))
+            log.info(f"Block checksum {hex(origin_checksum)} is ok.")
         else:
             log.error(
                 f"Block checksum {hex(origin_checksum)} is not equal with calculated checksum: {hex(calc_checksum)}")
@@ -209,13 +207,13 @@ class BitstreamHandler(BitstreamHandlerBase):
         return super().get_block_info(codepoint_stream)
 
     def sync_bitstream(self, bitstream):
-        log.debug("start sync bitstream at wave pos: %s" % bitstream.pformat_pos())
+        log.debug(f"start sync bitstream at wave pos: {bitstream.pformat_pos()}")
         bitstream.sync(32)  # Sync bitstream to wave sinus cycle
 
 #         test_bitstream = list(itertools.islice(bitstream, 258 * 8))
 #         print_bitlist(test_bitstream)
 
-        log.debug("Searching for lead-in byte at wave pos: %s" % bitstream.pformat_pos())
+        log.debug(f"Searching for lead-in byte at wave pos: {bitstream.pformat_pos()}")
 
         # Searching for lead-in byte
         lead_in_pattern = list(codepoints2bitstream(self.cfg.LEAD_BYTE_CODEPOINT))
@@ -232,7 +230,7 @@ class BitstreamHandler(BitstreamHandlerBase):
             log.info(
                 f"Leader-Byte '{list2str(lead_in_pattern)}' ({hex(self.cfg.LEAD_BYTE_CODEPOINT)}) found at {leader_pos:d} Bytes (wave pos: {bitstream.pformat_pos()})")
 
-        log.debug("Search for sync-byte at wave pos: %s" % bitstream.pformat_pos())
+        log.debug(f"Search for sync-byte at wave pos: {bitstream.pformat_pos()}")
 
         # Search for sync-byte
         sync_pattern = list(codepoints2bitstream(self.cfg.SYNC_BYTE_CODEPOINT))
@@ -303,7 +301,7 @@ class BytestreamHandler(BitstreamHandlerBase):
         if sync_byte != self.cfg.SYNC_BYTE_CODEPOINT:
             log.error(f"Sync byte wrong. Get {hex(sync_byte)} but excepted {hex(self.cfg.SYNC_BYTE_CODEPOINT)}")
         else:
-            log.debug("Sync %s byte, ok." % hex(self.cfg.SYNC_BYTE_CODEPOINT))
+            log.debug(f"Sync {hex(self.cfg.SYNC_BYTE_CODEPOINT)} byte, ok.")
 
 
 def print_bit_list_stats(bit_list):
@@ -311,7 +309,7 @@ def print_bit_list_stats(bit_list):
     >>> print_bit_list_stats([1,1,1,1,0,0,0,0])
     8 Bits: 4 positive bits and 4 negative bits
     """
-    print("%i Bits:" % len(bit_list), end=' ')
+    print(f"{len(bit_list)} Bits:", end=' ')
     positive_count = 0
     negative_count = 0
     for bit in bit_list:
@@ -320,7 +318,7 @@ def print_bit_list_stats(bit_list):
         elif bit == 0:
             negative_count += 1
         else:
-            raise TypeError("Not a bit: %s" % repr(bit))
+            raise TypeError(f"Not a bit: {repr(bit)}")
     print(f"{positive_count:d} positive bits and {negative_count:d} negative bits")
 
 
@@ -334,8 +332,8 @@ if __name__ == "__main__":
 
     # test via CLI:
 
-    import sys
     import subprocess
+    import sys
 
     # bas -> wav
     subprocess.Popen([sys.executable, "../PyDC_cli.py",

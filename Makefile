@@ -65,9 +65,6 @@ update-rst-readme: ## update README.rst from README.creole
 publish: ## Release new version to PyPi
 	poetry run publish
 
-download-roms:  ## Download/Test only ROM files
-	poetry run DragonPy download-roms
-
 profile:  ## Profile the MC6809 emulation benchmark
 	poetry run MC6809 profile
 

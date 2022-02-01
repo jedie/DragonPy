@@ -21,7 +21,7 @@
 import logging
 import queue
 
-from dragonpy.core.configs import COCO2B
+from dragonpy import constants
 from dragonpy.utils.bits import is_bit_set, set_bit
 from dragonpy.utils.humanize import byte2bit_string
 
@@ -226,7 +226,7 @@ class PIA:
         pia0b = self.pia_0_B_data.value  # $ff02
 
         # FIXME: Find a way to handle CoCo and Dragon in the same way!
-        if self.cfg.CONFIG_NAME == COCO2B:
+        if self.cfg.CONFIG_NAME == constants.COCO2B:
             #            log.critical("\t count: %i", self.input_repead)
             if self.input_repead == 7:
                 try:

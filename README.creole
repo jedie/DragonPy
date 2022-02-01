@@ -93,7 +93,10 @@ pip install DragonPyEmulator
 {{{
 ~$ git clone https://github.com/jedie/DragonPy.git
 ~$ cd DragonPy/
-~/DragonPy$ make
+~/DragonPy$ ./devshell.py
+
+WIP: remove old make file:
+
 help                 List all commands
 install-poetry       install or update poetry
 install              install DragonPy via poetry

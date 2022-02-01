@@ -1,5 +1,3 @@
-#!/usr/bin/env python2
-
 """
     PyDC - Cassette Objects
     =======================
@@ -25,6 +23,7 @@ from PyDC.utils import (
     pformat_codepoints,
     string2codepoint,
 )
+
 from .basic_tokens import bytes2codeline
 from .bitstream_handler import BitstreamHandler, BytestreamHandler, CasStream
 from .wave2bitstream import Bitstream2Wave, Wave2Bitstream
@@ -591,7 +590,7 @@ class Cassette:
 
             yield codepoints
 
-            checksum = sum([codepoint for codepoint in codepoints])
+            checksum = sum(codepoint for codepoint in codepoints)
             checksum += block_type
             checksum += block_length
             checksum = checksum & 0xFF

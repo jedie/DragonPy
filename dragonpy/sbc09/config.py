@@ -10,7 +10,8 @@
 
 from dragonlib.api import CoCoAPI
 
-from dragonpy.core.configs import SBC09, BaseConfig
+from dragonpy import constants
+from dragonpy.core.configs import BaseConfig
 from dragonpy.sbc09.mem_info import get_sbc09_meminfo
 from dragonpy.sbc09.periphery import SBC09Periphery
 from dragonpy.sbc09.sbc09_rom import SBC09Rom
@@ -24,7 +25,8 @@ class SBC09Cfg(BaseConfig):
 
     More info read ./sbc09/README.creole
     """
-    CONFIG_NAME = SBC09
+
+    CONFIG_NAME = constants.SBC09
     MACHINE_NAME = "Lennart's 6809 single board computer"
 
     RAM_START = 0x0000

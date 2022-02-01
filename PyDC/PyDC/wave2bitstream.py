@@ -224,7 +224,7 @@ class Wave2Bitstream(WaveBase):
             print("Error: no bits identified!")
             sys.exit(-1)
 
-        log.info("First bit is at: %s" % self.pformat_pos())
+        log.info(f"First bit is at: {self.pformat_pos()}")
         log.debug("enable half sinus scan")
         self.half_sinus = True
 
@@ -276,10 +276,12 @@ class Wave2Bitstream(WaveBase):
         bit_one_max_duration = self._hz2duration(bit_one_min_hz)
         bit_one_min_duration = self._hz2duration(bit_one_max_hz)
 
-        log.info(f"bit-0 in {bit_nul_min_hz}Hz - {bit_nul_max_hz}Hz (duration: {bit_nul_min_duration}-{bit_nul_max_duration})  |  bit-1 in {bit_one_min_hz}Hz - {bit_one_max_hz}Hz (duration: {bit_one_min_duration}-{bit_one_max_duration})")
-        assert bit_nul_max_hz < bit_one_min_hz, "HZ_VARIATION value is %sHz too high!" % (
-            ((bit_nul_max_hz - bit_one_min_hz) / 2) + 1
+        log.info(
+            f"bit-0 in {bit_nul_min_hz}Hz - {bit_nul_max_hz}Hz (duration: {bit_nul_min_duration}-{bit_nul_max_duration})  |  bit-1 in {bit_one_min_hz}Hz - {bit_one_max_hz}Hz (duration: {bit_one_min_duration}-{bit_one_max_duration})"
         )
+        assert (
+            bit_nul_max_hz < bit_one_min_hz
+        ), f"HZ_VARIATION value is {(bit_nul_max_hz - bit_one_min_hz) / 2 + 1}Hz too high!"
         assert bit_one_max_duration < bit_nul_min_duration, "HZ_VARIATION value is too high!"
 
         # for end statistics
@@ -334,13 +336,13 @@ class Wave2Bitstream(WaveBase):
 
         log.info(f"\n{bit_count:d} Bits: {bit_one_count:d} positive bits and {bit_nul_count:d} negative bits")
         if bit_one_count > 0:
-            log.info("Bit 1: {}Hz - {}Hz avg: {:.1f}Hz variation: {}Hz".format(
-                one_hz_min, one_hz_max, one_hz_avg, one_hz_max - one_hz_min
-            ))
+            log.info(
+                f"Bit 1: {one_hz_min}Hz - {one_hz_max}Hz avg: {one_hz_avg:.1f}Hz variation: {one_hz_max - one_hz_min}Hz"
+            )
         if bit_nul_count > 0:
-            log.info("Bit 0: {}Hz - {}Hz avg: {:.1f}Hz variation: {}Hz".format(
-                nul_hz_min, nul_hz_max, nul_hz_avg, nul_hz_max - nul_hz_min
-            ))
+            log.info(
+                f"Bit 0: {nul_hz_min}Hz - {nul_hz_max}Hz avg: {nul_hz_avg:.1f}Hz variation: {nul_hz_max - nul_hz_min}Hz"
+            )
 
     def iter_duration(self, iter_trigger):
         """
@@ -437,12 +439,12 @@ class Wave2Bitstream(WaveBase):
         """
         typecode = self.get_typecode(self.samplewidth)
 
-        if log.level >= 5:
-            if self.cfg.AVG_COUNT > 1:
-                # merge samples -> log output in iter_avg_wave_values
-                tlm = None
-            else:
-                tlm = TextLevelMeter(self.max_value, 79)
+        # if log.level >= 5:
+        #     if self.cfg.AVG_COUNT > 1:
+        #         # merge samples -> log output in iter_avg_wave_values
+        #         tlm = None
+        #     else:
+        #         tlm = TextLevelMeter(self.max_value, 79)
 
         # Use only a read size which is a quare divider of the samplewidth
         # Otherwise array.array will raise: ValueError: string length not a multiple of item size
@@ -498,7 +500,7 @@ class Wave2Bitstream(WaveBase):
                 yield (self.wave_pos, value)
 
         log.info(f"Skip {skip_count:d} samples that are lower than {self.min_volume:d}")
-        log.info("Last readed Frame is: %s" % self.pformat_pos())
+        log.info(f"Last readed Frame is: {self.pformat_pos()}")
 
 
 class Bitstream2Wave(WaveBase):
@@ -594,8 +596,8 @@ if __name__ == "__main__":
 
     # test via CLI:
 
-    import sys
     import subprocess
+    import sys
 
 #     subprocess.Popen([sys.executable, "../PyDC_cli.py", "--help"])
 #     sys.exit()

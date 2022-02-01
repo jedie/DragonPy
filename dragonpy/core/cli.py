@@ -13,31 +13,14 @@
 import atexit
 import locale
 import logging
-import os
 import sys
 
 from dragonlib.utils.logging_utils import LOG_LEVELS, setup_logging
 
 import dragonpy
 from basic_editor.editor import run_basic_editor
-from dragonpy.CoCo.config import CoCo2bCfg
-from dragonpy.CoCo.machine import run_CoCo2b
-from dragonpy.components.rom import ROMDownloadError
-from dragonpy.core import configs
 from dragonpy.core.configs import machine_dict
 from dragonpy.core.gui_starter import StarterGUI
-from dragonpy.Dragon32.config import Dragon32Cfg
-from dragonpy.Dragon32.machine import run_Dragon32
-from dragonpy.Dragon64.config import Dragon64Cfg
-from dragonpy.Dragon64.machine import run_Dragon64
-from dragonpy.Multicomp6809.config import Multicomp6809Cfg
-from dragonpy.Multicomp6809.machine import run_Multicomp6809
-from dragonpy.sbc09.config import SBC09Cfg
-from dragonpy.sbc09.machine import run_sbc09
-from dragonpy.Simple6809.config import Simple6809Cfg
-from dragonpy.Simple6809.machine import run_Simple6809
-from dragonpy.vectrex.config import VectrexCfg
-from dragonpy.vectrex.machine import run_Vectrex
 
 
 try:
@@ -60,15 +43,6 @@ log = logging.getLogger(__name__)
 # DEFAULT_LOG_FORMATTER = "[%(levelname)s %(asctime)s %(module)s] %(message)s"
 # DEFAULT_LOG_FORMATTER = "%(levelname)8s %(created)f %(module)-12s %(message)s"
 DEFAULT_LOG_FORMATTER = "%(relativeCreated)-5d %(levelname)8s %(module)13s %(lineno)d %(message)s"
-
-
-machine_dict.register(configs.DRAGON32, (run_Dragon32, Dragon32Cfg), default=True)
-machine_dict.register(configs.DRAGON64, (run_Dragon64, Dragon64Cfg))
-machine_dict.register(configs.COCO2B, (run_CoCo2b, CoCo2bCfg))
-machine_dict.register(configs.SBC09, (run_sbc09, SBC09Cfg))
-machine_dict.register(configs.SIMPLE6809, (run_Simple6809, Simple6809Cfg))
-machine_dict.register(configs.MULTICOMP6809, (run_Multicomp6809, Multicomp6809Cfg))
-machine_dict.register(configs.VECTREX, (run_Vectrex, VectrexCfg))
 
 
 # use user's preferred locale
@@ -182,54 +156,6 @@ def log_list():
     print("A list of all loggers:")
     for log_name in sorted(logging.Logger.manager.loggerDict):
         print(f"\t{log_name}")
-
-
-@cli.command(help="Download/Test only ROM files")
-def download_roms():
-    download_error = False
-    for machine_name, data in list(machine_dict.items()):
-        machine_config = data[1]
-        click.secho(
-            f"Download / test ROM for {click.style(machine_name, bold=True)}:",
-            bg='blue', fg='white'
-        )
-
-        for rom in machine_config.DEFAULT_ROMS:
-            click.echo(f"\tROM file: {click.style(rom.FILENAME, bold=True)}")
-            try:
-                content = rom.get_data()
-            except ROMDownloadError as err:
-                download_error = True
-                click.secho(
-                    f'Download {err.url!r} -> {err.origin_err}',
-                    bg='red', fg='white'
-                )
-                click.echo('')
-                continue
-
-            size = len(content)
-            click.echo(f"\tfile size is ${size:04x} (dez.: {size:d}) Bytes\n")
-
-    if download_error:
-        sys.exit(1)
-
-
-@cli.command(help="Run all tests via nose")
-@cli_config
-def nosetests(cli_config, **kwargs):
-    path = os.path.abspath(os.path.dirname(dragonpy.__file__))
-    click.secho(f"Run all tests in {path!r}", bold=True)
-    #
-    # import here, because normal PyPi installation has no nose installed ;)
-    try:
-        import nose
-    except ImportError as err:
-        print(f"Can't run test, requirements not installed: {err}")
-        sys.exit(-1)
-
-    from nose.config import Config
-    config = Config(workingDir=path)
-    nose.main(defaultTest=path, argv=[sys.argv[0]], config=config)
 
 
 def main(confirm_exit=True):

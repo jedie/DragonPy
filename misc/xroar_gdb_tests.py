@@ -1,16 +1,17 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
 """
     :created: 2014 by Jens Diemer - www.jensdiemer.de
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-import subprocess
 import os
-import sys
-import time
 import socket
+import subprocess
+import sys
 import threading
+import time
+
 
 GDB_IP = "127.0.0.1"
 GDB_PORT = 65520
@@ -26,12 +27,7 @@ def start_xroar(xroar_args, cwd):
             ]
     args += xroar_args
 
-    sys.stderr.write(
-        "Start Xroar in {!r} with: '{}'\n".format(
-            cwd,
-            " ".join([str(i) for i in args])
-        )
-    )
+    sys.stderr.write(f"Start Xroar in {cwd!r} with: '{' '.join([str(i) for i in args])}'\n")
     xroar_process = subprocess.Popen(args=args, cwd=cwd)
     return xroar_process
 
@@ -56,12 +52,12 @@ class XroarGDB:
         self.print_recv_interval()
 
     def send(self, txt):
-        sys.stderr.write("Send %r ..." % txt)
+        sys.stderr.write(f"Send {txt!r} ...")
         self.s.sendall(txt)
         sys.stderr.write("done.\n")
 
     def print_recv_interval(self):
-        print("recv: %s" % repr(self.s.recv(1024)))
+        print(f"recv: {repr(self.s.recv(1024))}")
         if self.running:
             t = threading.Timer(0.5, self.print_recv_interval)
             t.deamon = True

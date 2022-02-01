@@ -12,9 +12,9 @@ import logging
 
 from dragonlib.api import CoCoAPI
 
+from dragonpy import constants
 from dragonpy.CoCo.CoCo2b_rom import CoCo2b_Basic13_ROM, CoCo2b_ExtendedBasic11_ROM
 from dragonpy.CoCo.mem_info import get_coco_meminfo
-from dragonpy.core.configs import COCO2B
 from dragonpy.Dragon32.config import Dragon32Cfg
 from dragonpy.Dragon32.keyboard_map import get_coco_keymatrix_pia_result
 
@@ -23,7 +23,7 @@ log = logging.getLogger(__name__)
 
 
 class CoCo2bCfg(Dragon32Cfg):
-    CONFIG_NAME = COCO2B
+    CONFIG_NAME = constants.COCO2B
     MACHINE_NAME = "CoCo2b"
 
     # How does the keyboard polling routine starts with?
