@@ -3,7 +3,7 @@ import os
 
 if __name__ == "__main__":
     filepath = os.path.join(os.path.dirname(__file__), "Dragon 64 in 32 mode.txt")
-    with open(filepath, "r") as f:
+    with open(filepath) as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#"):

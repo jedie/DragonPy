@@ -22,7 +22,7 @@ if __name__ == "__main__":
 
     in_log = 0
 
-    with open(sourcefile, "r") as infile:
+    with open(sourcefile) as infile:
         with open(temp_file, "w") as outfile:
             for line in infile:
                 #             print line

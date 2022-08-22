@@ -35,16 +35,10 @@ jobs:
       with:
         python-version: '${{ matrix.python-version }}'
 
-    - name: Get pip cache dir
-      id: pip-cache
-      run: |
-        echo "::set-output name=dir::$(pip cache dir)"
-
-    - name: pip cache
-      uses: actions/cache@v2
+    - uses: actions/cache@v2
       with:
-        path: ${{ steps.pip-cache.outputs.dir }}
-        key: pip-cache
+        path: ~/.cache/
+        key: dot-cache-files
 
     - name: Cache ROMs
       id: cache-roms
@@ -74,5 +68,7 @@ jobs:
         python3 devshell.py pytest -vv
 
     - name: 'Upload coverage report'
-      if: matrix.os == 'ubuntu-latest'
-      run: bash <(curl -s https://codecov.io/bash)
+      uses: codecov/codecov-action@v2
+      with:
+        fail_ci_if_error: false
+        verbose: true
