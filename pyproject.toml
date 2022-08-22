@@ -31,7 +31,7 @@ readme="README.rst"
 
 
 [tool.poetry.dependencies]
-python = ">=3.7,<4.0"
+python = ">=3.8,<4.0"
 dragonlib = "*"
 MC6809 = "*"
 pygments = "^2.5.2"
@@ -48,7 +48,6 @@ pytest-darker = "*"  # https://github.com/akaihola/pytest-darker
 pytest-flake8 = "*"
 pytest-isort = "*"
 darker = "*"  # https://github.com/akaihola/darker
-black = "==21.12b0" # https://github.com/akaihola/darker/issues/264
 
 [tool.poetry.scripts]
 devshell = 'dragonpy.dev_shell:devshell_cmdloop'
@@ -94,7 +93,7 @@ omit = [".*"]
 [tool.pytest.ini_options]
 # https://docs.pytest.org/en/latest/customize.html#pyproject-toml
 minversion = "6.0"
-norecursedirs = ".* .venv .git __pycache__ coverage* dist htmlcov"
+norecursedirs = ".* __pycache__ coverage* dist htmlcov"
 # sometimes helpfull "addopts" arguments:
 #    -vv
 #    --verbose
@@ -110,8 +109,6 @@ addopts = """
     --no-cov-on-fail
     --showlocals
     --darker
-    --flake8
-    --isort
     --doctest-modules
     --failed-first
     --last-failed-no-failures all
@@ -126,7 +123,7 @@ addopts = """
 legacy_tox_ini = """
 [tox]
 isolated_build = True
-envlist = py39,py38,py37
+envlist = py310,py39,py38
 skip_missing_interpreters = True
 [testenv]
 passenv = *

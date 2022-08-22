@@ -15,15 +15,9 @@ check-poetry:
 		exit 1 ; \
 	fi
 
-install-poetry: ## install or update poetry
-	@if [[ "${POETRY_VERSION}" == *"Poetry"* ]] ; \
-	then \
-		echo 'Update poetry v$(POETRY_VERSION)' ; \
-		poetry self update ; \
-	else \
-		echo 'Install poetry' ; \
-		curl -sSL "https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py" | python3 ; \
-	fi
+install-poetry:  ## install or update poetry
+	pip3 install -U pip
+	pip3 install -U poetry
 
 install: check-poetry ## install DragonPy via poetry
 	poetry install
@@ -32,25 +26,20 @@ update: check-poetry ## Update the dependencies as according to the pyproject.to
 	poetry update
 
 lint: ## Run code formatters and linter
-	poetry run darker --check
+	poetry run darker --diff --check
+	poetry run isort --check-only .
 
 fix-code-style: ## Fix code formatting
 	poetry run darker
+	poetry run autopep8 --in-place --max-line-length ${MAX_LINE_LENGTH} --recursive .
+	poetry run darker
+	poetry run isort .
 
 tox-listenvs: check-poetry ## List all tox test environments
 	poetry run tox --listenvs
 
 tox: check-poetry ## Run pytest via tox with all environments
 	poetry run tox
-
-tox-py36: check-poetry ## Run pytest via tox with *python v3.6*
-	poetry run tox -e py36
-
-tox-py37: check-poetry ## Run pytest via tox with *python v3.7*
-	poetry run tox -e py37
-
-tox-py38: check-poetry ## Run pytest via tox with *python v3.8*
-	poetry run tox -e py38
 
 pytest: check-poetry ## Run pytest
 	poetry run pytest
