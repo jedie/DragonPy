@@ -6,7 +6,6 @@ from pprint import pprint
 
 import cmd2
 from cmd2 import Cmd2ArgumentParser
-from creole.setup_utils import assert_rst_readme
 from dev_shell.base_cmd2_app import DevShellBaseApp, run_cmd2_app
 from dev_shell.command_sets import DevShellBaseCommandSet
 from dev_shell.command_sets.dev_shell_commands import DevShellCommandSet as OriginDevShellCommandSet
@@ -26,7 +25,7 @@ PACKAGE_ROOT = Path(dragonpy.__file__).parent.parent.parent
 
 
 # use user's preferred locale
-# e.g.: for formating cycles/sec number
+# e.g.: for formatting cycles/sec number
 locale.setlocale(locale.LC_ALL, '')
 
 
@@ -146,9 +145,6 @@ class DevShellCommandSet(OriginDevShellCommandSet):
         """
         Publish "dev-shell" to PyPi
         """
-        # don't publish if README is not up-to-date:
-        assert_rst_readme(package_root=PACKAGE_ROOT, filename='README.creole')
-
         # don't publish if code style wrong:
         verbose_check_call('darker', '--check')
 
