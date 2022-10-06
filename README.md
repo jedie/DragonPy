@@ -6,7 +6,7 @@ The [MC6809](https://github.com/6809/MC6809) project is used to emulate the 6809
 
 [![Test](https://github.com/jedie/DragonPy/actions/workflows/pythonapp.yml/badge.svg?branch=main)](https://github.com/jedie/DragonPy/actions/workflows/pythonapp.yml)
 [![Coverage Status on codecov.io](https://codecov.io/gh/jedie/DragonPy/branch/main/graph/badge.svg)](https://codecov.io/gh/jedie/DragonPy)
-[![DragonPy @ PyPi](https://img.shields.io/pypi/v/PyInventory?label=PyInventory%20%40%20PyPi)](https://pypi.org/project/PyInventory/)
+[![DragonPy @ PyPi](https://img.shields.io/pypi/v/PyInventory?label=DragonPy%20%40%20PyPi)](https://pypi.org/project/DragonPy/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/PyInventory)](https://github.com/jedie/DragonPy/blob/main/pyproject.toml)
 [![License GPL](https://img.shields.io/pypi/l/PyInventory)](https://github.com/jedie/DragonPy/blob/main/LICENSE)
 
