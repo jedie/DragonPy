@@ -656,7 +656,7 @@ class Cassette:
 
         def _write(f, codepoint):
             try:
-                f.write(chr(codepoint))
+                f.write(bytes([codepoint]))
             except ValueError as err:
                 log.error(f"Value error with {repr(codepoint)}: {err}")
                 raise

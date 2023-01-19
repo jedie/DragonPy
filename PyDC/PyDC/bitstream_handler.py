@@ -259,17 +259,12 @@ class CasStream:
         self.pos = 0
         self.file_generator = self.__file_generator()
 
-        self.yield_ord = True
-
     def __iter__(self):
         return self
 
     def __next__(self):
         byte = next(self.file_generator)
-        if self.yield_ord:
-            return ord(byte)
-        else:
-            return byte
+        return byte
 
     def __file_generator(self):
         max = self.file_size + 1
