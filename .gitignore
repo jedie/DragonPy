@@ -1,40 +1,14 @@
 .*
+*.egg-info
+__pycache__
+/dist/
+/coverage.json
+/coverage.xml
 
 !.github
+!.editorconfig
+!.flake8
 !.gitignore
 
 *.rom
 /roms/*
-
-*.py[cod]
-*~
-
-# C extensions
-*.so
-
-# Packages
-*.egg
-*.egg-info/*
-/dist/*
-build
-build.log
-eggs
-parts
-bin
-var
-sdist
-develop-eggs
-lib
-lib64
-
-# Installer logs
-pip-log.txt
-
-# Unit test / coverage reports
-/htmlcov/*
-
-# Translations
-*.mo
-
-/publish.log
-/coverage.xml

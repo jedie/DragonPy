@@ -11,9 +11,9 @@
 import logging
 import os
 
-from PyDC import TITLE_LINE, VERSION_STRING, analyze, convert
-from PyDC.base_cli import Base_CLI
-from PyDC.configs import Dragon32Config
+from PyDC.PyDC import TITLE_LINE, VERSION_STRING, analyze, convert
+from PyDC.PyDC.base_cli import Base_CLI
+from PyDC.PyDC.configs import Dragon32Config
 
 
 log = logging.getLogger("PyDC")

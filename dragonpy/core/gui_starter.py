@@ -12,49 +12,21 @@ import atexit
 import logging
 import tkinter as tk
 
-from dev_shell.utils.colorful import bright_blue
-from dev_shell.utils.subprocess_utils import verbose_check_call
-from MC6809.cli import DEFAULT_LOOPS, DEFAULT_MULTIPLY
-from MC6809.core.bechmark import run_benchmark
+from manageprojects.utilities.subprocess_utils import verbose_check_call
+from rich import print  # noqa
 
 import dragonpy
 from dragonpy import constants
+from dragonpy.constants import VERBOSITY_DEFAULT, VERBOSITY_DICT2, VERBOSITY_STRINGS
 from dragonpy.core.configs import machine_dict
 from dragonpy.utils.humanize import get_python_info
+from MC6809.core.bechmark import run_benchmark
 
+
+DEFAULT_LOOPS = 5
+DEFAULT_MULTIPLY = 15
 
 log = logging.getLogger(__name__)
-
-
-VERBOSITY_DICT = {
-    1: "hardcode DEBUG ;)",
-    10: "DEBUG",
-    20: "INFO",
-    30: "WARNING",
-    40: "ERROR",
-    50: "CRITICAL/FATAL",
-    99: "nearly all off",
-    100: "all off",
-}
-VERBOSITY_DEFAULT_VALUE = 100
-
-VERBOSITY_DICT2 = {}
-VERBOSITY_STRINGS = []
-VERBOSITY_DEFAULT = None
-
-for no, text in sorted(VERBOSITY_DICT.items()):
-    text = f"{no:3d}: {text}"
-    if no == VERBOSITY_DEFAULT_VALUE:
-        VERBOSITY_DEFAULT = text
-    VERBOSITY_STRINGS.append(text)
-    VERBOSITY_DICT2[text] = no
-
-# print(VERBOSITY_STRINGS)
-# print(VERBOSITY_DICT2)
-# print(VERBOSITY_DEFAULT_VALUE, VERBOSITY_DEFAULT)
-
-assert VERBOSITY_DEFAULT is not None
-assert VERBOSITY_DICT2[VERBOSITY_DEFAULT] == VERBOSITY_DEFAULT_VALUE
 
 
 class SettingsFrame(tk.LabelFrame):
@@ -196,8 +168,7 @@ class StarterGUI(tk.Tk):
         self.status_bar.set_label("dragonpy_version", f"DragonPy v{dragonpy.__version__}", **defaults)
 
     def _print_run_info(self, txt):
-        print("\n")
-        print(bright_blue(txt))
+        print(f"\n[blue bold]{txt}")
 
     def _run_dragonpy_cli(self, *args):
         """
@@ -209,7 +180,8 @@ class StarterGUI(tk.Tk):
         log.debug(f"Verbosity: {verbosity_no:d} ({verbosity})")
 
         args = (
-            'devshell',
+            'python3',
+            'cli.py',
             *args,
             "--verbosity", f"{verbosity_no}"
             # "--log_list",
@@ -217,6 +189,7 @@ class StarterGUI(tk.Tk):
             # "dragonpy.components.cpu6809,40",
             # "dragonpy.Dragon32.MC6821_PIA,50",
         )
+        print(args)
         verbose_check_call(*args, verbose=True)
 
     def _run_command(self, command):

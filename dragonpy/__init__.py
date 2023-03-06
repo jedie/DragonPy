@@ -1,5 +1,6 @@
-import os
-import sys
+"""dragonpy - Emulator for 6809 CPU based system like Dragon 32 / CoCo written in Python..."""
+
+from importlib.metadata import version
 
 from dragonpy import constants
 from dragonpy.CoCo.config import CoCo2bCfg
@@ -19,7 +20,8 @@ from dragonpy.vectrex.config import VectrexCfg
 from dragonpy.vectrex.machine import run_Vectrex
 
 
-__version__ = "0.8.0.rc1"
+__version__ = version('DragonPyEmulator')
+__author__ = 'Jens Diemer <git@jensdiemer.de>'
 
 
 machine_dict.register(constants.DRAGON32, (run_Dragon32, Dragon32Cfg), default=True)
@@ -29,62 +31,3 @@ machine_dict.register(constants.SBC09, (run_sbc09, SBC09Cfg))
 machine_dict.register(constants.SIMPLE6809, (run_Simple6809, Simple6809Cfg))
 machine_dict.register(constants.MULTICOMP6809, (run_Multicomp6809, Multicomp6809Cfg))
 machine_dict.register(constants.VECTREX, (run_Vectrex, VectrexCfg))
-
-
-def fix_virtualenv_tkinter():
-    """
-    work-a-round for tkinter under windows in a virtualenv:
-      "TclError: Can't find a usable init.tcl..."
-    Known bug, see: https://github.com/pypa/virtualenv/issues/93
-
-    There are "fix tk" file here:
-
-          C:\\Python27\\Lib\\lib-tk\\FixTk.py
-          C:\\Python34\\Lib\tkinter\\_fix.py
-
-    These modules will be automatic imported by tkinter import.
-
-    The fix set theses environment variables:
-
-        TCL_LIBRARY C:\\Python27\tcl\tcl8.5
-        TIX_LIBRARY C:\\Python27\tcl\tix8.4.3
-        TK_LIBRARY C:\\Python27\tcl\tk8.5
-
-        TCL_LIBRARY C:\\Python34\tcl\tcl8.6
-        TIX_LIBRARY C:\\Python34\tcl\tix8.4.3
-        TK_LIBRARY C:\\Python34\tcl\tk8.6
-
-    but only if:
-
-          os.path.exists(os.path.join(sys.prefix,"tcl"))
-
-    And the virtualenv activate script will change the sys.prefix
-    to the current env. So we temporary change it back to sys.real_prefix
-    and import the fix module.
-    If the fix module was imported before, then we reload it.
-    """
-    if "TCL_LIBRARY" in os.environ:
-        # Fix not needed (e.g. virtualenv issues #93 fixed?)
-        return
-
-    if not hasattr(sys, "real_prefix"):
-        # we are not in a activated virtualenv
-        return
-
-    virtualprefix = sys.base_prefix
-    sys.base_prefix = sys.real_prefix
-
-    try:
-        from tkinter import _fix
-    except ImportError as err:
-        print(f'Can not apply windows tkinter fix: {err}')
-    else:
-        if "TCL_LIBRARY" not in os.environ:
-            from importlib import reload
-            reload(_fix)
-
-    sys.base_prefix = virtualprefix
-
-
-if sys.platform.startswith("win"):
-    fix_virtualenv_tkinter()
