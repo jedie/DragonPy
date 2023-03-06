@@ -14,7 +14,7 @@ import struct
 import time
 import wave
 
-from PyDC.utils import (
+from PyDC.PyDC.utils import (
     ProcessInfo,
     TextLevelMeter,
     average,
@@ -277,7 +277,10 @@ class Wave2Bitstream(WaveBase):
         bit_one_min_duration = self._hz2duration(bit_one_max_hz)
 
         log.info(
-            f"bit-0 in {bit_nul_min_hz}Hz - {bit_nul_max_hz}Hz (duration: {bit_nul_min_duration}-{bit_nul_max_duration})  |  bit-1 in {bit_one_min_hz}Hz - {bit_one_max_hz}Hz (duration: {bit_one_min_duration}-{bit_one_max_duration})"
+            f"bit-0 in {bit_nul_min_hz}Hz - {bit_nul_max_hz}Hz"
+            f" (duration: {bit_nul_min_duration}-{bit_nul_max_duration})"
+            f"  |  bit-1 in {bit_one_min_hz}Hz - {bit_one_max_hz}Hz"
+            f" (duration: {bit_one_min_duration}-{bit_one_max_duration})"
         )
         assert (
             bit_nul_max_hz < bit_one_min_hz
@@ -337,11 +340,13 @@ class Wave2Bitstream(WaveBase):
         log.info(f"\n{bit_count:d} Bits: {bit_one_count:d} positive bits and {bit_nul_count:d} negative bits")
         if bit_one_count > 0:
             log.info(
-                f"Bit 1: {one_hz_min}Hz - {one_hz_max}Hz avg: {one_hz_avg:.1f}Hz variation: {one_hz_max - one_hz_min}Hz"
+                f"Bit 1: {one_hz_min}Hz - {one_hz_max}Hz avg:"
+                f" {one_hz_avg:.1f}Hz variation: {one_hz_max - one_hz_min}Hz"
             )
         if bit_nul_count > 0:
             log.info(
-                f"Bit 0: {nul_hz_min}Hz - {nul_hz_max}Hz avg: {nul_hz_avg:.1f}Hz variation: {nul_hz_max - nul_hz_min}Hz"
+                f"Bit 0: {nul_hz_min}Hz - {nul_hz_max}Hz avg:"
+                f" {nul_hz_avg:.1f}Hz variation: {nul_hz_max - nul_hz_min}Hz"
             )
 
     def iter_duration(self, iter_trigger):
@@ -513,7 +518,9 @@ class Bitstream2Wave(WaveBase):
             float(wave_max_value) / 100 * self.cfg.VOLUME_RATIO
         ))
         log.info(
-            f"Create {HUMAN_SAMPLEWIDTH[self.cfg.SAMPLEWIDTH]} wave file with {self.cfg.FRAMERATE}Hz and {self.used_max_values} max volumen ({self.cfg.VOLUME_RATIO}%)")
+            f"Create {HUMAN_SAMPLEWIDTH[self.cfg.SAMPLEWIDTH]} wave file"
+            f" with {self.cfg.FRAMERATE}Hz and {self.used_max_values} max volumen ({self.cfg.VOLUME_RATIO}%)"
+        )
 
         self.typecode = self.get_typecode(self.cfg.SAMPLEWIDTH)
 

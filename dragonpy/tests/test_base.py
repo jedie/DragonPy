@@ -19,8 +19,6 @@ import tempfile
 import time
 
 from dragonlib.tests.test_base import BaseTestCase
-from MC6809.components.cpu6809 import CPU
-
 from dragonpy.components.memory import Memory
 from dragonpy.core.machine import Machine
 from dragonpy.Dragon32.config import Dragon32Cfg
@@ -30,12 +28,16 @@ from dragonpy.sbc09.periphery import SBC09PeripheryUnittest
 from dragonpy.Simple6809.config import Simple6809Cfg
 from dragonpy.Simple6809.periphery_simple6809 import Simple6809PeripheryUnittest
 from dragonpy.tests.test_config import TestCfg
+from dragonpy.tests.utils import no_http_requests
+from MC6809.components.cpu6809 import CPU
 
 
 log = logging.getLogger(__name__)
 
 
 class BaseCPUTestCase(BaseTestCase):
+    no_http_requests()  # FIXME: Find a better place for this!
+
     UNITTEST_CFG_DICT = {
         "verbosity": None,
         "display_cycle": False,

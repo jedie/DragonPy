@@ -7,14 +7,15 @@
     :license: GNU GPL v3 or above, see LICENSE for more details.
 """
 
-
 import hashlib
 import logging
 import os
 import zipfile
-from urllib.error import HTTPError
+from urllib.error import URLError
 from urllib.request import urlopen
 from zipfile import BadZipFile
+
+from rich import print  # noqa
 
 import dragonpy
 
@@ -24,14 +25,25 @@ ARCHIVE_EXT_ZIP = ".zip"
 log = logging.getLogger(__name__)
 
 
-class ROMFileNotFound(Exception):
+class ROMFileError(Exception):
     pass
 
 
-class ROMDownloadError(Exception):
+class ROMFileNotFound(ROMFileError):
+    pass
+
+
+class ROMDownloadError(ROMFileError):
     def __init__(self, url, origin_err):
         self.url = url
         self.origin_err = origin_err
+
+    def __str__(self):
+        return f'Download {self.url!r} -> {self.origin_err}'
+
+
+class ROMHashError(ROMFileError):
+    pass
 
 
 class ROMFile:
@@ -74,7 +86,7 @@ class ROMFile:
         # Check SHA hash:
         current_sha1 = hashlib.sha1(data).hexdigest()
         assert current_sha1 == self.SHA1, f"ROM sha1 value is wrong! SHA1 is: {current_sha1!r}"
-        print(f"ROM SHA1: {current_sha1!r}, ok.")
+        print(f"[green]ROM SHA1: {current_sha1!r}, ok.")
 
         if self.max_size:
             filesize = os.stat(self.rom_path).st_size
@@ -150,7 +162,7 @@ class ROMFile:
             # Warning: HTTPS requests do not do any verification of the server's certificate.
             try:
                 f = urlopen(self.URL)
-            except HTTPError as err:
+            except URLError as err:
                 log.error(f'Download error: {err}')
                 raise ROMDownloadError(url=self.URL, origin_err=err)
 
@@ -160,8 +172,10 @@ class ROMFile:
 
         # Check SHA hash:
         current_sha1 = hashlib.sha1(content).hexdigest()
-        assert current_sha1 == self.DOWNLOAD_SHA1, (
-            f"Download sha1 value is wrong! SHA1 is:"
-            f" {current_sha1!r} and not {self.DOWNLOAD_SHA1!r}"
-        )
-        print(f"Download SHA1: {current_sha1!r}, ok.")
+        if current_sha1 != self.DOWNLOAD_SHA1:
+            raise ROMHashError(
+                f"Download sha1 value is wrong! SHA1 is: {current_sha1!r} and not {self.DOWNLOAD_SHA1!r}"
+                f"\nArchive file: {self.archive_path}"
+                f"\nURL:{self.URL!r} "
+            )
+        print(f"[green]Download SHA1: {current_sha1!r}, ok.")

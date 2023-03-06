@@ -1,3 +1,5 @@
+# flake8: noqa: E501
+
 """
     PyDC - Cassette Objects
     =======================
@@ -14,7 +16,7 @@ import os
 import sys
 
 # own modules
-from PyDC.utils import (
+from PyDC.PyDC.utils import (
     LOG_FORMATTER,
     LOG_LEVEL_DICT,
     codepoints2string,

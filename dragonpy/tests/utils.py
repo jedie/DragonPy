@@ -1,10 +1,7 @@
 import socket
 from unittest.mock import patch
 
-import pytest
 
-
-@pytest.fixture(autouse=True, scope='session')
 def no_http_requests():
     """
     Deny any request in tests ;)
