@@ -29,7 +29,7 @@ authors = [
 ]
 requires-python = ">=3.10,<4"
 dependencies = [
-    "MC6809>=0.7.0rc0",  # https://github.com/6809/MC6809
+    "MC6809>=0.7.0",  # https://github.com/6809/MC6809
     "dragonlib",  # https://github.com/6809/dragonlib
     "pygments",  # https://pygments.org/
     "bx_py_utils",  # https://github.com/boxine/bx_py_utils
