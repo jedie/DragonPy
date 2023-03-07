@@ -16,9 +16,12 @@ from dragonpy.Dragon32.Dragon32_rom import Dragon32Rom
 from dragonpy.Dragon64.Dragon64_rom import Dragon64RomIC17, Dragon64RomIC18
 from dragonpy.Multicomp6809.Multicomp6809_rom import Multicomp6809Rom
 from dragonpy.Simple6809.Simple6809_rom import Simple6809Rom
+from dragonpy.tests.utils import no_http_requests
 
 
 class ROMTest(unittest.TestCase):
+    no_http_requests()  # FIXME: Find a better place for this!
+
     def _test_rom(self, rom: ROMFile):
         data = rom.get_data()
         self.assertIsNotNone(data)

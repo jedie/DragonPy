@@ -132,7 +132,7 @@ class MOS6522VIA:
     def snd_update(self):
         switch_orb = self.via_orb & 0x18
         if switch_orb == 0x10:
-            if(self.snd_select != 14):
+            if self.snd_select != 14:
                 self.snd_regs[self.snd_select] = self.via_ora
         elif switch_orb == 0x18:
             if ((self.via_ora & 0xf0) == 0x00):
@@ -150,15 +150,15 @@ class MOS6522VIA:
                 self.alg_rsh = self.alg_xsh
         elif switch_orb == 0x04:
             self.alg_jsh = self.alg_jch2
-            if ((self.via_orb & 0x01) == 0x00):
-                if(self.alg_xsh > 0x80):
+            if (self.via_orb & 0x01) == 0x00:
+                if self.alg_xsh > 0x80:
                     self.alg_zsh = self.alg_xsh - 0x80
                 else:
                     self.alg_zsh = 0
         elif switch_orb == 0x06:
             self.alg_jsh = self.alg_jch3
 
-        if(self.alg_jsh > self.alg_xsh):
+        if self.alg_jsh > self.alg_xsh:
             self.alg_compare = 0x20
         else:
             self.alg_compare = 0
@@ -169,8 +169,8 @@ class MOS6522VIA:
     def read8(self, address):
         switch_addr = address & 0xf
         if switch_addr == 0x0:
-            if(self.via_acr & 0x80):
-                data = ((self.via_orb & 0x5f) | self.via_t1pb7 | self.alg_compare)
+            if self.via_acr & 0x80:
+                data = (self.via_orb & 0x5F) | self.via_t1pb7 | self.alg_compare
             else:
                 data = ((self.via_orb & 0xdf) | self.alg_compare)
             return data & 0xff
@@ -311,10 +311,10 @@ class MOS6522VIA:
             if ((self.via_ifr & 0x7f) & (self.via_ier & 0x7f)):
                 self.via_ifr |= 0x80
             else:
-                self.via_ifr &= 0x7f
-        elif switch_addr == 0xe:
-            if(data & 0x80):
-                self.via_ier |= data & 0x7f
+                self.via_ifr &= 0x7F
+        elif switch_addr == 0xE:
+            if data & 0x80:
+                self.via_ier |= data & 0x7F
             else:
                 self.via_ier &= (~(data & 0x7f))
             if ((self.via_ifr & 0x7f) & (self.via_ier & 0x7f)):

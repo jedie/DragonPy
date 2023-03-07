@@ -209,7 +209,8 @@ class BaseTkinterGUIConfig:
             return
 
         self.cycles_per_sec_label_var.set(
-            f"cycles/sec / 1000000 = {cycles_per_sec / 1000000:f} MHz CPU frequency * 16 = {cycles_per_sec / 1000000 * 16:f} Mhz crystal"
+            f"cycles/sec / 1000000 = {cycles_per_sec / 1000000:f} MHz"
+            f" CPU frequency * 16 = {cycles_per_sec / 1000000 * 16:f} Mhz crystal"
         )
 
         self.runtime_cfg.cycles_per_sec = cycles_per_sec

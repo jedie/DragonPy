@@ -232,12 +232,12 @@ def find_iter_window(bitstream, pattern, max_pos=None):
     >>> find_iter_window(bytes2bit_strings("HELLO!"), list(bytes2bit_strings("LO")), max_pos=16)
     Traceback (most recent call last):
     ...
-    PyDC.utils.MaxPosArraived: 17
+    PyDC.PyDC.utils.MaxPosArraived: 17
 
     >>> find_iter_window(bytes2bit_strings("HELLO!"), list(bytes2bit_strings("X")))
     Traceback (most recent call last):
     ...
-    PyDC.utils.PatternNotFound: 40
+    PyDC.PyDC.utils.PatternNotFound: 40
     """
     assert isinstance(bitstream, (Iterable, types.GeneratorType))
     assert isinstance(pattern, (list, tuple))

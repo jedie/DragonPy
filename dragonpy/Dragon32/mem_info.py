@@ -1,3 +1,5 @@
+# flake8: noqa: E501
+
 """
     DragonPy - Dragon 32 emulator in Python
     =======================================
