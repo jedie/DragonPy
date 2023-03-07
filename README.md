@@ -183,11 +183,11 @@ All ROM files and download will be checked by `SHA1` value, before use.
 e.g.:
 
 ```bash
-~/DragonPy$ ./devshell.py pytest
-```
-or
-```bash
-~/DragonPy$ ./devshell.py tox
+~/DragonPy$ ./cli.py coverage
+# or just:
+~/DragonPy$ ./cli.py test
+# or with different Python versions:
+~/DragonPy$ ./cli.py tox
 ```
 
 ## more screenshots
@@ -433,9 +433,15 @@ generic syntax highlighter
 ## History
 
 
-* [*dev*](https://github.com/jedie/DragonPy/compare/v0.7.0...master):
-  * Replace Creole README with markdown.
+* [*dev*](https://github.com/jedie/DragonPy/compare/v0.8.0...master):
   * tbc
+* [07.03.2023 - v0.8.0](https://github.com/jedie/DragonPy/compare/v0.7.0...v0.8.0):
+  * Modernize project testing, CI pipeline, etc.
+  * Switch from poetry to pip-tools
+  * Replace devshell with click CLI
+  * Use https://github.com/jedie/manageprojects
+  * Min. Python Version is now v3.10
+  * Add BASIC examples `mandelbrot1.bas` and `mandelbrot2.bas` ;)
 * [01.10.2020 - v0.7.0](https://github.com/jedie/DragonPy/compare/v0.6.0...v0.7.0):
   * Modernize project testing, CI pipeline, usw poetry etc.
   * Many Code updates
