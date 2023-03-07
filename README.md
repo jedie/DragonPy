@@ -6,9 +6,9 @@ The [MC6809](https://github.com/6809/MC6809) project is used to emulate the 6809
 
 [![tests](https://github.com/jedie/DragonPy/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/jedie/DragonPy/actions/workflows/tests.yml)
 [![codecov](https://codecov.io/github/jedie/dragonpy/branch/main/graph/badge.svg)](https://app.codecov.io/github/jedie/dragonpy)
-[![dragonpy @ PyPi](https://img.shields.io/pypi/v/dragonpy?label=dragonpy%20%40%20PyPi)](https://pypi.org/project/dragonpy/)
-[![Python Versions](https://img.shields.io/pypi/pyversions/dragonpy)](https://github.com/jedie/DragonPy/blob/main/pyproject.toml)
-[![License GPL-3.0-or-later](https://img.shields.io/pypi/l/dragonpy)](https://github.com/jedie/DragonPy/blob/main/LICENSE)
+[![dragonpy @ PyPi](https://img.shields.io/pypi/v/DragonPyEmulator?label=dragonpy%20%40%20PyPi)](https://pypi.org/project/DragonPyEmulator/)
+[![Python Versions](https://img.shields.io/pypi/pyversions/DragonPyEmulator)](https://github.com/jedie/DragonPy/blob/main/pyproject.toml)
+[![License GPL-3.0-or-later](https://img.shields.io/pypi/l/DragonPyEmulator)](https://github.com/jedie/DragonPy/blob/main/LICENSE)
 
 
 Dragon 32 with CPython 3 under Linux:
