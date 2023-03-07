@@ -1,9 +1,7 @@
-[tool.poetry]
+[project]
 name = "DragonPyEmulator"
-version = "0.8.0.rc1"
+version = "0.8.0"
 description = "Emulator for 6809 CPU based system like Dragon 32 / CoCo written in Python..."
-authors = ["JensDiemer <git@jensdiemer.de>"]
-packages = [{ include = "dragonpy" }]
 keywords=["Emulator","6809","Dragon","CoCo","Vectrex","tkinter","pypy"]
 classifiers = [
     # http://pypi.python.org/pypi?%3Aaction=list_classifiers
@@ -25,46 +23,77 @@ classifiers = [
     "Topic :: Software Development :: Assemblers",
     "Topic :: Software Development :: Testing",
 ]
-readme="README.md"
+readme = "README.md"
+authors = [
+    {name = 'Jens Diemer', email = 'git@jensdiemer.de'}
+]
+requires-python = ">=3.10,<4"
+dependencies = [
+    "MC6809>=0.7.0rc0",  # https://github.com/6809/MC6809
+    "dragonlib",  # https://github.com/6809/dragonlib
+    "pygments",  # https://pygments.org/
+    "bx_py_utils",  # https://github.com/boxine/bx_py_utils
+    "click",  # https://github.com/pallets/click/
+    "rich-click",  # https://github.com/ewels/rich-click
+    "rich",  # https://github.com/Textualize/rich
+]
+[project.optional-dependencies]
+dev = [
+    "manageprojects>=0.9.3",  # https://github.com/jedie/manageprojects
+    "pip-tools",  # https://github.com/jazzband/pip-tools/
+    "tox",  # https://github.com/tox-dev/tox
+    "coverage",  # https://github.com/nedbat/coveragepy
+    "darker>=1.7",  # https://github.com/akaihola/darker
+    "autopep8",  # https://github.com/hhatto/autopep8
+    "pyupgrade",  # https://github.com/asottile/pyupgrade
+    "isort",  # https://github.com/pycqa/isort
+    "flynt",  # https://github.com/ikamensh/flynt
+    "flake8",  # https://github.com/pycqa/flake8
+    "pyflakes",  # https://github.com/PyCQA/pyflakes
+    "codespell",  # https://github.com/codespell-project/codespell
+    "EditorConfig",  # https://github.com/editorconfig/editorconfig-core-py
+    "safety",  # https://github.com/pyupio/safety
+    "mypy",  # https://github.com/python/mypy
+    "twine",  # https://github.com/pypa/twine
 
+    "tomli",  # https://github.com/hukkin/tomli
+    # tomli only needed for Python <3.11, but see bug:
+    # https://github.com/pypa/pip/issues/9644#issuecomment-1456583402
+    #"tomli;python_version<\"3.11\"",  # https://github.com/hukkin/tomli
 
-[tool.poetry.dependencies]
-python = ">=3.8,<4.0"
-dragonlib = "*"
-MC6809 = "*"
-pygments = "^2.5.2"
+    # Work-a-round for:
+    # https://github.com/jazzband/pip-tools/issues/994#issuecomment-1321226661
+    "typing-extensions>=3.10;python_version<\"3.10\"",
+]
 
-[tool.poetry.dev-dependencies]
-dev_shell = "*"  # https://github.com/jedie/dev-shell
-cmd2_ext_test = "*"
-poetry_publish = "*"
-tox = "*"
-pytest = "*"
-pytest-cov = "*"
-pytest-darker = "*"  # https://github.com/akaihola/pytest-darker
-flake8 = "*"
-isort = "*"
-darker = "*"  # https://github.com/akaihola/darker
+[project.urls]
+Documentation = "https://github.com/jedie/DragonPy"
+Source = "https://github.com/jedie/DragonPy"
 
-[tool.poetry.scripts]
-devshell = 'dragonpy.dev_shell:devshell_cmdloop'
-DragonPy = 'dragonpy.core.gui_starter:gui_mainloop'
+[project.scripts]
+dragonpy = "dragonpy.__main__:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["basic_editor", "dragonpy", "PyDC"]
 
 [build-system]
-requires = ["poetry-core"]
-build-backend = "poetry.masonry.api"
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
 
 
 [tool.darker]
 src = ['.']
 revision = "origin/main..."
-line_length = 120
+line_length = 119
 verbose = true
+color = true
 skip_string_normalization = true
 diff = false
 check = false
 stdout = false
 isort = true
+flynt = true
 lint = [
     "flake8",
 ]
@@ -75,54 +104,78 @@ log_level = "INFO"
 # https://pycqa.github.io/isort/docs/configuration/config_files/#pyprojecttoml-preferred-format
 atomic=true
 profile='black'
-line_length=120
-skip_glob=[".*", "*/htmlcov/*",]
-known_first_party=["dragonpy", "PyDC"]
+skip_glob=['.*', '*/htmlcov/*']
+known_first_party=['dragonlib','MC6809','dragonpy']
+line_length=119
 lines_after_imports=2
 
 
 [tool.coverage.run]
-omit = [".*"]
+branch = true
+parallel = true
+source = ['.']
+command_line = '-m unittest --verbose --locals --buffer'
+
+[tool.coverage.report]
+omit = ['.*', '*/tests/*']
+skip_empty = true
+fail_under = 30
+show_missing = true
+exclude_lines = [
+    'if self.debug:',
+    'pragma: no cover',
+    'raise NotImplementedError',
+    'if __name__ == .__main__.:',
+]
 
 
-[tool.pytest.ini_options]
-# https://docs.pytest.org/en/latest/customize.html#pyproject-toml
-minversion = "6.0"
-norecursedirs = ".* __pycache__ coverage* dist htmlcov"
-# sometimes helpfull "addopts" arguments:
-#    -vv
-#    --verbose
-#    --capture=no
-#    --trace-config
-#    --full-trace
-#    -p no:warnings
-addopts = """
-    --cov=.
-    --cov-report term-missing
-    --cov-report html
-    --cov-report xml
-    --no-cov-on-fail
-    --showlocals
-    --darker
-    --doctest-modules
-    --failed-first
-    --last-failed-no-failures all
-    --new-first
-    -p no:randomly
-"""
-# TODO: --mypy
-
-
-[tool.tox]
-# https://tox.readthedocs.io/en/latest/example/basic.html#pyproject-toml-tox-legacy-ini
+[tool.tox]  # https://tox.wiki/en/latest/config.html#pyproject-toml
 legacy_tox_ini = """
 [tox]
 isolated_build = True
-envlist = py310,py39,py38
+envlist = py{311,310}
 skip_missing_interpreters = True
+
 [testenv]
 passenv = *
-whitelist_externals = pytest
+skip_install = true
+commands_pre =
+    pip install -U pip-tools
+    pip-sync requirements.dev.txt
 commands =
-    pytest
+    {envpython} -m coverage run --context='{envname}'
+    {envpython} -m coverage combine --append
+    {envpython} -m coverage xml
+    {envpython} -m coverage report
 """
+
+
+[tool.mypy]
+warn_unused_configs = true
+ignore_missing_imports = true
+allow_redefinition = true  # https://github.com/python/mypy/issues/7165
+show_error_codes = true
+plugins = []
+exclude = ['.venv', 'tests']
+
+
+[manageprojects] # https://github.com/jedie/manageprojects
+initial_revision = "47cac0a"
+initial_date = 2023-03-06T19:46:41+01:00
+cookiecutter_template = "https://github.com/jedie/cookiecutter_templates/"
+cookiecutter_directory = "piptools-python"
+
+[manageprojects.cookiecutter_context.cookiecutter]
+full_name = "Jens Diemer"
+github_username = "jedie"
+author_email = "git@jensdiemer.de"
+package_name = "dragonpy"
+package_version = "0.7.0"
+package_description = "Emulator for 6809 CPU based system like Dragon 32 / CoCo written in Python..."
+package_url = "https://github.com/jedie/DragonPy"
+issues_url = "https://github.com/jedie/DragonPy/issues"
+license = "GPL-3.0-or-later"
+_template = "https://github.com/jedie/cookiecutter_templates/"
+applied_migrations = [
+    "04d5a25", # 2023-03-07T16:25:36+01:00
+]

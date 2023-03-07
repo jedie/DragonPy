@@ -4,11 +4,11 @@ DragonPy is a Open source (GPL v3 or later) emulator for the old (1981) homecomp
 
 The [MC6809](https://github.com/6809/MC6809) project is used to emulate the 6809 CPU.
 
-[![Test](https://github.com/jedie/DragonPy/actions/workflows/pythonapp.yml/badge.svg?branch=main)](https://github.com/jedie/DragonPy/actions/workflows/pythonapp.yml)
-[![Coverage Status on codecov.io](https://codecov.io/gh/jedie/DragonPy/branch/main/graph/badge.svg)](https://codecov.io/gh/jedie/DragonPy)
-[![DragonPy @ PyPi](https://img.shields.io/pypi/v/DragonPyEmulator?label=DragonPy%20%40%20PyPi)](https://pypi.org/project/DragonPyEmulator/)
+[![tests](https://github.com/jedie/DragonPy/actions/workflows/tests.yml/badge.svg?branch=main)](https://github.com/jedie/DragonPy/actions/workflows/tests.yml)
+[![codecov](https://codecov.io/github/jedie/dragonpy/branch/main/graph/badge.svg)](https://app.codecov.io/github/jedie/dragonpy)
+[![dragonpy @ PyPi](https://img.shields.io/pypi/v/DragonPyEmulator?label=dragonpy%20%40%20PyPi)](https://pypi.org/project/DragonPyEmulator/)
 [![Python Versions](https://img.shields.io/pypi/pyversions/DragonPyEmulator)](https://github.com/jedie/DragonPy/blob/main/pyproject.toml)
-[![License GPL](https://img.shields.io/pypi/l/DragonPyEmulator)](https://github.com/jedie/DragonPy/blob/main/LICENSE)
+[![License GPL-3.0-or-later](https://img.shields.io/pypi/l/DragonPyEmulator)](https://github.com/jedie/DragonPy/blob/main/LICENSE)
 
 
 Dragon 32 with CPython 3 under Linux:
@@ -93,44 +93,71 @@ pip install DragonPyEmulator
 ```bash
 ~$ git clone https://github.com/jedie/DragonPy.git
 ~$ cd DragonPy/
-~/DragonPy$ ./devshell.py
-
-+ /home/jens/repos/DragonPy/.venv/bin/python /home/jens/repos/DragonPy/.venv/bin/devshell
-
-Developer shell - DragonPy - v0.8.0.rc1
-
-            ********************************************************
-            * DragonPy is a Open source (GPL v3 or later) emulator *
-            * for the 30 years old homecomputer Dragon 32          *
-            * and Tandy TRS-80 Color Computer (CoCo)...            *
-            ********************************************************
-            * Homepage: https://github.com/jedie/DragonPy          *
-            ********************************************************
-
-
-Documented commands (use 'help -v' for verbose/'help <topic>' for details):
-
-dev-shell commands
-==================
-fix_code_style      poetry   pytest     tox
-list_venv_packages  publish  pyupgrade  update
-
-DragonPy commands
-=================
-download_roms  editor  gui  log_list  run
-
-Uncategorized
-=============
-alias  help  history  macro  quit  set  shortcuts
-
-
-(dragonpy) run
+~/DragonPy$ ./cli.py --help
 ```
 
-The `devshell.py` can also used as a CLI, e.g.:
+The output of `./cli.py --help` looks like:
+
+[comment]: <> (✂✂✂ auto generated main help start ✂✂✂)
+```
+Usage: ./cli.py [OPTIONS] COMMAND [ARGS]...
+
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help      Show this message and exit.                                                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────╮
+│ check-code-style            Check code style by calling darker + flake8                          │
+│ coverage                    Run and show coverage.                                               │
+│ download-roms               Download/Test only ROM files                                         │
+│ editor                      Run only the BASIC editor                                            │
+│ fix-code-style              Fix code style of all dragonpy source code files via darker          │
+│ gui                         Start the DragonPy tkinter starter GUI                               │
+│ install                     Run pip-sync and install 'dragonpy' via pip as editable.             │
+│ log-list                    List all exiting loggers and exit.                                   │
+│ mypy                        Run Mypy (configured in pyproject.toml)                              │
+│ publish                     Build and upload this project to PyPi                                │
+│ run                         Run a machine emulation                                              │
+│ safety                      Run safety check against current requirements files                  │
+│ test                        Run unittests                                                        │
+│ tox                         Run tox                                                              │
+│ update                      Update "requirements*.txt" dependencies files                        │
+│ update-test-snapshot-files  Update all test snapshot files (by remove and recreate all snapshot  │
+│                             files)                                                               │
+│ version                     Print version and exit                                               │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+[comment]: <> (✂✂✂ auto generated main help end ✂✂✂)
+
+
+The output of `./cli.py run --help` looks like:
+
+[comment]: <> (✂✂✂ auto generated run help start ✂✂✂)
+```
+Usage: ./cli.py run [OPTIONS]
+
+ Run a machine emulation
+
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --verbosity           [1|10|20|30|40|50|99|100]            1:hardcode DEBUG ;), 10:DEBUG,        │
+│                                                            20:INFO, 30:WARNING, 40:ERROR,        │
+│                                                            50:CRITICAL/FATAL, 99:nearly all off, │
+│                                                            100:all off                           │
+│                                                            [default: 100]                        │
+│ --trace/--no-trace                                         Create trace lines                    │
+│                                                            [default: no-trace]                   │
+│ --max-ops             INTEGER                              If given: Stop CPU after given cycles │
+│                                                            else: run forever                     │
+│ --machine             [CoCo2b|Dragon32|Dragon64|Multicomp  Used machine configuration            │
+│                       6809|Simple6809|Vectrex|sbc09]       [default: Dragon32]                   │
+│ --help                                                     Show this message and exit.           │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+[comment]: <> (✂✂✂ auto generated run help end ✂✂✂)
+
+Usage e.g.:
 ```bash
-~/DragonPy$ ./devshell.py run
-~/DragonPy$ ./devshell.py editor
+~/DragonPy$ ./cli.py run
+~/DragonPy$ ./cli.py editor
 ```
 
 ## ROMs
@@ -209,7 +236,7 @@ Then just **RUN** and then it looks like this:
 
 ### DragonPy schematic
 ```
-        Main Thread                                     Sub Thread      
+        Main Thread                                     Sub Thread
        (Tkinter GUI)
     +------------------+                         +---------------------+
     |                  |                         |                     |

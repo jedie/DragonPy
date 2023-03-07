@@ -17,9 +17,8 @@ from dragonpy.components.rom import ARCHIVE_EXT_ZIP, ROMFile
 class Dragon32Rom(ROMFile):
     ARCHIVE_EXT = ARCHIVE_EXT_ZIP
     URL = (
-        r"http://archive.worldofdragon.org/archive/index.php"
-        r"?dir=Software/Dragon/Dragon%20Data%20Ltd/Dragon%20Firmware/"
-        r"&file=Dragon%2032%20-%20IC17%26IC18%20%281982%29%28Dragon%20Data%20Ltd%29%5B%21%5D.zip"
+        r"https://archive.worldofdragon.org/browse/downloads/Software/Dragon/Dragon%20Data%20Ltd"
+        r"/Dragon%20Firmware/Dragon%2032%20-%20IC17&IC18%20(1982)(Dragon%20Data%20Ltd)%5B!%5D.zip"
     )
     DOWNLOAD_SHA1 = "2cc4cbf81769746d261063eee20719899a001fed"  # downloaded .zip archive
     FILE_COUNT = 1  # How many files are in the archive?

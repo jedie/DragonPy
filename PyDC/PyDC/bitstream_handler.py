@@ -18,7 +18,7 @@ import itertools
 import logging
 import os
 
-from PyDC.utils import (
+from PyDC.PyDC.utils import (
     MaxPosArraived,
     PatternNotFound,
     bits2codepoint,
@@ -222,13 +222,21 @@ class BitstreamHandler(BitstreamHandlerBase):
             leader_pos = find_iter_window(bitstream, lead_in_pattern, max_pos)
         except MaxPosArraived as err:
             log.error(
-                f"Error: Leader-Byte '{list2str(lead_in_pattern)}' ({hex(self.cfg.LEAD_BYTE_CODEPOINT)}) not found in the first {self.cfg.LEAD_BYTE_LEN:d} Bytes! ({err})")
+                f"Error: Leader-Byte '{list2str(lead_in_pattern)}'"
+                f" ({hex(self.cfg.LEAD_BYTE_CODEPOINT)}) not found in the first {self.cfg.LEAD_BYTE_LEN:d} Bytes!"
+                f" ({err})"
+            )
         except PatternNotFound as err:
             log.error(
-                f"Error: Leader-Byte '{list2str(lead_in_pattern)}' ({hex(self.cfg.LEAD_BYTE_CODEPOINT)}) doesn't exist in bitstream! ({err})")
+                f"Error: Leader-Byte '{list2str(lead_in_pattern)}'"
+                f" ({hex(self.cfg.LEAD_BYTE_CODEPOINT)}) doesn't exist in bitstream! ({err})"
+            )
         else:
             log.info(
-                f"Leader-Byte '{list2str(lead_in_pattern)}' ({hex(self.cfg.LEAD_BYTE_CODEPOINT)}) found at {leader_pos:d} Bytes (wave pos: {bitstream.pformat_pos()})")
+                f"Leader-Byte '{list2str(lead_in_pattern)}'"
+                f" ({hex(self.cfg.LEAD_BYTE_CODEPOINT)}) found at {leader_pos:d} Bytes"
+                f" (wave pos: {bitstream.pformat_pos()})"
+            )
 
         log.debug(f"Search for sync-byte at wave pos: {bitstream.pformat_pos()}")
 
@@ -239,15 +247,21 @@ class BitstreamHandler(BitstreamHandlerBase):
             sync_pos = find_iter_window(bitstream, sync_pattern, max_search_bits)
         except MaxPosArraived as err:
             raise SyncByteNotFoundError(
-                f"Error: Sync-Byte '{list2str(sync_pattern)}' ({hex(self.cfg.SYNC_BYTE_CODEPOINT)}) not found in the first {self.cfg.MAX_SYNC_BYTE_SEARCH:d} Bytes! ({err})"
+                f"Error: Sync-Byte '{list2str(sync_pattern)}'"
+                f" ({hex(self.cfg.SYNC_BYTE_CODEPOINT)}) not found in the"
+                f" first {self.cfg.MAX_SYNC_BYTE_SEARCH:d} Bytes! ({err})"
             )
         except PatternNotFound as err:
             raise SyncByteNotFoundError(
-                f"Error: Sync-Byte '{list2str(sync_pattern)}' ({hex(self.cfg.SYNC_BYTE_CODEPOINT)}) doesn't exist in bitstream! ({err})"
+                f"Error: Sync-Byte '{list2str(sync_pattern)}'"
+                f" ({hex(self.cfg.SYNC_BYTE_CODEPOINT)}) doesn't exist in bitstream! ({err})"
             )
         else:
             log.info(
-                f"Sync-Byte '{list2str(sync_pattern)}' ({hex(self.cfg.SYNC_BYTE_CODEPOINT)}) found at {sync_pos:d} Bytes (wave pos: {bitstream.pformat_pos()})")
+                f"Sync-Byte '{list2str(sync_pattern)}'"
+                f" ({hex(self.cfg.SYNC_BYTE_CODEPOINT)}) found at {sync_pos:d} Bytes"
+                f" (wave pos: {bitstream.pformat_pos()})"
+            )
 
 
 class CasStream:

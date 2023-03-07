@@ -7,8 +7,11 @@
     :copyleft: 2013 by Jens Diemer
     :license: GNU GPL v3 or above
 
-    arrows: http://www.pylucid.org/de/contribute/developer-documentation/unicode-test/decode_unicode/arrows/#8593
-    blocks: http://www.pylucid.org/de/contribute/developer-documentation/unicode-test/decode_unicode/block-elements/#9600
+    arrows:
+    http://www.pylucid.org/de/contribute/developer-documentation/unicode-test/decode_unicode/arrows/#8593
+
+    blocks:
+    http://www.pylucid.org/de/contribute/developer-documentation/unicode-test/decode_unicode/block-elements/#9600
 """
 
 

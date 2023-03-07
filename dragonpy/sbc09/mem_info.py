@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+# flake8: noqa: E501
 
 """
     DragonPy - sbc09 memory info
