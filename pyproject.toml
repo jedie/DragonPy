@@ -1,36 +1,18 @@
 [project]
 name = "DragonPyEmulator"
-version = "0.8.0"
+dynamic = ["version"]
 description = "Emulator for 6809 CPU based system like Dragon 32 / CoCo written in Python..."
 keywords=["Emulator","6809","Dragon","CoCo","Vectrex","tkinter","pypy"]
-classifiers = [
-    # http://pypi.python.org/pypi?%3Aaction=list_classifiers
-    "Development Status :: 5 - Production/Stable",
-    "Environment :: MacOS X",
-    "Environment :: Win32 (MS Windows)",
-    "Environment :: X11 Applications",
-    "Environment :: Other Environment",
-    "Intended Audience :: Developers",
-    "Intended Audience :: Education",
-    "Intended Audience :: End Users/Desktop",
-    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
-    "Operating System :: OS Independent",
-    "Programming Language :: Python",
-    "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: Implementation :: CPython",
-    "Programming Language :: Python :: Implementation :: PyPy",
-    "Topic :: System :: Emulators",
-    "Topic :: Software Development :: Assemblers",
-    "Topic :: Software Development :: Testing",
-]
+license = {text = "GPL-3.0-or-later"}
 readme = "README.md"
 authors = [
     {name = 'Jens Diemer', email = 'git@jensdiemer.de'}
 ]
 requires-python = ">=3.10,<4"
 dependencies = [
-    "MC6809>=0.7.0",  # https://github.com/6809/MC6809
+    "MC6809",  # https://github.com/6809/MC6809
     "dragonlib",  # https://github.com/6809/dragonlib
+    "manageprojects",  # https://github.com/jedie/manageprojects
     "pygments",  # https://pygments.org/
     "bx_py_utils",  # https://github.com/boxine/bx_py_utils
     "click",  # https://github.com/pallets/click/
@@ -39,15 +21,11 @@ dependencies = [
 ]
 [project.optional-dependencies]
 dev = [
-    "manageprojects>=0.9.3",  # https://github.com/jedie/manageprojects
     "pip-tools",  # https://github.com/jazzband/pip-tools/
     "tox",  # https://github.com/tox-dev/tox
     "coverage",  # https://github.com/nedbat/coveragepy
-    "darker>=1.7",  # https://github.com/akaihola/darker
     "autopep8",  # https://github.com/hhatto/autopep8
     "pyupgrade",  # https://github.com/asottile/pyupgrade
-    "isort",  # https://github.com/pycqa/isort
-    "flynt",  # https://github.com/ikamensh/flynt
     "flake8",  # https://github.com/pycqa/flake8
     "pyflakes",  # https://github.com/PyCQA/pyflakes
     "codespell",  # https://github.com/codespell-project/codespell
@@ -56,14 +34,17 @@ dev = [
     "mypy",  # https://github.com/python/mypy
     "twine",  # https://github.com/pypa/twine
 
-    "tomli",  # https://github.com/hukkin/tomli
-    # tomli only needed for Python <3.11, but see bug:
-    # https://github.com/pypa/pip/issues/9644#issuecomment-1456583402
-    #"tomli;python_version<\"3.11\"",  # https://github.com/hukkin/tomli
+    # https://github.com/akaihola/darker
+    # https://github.com/ikamensh/flynt
+    # https://github.com/pycqa/isort
+    # https://github.com/pygments/pygments
+    "darker[flynt, isort, color]",
 
-    # Work-a-round for:
-    # https://github.com/jazzband/pip-tools/issues/994#issuecomment-1321226661
-    "typing-extensions>=3.10;python_version<\"3.10\"",
+    "tomli",  # https://github.com/hukkin/tomli
+    #
+    # tomli only needed for Python <3.11, but see pip bug:
+    # https://github.com/pypa/pip/issues/9644 / https://github.com/jazzband/pip-tools/issues/1866
+    #'tomli;python_version<"3.11"',  # https://github.com/hukkin/tomli
 ]
 
 [project.urls]
@@ -71,15 +52,19 @@ Documentation = "https://github.com/jedie/DragonPy"
 Source = "https://github.com/jedie/DragonPy"
 
 [project.scripts]
-dragonpy = "dragonpy.__main__:main"
+dragonpy_app = "dragonpy.__main__:main"
+dragonpy_dev = "dragonpy.cli.dev:main"
+
+[build-system]
+requires = ["setuptools>=61.0", "setuptools_scm>=7.1"]
+build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
 where = ["."]
 include = ["basic_editor", "dragonpy", "PyDC"]
 
-[build-system]
-requires = ["setuptools>=61.0"]
-build-backend = "setuptools.build_meta"
+[tool.setuptools.dynamic]
+version = {attr = "dragonpy.__version__"}
 
 
 [tool.darker]
@@ -113,6 +98,7 @@ lines_after_imports=2
 [tool.coverage.run]
 branch = true
 parallel = true
+concurrency = ["multiprocessing"]
 source = ['.']
 command_line = '-m unittest --verbose --locals --buffer'
 
@@ -178,4 +164,5 @@ license = "GPL-3.0-or-later"
 _template = "https://github.com/jedie/cookiecutter_templates/"
 applied_migrations = [
     "04d5a25", # 2023-03-07T16:25:36+01:00
+    "da054d6", # 2023-08-04T17:39:02+02:00
 ]

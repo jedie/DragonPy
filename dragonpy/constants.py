@@ -1,4 +1,4 @@
-CLI_EPILOG = 'Project Homepage: https://github.com/john-doh/dragonpy'
+CLI_EPILOG = 'Project Homepage: https://github.com/jedie/DragonPy'
 
 DRAGON32 = "Dragon32"
 DRAGON64 = "Dragon64"

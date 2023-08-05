@@ -106,24 +106,12 @@ Usage: ./cli.py [OPTIONS] COMMAND [ARGS]...
 │ --help      Show this message and exit.                                                          │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────╮
-│ check-code-style            Check code style by calling darker + flake8                          │
-│ coverage                    Run and show coverage.                                               │
-│ download-roms               Download/Test only ROM files                                         │
-│ editor                      Run only the BASIC editor                                            │
-│ fix-code-style              Fix code style of all dragonpy source code files via darker          │
-│ gui                         Start the DragonPy tkinter starter GUI                               │
-│ install                     Run pip-sync and install 'dragonpy' via pip as editable.             │
-│ log-list                    List all exiting loggers and exit.                                   │
-│ mypy                        Run Mypy (configured in pyproject.toml)                              │
-│ publish                     Build and upload this project to PyPi                                │
-│ run                         Run a machine emulation                                              │
-│ safety                      Run safety check against current requirements files                  │
-│ test                        Run unittests                                                        │
-│ tox                         Run tox                                                              │
-│ update                      Update "requirements*.txt" dependencies files                        │
-│ update-test-snapshot-files  Update all test snapshot files (by remove and recreate all snapshot  │
-│                             files)                                                               │
-│ version                     Print version and exit                                               │
+│ download-roms              Download/Test only ROM files                                          │
+│ editor                     Run only the BASIC editor                                             │
+│ gui                        Start the DragonPy tkinter starter GUI                                │
+│ log-list                   List all exiting loggers and exit.                                    │
+│ run                        Run a machine emulation                                               │
+│ version                    Print version and exit                                                │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 [comment]: <> (✂✂✂ auto generated main help end ✂✂✂)
@@ -178,16 +166,45 @@ The files will be downloaded from:
 All ROM files and download will be checked by `SHA1` value, before use.
 
 
-## run tests
+## development
 
-e.g.:
+Please use `dev-cli.py` for development.
+
+The output of `./dev-cli.py --help` looks like:
+
+[comment]: <> (✂✂✂ auto generated dev help start ✂✂✂)
+```
+Usage: ./dev-cli.py [OPTIONS] COMMAND [ARGS]...
+
+╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
+│ --help      Show this message and exit.                                                          │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────╮
+│ check-code-style            Check code style by calling darker + flake8                          │
+│ coverage                    Run and show coverage.                                               │
+│ fix-code-style              Fix code style of all dragonpy source code files via darker          │
+│ install                     Run pip-sync and install 'dragonpy' via pip as editable.             │
+│ mypy                        Run Mypy (configured in pyproject.toml)                              │
+│ publish                     Build and upload this project to PyPi                                │
+│ safety                      Run safety check against current requirements files                  │
+│ test                        Run unittests                                                        │
+│ tox                         Run tox                                                              │
+│ update                      Update "requirements*.txt" dependencies files                        │
+│ update-test-snapshot-files  Update all test snapshot files (by remove and recreate all snapshot  │
+│                             files)                                                               │
+│ version                     Print version and exit                                               │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+```
+[comment]: <> (✂✂✂ auto generated dev help end ✂✂✂)
+
+Run tests, e.g.:
 
 ```bash
-~/DragonPy$ ./cli.py coverage
+~/DragonPy$ ./dev-cli.py coverage
 # or just:
-~/DragonPy$ ./cli.py test
+~/DragonPy$ ./dev-cli.py test
 # or with different Python versions:
-~/DragonPy$ ./cli.py tox
+~/DragonPy$ ./dev-cli.py tox
 ```
 
 ## more screenshots
@@ -434,6 +451,8 @@ generic syntax highlighter
 
 
 * [*dev*](https://github.com/jedie/DragonPy/compare/v0.8.0...master):
+  * Split CLI in app and dev
+  * Remove Python 3.9 support
   * tbc
 * [07.03.2023 - v0.8.0](https://github.com/jedie/DragonPy/compare/v0.7.0...v0.8.0):
   * Modernize project testing, CI pipeline, etc.
