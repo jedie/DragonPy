@@ -450,10 +450,12 @@ generic syntax highlighter
 ## History
 
 
-* [*dev*](https://github.com/jedie/DragonPy/compare/v0.8.0...master):
+* [*dev*](https://github.com/jedie/DragonPy/compare/v0.9.0...master):
+  * tbc
+* [07.03.2023 - v0.9.0](https://github.com/jedie/DragonPy/compare/v0.8.0...v0.9.0):
   * Split CLI in app and dev
   * Remove Python 3.9 support
-  * tbc
+  * Update requirements
 * [07.03.2023 - v0.8.0](https://github.com/jedie/DragonPy/compare/v0.7.0...v0.8.0):
   * Modernize project testing, CI pipeline, etc.
   * Switch from poetry to pip-tools
