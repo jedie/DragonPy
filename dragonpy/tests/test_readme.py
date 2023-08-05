@@ -5,6 +5,7 @@ from manageprojects.tests.base import BaseTestCase
 
 from dragonpy import constants
 from dragonpy.cli.cli_app import PACKAGE_ROOT, cli
+from dragonpy.cli.dev import cli as dev_cli
 
 
 def assert_cli_help_in_readme(text_block: str, marker: str):
@@ -35,6 +36,19 @@ class ReadmeTestCase(BaseTestCase):
             ),
         )
         assert_cli_help_in_readme(text_block=stdout, marker='main help')
+
+    def test_dev_help(self):
+        stdout = invoke_click(dev_cli, '--help')
+        self.assert_in_content(
+            got=stdout,
+            parts=(
+                'Usage: ./dev-cli.py [OPTIONS] COMMAND [ARGS]...',
+                ' check-code-style ',
+                ' coverage ',
+                constants.CLI_EPILOG,
+            ),
+        )
+        assert_cli_help_in_readme(text_block=stdout, marker='dev help')
 
     def test_run_help(self):
         stdout = invoke_click(cli, 'run', '--help')

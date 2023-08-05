@@ -1,6 +1,8 @@
-"""dragonpy - Emulator for 6809 CPU based system like Dragon 32 / CoCo written in Python..."""
+"""
+    dragonpy
+    Emulator for 6809 CPU based system like Dragon 32 / CoCo written in Python...
+"""
 
-from importlib.metadata import version
 
 from dragonpy import constants
 from dragonpy.CoCo.config import CoCo2bCfg
@@ -20,7 +22,7 @@ from dragonpy.vectrex.config import VectrexCfg
 from dragonpy.vectrex.machine import run_Vectrex
 
 
-__version__ = version('DragonPyEmulator')
+__version__ = '0.9.0'
 __author__ = 'Jens Diemer <git@jensdiemer.de>'
 
 

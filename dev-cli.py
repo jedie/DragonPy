@@ -45,18 +45,18 @@ else:
     FILE_EXT = ''
 
 BASE_PATH = Path(__file__).parent
-VENV_PATH = BASE_PATH / '.venv-app'
+VENV_PATH = BASE_PATH / '.venv'
 BIN_PATH = VENV_PATH / BIN_NAME
 PYTHON_PATH = BIN_PATH / f'python{FILE_EXT}'
 PIP_PATH = BIN_PATH / f'pip{FILE_EXT}'
 PIP_SYNC_PATH = BIN_PATH / f'pip-sync{FILE_EXT}'
 
-DEP_LOCK_PATH = BASE_PATH / 'requirements.txt'
+DEP_LOCK_PATH = BASE_PATH / 'requirements.dev.txt'
 DEP_HASH_PATH = VENV_PATH / '.dep_hash'
 
 # script file defined in pyproject.toml as [console_scripts]
 # (Under Windows: ".exe" not added!)
-PROJECT_SHELL_SCRIPT = BIN_PATH / 'dragonpy_app'
+PROJECT_SHELL_SCRIPT = BIN_PATH / 'dragonpy_dev'
 
 
 def get_dep_hash():
