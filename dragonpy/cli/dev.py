@@ -168,7 +168,7 @@ def publish():
     publish_package(
         module=dragonpy,
         package_path=PACKAGE_ROOT,
-        distribution_name='dragonpy-connect',
+        distribution_name='dragonpy',
     )
 
 
