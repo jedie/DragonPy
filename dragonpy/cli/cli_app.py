@@ -1,6 +1,8 @@
 """
     CLI for usage
 """
+from __future__ import annotations
+
 import inspect
 import locale
 import logging

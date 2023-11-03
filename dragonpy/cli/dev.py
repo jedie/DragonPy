@@ -7,10 +7,10 @@ from pathlib import Path
 
 import rich_click as click
 from bx_py_utils.path import assert_is_file
-from manageprojects.utilities import code_style
-from manageprojects.utilities.publish import publish_package
 from cli_base.cli_tools.subprocess_utils import verbose_check_call
 from cli_base.cli_tools.version_info import print_version
+from manageprojects.utilities import code_style
+from manageprojects.utilities.publish import publish_package
 from rich import print  # noqa; noqa
 from rich_click import RichGroup
 
