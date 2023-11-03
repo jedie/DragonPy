@@ -4,6 +4,7 @@ __pycache__
 /dist/
 /coverage.json
 /coverage.xml
+*.orig
 
 !.github
 !.editorconfig

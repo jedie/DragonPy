@@ -466,6 +466,7 @@ To make a new release, do this:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [**dev**](https://github.com/jedie/DragonPy/compare/v0.9.0...main)
+  * 2023-11-03 - fix test_tokens_in_string()
   * 2023-11-03 - Auto generate README history
   * 2023-11-03 - Use https://github.com/jedie/cli-base-utilities
   * 2023-11-02 - Bump pip from 23.2.1 to 23.3
