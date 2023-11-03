@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.11", "3.10"]
+        python-version: ["3.12", "3.11", "3.10", "3.9"]
     env:
       PYTHONUNBUFFERED: 1
       PYTHONWARNINGS: always
@@ -24,7 +24,7 @@ jobs:
     - name: Checkout
       run: |
         echo $GITHUB_REF $GITHUB_SHA
-        git clone --depth 1 https://github.com/$GITHUB_REPOSITORY.git .
+        git clone https://github.com/$GITHUB_REPOSITORY.git .
         git fetch origin $GITHUB_SHA:temporary-ci-branch
         git checkout $GITHUB_SHA || (git fetch && git checkout $GITHUB_SHA)
 

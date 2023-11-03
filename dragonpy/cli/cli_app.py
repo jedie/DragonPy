@@ -1,6 +1,8 @@
 """
     CLI for usage
 """
+from __future__ import annotations
+
 import inspect
 import locale
 import logging
@@ -38,7 +40,14 @@ ARGUMENT_EXISTING_DIR = dict(
     type=click.Path(exists=True, file_okay=False, dir_okay=True, readable=True, path_type=Path)
 )
 ARGUMENT_NOT_EXISTING_DIR = dict(
-    type=click.Path(exists=False, file_okay=False, dir_okay=True, readable=False, writable=True, path_type=Path)
+    type=click.Path(
+        exists=False,
+        file_okay=False,
+        dir_okay=True,
+        readable=False,
+        writable=True,
+        path_type=Path,
+    )
 )
 ARGUMENT_EXISTING_FILE = dict(
     type=click.Path(exists=True, file_okay=True, dir_okay=False, readable=True, path_type=Path)

@@ -13,7 +13,6 @@
 
 
 import logging
-import unittest
 
 from dragonpy.tests.test_base import Test6809_Dragon32_Base
 
@@ -81,17 +80,18 @@ class Test_Dragon32_BASIC(Test6809_Dragon32_Base):
                          ['LIST', '10 ?123', '20 PRINT "FOO"', 'OK']
                          )
 
-    @unittest.expectedFailure  # TODO:
     def test_tokens_in_string(self):
-        self.periphery.add_to_input_queue(
-            # "10 PRINT ' FOR NEXT COMMENT\r"
-            "10 PRINT ' FOR NEXT\r"
-            'LIST\r'
-        )
+        self.periphery.add_to_input_queue("10 PRINT ' FOR NEXT COMMENT\rLIST\r")
         op_call_count, cycles, output = self._run_until_OK(max_ops=1430000)
         print(op_call_count, cycles, output)
-        self.assertEqual(output,
-                         ['10A=1', '20B=2', 'LIST', '10 A=1', '20 B=2', 'OK']
-                         )
+        self.assertEqual(
+            output,
+            [
+                "10 PRINT ' FOR NEXT COMMENT",
+                'LIST',
+                "10 PRINT ' FOR NEXT COMMENT",
+                'OK',
+            ],
+        )
         output = self.machine.get_basic_program()
-        self.assertEqual(output, ['10 A=1', '20 B=2'])
+        self.assertEqual(output, ["10 PRINT ' FOR NEXT COMMENT"])

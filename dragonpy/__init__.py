@@ -22,7 +22,7 @@ from dragonpy.vectrex.config import VectrexCfg
 from dragonpy.vectrex.machine import run_Vectrex
 
 
-__version__ = '0.9.0'
+__version__ = '0.9.1'
 __author__ = 'Jens Diemer <git@jensdiemer.de>'
 
 
