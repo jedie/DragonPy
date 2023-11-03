@@ -106,7 +106,7 @@ def main(argv):
 
     # Call our entry point CLI:
     try:
-        verbose_check_call(PROJECT_SHELL_SCRIPT, *sys.argv[1:])
+        verbose_check_call(PROJECT_SHELL_SCRIPT, *argv[1:])
     except subprocess.CalledProcessError as err:
         sys.exit(err.returncode)
 
