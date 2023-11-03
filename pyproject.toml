@@ -12,6 +12,7 @@ requires-python = ">=3.10,<4"
 dependencies = [
     "MC6809",  # https://github.com/6809/MC6809
     "dragonlib",  # https://github.com/6809/dragonlib
+    "cli-base-utilities",  # https://github.com/jedie/cli-base-utilities
     "manageprojects",  # https://github.com/jedie/manageprojects
     "pygments",  # https://pygments.org/
     "bx_py_utils",  # https://github.com/boxine/bx_py_utils

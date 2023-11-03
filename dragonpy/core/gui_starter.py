@@ -12,7 +12,7 @@ import atexit
 import logging
 import tkinter as tk
 
-from manageprojects.utilities.subprocess_utils import verbose_check_call
+from cli_base.cli_tools.subprocess_utils import verbose_check_call
 from rich import print  # noqa
 
 import dragonpy
