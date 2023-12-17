@@ -17,9 +17,6 @@ jobs:
       fail-fast: false
       matrix:
         python-version: ["3.12", "3.11", "3.10", "3.9"]
-    env:
-      PYTHONUNBUFFERED: 1
-      PYTHONWARNINGS: always
     steps:
     - name: Checkout
       run: |
@@ -34,7 +31,7 @@ jobs:
       with:
         python-version: '${{ matrix.python-version }}'
         cache: 'pip' # caching pip dependencies
-        cache-dependency-path: '**/requirements.dev.txt'
+        cache-dependency-path: '**/requirements.*.txt'
 
     - name: Cache ROMs
       id: cache-roms
@@ -71,6 +68,9 @@ jobs:
         ./dev-cli.py safety
 
     - name: 'Run tests with Python v${{ matrix.python-version }}'
+      env:
+        PYTHONUNBUFFERED: 1
+        PYTHONWARNINGS: always
       run: |
         ./dev-cli.py coverage
 

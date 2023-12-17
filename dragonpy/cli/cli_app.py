@@ -11,12 +11,15 @@ from pathlib import Path
 
 import rich_click as click
 from bx_py_utils.path import assert_is_file
+from cli_base.cli_tools.version_info import print_version
 from rich import print  # noqa
+from rich.console import Console
+from rich.traceback import install as rich_traceback_install
 from rich_click import RichGroup
 
 import dragonpy
 from basic_editor.editor import run_basic_editor
-from dragonpy import __version__, constants
+from dragonpy import constants
 from dragonpy.components.rom import ROMFileError
 from dragonpy.constants import VERBOSITY_DEFAULT_VALUE, VERBOSITY_DICT
 from dragonpy.core.configs import machine_dict
@@ -202,7 +205,7 @@ cli.add_command(log_list)
 
 
 def main():
-    print(f'[bold][green]dragonpy[/green] v[cyan]{__version__}')
+    print_version(dragonpy)
     print(
         inspect.cleandoc(
             """
@@ -215,6 +218,14 @@ def main():
             ********************************************************
         """
         )
+    )
+
+    console = Console()
+    rich_traceback_install(
+        width=console.size.width,  # full terminal width
+        show_locals=True,
+        suppress=[click],
+        max_frames=2,
     )
 
     # Execute Click CLI:
