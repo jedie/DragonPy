@@ -3,7 +3,7 @@ import unittest.util
 from pathlib import Path
 
 from bx_py_utils.test_utils.deny_requests import deny_any_real_request
-from cli_base.cli_tools.verbosity import MAX_LOG_LEVEL, setup_logging
+from cli_base.cli_tools.verbosity import setup_logging
 from rich import print  # noqa
 
 
@@ -18,8 +18,9 @@ def pre_configure_tests() -> None:
     # Deny any request via docket/urllib3 because tests they should mock all requests:
     deny_any_real_request()
 
-    # Display DEBUG logs in tests:
-    setup_logging(verbosity=MAX_LOG_LEVEL)
+    # Display INFO logs in tests.
+    # Note: DEBUG log are very, very verbose and will slow down test execution!
+    setup_logging(verbosity=2)
 
 
 def load_tests(loader, tests, pattern):
