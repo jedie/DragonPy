@@ -68,12 +68,12 @@ def human_duration(t):
     if t < 60 * 60:
         return f"{round(t / 60, 1):.1f} min"
 
-    for seconds, name in chunks:
+    for seconds, _name in chunks:
         count = t / seconds
         if count >= 1:
             count = round(count, 1)
             break
-    return f"{count:.1f} {name}"
+    return f"{count:.1f} {_name}"
 
 
 class ProcessInfo:
@@ -158,7 +158,7 @@ def iter_steps(g, steps):
 
 def iter_window(g, window_size):
     """
-    interate over 'g' bit-by-bit and yield a window with the given 'window_size' width.
+    iterate over 'g' bit-by-bit and yield a window with the given 'window_size' width.
 
     >>> for v in iter_window([1,2,3,4], window_size=2): v
     [1, 2]
@@ -260,12 +260,12 @@ def count_the_same(iterable, sentinel):
     >>> 0x3C == 60
     True
     """
-    count = 0
+    _count = 0
     x = None
-    for count, x in enumerate(iterable):
+    for _count, x in enumerate(iterable):
         if x != sentinel:
             break
-    return count, x
+    return _count, x
 
 
 def diff_info(data):
@@ -732,7 +732,7 @@ def sinus_values_by_hz(framerate, hz, max_value):
     """
     Create sinus values with the given framerate and Hz.
     Note:
-    We skip the first zero-crossing, so the values can be used directy in a loop.
+    We skip the first zero-crossing, so the values can be used directly in a loop.
 
     >>> values = sinus_values_by_hz(22050, 1200, 255)
     >>> len(values) # 22050 / 1200Hz = 18,375

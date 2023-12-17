@@ -2,8 +2,8 @@ import subprocess
 from unittest import TestCase
 
 from bx_py_utils.path import assert_is_file
-from manageprojects.test_utils.project_setup import check_editor_config, get_py_max_line_length
 from cli_base.cli_tools.code_style import assert_code_style
+from manageprojects.test_utils.project_setup import check_editor_config, get_py_max_line_length
 from packaging.version import Version
 
 from dragonpy import __version__
