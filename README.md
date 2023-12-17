@@ -181,7 +181,7 @@ Usage: ./dev-cli.py [OPTIONS] COMMAND [ARGS]...
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────╮
 │ check-code-style            Check code style by calling darker + flake8                          │
-│ coverage                    Run and show coverage.                                               │
+│ coverage                    Run tests and show coverage report.                                  │
 │ fix-code-style              Fix code style of all dragonpy source code files via darker          │
 │ install                     Run pip-sync and install 'dragonpy' via pip as editable.             │
 │ mypy                        Run Mypy (configured in pyproject.toml)                              │
@@ -465,6 +465,10 @@ To make a new release, do this:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [**dev**](https://github.com/jedie/DragonPy/compare/v0.9.1...main)
+  * 2023-12-17 - Fix code style and typos
+  * 2023-12-17 - Don't slow down tests because of mass DEBUG log output
+  * 2023-12-17 - Apply manageprojects updates
 * [v0.9.1](https://github.com/jedie/DragonPy/compare/v0.9.0...v0.9.1)
   * 2023-11-03 - Fix CI
   * 2023-11-03 - Apply manageprojects updates
@@ -506,6 +510,9 @@ To make a new release, do this:
   * 2022-01-30 - remove nose test from CLI
   * 2022-01-30 - Use dev-shell
   * 2022-01-30 - Cache pip+roms
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v0.7.0](https://github.com/jedie/DragonPy/compare/v0.6.0...v0.7.0)
   * 2020-10-01 - update README
   * 2020-10-01 - Update windows tk work-a-round: https://github.com/pypa/virtualenv/issues/93
@@ -528,9 +535,6 @@ To make a new release, do this:
   * 2020-02-10 - run 2to3 and make minimal updates to get the tests running and pass
   * 2020-02-10 - remove bootstrap files
   * 2020-02-10 - WIP: modernize project setup
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v0.6.0](https://github.com/jedie/DragonPy/compare/v0.5.3...v0.6.0)
   * 2018-06-19 - Fix "No module named 'nose'" on normal PyPi installation
   * 2018-06-19 - +build.log

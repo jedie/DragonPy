@@ -68,7 +68,7 @@ if __name__ == "__main__":
     #
     #         print "%-11s ; %s" % (addr, txt)
 
-    for start_addr, end_addr, comment in Dragon64MemInfo.MEM_INFO:
+    for start_addr, _end_addr, comment in Dragon64MemInfo.MEM_INFO:
         comment = comment.replace('"', '\\"')
         comment = comment.replace('$', '\\$')
         print(f'\tcomment=0x{start_addr:x},"{comment}" \\')

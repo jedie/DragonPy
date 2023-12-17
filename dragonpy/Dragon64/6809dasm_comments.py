@@ -45,15 +45,15 @@ class MemoryInfo2Comments:
                 end_addr = start_addr
 
             rom_info.append(
-                (start_addr, end_addr, comment.strip())
+                (start_addr, end_addr, comment.strip()),
             )
         sys.stderr.write(
-            f"ROM Info file: {rom_info_file.name!r} readed.\n"
+            f"ROM Info file: {rom_info_file.name!r} read.\n",
         )
         return rom_info
 
     def create_comments(self, outfile):
-        for start_addr, end_addr, comment in self.mem_info:
+        for start_addr, _end_addr, comment in self.mem_info:
             comment = comment.replace('"', '\\"')
             comment = comment.replace('$', '\\$')
             outfile.write(

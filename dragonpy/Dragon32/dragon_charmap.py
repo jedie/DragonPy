@@ -205,9 +205,9 @@ for item_type in COLORS:
 
 def list_chars():
     index = 0
-    for x in range(8):
+    for _x in range(8):
         line = ""
-        for y in range(32):
+        for _y in range(32):
             try:
                 line += DRAGON_CHARS_MAP[index][0]
             except KeyError:
@@ -291,6 +291,5 @@ if __name__ == "__main__":
     print()
 
     import doctest
-    print(doctest.testmod(
-        verbose=1
-    ))
+
+    print(doctest.testmod(verbose=True))

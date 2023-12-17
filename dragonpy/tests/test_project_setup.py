@@ -2,9 +2,8 @@ import subprocess
 from unittest import TestCase
 
 from bx_py_utils.path import assert_is_file
-from manageprojects.test_utils.click_cli_utils import subprocess_cli
+from cli_base.cli_tools.code_style import assert_code_style
 from manageprojects.test_utils.project_setup import check_editor_config, get_py_max_line_length
-from manageprojects.utilities import code_style
 from packaging.version import Version
 
 from dragonpy import __version__
@@ -31,41 +30,8 @@ class ProjectSetupTestCase(TestCase):
         self.assertIn(f'dragonpy v{__version__}', output)
 
     def test_code_style(self):
-        dev_cli_bin = PACKAGE_ROOT / 'dev-cli.py'
-        assert_is_file(dev_cli_bin)
-
-        try:
-            output = subprocess_cli(
-                cli_bin=dev_cli_bin,
-                args=('check-code-style',),
-                exit_on_error=False,
-            )
-        except subprocess.CalledProcessError as err:
-            self.assertIn('.venv/bin/darker', err.stdout)  # darker was called?
-        else:
-            if 'Code style: OK' in output:
-                self.assertIn('.venv/bin/darker', output)  # darker was called?
-                return  # Nothing to fix -> OK
-
-        # Try to "auto" fix code style:
-
-        try:
-            output = subprocess_cli(
-                cli_bin=dev_cli_bin,
-                args=('fix-code-style',),
-                exit_on_error=False,
-            )
-        except subprocess.CalledProcessError as err:
-            output = err.stdout
-
-        self.assertIn('.venv/bin/darker', output)  # darker was called?
-
-        # Check again and display the output:
-
-        try:
-            code_style.check(package_root=PACKAGE_ROOT)
-        except SystemExit as err:
-            self.assertEqual(err.code, 0, 'Code style error, see output above!')
+        return_code = assert_code_style(package_root=PACKAGE_ROOT)
+        self.assertEqual(return_code, 0, 'Code style error, see output above!')
 
     def test_check_editor_config(self):
         check_editor_config(package_root=PACKAGE_ROOT)

@@ -749,7 +749,7 @@ class Dragon64MemInfo(BaseMemoryInfo):
         (0x89cd, 0x8a03, "evaluate function"),
         (0x89cd, 0x89cd, "get next character from BASIC source"),
         (0x89d2, 0x89d2, "get next character from BASIC source"),
-        (0x89d8, 0x89d8, "disk function despatch"),
+        (0x89d8, 0x89d8, "disk function dispatch"),
         (0x89e0, 0x89e0, "functions with single arguments"),
         (0x89e4, 0x89e4, "functions with special or no arguments"),
         (0x89e6, 0x89e6, "skip open bracket"),
@@ -759,7 +759,7 @@ class Dragon64MemInfo(BaseMemoryInfo):
         (0x89f3, 0x89f3, "validate string"),
         (0x89fc, 0x89fc, "get number into B"),
         (0x8a06, 0x8a0e, "(8A04 8D99       BSR   $899F)   ;get expression inside brackets"),
-        (0x8a08, 0x8a08, "function despatch table"),
+        (0x8a08, 0x8a08, "function dispatch table"),
         (0x8a0e, 0x8a0e, "validate numeric expression"),
         (0x8a11, 0x8a11, "OR"),
         (0x8a13, 0x8a2e, "AND"),
@@ -1618,7 +1618,7 @@ class Dragon64MemInfo(BaseMemoryInfo):
         (0x9a92, 0x9a92, "(S = search for nth occurrence of chr)"),
         (0x9a97, 0x9ab7, "EDIT: search functions"),
         (0x9a99, 0x9a99, "read keys (carry clear if control key)"),
-        (0x9a9f, 0x9a9f, "PULS Y,PC"),
+        (0x9a9f, 0x9a9f, "PLUS Y,PC"),
         (0x9aa3, 0x9aa3, "Kill (not Search)"),
         (0x9aa5, 0x9aa5, "output character to DEVN"),
         (0x9aab, 0x9aab, "close line up over removed character"),
@@ -2908,7 +2908,7 @@ class Dragon64MemInfo(BaseMemoryInfo):
         (0xb427, 0xb427, "PCLEAR 4"),
         (0xb42f, 0xb42f, "enable vsync irq"),
         (0xb432, 0xb432, "check for 'DK' disk"),
-        (0xb435, 0xb435, "cartridge sigature"),
+        (0xb435, 0xb435, "cartridge signature"),
         (0xb43c, 0xb43c, "enable interrupts"),
         (0xb441, 0xb441, "display copyright message"),
         (0xb444, 0xb444, "set up soft reset vector"),
@@ -2927,7 +2927,7 @@ class Dragon64MemInfo(BaseMemoryInfo):
         (0xb46c, 0xb46c, "cartridge"),
         (0xb46f, 0xb46f, "delay"),
         (0xb47b, 0xb47b, "cold boot flag"),
-        (0xb480, 0xb486, "delay before starting FIRQ cartrige"),
+        (0xb480, 0xb486, "delay before starting FIRQ cartridge"),
         (0xb480, 0xb480, "zero"),
         (0xb487, 0x7ebb, "copied to $9d - $aa on start up"),
         (0xb487, 0x7ebb, "(default EXEC & get character routine)"),
@@ -3161,7 +3161,7 @@ class Dragon64MemInfo(BaseMemoryInfo):
         (0xb79a, 0xb79a, "scan keyboard"),
         (0xb79d, 0xb79d, "last key pressed"),
         (0xb7a1, 0xb7a1, "set up character & put on varptr stack"),
-        (0xb7a7, 0xb7a7, "leas 2,s & put temp string on varptr stack"),
+        (0xb7a7, 0xb7a7, "lease 2,s & put temp string on varptr stack"),
         (0xb7aa, 0xb7c9, "called by get filename routine"),
         (0xb7aa, 0xb7c9, "(reads filename from command into usual location)"),
         (0xb7b3, 0xb7b3, "IO buffer"),
@@ -3785,7 +3785,7 @@ if __name__ == "__main__":
     #
     #         print "%-11s ; %s" % (addr, txt)
 
-    for start_addr, end_addr, comment in Dragon64MemInfo.MEM_INFO:
+    for start_addr, _end_addr, comment in Dragon64MemInfo.MEM_INFO:
         comment = comment.replace('"', '\\"')
         comment = comment.replace('$', '\\$')
         print(f'\tcomment=0x{start_addr:x},"{comment}" \\')

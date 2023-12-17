@@ -1,3 +1,8 @@
+from pathlib import Path
+
+import dragonpy
+
+
 CLI_EPILOG = 'Project Homepage: https://github.com/jedie/DragonPy'
 
 DRAGON32 = "Dragon32"
@@ -36,3 +41,6 @@ for no, text in sorted(VERBOSITY_DICT.items()):
 
 assert VERBOSITY_DEFAULT is not None
 assert VERBOSITY_DICT2[VERBOSITY_DEFAULT] == VERBOSITY_DEFAULT_VALUE
+
+
+BASE_PATH = Path(dragonpy.__file__).parent
