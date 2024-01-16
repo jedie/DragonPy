@@ -77,5 +77,5 @@ def print_exc_plus():
 
             try:
                 click.echo(value)
-            except BaseException:
+            except BaseException:  # noqa: B036
                 click.echo("<ERROR WHILE PRINTING VALUE>")
