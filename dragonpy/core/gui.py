@@ -133,8 +133,8 @@ class BaseTkinterGUI:
         log.critical("DragonTkinterGUI.exit()")
         try:
             self.root.destroy()
-        except BaseException:
-            pass
+        except Exception as err:
+            log.exception(f'destroy error: {err}')
 
     # -----------------------------------------------------------------------------------------
 
@@ -255,10 +255,7 @@ class BaseTkinterGUI:
 
         cycles_per_sec = new_cycles / duration
 
-        msg = (
-            "%s cylces/sec (burst op count: outer: %s - inner: %s)\n"
-            "%i CPU interval calls"
-        ) % (
+        msg = ("%s cycles/sec (burst op count: outer: %s - inner: %s)\n" "%i CPU interval calls") % (
             locale_format_number(cycles_per_sec),
 
             locale_format_number(self.machine.cpu.outer_burst_op_count),

@@ -87,7 +87,7 @@ if __name__ == '__main__':
         try:
             xroar_gdb.running = False
             xroar_gdb.s.close()
-        except BaseException:
+        except BaseException:  # noqa: B036
             pass
 
     time.sleep(1)
