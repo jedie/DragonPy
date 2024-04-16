@@ -466,6 +466,7 @@ To make a new release, do this:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [v0.9.2](https://github.com/jedie/DragonPy/compare/v0.9.1...v0.9.2)
+  * 2024-04-16 - Bugfix packaging
   * 2024-04-16 - Update requirements and apply manageproject updates
   * 2024-02-09 - Update requirements
   * 2024-01-16 - Update requirements + fix code style
