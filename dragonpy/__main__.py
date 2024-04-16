@@ -4,11 +4,7 @@
 """
 
 
-from dragonpy.cli import cli_app
-
-
-def main():
-    cli_app.main()
+from dragonpy.cli_app import main
 
 
 if __name__ == '__main__':

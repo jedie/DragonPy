@@ -8,6 +8,7 @@
 """
 
 import hashlib
+import shlex
 import subprocess
 import sys
 import venv
@@ -32,7 +33,7 @@ else:
         sys.exit(-1)
 
 
-assert sys.version_info >= (3, 9), 'Python version is too old!'
+assert sys.version_info >= (3, 9), f'Python version {sys.version_info} is too old!'
 
 
 if sys.platform == 'win32':  # wtf
@@ -77,7 +78,7 @@ def venv_up2date():
 
 
 def verbose_check_call(*popen_args):
-    print(f'\n+ {" ".join(str(arg) for arg in popen_args)}\n')
+    print(f'\n+ {shlex.join(str(arg) for arg in popen_args)}\n')
     return subprocess.check_call(popen_args)
 
 

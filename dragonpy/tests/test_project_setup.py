@@ -7,7 +7,7 @@ from manageprojects.test_utils.project_setup import check_editor_config, get_py_
 from packaging.version import Version
 
 from dragonpy import __version__
-from dragonpy.cli.cli_app import PACKAGE_ROOT
+from dragonpy.cli_dev import PACKAGE_ROOT
 
 
 class ProjectSetupTestCase(TestCase):
