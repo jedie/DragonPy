@@ -8,7 +8,7 @@ readme = "README.md"
 authors = [
     {name = 'Jens Diemer', email = 'git@jensdiemer.de'}
 ]
-requires-python = ">=3.9,<4"
+requires-python = ">=3.9"
 dependencies = [
     "MC6809",  # https://github.com/6809/MC6809
     "dragonlib",  # https://github.com/6809/dragonlib
@@ -22,6 +22,8 @@ dependencies = [
 ]
 [project.optional-dependencies]
 dev = [
+    "manageprojects",  # https://github.com/jedie/manageprojects
+    "urllib3", # for bx_py_utils.test_utils.deny_requests.deny_any_real_request() in tests
     "pip-tools",  # https://github.com/jazzband/pip-tools/
     "tox",  # https://github.com/tox-dev/tox
     "coverage",  # https://github.com/nedbat/coveragepy
@@ -35,6 +37,7 @@ dev = [
     "safety",  # https://github.com/pyupio/safety
     "mypy",  # https://github.com/python/mypy
     "twine",  # https://github.com/pypa/twine
+    "typeguard",  # https://github.com/agronholm/typeguard/
 
     # https://github.com/akaihola/darker
     # https://github.com/ikamensh/flynt
@@ -55,7 +58,11 @@ Source = "https://github.com/jedie/DragonPy"
 
 [project.scripts]
 dragonpy_app = "dragonpy.__main__:main"
-dragonpy_dev = "dragonpy.cli.dev:main"
+dragonpy_dev = "dragonpy.cli_dev:main"
+
+[tool.cli_base]
+version_module_name = "dragonpy"
+
 
 [build-system]
 requires = ["setuptools>=61.0", "setuptools_scm>=7.1"]
@@ -73,14 +80,12 @@ version = {attr = "dragonpy.__version__"}
 src = ['.']
 revision = "origin/main..."
 line_length = 119
-verbose = true
 color = true
 skip_string_normalization = true
 diff = false
 check = false
 stdout = false
 isort = true
-flynt = true
 lint = [
     "flake8",
 ]
@@ -149,6 +154,9 @@ initial_revision = "47cac0a"
 initial_date = 2023-03-06T19:46:41+01:00
 cookiecutter_template = "https://github.com/jedie/cookiecutter_templates/"
 cookiecutter_directory = "piptools-python"
+applied_migrations = [
+    "765b8fb", # 2024-03-12T09:08:01+01:00
+]
 
 [manageprojects.cookiecutter_context.cookiecutter]
 full_name = "Jens Diemer"

@@ -4,7 +4,7 @@ from bx_py_utils.auto_doc import assert_readme_block
 from cli_base.cli_tools.git_history import get_git_history
 
 import dragonpy
-from dragonpy.cli.cli_app import PACKAGE_ROOT
+from dragonpy.cli_dev import PACKAGE_ROOT
 
 
 class ReadmeHistoryTestCase(TestCase):

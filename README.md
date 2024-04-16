@@ -106,12 +106,12 @@ Usage: ./cli.py [OPTIONS] COMMAND [ARGS]...
 │ --help      Show this message and exit.                                                          │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────╮
-│ download-roms              Download/Test only ROM files                                          │
-│ editor                     Run only the BASIC editor                                             │
-│ gui                        Start the DragonPy tkinter starter GUI                                │
-│ log-list                   List all exiting loggers and exit.                                    │
-│ run                        Run a machine emulation                                               │
-│ version                    Print version and exit                                                │
+│ download-roms       Download/Test only ROM files                                                 │
+│ editor              Run only the BASIC editor                                                    │
+│ gui                 <<< **start this** - Start the DragonPy tkinter starter GUI                  │
+│ log-list            List all exiting loggers and exit.                                           │
+│ run                 Run a machine emulation                                                      │
+│ version             Print version and exit                                                       │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 [comment]: <> (✂✂✂ auto generated main help end ✂✂✂)
@@ -126,11 +126,10 @@ Usage: ./cli.py run [OPTIONS]
  Run a machine emulation
 
 ╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
-│ --verbosity           [1|10|20|30|40|50|99|100]            1:hardcode DEBUG ;), 10:DEBUG,        │
-│                                                            20:INFO, 30:WARNING, 40:ERROR,        │
-│                                                            50:CRITICAL/FATAL, 99:nearly all off, │
-│                                                            100:all off                           │
-│                                                            [default: 100]                        │
+│ --verbosity           INTEGER RANGE [0<=x<=3]              Verbosity level; Accepts integer      │
+│                                                            value e.g.: "--verbose 2" or can be   │
+│                                                            count e.g.: "-vv"                     │
+│                                                            [default: 0; 0<=x<=3]                 │
 │ --trace/--no-trace                                         Create trace lines                    │
 │                                                            [default: no-trace]                   │
 │ --max-ops             INTEGER                              If given: Stop CPU after given cycles │
@@ -182,14 +181,15 @@ Usage: ./dev-cli.py [OPTIONS] COMMAND [ARGS]...
 ╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────╮
 │ check-code-style            Check code style by calling darker + flake8                          │
 │ coverage                    Run tests and show coverage report.                                  │
-│ fix-code-style              Fix code style of all dragonpy source code files via darker          │
-│ install                     Run pip-sync and install 'dragonpy' via pip as editable.             │
+│ fix-code-style              Fix code style of all cli_base source code files via darker          │
+│ install                     Run pip-sync and install 'cli_base' via pip as editable.             │
 │ mypy                        Run Mypy (configured in pyproject.toml)                              │
 │ publish                     Build and upload this project to PyPi                                │
 │ safety                      Run safety check against current requirements files                  │
 │ test                        Run unittests                                                        │
 │ tox                         Run tox                                                              │
 │ update                      Update "requirements*.txt" dependencies files                        │
+│ update-readme-history       Update project history base on git commits/tags in README.md         │
 │ update-test-snapshot-files  Update all test snapshot files (by remove and recreate all snapshot  │
 │                             files)                                                               │
 │ version                     Print version and exit                                               │
@@ -465,7 +465,8 @@ To make a new release, do this:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
-* [**dev**](https://github.com/jedie/DragonPy/compare/v0.9.1...main)
+* [v0.9.2](https://github.com/jedie/DragonPy/compare/v0.9.1...v0.9.2)
+  * 2024-04-16 - Update requirements and apply manageproject updates
   * 2024-02-09 - Update requirements
   * 2024-01-16 - Update requirements + fix code style
   * 2023-12-17 - Fix code style and typos
