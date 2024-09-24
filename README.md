@@ -467,6 +467,7 @@ To make a new release, do this:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [v0.9.3](https://github.com/jedie/DragonPy/compare/v0.9.2...v0.9.3)
+  * 2024-09-24 - Update CoCo2b ROM url info
   * 2024-09-24 - Update project setup + Use humanize from MC6809
   * 2024-09-24 - Update requirements
 * [v0.9.2](https://github.com/jedie/DragonPy/compare/v0.9.1...v0.9.2)
