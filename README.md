@@ -106,12 +106,13 @@ Usage: ./cli.py [OPTIONS] COMMAND [ARGS]...
 │ --help      Show this message and exit.                                                          │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 ╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────╮
-│ download-roms       Download/Test only ROM files                                                 │
-│ editor              Run only the BASIC editor                                                    │
-│ gui                 <<< **start this** - Start the DragonPy tkinter starter GUI                  │
-│ log-list            List all exiting loggers and exit.                                           │
-│ run                 Run a machine emulation                                                      │
-│ version             Print version and exit                                                       │
+│ download-roms              Download/Test only ROM files                                          │
+│ editor                     Run only the BASIC editor                                             │
+│ gui                        <<< **start this** - Start the DragonPy tkinter starter GUI           │
+│ log-list                   List all exiting loggers and exit.                                    │
+│ run                        Run a machine emulation                                               │
+│ update-readme-history      Update project history base on git commits/tags in README.md          │
+│ version                    Print version and exit                                                │
 ╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 [comment]: <> (✂✂✂ auto generated main help end ✂✂✂)
@@ -184,8 +185,8 @@ Usage: ./dev-cli.py [OPTIONS] COMMAND [ARGS]...
 │ fix-code-style              Fix code style of all cli_base source code files via darker          │
 │ install                     Run pip-sync and install 'cli_base' via pip as editable.             │
 │ mypy                        Run Mypy (configured in pyproject.toml)                              │
+│ pip-audit                   Run pip-audit check against current requirements files               │
 │ publish                     Build and upload this project to PyPi                                │
-│ safety                      Run safety check against current requirements files                  │
 │ test                        Run unittests                                                        │
 │ tox                         Run tox                                                              │
 │ update                      Update "requirements*.txt" dependencies files                        │
@@ -465,6 +466,9 @@ To make a new release, do this:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [v0.9.3](https://github.com/jedie/DragonPy/compare/v0.9.2...v0.9.3)
+  * 2024-09-24 - Update project setup + Use humanize from MC6809
+  * 2024-09-24 - Update requirements
 * [v0.9.2](https://github.com/jedie/DragonPy/compare/v0.9.1...v0.9.2)
   * 2024-04-16 - Bugfix packaging
   * 2024-04-16 - Update requirements and apply manageproject updates
@@ -485,6 +489,9 @@ To make a new release, do this:
   * 2023-08-05 - Split CLI and dev-CLI + remove Python 3.9 support
   * 2023-03-07 - update requirements
   * 2023-03-07 - Update README
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v0.8.0](https://github.com/jedie/DragonPy/compare/v0.7.0...v0.8.0)
   * 2023-03-07 - Update README.md
   * 2023-03-06 - Migrate to pip-tools via https://github.com/jedie/manageprojects
@@ -514,9 +521,6 @@ To make a new release, do this:
   * 2022-01-30 - remove nose test from CLI
   * 2022-01-30 - Use dev-shell
   * 2022-01-30 - Cache pip+roms
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v0.7.0](https://github.com/jedie/DragonPy/compare/v0.6.0...v0.7.0)
   * 2020-10-01 - update README
   * 2020-10-01 - Update windows tk work-a-round: https://github.com/pypa/virtualenv/issues/93

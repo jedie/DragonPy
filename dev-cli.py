@@ -41,14 +41,14 @@ if sys.platform == 'win32':  # wtf
     BIN_NAME = 'Scripts'
     FILE_EXT = '.exe'
 else:
-    # Files under Linux/Mac and all other than Windows, e.g.: .../.venv/bin/python
+    # Files under Linux/Mac and all other than Windows, e.g.: .../.venv/bin/python3
     BIN_NAME = 'bin'
     FILE_EXT = ''
 
 BASE_PATH = Path(__file__).parent
 VENV_PATH = BASE_PATH / '.venv'
 BIN_PATH = VENV_PATH / BIN_NAME
-PYTHON_PATH = BIN_PATH / f'python{FILE_EXT}'
+PYTHON_PATH = BIN_PATH / f'python3{FILE_EXT}'
 PIP_PATH = BIN_PATH / f'pip{FILE_EXT}'
 PIP_SYNC_PATH = BIN_PATH / f'pip-sync{FILE_EXT}'
 
@@ -87,9 +87,11 @@ def main(argv):
 
     # Create virtual env in ".venv/":
     if not PYTHON_PATH.is_file():
-        print('Create virtual env here:', VENV_PATH.absolute())
+        print(f'Create virtual env here: {VENV_PATH.absolute()}')
         builder = venv.EnvBuilder(symlinks=True, upgrade=True, with_pip=True)
         builder.create(env_dir=VENV_PATH)
+
+    if not PROJECT_SHELL_SCRIPT.is_file() or not venv_up2date():
         # Update pip
         verbose_check_call(PYTHON_PATH, '-m', 'pip', 'install', '-U', 'pip')
 
@@ -110,6 +112,9 @@ def main(argv):
         verbose_check_call(PROJECT_SHELL_SCRIPT, *argv[1:])
     except subprocess.CalledProcessError as err:
         sys.exit(err.returncode)
+    except KeyboardInterrupt:
+        print('Bye!')
+        sys.exit(130)
 
 
 if __name__ == '__main__':

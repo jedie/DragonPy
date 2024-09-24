@@ -8,10 +8,10 @@ readme = "README.md"
 authors = [
     {name = 'Jens Diemer', email = 'git@jensdiemer.de'}
 ]
-requires-python = ">=3.9"
+requires-python = ">=3.11"
 dependencies = [
     "MC6809",  # https://github.com/6809/MC6809
-    "dragonlib",  # https://github.com/6809/dragonlib
+    "dragonlib>=0.2.0",  # https://github.com/6809/dragonlib
     "cli-base-utilities",  # https://github.com/jedie/cli-base-utilities
     "manageprojects",  # https://github.com/jedie/manageprojects
     "pygments",  # https://pygments.org/
@@ -34,7 +34,7 @@ dev = [
     "pyflakes",  # https://github.com/PyCQA/pyflakes
     "codespell",  # https://github.com/codespell-project/codespell
     "EditorConfig",  # https://github.com/editorconfig/editorconfig-core-py
-    "safety",  # https://github.com/pyupio/safety
+    "pip-audit",  # https://github.com/pypa/pip-audit
     "mypy",  # https://github.com/python/mypy
     "twine",  # https://github.com/pypa/twine
     "typeguard",  # https://github.com/agronholm/typeguard/
@@ -45,12 +45,20 @@ dev = [
     # https://github.com/pygments/pygments
     "darker[flynt, isort, color]",
 
-    "tomli",  # https://github.com/hukkin/tomli
-    #
-    # tomli only needed for Python <3.11, but see pip bug:
-    # https://github.com/pypa/pip/issues/9644 / https://github.com/jazzband/pip-tools/issues/1866
-    #'tomli;python_version<"3.11"',  # https://github.com/hukkin/tomli
+    # Work-a-round for: https://github.com/jazzband/pip-tools/issues/1866
+    # see also: https://github.com/jazzband/pip-tools/issues/994#issuecomment-1321226661
+    # backports.tarfile is needed for python <3.12
+    'backports.tarfile', # via jaraco-context -> keyring -> twine
 ]
+
+[tool.pip-tools.compile]
+index-url="https://pypi.org/simple"
+extra-index-url=["https://www.piwheels.org/simple"] # Add hashes of piwheels packages, too!
+generate-hashes = true
+# https://pip-tools.readthedocs.io/en/stable/#deprecations
+allow-unsafe = true
+resolver="backtracking"
+strip-extras = true
 
 [project.urls]
 Documentation = "https://github.com/jedie/DragonPy"
@@ -61,8 +69,7 @@ dragonpy_app = "dragonpy.__main__:main"
 dragonpy_dev = "dragonpy.cli_dev:main"
 
 [tool.cli_base]
-version_module_name = "dragonpy"
-
+version_module_name = "dragonpy"  # Used by "update-readme-history" git hook
 
 [build-system]
 requires = ["setuptools>=61.0", "setuptools_scm>=7.1"]
@@ -74,6 +81,13 @@ include = ["basic_editor", "dragonpy", "PyDC"]
 
 [tool.setuptools.dynamic]
 version = {attr = "dragonpy.__version__"}
+
+
+[tool.cli_base.pip_audit]
+requirements=["requirements.dev.txt"]
+strict=true
+require_hashes=true
+ignore-vuln=[]
 
 
 [tool.darker]
@@ -126,7 +140,7 @@ exclude_lines = [
 legacy_tox_ini = """
 [tox]
 isolated_build = True
-envlist = py{312,311,310,39}
+envlist = py{312,311}
 skip_missing_interpreters = True
 
 [testenv]
@@ -156,6 +170,7 @@ cookiecutter_template = "https://github.com/jedie/cookiecutter_templates/"
 cookiecutter_directory = "piptools-python"
 applied_migrations = [
     "765b8fb", # 2024-03-12T09:08:01+01:00
+    "56c3caa", # 2024-09-22T16:52:30+02:00
 ]
 
 [manageprojects.cookiecutter_context.cookiecutter]
