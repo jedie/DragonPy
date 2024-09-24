@@ -16,7 +16,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.12", "3.11", "3.10", "3.9"]
+        python-version: ["3.12", "3.11"]
     steps:
     - name: Checkout
       run: |
@@ -26,7 +26,7 @@ jobs:
         git checkout $GITHUB_SHA || (git fetch && git checkout $GITHUB_SHA)
 
     - name: 'Set up Python ${{ matrix.python-version }}'
-      uses: actions/setup-python@v4
+      uses: actions/setup-python@v5
       # https://github.com/marketplace/actions/setup-python
       with:
         python-version: '${{ matrix.python-version }}'
@@ -63,9 +63,13 @@ jobs:
       run: |
         ./cli.py download-roms
 
-    - name: 'Safety'
+    - name: 'dev CLI help'
       run: |
-        ./dev-cli.py safety
+        ./dev-cli.py --help
+
+    - name: 'Run pip-audit'
+      run: |
+        ./dev-cli.py pip-audit
 
     - name: 'Run tests with Python v${{ matrix.python-version }}'
       env:
@@ -75,7 +79,7 @@ jobs:
         ./dev-cli.py coverage
 
     - name: 'Upload coverage report'
-      uses: codecov/codecov-action@v3
+      uses: codecov/codecov-action@v4
       # https://github.com/marketplace/actions/codecov
       with:
         fail_ci_if_error: false

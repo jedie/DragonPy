@@ -18,15 +18,14 @@ import tkinter as tk
 from tkinter import font as TkFont
 from tkinter import messagebox, scrolledtext
 
-from dragonlib.utils.auto_shift import invert_shift
-
 import dragonpy
 from basic_editor.editor import EditorWindow
+from dragonlib.utils.auto_shift import invert_shift
 from dragonpy.core.gui_starter import MultiStatusBar
 from dragonpy.Dragon32.gui_config import BaseTkinterGUIConfig, RuntimeCfg
 from dragonpy.Dragon32.keyboard_map import add_to_input_queue, inkey_from_tk_event
 from dragonpy.Dragon32.MC6847 import MC6847_TextModeCanvas
-from dragonpy.utils.humanize import get_python_info, locale_format_number
+from MC6809.utils.humanize import get_python_info, locale_format_number
 
 
 log = logging.getLogger(__name__)
