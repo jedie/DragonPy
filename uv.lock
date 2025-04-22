@@ -544,12 +544,11 @@ source = { editable = "." }
 dependencies = [
     { name = "bx-py-utils" },
     { name = "cli-base-utilities" },
-    { name = "click" },
     { name = "dragonlib" },
     { name = "mc6809" },
     { name = "pygments" },
     { name = "rich" },
-    { name = "rich-click" },
+    { name = "tyro" },
 ]
 
 [package.dev-dependencies]
@@ -579,12 +578,11 @@ dev = [
 requires-dist = [
     { name = "bx-py-utils" },
     { name = "cli-base-utilities" },
-    { name = "click" },
     { name = "dragonlib", specifier = ">=0.2.0" },
     { name = "mc6809" },
     { name = "pygments" },
     { name = "rich" },
-    { name = "rich-click" },
+    { name = "tyro" },
 ]
 
 [package.metadata.requires-dev]
