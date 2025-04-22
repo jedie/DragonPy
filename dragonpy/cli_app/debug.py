@@ -1,13 +1,11 @@
-from __future__ import annotations
-
 import logging
 
 from rich import print  # noqa
 
-from dragonpy.cli_app import cli
+from dragonpy.cli_app import app
 
 
-@cli.command()
+@app.command
 def log_list():
     """
     List all exiting loggers and exit.

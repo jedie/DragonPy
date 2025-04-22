@@ -1,12 +1,10 @@
 from bx_py_utils.auto_doc import assert_readme_block
 from bx_py_utils.path import assert_is_file
-from manageprojects.test_utils.click_cli_utils import invoke_click
+from cli_base.cli_tools.test_utils.rich_test_utils import NoColorEnvRichClick, invoke
 from manageprojects.tests.base import BaseTestCase
 
 from dragonpy import constants
-from dragonpy.cli_app import cli
 from dragonpy.cli_dev import PACKAGE_ROOT
-from dragonpy.cli_dev import cli as dev_cli
 
 
 def assert_cli_help_in_readme(text_block: str, marker: str):
@@ -24,41 +22,32 @@ def assert_cli_help_in_readme(text_block: str, marker: str):
 
 
 class ReadmeTestCase(BaseTestCase):
+
     def test_main_help(self):
-        stdout = invoke_click(cli, '--help')
+        with NoColorEnvRichClick():
+            stdout = invoke(cli_bin=PACKAGE_ROOT / 'cli.py', args=['--help'], strip_line_prefix='usage: ')
         self.assert_in_content(
             got=stdout,
             parts=(
-                'Usage: ./cli.py [OPTIONS] COMMAND [ARGS]...',
-                ' gui ',
-                ' run ',
-                'Run a machine emulation',
+                'usage: ./cli.py [-h]',
+                ' version ',
+                'Print version and exit',
                 constants.CLI_EPILOG,
             ),
         )
         assert_cli_help_in_readme(text_block=stdout, marker='main help')
 
     def test_dev_help(self):
-        stdout = invoke_click(dev_cli, '--help')
+        with NoColorEnvRichClick():
+            stdout = invoke(cli_bin=PACKAGE_ROOT / 'dev-cli.py', args=['--help'], strip_line_prefix='usage: ')
         self.assert_in_content(
             got=stdout,
             parts=(
-                'Usage: ./dev-cli.py [OPTIONS] COMMAND [ARGS]...',
+                'usage: ./dev-cli.py [-h]',
                 ' check-code-style ',
                 ' coverage ',
+                ' update-readme-history ',
                 constants.CLI_EPILOG,
             ),
         )
         assert_cli_help_in_readme(text_block=stdout, marker='dev help')
-
-    def test_run_help(self):
-        stdout = invoke_click(cli, 'run', '--help')
-        self.assert_in_content(
-            got=stdout,
-            parts=(
-                'Usage: ./cli.py run [OPTIONS]',
-                ' --machine ',
-                'Dragon32',
-            ),
-        )
-        assert_cli_help_in_readme(text_block=stdout, marker='run help')

@@ -23,7 +23,7 @@ from dragonpy.vectrex.machine import run_Vectrex
 
 
 # See https://packaging.python.org/en/latest/specifications/version-specifiers/
-__version__ = '0.9.3'
+__version__ = '0.10.0'
 __author__ = 'Jens Diemer <git@jensdiemer.de>'
 
 

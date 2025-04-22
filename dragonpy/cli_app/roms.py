@@ -1,38 +1,36 @@
-from __future__ import annotations
+from typing import Annotated
 
-import rich_click as click
-from cli_base.click_defaults import OPTION_ARGS_DEFAULT_FALSE
+import tyro
+from cli_base.cli_tools.verbosity import setup_logging
+from cli_base.tyro_commands import TyroVerbosityArgType
 from rich import print  # noqa
 
-from dragonpy.cli_app import cli
+from dragonpy.cli_app import app
 from dragonpy.components.rom import ROMFileError
 from dragonpy.core.configs import machine_dict
 
 
-OPTION_KWARGS_MACHINE = dict(
-    type=click.Choice(sorted(machine_dict.keys())),
-    default=machine_dict.DEFAULT,
-    show_default=True,
-    help='Used machine configuration',
-)
+TyroMachineArgType = Annotated[
+    str | None,
+    tyro.conf.arg(
+        default=None,
+        help=f'Limits download to one machine, if given. One of: {sorted(machine_dict.keys())}',
+    ),
+]
 
 
-@cli.command()
-@click.option('--verbose/--no-verbose', **OPTION_ARGS_DEFAULT_FALSE)
-@click.option(
-    '--machines',
-    '-m',
-    multiple=True,
-    type=click.Choice(sorted(machine_dict.keys())),
-    default=None,
-    help='Download ROM only for given machine(s). Leave empty to download all known ROMs',
-)
-def download_roms(machines: tuple[str] | None, verbose: bool = True):
+@app.command
+def download_roms(machine: TyroMachineArgType, verbosity: TyroVerbosityArgType):
     """
     Download/Test only ROM files
     """
-    if not machines:
+    setup_logging(verbosity=verbosity)
+
+    if machine:
+        machines = [machine]
+    else:
         machines = sorted(machine_dict.keys())
+
     print(f'Download ROMs for {machines}')
     success = 0
     for machine_name in machines:

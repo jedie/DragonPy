@@ -19,12 +19,14 @@ dependencies = [
     "rich-click",  # https://github.com/ewels/rich-click
     "rich",  # https://github.com/Textualize/rich
 ]
-[project.optional-dependencies]
+
+[dependency-groups]
 dev = [
     "manageprojects",  # https://github.com/jedie/manageprojects
     "urllib3", # for bx_py_utils.test_utils.deny_requests.deny_any_real_request() in tests
-    "pip-tools",  # https://github.com/jazzband/pip-tools/
-    "tox",  # https://github.com/tox-dev/tox
+    "uv",  # https://github.com/astral-sh/uv
+    "hatchling",  # https://github.com/pypa/hatch/tree/master/backend
+    "nox",  # https://github.com/wntrblm/nox
     "coverage",  # https://github.com/nedbat/coveragepy
     "autopep8",  # https://github.com/hhatto/autopep8
     "pyupgrade",  # https://github.com/asottile/pyupgrade
@@ -36,6 +38,7 @@ dev = [
     "pip-audit",  # https://github.com/pypa/pip-audit
     "mypy",  # https://github.com/python/mypy
     "twine",  # https://github.com/pypa/twine
+    "pre-commit",  # https://github.com/pre-commit/pre-commit
     "typeguard",  # https://github.com/agronholm/typeguard/
 
     # https://github.com/akaihola/darker
@@ -43,21 +46,7 @@ dev = [
     # https://github.com/pycqa/isort
     # https://github.com/pygments/pygments
     "darker[flynt, isort, color]",
-
-    # Work-a-round for: https://github.com/jazzband/pip-tools/issues/1866
-    # see also: https://github.com/jazzband/pip-tools/issues/994#issuecomment-1321226661
-    # backports.tarfile is needed for python <3.12
-    'backports.tarfile', # via jaraco-context -> keyring -> twine
 ]
-
-[tool.pip-tools.compile]
-index-url="https://pypi.org/simple"
-extra-index-url=["https://www.piwheels.org/simple"] # Add hashes of piwheels packages, too!
-generate-hashes = true
-# https://pip-tools.readthedocs.io/en/stable/#deprecations
-allow-unsafe = true
-resolver="backtracking"
-strip-extras = true
 
 [project.urls]
 Documentation = "https://github.com/jedie/DragonPy"
@@ -67,19 +56,15 @@ Source = "https://github.com/jedie/DragonPy"
 dragonpy_app = "dragonpy.__main__:main"
 dragonpy_dev = "dragonpy.cli_dev:main"
 
-[tool.cli_base]
-version_module_name = "dragonpy"  # Used by "update-readme-history" git hook
-
 [build-system]
-requires = ["setuptools>=61.0", "setuptools_scm>=7.1"]
-build-backend = "setuptools.build_meta"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.setuptools.packages.find]
-where = ["."]
-include = ["basic_editor", "dragonpy", "PyDC"]
+[tool.hatch.build.targets.wheel]
+packages = ["basic_editor", "dragonpy", "PyDC"]
 
-[tool.setuptools.dynamic]
-version = {attr = "dragonpy.__version__"}
+[tool.hatch.version]
+path = "dragonpy/__init__.py"
 
 
 [tool.cli_base.pip_audit]
@@ -87,6 +72,10 @@ requirements=["requirements.dev.txt"]
 strict=true
 require_hashes=true
 ignore-vuln=[]
+
+
+[tool.cli_base]
+version_module_name = "dragonpy"  # Used by "update-readme-history" git hook
 
 
 [tool.darker]
@@ -99,9 +88,6 @@ diff = false
 check = false
 stdout = false
 isort = true
-lint = [
-    "flake8",
-]
 log_level = "INFO"
 
 
@@ -135,24 +121,6 @@ exclude_lines = [
 ]
 
 
-[tool.tox]  # https://tox.wiki/en/latest/config.html#pyproject-toml
-legacy_tox_ini = """
-[tox]
-isolated_build = True
-envlist = py{312,311}
-skip_missing_interpreters = True
-
-[testenv]
-passenv = *
-skip_install = true
-commands_pre =
-    pip install -U pip-tools
-    pip-sync requirements.dev.txt
-commands =
-    {envpython} -m coverage run --context='{envname}'
-"""
-
-
 [tool.mypy]
 warn_unused_configs = true
 ignore_missing_imports = true
@@ -166,10 +134,11 @@ exclude = ['.venv', 'tests']
 initial_revision = "47cac0a"
 initial_date = 2023-03-06T19:46:41+01:00
 cookiecutter_template = "https://github.com/jedie/cookiecutter_templates/"
-cookiecutter_directory = "piptools-python"
+cookiecutter_directory = "uv-python"
 applied_migrations = [
     "765b8fb", # 2024-03-12T09:08:01+01:00
     "56c3caa", # 2024-09-22T16:52:30+02:00
+    "a294179", # 2025-04-22T17:02:46+02:00
 ]
 
 [manageprojects.cookiecutter_context.cookiecutter]
