@@ -100,20 +100,23 @@ The output of `./cli.py --help` looks like:
 
 [comment]: <> (✂✂✂ auto generated main help start ✂✂✂)
 ```
-Usage: ./cli.py [OPTIONS] COMMAND [ARGS]...
+usage: ./cli.py [-h] {download-roms,editor,gui,log-list,run,version}
 
-╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
-│ --help      Show this message and exit.                                                          │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────╮
-│ download-roms              Download/Test only ROM files                                          │
-│ editor                     Run only the BASIC editor                                             │
-│ gui                        <<< **start this** - Start the DragonPy tkinter starter GUI           │
-│ log-list                   List all exiting loggers and exit.                                    │
-│ run                        Run a machine emulation                                               │
-│ update-readme-history      Update project history base on git commits/tags in README.md          │
-│ version                    Print version and exit                                                │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+
+╭─ options ─────────────────────────────────────────────────────────────────────╮
+│ -h, --help        show this help message and exit                             │
+╰───────────────────────────────────────────────────────────────────────────────╯
+╭─ subcommands ─────────────────────────────────────────────────────────────────╮
+│ {download-roms,editor,gui,log-list,run,version}                               │
+│     download-roms                                                             │
+│                   Download/Test only ROM files                                │
+│     editor        Run only the BASIC editor                                   │
+│     gui           <<< **start this** - Start the DragonPy tkinter starter GUI │
+│     log-list      List all exiting loggers and exit.                          │
+│     run           Run a machine emulation                                     │
+│     version       Print version and exit                                      │
+╰───────────────────────────────────────────────────────────────────────────────╯
 ```
 [comment]: <> (✂✂✂ auto generated main help end ✂✂✂)
 
@@ -174,27 +177,40 @@ The output of `./dev-cli.py --help` looks like:
 
 [comment]: <> (✂✂✂ auto generated dev help start ✂✂✂)
 ```
-Usage: ./dev-cli.py [OPTIONS] COMMAND [ARGS]...
+usage: ./dev-cli.py [-h]
+                    {check-code-style,coverage,fix-code-style,install,mypy,nox,pip-audit,publish,test,update,update-re
+adme-history,update-test-snapshot-files,version}
 
-╭─ Options ────────────────────────────────────────────────────────────────────────────────────────╮
-│ --help      Show this message and exit.                                                          │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ Commands ───────────────────────────────────────────────────────────────────────────────────────╮
-│ check-code-style            Check code style by calling darker + flake8                          │
-│ coverage                    Run tests and show coverage report.                                  │
-│ fix-code-style              Fix code style of all cli_base source code files via darker          │
-│ install                     Run pip-sync and install 'cli_base' via pip as editable.             │
-│ mypy                        Run Mypy (configured in pyproject.toml)                              │
-│ pip-audit                   Run pip-audit check against current requirements files               │
-│ publish                     Build and upload this project to PyPi                                │
-│ test                        Run unittests                                                        │
-│ tox                         Run tox                                                              │
-│ update                      Update "requirements*.txt" dependencies files                        │
-│ update-readme-history       Update project history base on git commits/tags in README.md         │
-│ update-test-snapshot-files  Update all test snapshot files (by remove and recreate all snapshot  │
-│                             files)                                                               │
-│ version                     Print version and exit                                               │
-╰──────────────────────────────────────────────────────────────────────────────────────────────────╯
+
+
+╭─ options ──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ -h, --help        show this help message and exit                                                                  │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ subcommands ──────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ {check-code-style,coverage,fix-code-style,install,mypy,nox,pip-audit,publish,test,update,update-readme-history,upd │
+│ ate-test-snapshot-files,version}                                                                                   │
+│     check-code-style                                                                                               │
+│                   Check code style by calling darker + flake8                                                      │
+│     coverage      Run tests and show coverage report.                                                              │
+│     fix-code-style                                                                                                 │
+│                   Fix code style of all dragonpy source code files via darker                                      │
+│     install       Install requirements and 'dragonpy' via pip as editable.                                         │
+│     mypy          Run Mypy (configured in pyproject.toml)                                                          │
+│     nox           Run nox                                                                                          │
+│     pip-audit     Run pip-audit check against current requirements files                                           │
+│     publish       Build and upload this project to PyPi                                                            │
+│     test          Run unittests                                                                                    │
+│     update        Update "requirements*.txt" dependencies files                                                    │
+│     update-readme-history                                                                                          │
+│                   Update project history base on git commits/tags in README.md Will be exited with 1 if the        │
+│                   README.md was updated otherwise with 0.                                                          │
+│                                                                                                                    │
+│                   Also, callable via e.g.:                                                                         │
+│                       python -m cli_base update-readme-history -v                                                  │
+│     update-test-snapshot-files                                                                                     │
+│                   Update all test snapshot files (by remove and recreate all snapshot files)                       │
+│     version       Print version and exit                                                                           │
+╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 [comment]: <> (✂✂✂ auto generated dev help end ✂✂✂)
 
@@ -466,6 +482,8 @@ To make a new release, do this:
 
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
+* [v0.10.0](https://github.com/jedie/DragonPy/compare/v0.9.3...v0.10.0)
+  * 2025-04-22 - Migrate from pip-tools to uv
 * [v0.9.3](https://github.com/jedie/DragonPy/compare/v0.9.2...v0.9.3)
   * 2024-09-24 - Remove manageprojects from normal dependencies, it's not needed ;)
   * 2024-09-24 - Update CoCo2b ROM url info
@@ -486,14 +504,14 @@ To make a new release, do this:
   * 2023-11-03 - Auto generate README history
   * 2023-11-03 - Use https://github.com/jedie/cli-base-utilities
   * 2023-11-02 - Bump pip from 23.2.1 to 23.3
+
+<details><summary>Expand older history entries ...</summary>
+
 * [v0.9.0](https://github.com/jedie/DragonPy/compare/v0.8.0...v0.9.0)
   * 2023-08-05 - fix publish
   * 2023-08-05 - Split CLI and dev-CLI + remove Python 3.9 support
   * 2023-03-07 - update requirements
   * 2023-03-07 - Update README
-
-<details><summary>Expand older history entries ...</summary>
-
 * [v0.8.0](https://github.com/jedie/DragonPy/compare/v0.7.0...v0.8.0)
   * 2023-03-07 - Update README.md
   * 2023-03-06 - Migrate to pip-tools via https://github.com/jedie/manageprojects

@@ -1,26 +1,22 @@
-import rich_click as click
-from cli_base.cli_tools.dev_tools import run_coverage, run_tox, run_unittest_cli
+from cli_base.cli_tools.dev_tools import run_coverage, run_nox, run_unittest_cli
 from cli_base.cli_tools.subprocess_utils import verbose_check_call
 from cli_base.cli_tools.test_utils.snapshot import UpdateTestSnapshotFiles
-from cli_base.cli_tools.verbosity import OPTION_KWARGS_VERBOSE
+from cli_base.tyro_commands import TyroVerbosityArgType
 
-from dragonpy.cli_dev import PACKAGE_ROOT, cli
+from dragonpy.cli_dev import PACKAGE_ROOT, app
 
 
-@cli.command()
-@click.option('-v', '--verbosity', **OPTION_KWARGS_VERBOSE)
-def mypy(verbosity: int):
+@app.command
+def mypy(verbosity: TyroVerbosityArgType):
     """Run Mypy (configured in pyproject.toml)"""
     verbose_check_call('mypy', '.', cwd=PACKAGE_ROOT, verbose=verbosity > 0, exit_on_error=True)
 
 
-@cli.command()
-@click.option('-v', '--verbosity', **OPTION_KWARGS_VERBOSE)
-def update_test_snapshot_files(verbosity: int):
+@app.command
+def update_test_snapshot_files(verbosity: TyroVerbosityArgType):
     """
     Update all test snapshot files (by remove and recreate all snapshot files)
     """
-
     with UpdateTestSnapshotFiles(root_path=PACKAGE_ROOT, verbose=verbosity > 0):
         # Just recreate them by running tests:
         run_unittest_cli(
@@ -32,7 +28,7 @@ def update_test_snapshot_files(verbosity: int):
         )
 
 
-@cli.command()  # Dummy command
+@app.command  # Dummy command
 def test():
     """
     Run unittests
@@ -40,7 +36,7 @@ def test():
     run_unittest_cli()
 
 
-@cli.command()  # Dummy command
+@app.command  # Dummy command
 def coverage():
     """
     Run tests and show coverage report.
@@ -48,9 +44,9 @@ def coverage():
     run_coverage()
 
 
-@cli.command()  # Dummy "tox" command
-def tox():
+@app.command  # Dummy "nox" command
+def nox():
     """
-    Run tox
+    Run nox
     """
-    run_tox()
+    run_nox()

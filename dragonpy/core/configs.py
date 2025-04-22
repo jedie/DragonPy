@@ -20,7 +20,6 @@ class MachineDict(dict):
     def register(self, name, cls, default=False):
         dict.__setitem__(self, name, cls)
         if default:
-            assert self.DEFAULT is None
             self.DEFAULT = name
 
 
