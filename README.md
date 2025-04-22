@@ -483,6 +483,7 @@ To make a new release, do this:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [v0.10.0](https://github.com/jedie/DragonPy/compare/v0.9.3...v0.10.0)
+  * 2025-04-22 - replace click with tyro
   * 2025-04-22 - Migrate from pip-tools to uv
 * [v0.9.3](https://github.com/jedie/DragonPy/compare/v0.9.2...v0.9.3)
   * 2024-09-24 - Remove manageprojects from normal dependencies, it's not needed ;)

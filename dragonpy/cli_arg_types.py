@@ -12,8 +12,9 @@ TyroTraceArgType = Annotated[
         help='Create trace lines',
     ),
 ]
+
 TyroMaxOpsArgType = Annotated[
-    int,
+    int | None,
     tyro.conf.arg(default=None, help='If given: Stop CPU after given cycles else: run forever'),
 ]
 

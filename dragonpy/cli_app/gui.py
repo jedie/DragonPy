@@ -28,7 +28,7 @@ def run(
     machine: TyroMachineArgType,
     trace: TyroTraceArgType,
     max_ops: TyroMaxOpsArgType,
-    verbosity: int,  # TODO: use TyroVerbosityArgType
+    verbosity: int = 0,  # TODO: use TyroVerbosityArgType
 ):
     """Run a machine emulation"""
     machine_run_func, MachineConfigClass = machine_dict[machine]
