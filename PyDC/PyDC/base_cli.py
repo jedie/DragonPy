@@ -39,8 +39,6 @@ class Base_CLI:
             arg_kwargs["description"] = self.DESCRIPTION
         if self.EPOLOG is not None:
             arg_kwargs["epilog"] = self.EPOLOG
-        if self.VERSION is not None:
-            arg_kwargs["version"] = self.VERSION
 
         self.parser = argparse.ArgumentParser(**arg_kwargs)
 
