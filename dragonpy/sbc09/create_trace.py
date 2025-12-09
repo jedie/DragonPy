@@ -20,9 +20,9 @@ import time
 from functools import partial
 
 from MC6809.components.MC6809data.MC6809_data_utils import MC6809OP_DATA_DICT
+from MC6809.utils.humanize import cc_value2txt
 
 from dragonpy.sbc09.mem_info import SBC09MemInfo
-from MC6809.utils.humanize import cc_value2txt
 
 
 def proc_killer(proc, timeout):

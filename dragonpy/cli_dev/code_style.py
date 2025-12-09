@@ -1,20 +1,12 @@
-from cli_base.cli_tools import code_style
+from cli_base.cli_tools.code_style import assert_code_style
 from cli_base.tyro_commands import TyroVerbosityArgType
 
 from dragonpy.cli_dev import PACKAGE_ROOT, app
 
 
 @app.command
-def fix_code_style(verbosity: TyroVerbosityArgType, color: bool = True):
+def lint(verbosity: TyroVerbosityArgType = 1):
     """
-    Fix code style of all dragonpy source code files via darker
+    Check/fix code style by run: "ruff check --fix"
     """
-    code_style.fix(package_root=PACKAGE_ROOT, darker_color=color, darker_verbose=verbosity > 0)
-
-
-@app.command
-def check_code_style(verbosity: TyroVerbosityArgType, color: bool = True):
-    """
-    Check code style by calling darker + flake8
-    """
-    code_style.check(package_root=PACKAGE_ROOT, darker_color=color, darker_verbose=verbosity > 0)
+    assert_code_style(package_root=PACKAGE_ROOT, verbose=bool(verbosity), sys_exit=True)

@@ -36,7 +36,7 @@ def pip_audit(verbosity: TyroVerbosityArgType):
 @app.command
 def update(verbosity: TyroVerbosityArgType):
     """
-    Update "requirements*.txt" dependencies files
+    Update dependencies (uv.lock) and git pre-commit hooks
     """
     setup_logging(verbosity=verbosity)
 

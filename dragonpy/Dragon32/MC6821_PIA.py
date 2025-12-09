@@ -21,9 +21,10 @@
 import logging
 import queue
 
+from MC6809.utils.humanize import byte2bit_string
+
 from dragonpy import constants
 from dragonpy.utils.bits import is_bit_set, set_bit
-from MC6809.utils.humanize import byte2bit_string
 
 
 log = logging.getLogger(__name__)

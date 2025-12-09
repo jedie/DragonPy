@@ -5,6 +5,7 @@
 import importlib
 import logging
 import sys
+from collections.abc import Sequence
 
 from bx_py_utils.path import assert_is_file
 from cli_base.autodiscover import import_all_files
@@ -46,7 +47,7 @@ def version():
     sys.exit(0)
 
 
-def main():
+def main(args: Sequence[str] | None = None):
     print_version(dragonpy)
 
     if len(sys.argv) >= 2:
@@ -65,4 +66,5 @@ def main():
         description=constants.CLI_EPILOG,
         use_underscores=False,  # use hyphens instead of underscores
         sort_subcommands=True,
+        args=args,
     )

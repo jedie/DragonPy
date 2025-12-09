@@ -13,14 +13,14 @@ import logging
 import tkinter as tk
 
 from cli_base.cli_tools.subprocess_utils import verbose_check_call
+from MC6809.core.benchmark import run_benchmark
+from MC6809.utils.humanize import get_python_info
 from rich import print  # noqa
 
 import dragonpy
 from dragonpy import constants
 from dragonpy.constants import VERBOSITY_DEFAULT, VERBOSITY_DICT2, VERBOSITY_STRINGS
 from dragonpy.core.configs import machine_dict
-from MC6809.core.bechmark import run_benchmark
-from MC6809.utils.humanize import get_python_info
 
 
 DEFAULT_LOOPS = 5

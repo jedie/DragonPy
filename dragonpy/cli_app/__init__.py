@@ -4,6 +4,7 @@
 
 import logging
 import sys
+from collections.abc import Sequence
 
 from cli_base.autodiscover import import_all_files
 from cli_base.cli_tools.version_info import print_version
@@ -29,11 +30,12 @@ def version():
     sys.exit(0)
 
 
-def main():
+def main(args: Sequence[str] | None = None):
     print_version(dragonpy)
     app.cli(
         prog='./cli.py',
         description=constants.CLI_EPILOG,
         use_underscores=False,  # use hyphens instead of underscores
         sort_subcommands=True,
+        args=args,
     )
