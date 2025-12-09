@@ -104,19 +104,18 @@ usage: ./cli.py [-h] {download-roms,editor,gui,log-list,run,version}
 
 
 
-╭─ options ─────────────────────────────────────────────────────────────────────╮
-│ -h, --help        show this help message and exit                             │
-╰───────────────────────────────────────────────────────────────────────────────╯
-╭─ subcommands ─────────────────────────────────────────────────────────────────╮
-│ {download-roms,editor,gui,log-list,run,version}                               │
-│     download-roms                                                             │
-│                   Download/Test only ROM files                                │
-│     editor        Run only the BASIC editor                                   │
-│     gui           <<< **start this** - Start the DragonPy tkinter starter GUI │
-│     log-list      List all exiting loggers and exit.                          │
-│     run           Run a machine emulation                                     │
-│     version       Print version and exit                                      │
-╰───────────────────────────────────────────────────────────────────────────────╯
+╭─ options ──────────────────────────────────────────────────────────────────────╮
+│ -h, --help         show this help message and exit                             │
+╰────────────────────────────────────────────────────────────────────────────────╯
+╭─ subcommands ──────────────────────────────────────────────────────────────────╮
+│ (required)                                                                     │
+│   • download-roms  Download/Test only ROM files                                │
+│   • editor         Run only the BASIC editor                                   │
+│   • gui            <<< **start this** - Start the DragonPy tkinter starter GUI │
+│   • log-list       List all exiting loggers and exit.                          │
+│   • run            Run a machine emulation                                     │
+│   • version        Print version and exit                                      │
+╰────────────────────────────────────────────────────────────────────────────────╯
 ```
 [comment]: <> (✂✂✂ auto generated main help end ✂✂✂)
 
@@ -177,40 +176,34 @@ The output of `./dev-cli.py --help` looks like:
 
 [comment]: <> (✂✂✂ auto generated dev help start ✂✂✂)
 ```
-usage: ./dev-cli.py [-h]
-                    {check-code-style,coverage,fix-code-style,install,mypy,nox,pip-audit,publish,test,update,update-re
-adme-history,update-test-snapshot-files,version}
+usage: ./dev-cli.py [-h] {coverage,install,lint,mypy,nox,pip-audit,publish,test,update,update-readme-history,update-test-snapshot-files,version}
 
 
 
-╭─ options ──────────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ -h, --help        show this help message and exit                                                                  │
-╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
-╭─ subcommands ──────────────────────────────────────────────────────────────────────────────────────────────────────╮
-│ {check-code-style,coverage,fix-code-style,install,mypy,nox,pip-audit,publish,test,update,update-readme-history,upd │
-│ ate-test-snapshot-files,version}                                                                                   │
-│     check-code-style                                                                                               │
-│                   Check code style by calling darker + flake8                                                      │
-│     coverage      Run tests and show coverage report.                                                              │
-│     fix-code-style                                                                                                 │
-│                   Fix code style of all dragonpy source code files via darker                                      │
-│     install       Install requirements and 'dragonpy' via pip as editable.                                         │
-│     mypy          Run Mypy (configured in pyproject.toml)                                                          │
-│     nox           Run nox                                                                                          │
-│     pip-audit     Run pip-audit check against current requirements files                                           │
-│     publish       Build and upload this project to PyPi                                                            │
-│     test          Run unittests                                                                                    │
-│     update        Update "requirements*.txt" dependencies files                                                    │
-│     update-readme-history                                                                                          │
-│                   Update project history base on git commits/tags in README.md Will be exited with 1 if the        │
-│                   README.md was updated otherwise with 0.                                                          │
-│                                                                                                                    │
-│                   Also, callable via e.g.:                                                                         │
-│                       python -m cli_base update-readme-history -v                                                  │
-│     update-test-snapshot-files                                                                                     │
-│                   Update all test snapshot files (by remove and recreate all snapshot files)                       │
-│     version       Print version and exit                                                                           │
-╰────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ options ────────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ -h, --help    show this help message and exit                                                                        │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
+╭─ subcommands ────────────────────────────────────────────────────────────────────────────────────────────────────────╮
+│ (required)                                                                                                           │
+│   • coverage  Run tests and show coverage report.                                                                    │
+│   • install   Install requirements and 'dragonpy' via pip as editable.                                               │
+│   • lint      Check/fix code style by run: "ruff check --fix"                                                        │
+│   • mypy      Run Mypy (configured in pyproject.toml)                                                                │
+│   • nox       Run nox                                                                                                │
+│   • pip-audit Run pip-audit check against current requirements files                                                 │
+│   • publish   Build and upload this project to PyPi                                                                  │
+│   • test      Run unittests                                                                                          │
+│   • update    Update dependencies (uv.lock) and git pre-commit hooks                                                 │
+│   • update-readme-history                                                                                            │
+│ Update project history base on git commits/tags in README.md Will be exited with 1 if the README.md was updated      │
+│ otherwise with 0.                                                                                                    │
+│                                                                                                                      │
+│ Also, callable via e.g.:                                                                                             │
+│     python -m cli_base update-readme-history -v                                                                      │
+│   • update-test-snapshot-files                                                                                       │
+│ Update all test snapshot files (by remove and recreate all snapshot files)                                           │
+│   • version   Print version and exit                                                                                 │
+╰──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────╯
 ```
 [comment]: <> (✂✂✂ auto generated dev help end ✂✂✂)
 
@@ -483,6 +476,7 @@ To make a new release, do this:
 [comment]: <> (✂✂✂ auto generated history start ✂✂✂)
 
 * [v0.10.0](https://github.com/jedie/DragonPy/compare/v0.9.3...v0.10.0)
+  * 2025-12-09 - Update via manageprojects
   * 2025-07-28 - update requirements + remove obsolete requirements.txt
   * 2025-04-22 - replace click with tyro
   * 2025-04-22 - Migrate from pip-tools to uv

@@ -1,6 +1,8 @@
 
 
 name: tests
+permissions:
+  contents: read
 
 on:
   push:
@@ -16,7 +18,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ["3.13", "3.12", "3.11"]
+        python-version: ["3.14", "3.13", "3.12", "3.11"]
     steps:
     - name: Checkout
       run: |

@@ -12,6 +12,7 @@ import os
 import sys
 
 from PyDC.PyDC.wave2bitstream import Wave2Bitstream
+
 from .CassetteObjects import Cassette
 
 
