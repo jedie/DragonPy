@@ -11,6 +11,7 @@ import itertools
 import logging
 import math
 import struct
+import sys
 import time
 import wave
 
@@ -158,7 +159,7 @@ class Wave2Bitstream(WaveBase):
         percent = float(self.wave_pos) / self.frame_count * 100
         rest, eta, rate = process_info.update(self.wave_pos)
         sys.stdout.write(
-            f"\r{percent:.1f}% wav pos:{self.pformat_pos()} - eta: {eta} (rate: {rate:d}Frames/sec)       ")
+            f"\r{percent:.1f}% wav pos:{self.pformat_pos()} - eta: {eta} (rate: {int(rate)}Frames/sec)       ")
         sys.stdout.flush()
 
     def _get_statistics(self, max=None):
